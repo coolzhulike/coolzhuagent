@@ -300,8 +300,8 @@ impl HookRunner {
 
         match child.output_with_stdin(payload.as_bytes()) {
             Ok(output) => {
-                let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                let stdout = crate::decode_console_output(&output.stdout).trim().to_string();
+                let stderr = crate::decode_console_output(&output.stderr).trim().to_string();
                 let message = (!stdout.is_empty()).then_some(stdout);
                 match output.status.code() {
                     Some(0) => HookCommandOutcome::Allow { message },
@@ -511,6 +511,33 @@ mod tests {
         let result = runner.run_post_tool_use("bash", "{}", "ok", false);
         assert_eq!(result.unauthorized_skips(), 1);
         assert!(!post_marker.exists(), "未授权的事件不得运行");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn gb18030_hook_denial_and_warning_preserve_chinese() {
+        use std::io::Write;
+        let expected = "中文插件拒绝与警告";
+        let (bytes, _, errors) = encoding_rs::GB18030.encode(expected);
+        assert!(!errors);
+        let literal = bytes.iter().map(u8::to_string).collect::<Vec<_>>().join(",");
+        fs::create_dir_all("tmp").unwrap();
+        for (channel, exit_code) in [("Output", 2), ("Error", 1)] {
+            let mut script = tempfile::Builder::new().prefix("plugin-hook-encoding-").suffix(".ps1").tempfile_in("tmp").unwrap();
+            write!(script, "$hookBytes=[byte[]]({literal});$hookStream=[Console]::OpenStandard{channel}();$hookStream.Write($hookBytes,0,$hookBytes.Length);exit {exit_code}").unwrap();
+            script.flush().unwrap();
+            let script_path = script.into_temp_path();
+            let hooks = PluginHooks {
+                pre_tool_use: vec![format!("powershell.exe -NoProfile -NonInteractive -File {}", script_path.display())],
+                post_tool_use: Vec::new(),
+            };
+            let result = HookRunner::new(hooks)
+                .with_authorization(AllowHookEvents::default().allow_pre_tool_use())
+                .run_pre_tool_use("Read", "{}");
+            assert_eq!(result.is_denied(), exit_code == 2, "退出语义异常：{:?}", result.messages());
+            assert!(result.messages().iter().any(|message| message.contains(expected)), "中文丢失：{:?}", result.messages());
+            assert!(result.messages().iter().all(|message| !message.contains('\u{fffd}')));
+        }
     }
 
     #[test]

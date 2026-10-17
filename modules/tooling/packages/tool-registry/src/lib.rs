@@ -2669,9 +2669,9 @@ fn execute_repl(input: ReplInput) -> Result<ReplOutput, String> {
     command.args(runtime.args).arg(&input.code);
     let managed = runtime::managed_process::output(&mut command, input.timeout_ms.map(Duration::from_millis))
         .map_err(|error| error.to_string())?;
-    let output = managed.output;
+    let output = managed.output();
     let mut stderr = decode_console_output(&output.stderr);
-    if let Some(reason) = managed.interruption {
+    if let Some(reason) = managed.interruption() {
         if !stderr.is_empty() { stderr.push('\n'); }
         stderr.push_str(&format!("REPL 已停止，原因：{reason:?}；受管进程已退出"));
     }
@@ -2680,9 +2680,9 @@ fn execute_repl(input: ReplInput) -> Result<ReplOutput, String> {
         language: input.language,
         stdout: decode_console_output(&output.stdout),
         stderr,
-        exit_code: if managed.interruption.is_some() { 124 } else { output.status.code().unwrap_or(1) },
+        exit_code: if managed.interruption().is_some() { 124 } else { output.status.code().unwrap_or(1) },
         duration_ms: started.elapsed().as_millis(),
-        interrupted: managed.interruption.is_some(),
+        interrupted: managed.interruption().is_some(),
     })
 }
 
@@ -3163,16 +3163,16 @@ fn execute_shell_command(
     process.arg("-NoProfile").arg("-NonInteractive").arg("-Command").arg(command);
     if let Some(cwd) = cwd { process.current_dir(cwd); }
     let managed = runtime::managed_process::output(&mut process, timeout.map(Duration::from_millis))?;
-    let output = managed.output;
+    let output = managed.output();
     let mut stderr = decode_console_output(&output.stderr);
-    if let Some(reason) = managed.interruption {
+    if let Some(reason) = managed.interruption() {
         if !stderr.is_empty() { stderr.push('\n'); }
         stderr.push_str(&match reason {
             runtime::managed_process::Interruption::TimedOut => format!("Command exceeded timeout of {} ms", timeout.unwrap_or(0)),
             runtime::managed_process::Interruption::Cancelled => "Command cancelled; managed process exited".to_string(),
         });
     }
-    let return_code_interpretation = managed.interruption.map(|reason| match reason {
+    let return_code_interpretation = managed.interruption().map(|reason| match reason {
         runtime::managed_process::Interruption::TimedOut => "timeout".to_string(),
         runtime::managed_process::Interruption::Cancelled => "cancelled".to_string(),
     }).or_else(|| output.status.code().filter(|code| *code != 0).map(|code| format!("exit_code:{code}")));
@@ -3180,7 +3180,7 @@ fn execute_shell_command(
         stdout: decode_console_output(&output.stdout),
         stderr,
         raw_output_path: None,
-        interrupted: managed.interruption.is_some(),
+        interrupted: managed.interruption().is_some(),
         is_image: None,
         background_task_id: None,
         backgrounded_by_user: None,

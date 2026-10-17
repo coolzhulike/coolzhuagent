@@ -90,16 +90,16 @@ impl ToolInvocationExecutor for PluginExecutor {
             let result = runtime::managed_process::output_with_input(&mut command,
                 Some(Duration::from_secs(60)), Some(input.into_bytes()))
                 .map_err(|error| format!("插件进程执行失败：{error}"))?;
-            if let Some(reason) = result.interruption {
+            if let Some(reason) = result.interruption() {
                 interruption = Some(reason);
                 return Err(format!("插件进程已中止：{reason:?}"));
             }
-            if !result.output.status.success() {
-                let message = runtime::managed_process::decode_console_output(&result.output.stderr);
-                return Err(format!("插件退出码 {}：{}", result.output.status,
+            if !result.output().status.success() {
+                let message = runtime::managed_process::decode_console_output(&result.output().stderr);
+                return Err(format!("插件退出码 {}：{}", result.output().status,
                     message.trim().chars().take(640).collect::<String>()));
             }
-            Ok(runtime::managed_process::decode_console_output(&result.output.stdout).trim().to_string())
+            Ok(runtime::managed_process::decode_console_output(&result.output().stdout).trim().to_string())
         })();
         let (status, output, summary_text) = match result {
             Ok(text) => (ToolOutcomeStatus::Ok, JsonValue::String(text), format!("插件工具 {} 已完成", self.name)),

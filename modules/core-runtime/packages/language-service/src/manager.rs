@@ -24,7 +24,7 @@ impl LspManager {
         let mut extension_map = BTreeMap::new();
 
         for mut config in server_configs {
-            config.workspace_root = config.workspace_root.canonicalize()?;
+            config.workspace_root = crate::canonical_document_path(&config.workspace_root)?;
             if config.name.trim().is_empty() || config.command.trim().is_empty() {
                 return Err(LspError::Protocol(
                     "LSP server name and command must be nonempty".to_string(),
@@ -67,9 +67,7 @@ impl LspManager {
 
     pub async fn sync_document_from_disk(&self, path: &Path) -> Result<(), LspError> {
         let (client, path) = self.client_for_path(path).await?;
-        let contents = std::fs::read_to_string(&path)?;
-        client.change_document(&path, &contents).await?;
-        client.save_document(&path).await
+        client.sync_document_from_disk(&path).await
     }
 
     pub async fn change_document(&self, path: &Path, text: &str) -> Result<(), LspError> {
@@ -134,7 +132,7 @@ impl LspManager {
                 }) else {
                     continue;
                 };
-                let Ok(path) = uri_path.canonicalize() else {
+                let Ok(path) = crate::canonical_document_path(&uri_path) else {
                     continue;
                 };
                 if diagnostics.is_empty() || !path.starts_with(client.workspace_root()) {
@@ -156,6 +154,12 @@ impl LspManager {
     pub async fn is_running(&self) -> bool {
         let clients = self.clients.lock().await;
         !clients.is_empty() && clients.values().all(|client| client.is_alive())
+    }
+
+    /// 索引尚未完成时保留服务进程，但不把可连接误报为可导航。
+    pub async fn is_ready(&self) -> bool {
+        let clients = self.clients.lock().await;
+        !clients.is_empty() && clients.values().all(|client| client.is_ready())
     }
 
     pub async fn context_enrichment(
@@ -187,7 +191,7 @@ impl LspManager {
         &self,
         path: &Path,
     ) -> Result<(Arc<LspClient>, std::path::PathBuf), LspError> {
-        let path = path.canonicalize()?;
+        let path = crate::canonical_document_path(path)?;
         let extension = path
             .extension()
             .map(|extension| normalize_extension(extension.to_string_lossy().as_ref()))
@@ -227,7 +231,7 @@ impl LspManager {
 }
 
 fn location_within_workspace(path: &Path, workspace: &Path) -> bool {
-    path.canonicalize()
+    crate::canonical_document_path(path)
         .is_ok_and(|canonical| canonical.starts_with(workspace))
 }
 

@@ -1,4 +1,7 @@
+mod bundle;
 mod output;
+mod quota;
+mod redaction;
 mod rolling_file;
 mod span;
 mod trace_id;
@@ -14,6 +17,8 @@ use output::{ConsoleOutput, FileOutput, GuiCallback, GuiOutput, Output};
 use span::SpanClosed;
 use trace_id::{SpanId, TraceId};
 
+pub use bundle::{export_bundle, EntryStatus, ExportAttachment, ExportLimits, ExportReport, ManifestEntry};
+pub use quota::{DiagnosticQuota, QuotaReport};
 pub use span::{
     current_context, current_span_id, current_trace_id, enter_span, exit_span, start_span,
     start_span_with_parent, SpanContext, SpanEvent, SpanGuard,
@@ -22,8 +27,14 @@ pub use trace_id::{SpanId as SpanIdType, TraceId as TraceIdType};
 
 static LOGGER: OnceLock<Logger> = OnceLock::new();
 
+/// 供导出/共享文本使用的公开脱敏：与日志写出同一规则（凭据键值、令牌前缀、
+/// Bearer/JWT、URL userinfo）。仅按文本内容判断，不识别业务对象身份。
+#[must_use]
+pub fn redact_text(value: &str) -> String { redaction::text(value) }
+
 /// 人读诊断面包屑复用文件轮转边界；调用方保留既有错误处理，禁止用于权威审计。
 pub fn append_diagnostic_line(path: &Path, message: &str) -> io::Result<()> {
+    let message = redaction::text(message);
     let record = if message.len() >= rolling_file::RECORD_BYTES {
         format!("diagnostic_record_omitted original_bytes={}\n", message.len())
     } else {
@@ -76,6 +87,17 @@ pub struct LogEntry {
     pub trace_id: Option<TraceId>,
     pub span_id: Option<SpanId>,
     pub fields: Vec<(String, String)>,
+}
+
+impl LogEntry {
+    fn redacted(&self) -> Self {
+        Self {
+            app: redaction::text(&self.app), module: redaction::text(&self.module),
+            event: redaction::text(&self.event), message: redaction::text(&self.message),
+            fields: self.fields.iter().map(|(key,value)| (redaction::text(key),redaction::field(key,value))).collect(),
+            ..self.clone()
+        }
+    }
 }
 
 struct Logger {
@@ -218,6 +240,7 @@ pub fn emit(level: LogLevel, module: &str, event: &str, message: &str, fields: &
             .collect(),
     };
 
+    let entry = entry.redacted();
     logger.file_output.write_event(&entry);
 
     if let Some(console) = &logger.console {
@@ -239,16 +262,17 @@ pub fn emit_span_closed(span: &SpanClosed) {
         return;
     }
 
-    logger.file_output.write_span(span);
+    let span = span.redacted();
+    logger.file_output.write_span(&span);
 
     if let Some(console) = &logger.console {
-        console.write_span(span);
+        console.write_span(&span);
     }
 
     if let Ok(guard) = logger.gui_callback.read() {
         if let Some(cb) = guard.as_ref() {
             let gui_output = GuiOutput::new(cb.clone());
-            gui_output.write_span(span);
+            gui_output.write_span(&span);
         }
     }
 }

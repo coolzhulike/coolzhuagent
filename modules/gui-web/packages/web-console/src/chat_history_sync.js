@@ -37,7 +37,7 @@ window.CoolzhuChatHistorySync = (() => {
   }
   function create({ sourceFactory, read, apply, busy, missing = () => {}, permissionChanged = () => {} }) {
     let epoch = 0, source = null, controller = null, scope = null;
-    let dirty = false, running = false, timer = null, retries = 0;
+    let dirty = false, running = false, timer = null, retries = 0, subTimer = null;
     function schedule(delay = 120) {
       if (!scope || timer || running || busy()) return;
       timer = setTimeout(() => { timer = null; void flush(); }, delay);
@@ -68,23 +68,41 @@ window.CoolzhuChatHistorySync = (() => {
     }
     function stop() {
       epoch++; source?.close(); source = null; controller?.abort(); controller = null;
-      clearTimeout(timer); timer = null; dirty = false; running = false; scope = null; retries = 0;
+      clearTimeout(timer); timer = null; clearTimeout(subTimer); subTimer = null;
+      dirty = false; running = false; scope = null; retries = 0;
     }
     function activate(nextScope) {
       stop(); scope = Object.freeze({...nextScope});
       const generation = epoch;
-      source = sourceFactory(scope);
-      for (const event of ["hello", "history-changed"]) source.addEventListener(event, () => {
-        if (generation === epoch) invalidate();
-      });
-      // 权限影响顶栏展示，不等历史流空闲；旧房间通知不能更新当前房间。
-      source.addEventListener("permission-changed", () => {
-        if (generation === epoch) permissionChanged(scope);
-      });
-      source.addEventListener("room-deleted", () => {
-        if (generation !== epoch) return;
-        stop(); missing();
-      });
+      let subRetries = 0;
+      function open() {
+        const es = sourceFactory(scope);
+        source = es;
+        for (const event of ["hello", "history-changed"]) es.addEventListener(event, () => {
+          if (generation === epoch) { if (event === "hello") subRetries = 0; invalidate(); }
+        });
+        // 权限影响顶栏展示，不等历史流空闲；旧房间通知不能更新当前房间。
+        es.addEventListener("permission-changed", () => {
+          if (generation === epoch) permissionChanged(scope);
+        });
+        es.addEventListener("room-deleted", () => {
+          if (generation !== epoch) return;
+          stop(); missing();
+        });
+        // 原生重连只覆盖网络瞬断（CONNECTING）；HTTP错误使readyState=CLOSED且原生不重连，
+        // 此处做有限退避重建；hello到达即恢复权威读取并清零重试。
+        es.onerror = () => {
+          if (generation !== epoch || source !== es) return;
+          if (es.readyState !== 2 || subRetries >= 4) return; // CLOSED才介入
+          es.close(); source = null;
+          const delay = 500 * (1 << subRetries); subRetries++;
+          subTimer = setTimeout(() => {
+            subTimer = null;
+            if (generation === epoch && !source && scope) open();
+          }, delay);
+        };
+      }
+      open();
       // EventSource负责断线重连；每次hello都会权威补齐，不重放业务事件。
     }
     return {activate, stop, invalidate, resume: invalidate};

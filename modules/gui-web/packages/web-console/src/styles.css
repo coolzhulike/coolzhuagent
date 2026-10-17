@@ -16543,7 +16543,7 @@ body.ui-3d .chat-right-rail {
 }
 
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-right-tabs {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-right-tool-panel {

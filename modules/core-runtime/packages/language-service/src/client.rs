@@ -37,9 +37,10 @@ pub(crate) struct LspClient {
     #[cfg(windows)]
     job: Arc<StdMutex<Option<ChildProcessJob>>>,
     alive: Arc<AtomicBool>,
+    ready: Arc<AtomicBool>,
     pending_requests: Arc<Mutex<BTreeMap<i64, oneshot::Sender<Result<Value, LspError>>>>>,
     diagnostics: Arc<Mutex<BTreeMap<String, Vec<Diagnostic>>>>,
-    open_documents: Mutex<BTreeMap<PathBuf, i32>>,
+    open_documents: Mutex<BTreeMap<PathBuf, (i32, String)>>,
     next_request_id: AtomicI64,
 }
 
@@ -69,6 +70,8 @@ impl LspClient {
             .ok_or_else(|| LspError::Protocol("missing LSP stdout pipe".to_string()))?;
         let stderr = child.stderr.take();
 
+        // rust-analyzer 的 initialize 只确认协议连接，项目索引另有就绪通知。
+        let tracks_readiness = config.name == "rust-analyzer";
         let client = Self {
             config,
             writer: Arc::new(Mutex::new(BufWriter::new(stdin))),
@@ -76,6 +79,7 @@ impl LspClient {
             #[cfg(windows)]
             job: Arc::new(StdMutex::new(Some(job))),
             alive: Arc::new(AtomicBool::new(true)),
+            ready: Arc::new(AtomicBool::new(!tracks_readiness)),
             pending_requests: Arc::new(Mutex::new(BTreeMap::new())),
             diagnostics: Arc::new(Mutex::new(BTreeMap::new())),
             open_documents: Mutex::new(BTreeMap::new()),
@@ -125,7 +129,7 @@ impl LspClient {
         self.open_documents
             .lock()
             .await
-            .insert(path.to_path_buf(), 1);
+            .insert(path.to_path_buf(), (1, text.to_string()));
         Ok(())
     }
 
@@ -135,14 +139,8 @@ impl LspClient {
         }
 
         let uri = file_url(path)?;
-        let next_version = {
-            let mut open_documents = self.open_documents.lock().await;
-            let version = open_documents
-                .entry(path.to_path_buf())
-                .and_modify(|value| *value += 1)
-                .or_insert(1);
-            *version
-        };
+        let mut open_documents = self.open_documents.lock().await;
+        let next_version = open_documents.get(path).map_or(1, |value| value.0 + 1);
 
         self.notify(
             "textDocument/didChange",
@@ -156,7 +154,10 @@ impl LspClient {
                 }],
             }),
         )
-        .await
+        .await?;
+        // 只有发送成功才更新缓存；失败后的重试仍需发送实际内容。
+        open_documents.insert(path.to_path_buf(), (next_version, text.to_string()));
+        Ok(())
     }
 
     pub(crate) async fn save_document(&self, path: &Path) -> Result<(), LspError> {
@@ -173,6 +174,23 @@ impl LspClient {
             }),
         )
         .await
+    }
+
+    /// 导航读取磁盘不等于编辑/保存；未变内容不能反复触发分析器重新索引。
+    pub(crate) async fn sync_document_from_disk(&self, path: &Path) -> Result<(), LspError> {
+        let contents = std::fs::read_to_string(path)?;
+        let documents = self.open_documents.lock().await;
+        let existing = documents.get(path);
+        if existing.is_some_and(|(_, text)| text == &contents) {
+            return Ok(());
+        }
+        let was_open = existing.is_some();
+        drop(documents);
+        self.change_document(path, &contents).await?;
+        if was_open {
+            self.save_document(path).await?;
+        }
+        Ok(())
     }
 
     pub(crate) async fn close_document(&self, path: &Path) -> Result<(), LspError> {
@@ -203,6 +221,7 @@ impl LspClient {
         path: &Path,
         position: Position,
     ) -> Result<Vec<SymbolLocation>, LspError> {
+        self.require_ready()?;
         self.ensure_document_open(path).await?;
         let response = self
             .request::<Option<GotoDefinitionResponse>>(
@@ -232,6 +251,7 @@ impl LspClient {
         position: Position,
         include_declaration: bool,
     ) -> Result<Vec<SymbolLocation>, LspError> {
+        self.require_ready()?;
         self.ensure_document_open(path).await?;
         let response = self
             .request::<Option<Vec<Location>>>(
@@ -255,7 +275,7 @@ impl LspClient {
 
     pub(crate) async fn shutdown(&self) -> Result<(), LspError> {
         let _ = self
-            .request_with_timeout::<Value>("shutdown", json!({}), SHUTDOWN_TIMEOUT)
+            .request_with_timeout::<Value>("shutdown", Value::Null, SHUTDOWN_TIMEOUT)
             .await;
         let _ = self.notify("exit", Value::Null).await;
         self.terminate_child().await;
@@ -264,6 +284,17 @@ impl LspClient {
 
     pub(crate) fn is_alive(&self) -> bool {
         self.alive.load(Ordering::Acquire)
+    }
+
+    pub(crate) fn is_ready(&self) -> bool {
+        self.is_alive() && self.ready.load(Ordering::Acquire)
+    }
+
+    fn require_ready(&self) -> Result<(), LspError> {
+        if self.is_alive() && !self.ready.load(Ordering::Acquire) {
+            return Err(LspError::NotReady);
+        }
+        Ok(())
     }
 
     pub(crate) fn workspace_root(&self) -> &Path {
@@ -285,6 +316,8 @@ impl LspClient {
         let diagnostics = &self.diagnostics;
         let pending_requests = &self.pending_requests;
         let alive = self.alive.clone();
+        let ready = self.ready.clone();
+        let tracks_readiness = self.config.name == "rust-analyzer";
         let writer = self.writer.clone();
         #[cfg(windows)]
         let job = self.job.clone();
@@ -297,11 +330,13 @@ impl LspClient {
                 while let Some(message) = read_message(&mut reader).await? {
                     if let Some(method) = message.get("method").and_then(Value::as_str) {
                         if let Some(id) = message.get("id") {
-                            let reply = json!({
+                            let reply = if method == "window/workDoneProgress/create" {
+                                json!({"jsonrpc": "2.0", "id": id, "result": null})
+                            } else { json!({
                                 "jsonrpc": "2.0",
                                 "id": id,
                                 "error": { "code": -32601, "message": "Method not found" }
-                            });
+                            }) };
                             timeout(SHUTDOWN_TIMEOUT, send_payload_to_writer(&writer, &reply))
                                 .await
                                 .map_err(|_| {
@@ -309,6 +344,15 @@ impl LspClient {
                                         "timed out replying to server request `{method}`"
                                     ))
                                 })??;
+                            continue;
+                        }
+                        if tracks_readiness && method == "experimental/serverStatus" {
+                            let params = message.get("params").unwrap_or(&Value::Null);
+                            ready.store(
+                                params.get("quiescent").and_then(Value::as_bool) == Some(true)
+                                    && matches!(params.get("health").and_then(Value::as_str), Some("ok" | "warning")),
+                                Ordering::Release,
+                            );
                             continue;
                         }
                         if method != "textDocument/publishDiagnostics" {
@@ -384,6 +428,8 @@ impl LspClient {
                     }],
                     "initializationOptions": self.config.initialization_options.clone().unwrap_or(Value::Null),
                     "capabilities": {
+                        "window": { "workDoneProgress": true },
+                        "experimental": { "serverStatusNotification": self.config.name == "rust-analyzer" },
                         "textDocument": {
                             "publishDiagnostics": {
                                 "relatedInformation": true,

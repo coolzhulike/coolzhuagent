@@ -36,16 +36,16 @@ pub(crate) async fn run(command: &str, cwd: &Path, timeout_ms: u64) -> Result<()
             }
             let result = managed_process::output(&mut process, None)
                 .map_err(|error| format!("`{command}` 未能完成：{error}"))?;
-            if let Some(reason) = result.interruption {
+            if let Some(reason) = result.interruption() {
                 return Err(format!("`{command}` {}；所属进程已回收", match reason {
                     Interruption::TimedOut => "超时", Interruption::Cancelled => "已取消"
                 }));
             }
-            if result.output.status.success() { return Ok(()); }
-            let code = result.output.status.code().unwrap_or(-1);
+            if result.output().status.success() { return Ok(()); }
+            let code = result.output().status.code().unwrap_or(-1);
             let combined = format!("{}\n{}",
-                managed_process::decode_console_output(&result.output.stderr),
-                managed_process::decode_console_output(&result.output.stdout));
+                managed_process::decode_console_output(&result.output().stderr),
+                managed_process::decode_console_output(&result.output().stdout));
             let lines = combined.lines().collect::<Vec<_>>();
             let tail = lines[lines.len().saturating_sub(20)..].join("\n");
             Err(format!("`{command}` 失败（exit {code}）：\n{tail}"))
@@ -66,6 +66,19 @@ pub(crate) async fn run(command: &str, cwd: &Path, timeout_ms: u64) -> Result<()
 mod tests {
     use super::*;
     use std::time::Instant;
+
+    #[tokio::test]
+    #[cfg(windows)]
+    async fn output_overflow_cannot_be_reported_as_successful_goal_verification() {
+        let cwd = Path::new(env!("CARGO_MANIFEST_DIR"));
+        for stream in ["Out", "Error"] {
+            let command = format!("[Console]::{stream}.Write(('x' * {})); exit 0",
+                managed_process::MAX_CAPTURE_BYTES_PER_PIPE + 8192);
+            let error = run(&command, cwd, 30_000).await.unwrap_err();
+            assert!(error.contains("输出超限"), "必须保留采集失败事实：{error}");
+            assert!(error.contains("进程已启动"));
+        }
+    }
 
     #[tokio::test]
     async fn gate_exit_and_expired_root_use_the_same_managed_path() {

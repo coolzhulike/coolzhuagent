@@ -6,6 +6,8 @@ use tokio::io::{
 };
 
 pub(super) const MAX_FRAME_BYTES: usize = 1024 * 1024;
+// 恢复已有长会话时，远端 session/load 响应可能大于单次出站请求。
+const MAX_INBOUND_FRAME_BYTES: usize = 16 * 1024 * 1024;
 const MAX_DIRECTORY_BYTES: u64 = 4 * 1024 * 1024;
 
 fn invalid(message: &'static str) -> io::Error {
@@ -23,7 +25,7 @@ pub(super) async fn read_frame(reader: &mut (impl AsyncBufRead + Unpin)) -> io::
             .iter()
             .position(|byte| *byte == b'\n')
             .map_or(buffer.len(), |pos| pos + 1);
-        if bytes.len().saturating_add(count) > MAX_FRAME_BYTES {
+        if bytes.len().saturating_add(count) > MAX_INBOUND_FRAME_BYTES {
             return Err(invalid("ACP 消息超过大小限制。"));
         }
         let ended = buffer[count - 1] == b'\n';
@@ -227,7 +229,7 @@ mod tests {
         for bytes in [
             b"log line\n".to_vec(),
             b"{\"jsonrpc\":\"2.0\"}".to_vec(),
-            vec![b'x'; MAX_FRAME_BYTES + 1],
+            vec![b'x'; MAX_INBOUND_FRAME_BYTES + 1],
         ] {
             assert!(
                 read_frame(&mut BufReader::new(bytes.as_slice()))
@@ -235,6 +237,20 @@ mod tests {
                     .is_err()
             );
         }
+    }
+    #[tokio::test]
+    async fn existing_session_response_can_exceed_outbound_request_limit() {
+        let content = "会话记录".repeat(160_000);
+        let frame = format!(
+            "{}\n",
+            json!({"jsonrpc":"2.0","id":1,"result":{"content":content}})
+        );
+        assert!(frame.len() > MAX_FRAME_BYTES);
+        assert!(frame.len() < MAX_INBOUND_FRAME_BYTES);
+        let parsed = read_frame(&mut BufReader::new(frame.as_bytes()))
+            .await
+            .unwrap();
+        assert_eq!(parsed["result"]["content"].as_str(), Some(content.as_str()));
     }
     #[tokio::test]
     async fn request_rejects_host_calls_and_never_interprets_tool_notice_as_execution() {

@@ -75,6 +75,7 @@ mod tests {
         let mut capacity = SessionStoreCapacity::default();
         capacity.max_session_messages = 100;
         let mut store = SessionStore {
+            writer: None,
             history_edits: Vec::new(), committed_state: None,
             path: path.join("history.sqlite3"), legacy_json_path: path.join("history.json"), capacity,
             state: PersistedSessionState { sessions: vec![session], ..Default::default() },

@@ -4,6 +4,8 @@ use std::path::Path;
 const CORE: &[(&str, &[u8])] = &[
     ("index.html", include_bytes!("../index.html")),
     ("src/app.js", include_bytes!("app.js")),
+    ("src/brand_avatars.js", include_bytes!("brand_avatars.js")),
+    ("src/brand_avatars.css", include_bytes!("brand_avatars.css")),
     ("src/dsh_market.js", include_bytes!("dsh_market.js")),
     ("src/devin_plugin.js", include_bytes!("devin_plugin.js")),
     ("src/provider_connectors.js", include_bytes!("provider_connectors.js")),
@@ -25,6 +27,8 @@ const CORE: &[(&str, &[u8])] = &[
     ("src/content_preview.js", include_bytes!("content_preview.js")),
     ("src/native_browser_panel.js", include_bytes!("native_browser_panel.js")),
     ("src/run_activity.js", include_bytes!("run_activity.js")),
+    ("src/execution_panel.js", include_bytes!("execution_panel.js")),
+    ("src/execution_panel.css", include_bytes!("execution_panel.css")),
     ("src/video_wait.js", include_bytes!("video_wait.js")),
     ("assets/bamboo-banner-wind.js", include_bytes!("../assets/bamboo-banner-wind.js")),
 ];

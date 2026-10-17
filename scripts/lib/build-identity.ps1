@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # 构建身份分离与报告治理（RD4-06 / 第五轮裁决 B-1、B-2）
 #
 # 本文件是"三个分开的身份"的唯一实现点（package-all.ps1 与 build-msi.ps1
@@ -116,6 +116,85 @@ $script:PayloadInventoryCarrierName = 'payload-inventory.json'
 $script:SourceSnapshotFreezeRoot = 'tmp/source-snapshots'
 # 报告保留索引与 latest 指针所在目录（相对仓库根）。
 $script:PackageReportRoot = 'tmp/package-reports'
+# WBS 0.1 统一临时根：设置 COOLZHU_ACCEPTANCE_TMP_ROOT 后，所有默认落在 <repo>\tmp 的
+# 临时产物改落该目录下的同名子路径；该值必须解析为 <repo>\tmp 本身或其子目录，
+# 未设置时保持既有 <repo>\tmp 行为（发布路径不受影响）。
+function Get-IdentityTmpRoot {
+  param([Parameter(Mandatory = $true)][string]$RepoPath)
+  $repoFull = [System.IO.Path]::GetFullPath($RepoPath).TrimEnd('\', '/')
+  $defaultRoot = Join-Path $repoFull 'tmp'
+  $override = [string]$env:COOLZHU_ACCEPTANCE_TMP_ROOT
+  if ([string]::IsNullOrWhiteSpace($override)) { return $defaultRoot }
+  $resolved = [System.IO.Path]::GetFullPath($override).TrimEnd('\', '/')
+  $defaultFull = [System.IO.Path]::GetFullPath($defaultRoot).TrimEnd('\', '/')
+  $allowedPrefix = $defaultFull + [System.IO.Path]::DirectorySeparatorChar
+  if (-not ($resolved.Equals($defaultFull, [System.StringComparison]::OrdinalIgnoreCase) -or $resolved.StartsWith($allowedPrefix, [System.StringComparison]::OrdinalIgnoreCase))) {
+    throw "COOLZHU_ACCEPTANCE_TMP_ROOT must stay inside the workspace tmp directory: $resolved"
+  }
+  return $resolved
+}
+
+function Resolve-IdentityTmpPath {
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [Parameter(Mandatory = $true)][string]$Relative
+  )
+  $sub = ($Relative -replace '^tmp[\\/]', '') -replace '/', '\'
+  return (Join-Path (Get-IdentityTmpRoot -RepoPath $RepoPath) $sub)
+}
+
+
+function Resolve-AcceptanceOutputPath {
+  # WBS 0.1 打包产物定向（显式 opt-in）：仅当 COOLZHU_ACCEPTANCE_TMP_ROOT 设置时生效，
+  # 把仓内构建产物根重定向到验收根下同名相对路径：
+  #   modules/<名>/target[/...] 与顶层 target[/...]  ->  <验收根>/<同相对路径>
+  #   <repo>/tmp[/...]                                ->  沿用 Resolve-IdentityTmpPath 规则
+  # 其它路径（非产物目录、仓外绝对路径）原样透传；env 未设置时完全保持正式默认语义。
+  # 验收根本身必须落在当前工作树 tmp 内（由 Get-IdentityTmpRoot 强制校验），
+  # 因此重定向后的路径仍在仓内，不会绕过既有的仓内/包根包含校验。
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [Parameter(Mandatory = $true)][string]$Path
+  )
+  if ([string]::IsNullOrWhiteSpace([string]$env:COOLZHU_ACCEPTANCE_TMP_ROOT)) { return $Path }
+  $repoFull = [System.IO.Path]::GetFullPath($RepoPath).TrimEnd('\', '/')
+  $candidate = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $repoFull $Path }
+  $full = [System.IO.Path]::GetFullPath($candidate).TrimEnd('\', '/')
+  $prefix = $repoFull + [System.IO.Path]::DirectorySeparatorChar
+  if (-not $full.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) { return $Path }
+  $rel = $full.Substring($prefix.Length)
+  $redirects = ($rel -match '^tmp[\\/]') -or ($rel -match '^(modules[\\/][^\\/]+[\\/]target|target)([\\/]|$)')
+  if (-not $redirects) { return $Path }
+  # 越界 fail-closed：只有真正需要重定向的路径才解析验收根；env 不在工作树 tmp 内时此处抛出。
+  $accRoot = (Get-IdentityTmpRoot -RepoPath $repoFull).TrimEnd('\', '/')
+  $accPrefix = $accRoot + [System.IO.Path]::DirectorySeparatorChar
+  # 幂等：路径已在验收根内（无论绝对还是 repo 相对 tmp/ 形式）时原样返回，不重复拼接。
+  if ($full.Equals($accRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+      $full.StartsWith($accPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    return $full
+  }
+  if ($rel -match '^tmp[\\/]') {
+    return (Resolve-IdentityTmpPath -RepoPath $repoFull -Relative $rel)
+  }
+  return (Join-Path $accRoot $rel)
+}
+
+function ConvertTo-AcceptanceBuildArgs {
+  # 对构建参数列表做验收定向：把每个 --target-dir 的值交给 Resolve-AcceptanceOutputPath 解析，
+  # 其余参数原样保留；env 未设置时等价于原列表副本（正式打包语义不变）。
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [AllowEmptyCollection()][object[]]$Arguments
+  )
+  $out = @($Arguments | ForEach-Object { [string]$_ })
+  for ($i = 0; $i -lt $out.Count; $i++) {
+    if ($out[$i] -eq '--target-dir' -and ($i + 1) -lt $out.Count) {
+      $out[$i + 1] = Resolve-AcceptanceOutputPath -RepoPath $RepoPath -Path $out[$i + 1]
+      $i++
+    }
+  }
+  return $out
+}
 
 function New-IdentityFailureText {
   param(
@@ -383,7 +462,7 @@ function Get-SourceSnapshotScopeDescriptorLines {
     条目里记录的仍然是仓库相对路径，便于与清单/差异核对。
   * roots 本身受信（roots 是显式声明的边界）；排除规则只作用于其内部条目。
   * **不追随**重解析点（junction / symlink）：按裁决要求显式登记而不是无边界追随；
-    需要追随时必须在 manifest 的 allow_reparse_points 显式声明。
+    allow_reparse_points 仅保留在范围身份中；未实现目标锁定与循环检测前不得据其追随。
   * 纳入判定 = 声明 roots 下"除排除项外的一切"（可审计边界），不是扩展名白名单。
   * 已知扩展名之外的文件进入 unclassified_files（可见性报告，不改变纳入结果）。
 #>
@@ -403,7 +482,24 @@ function Get-SourceSnapshotEntries {
   $stack = [System.Collections.Generic.Stack[object]]::new()
   foreach ($root in @($Scope.roots)) {
     $full = [System.IO.Path]::GetFullPath((Join-Path $repoFull $root))
+    $comparison = $(if ([IO.Path]::DirectorySeparatorChar -eq '\') { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal })
+    if ([IO.Path]::IsPathRooted($root) -or (-not $full.Equals($repoFull, $comparison) -and -not $full.StartsWith($repoFull + [IO.Path]::DirectorySeparatorChar, $comparison))) {
+      throw (New-IdentityFailureException -Category 'SOURCE-SNAPSHOT-SCOPE-INVALID' -Detail '声明源码根必须位于仓库路径内' -Remediation '外部依赖须独立登记，不得冒充本地源码根')
+    }
     if (-not (Test-Path -LiteralPath $full)) {
+      $missingRoots.Add($root)
+      continue
+    }
+    # 根自身的检查不足以识别 linked/subdir；逐层检查仓库内的祖先，禁止跳入链接目标。
+    $ancestor = [IO.Directory]::GetParent($full)
+    $linkedAncestor = $null
+    while ($ancestor -and $ancestor.FullName.StartsWith($repoFull + [IO.Path]::DirectorySeparatorChar, $comparison)) {
+      $ancestorItem = Get-Item -LiteralPath $ancestor.FullName -Force -ErrorAction Stop
+      if (($ancestorItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { $linkedAncestor = $ancestorItem; break }
+      $ancestor = $ancestor.Parent
+    }
+    if ($linkedAncestor) {
+      $reparse.Add([pscustomobject]@{path=$root;kind='directory';handling='not-followed-registered-only'})
       $missingRoots.Add($root)
       continue
     }
@@ -420,6 +516,17 @@ function Get-SourceSnapshotEntries {
     $item = Get-Item -LiteralPath $full -Force -ErrorAction SilentlyContinue
     if (-not $item) { continue }
 
+    if ($isDeclaredRoot -and (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)) {
+      # 声明根也不得把链接目标冒充为本地完整根；登记并让 roots 完整性门禁拒绝。
+      $reparse.Add([pscustomobject]@{
+        path = $relative
+        kind = $(if ($item.PSIsContainer) { 'directory' } else { 'file' })
+        handling = 'not-followed-registered-only'
+      })
+      $missingRoots.Add($relative)
+      continue
+    }
+
     if ($item.PSIsContainer) {
       # 声明 roots 本身受信（roots 是显式声明的边界）；排除规则只作用于其内部条目。
       if ($matchPath -and -not $isDeclaredRoot) {
@@ -435,13 +542,19 @@ function Get-SourceSnapshotEntries {
         # 排除/放行匹配用 root 相对路径（match_base=root-relative，已进入 scope 摘要）。
         $childMatchPath = $(if ($isDeclaredRoot) { [string]$child.Name } else { "$matchPath/$($child.Name)" })
         $isReparse = (($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)
-        if ($isReparse -and -not (Test-IdentityPatternMatch -RelativePath $childMatchPath -Patterns @($Scope.allow_reparse_points))) {
+        if ($isReparse) {
           # 显式登记，不追随：junction 可能指到 target 或工作区外，无边界追随会污染身份。
           $reparse.Add([pscustomobject]@{
             path = $childRelative
             kind = $(if ($child.PSIsContainer) { 'directory' } else { 'file' })
             handling = 'not-followed-registered-only'
           })
+          $linkExcluded = Test-IdentityPatternMatch -RelativePath $childMatchPath -Patterns @($Scope.exclude_path_patterns)
+          $linkAllowed = Test-IdentityPatternMatch -RelativePath $childMatchPath -Patterns @($Scope.allow_path_patterns)
+          if (-not $linkExcluded -or $linkAllowed) {
+            # 未核验的源码链接是缺失输入，不得仅登记后宣称快照完整。
+            $missingRoots.Add($childRelative)
+          }
           continue
         }
         if ($child.PSIsContainer) {
@@ -672,7 +785,7 @@ function Write-SourceSnapshotFreezeRecord {
     [Parameter(Mandatory = $true)][object]$Snapshot
   )
 
-  $root = Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) $script:SourceSnapshotFreezeRoot
+  $root = Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:SourceSnapshotFreezeRoot
   New-Item -ItemType Directory -Force -Path $root | Out-Null
   $path = Join-Path $root ("source-snapshot-{0}.json" -f $Snapshot.source_snapshot_digest)
 
@@ -735,6 +848,30 @@ function Write-SourceSnapshotFreezeRecord {
   独立 Tauri 项目是**独立 Cargo 项目**：它的真实构建入口与锁文件（src-tauri/Cargo.toml、
   src-tauri/Cargo.lock）在这里显式登记，不能只记顶层 workspace 的 lockfile。
 #>
+function Get-CargoConfigIdentityDescriptors {
+  param([Parameter(Mandatory=$true)][string]$RepoPath,[string]$CargoHome)
+  if (-not $CargoHome) {
+    $CargoHome=[Environment]::GetEnvironmentVariable('CARGO_HOME')
+    if (-not $CargoHome) { $CargoHome=Join-Path ([Environment]::GetFolderPath('UserProfile')) '.cargo' }
+  }
+  $directories=[Collections.Generic.List[string]]::new()
+  $current=[IO.DirectoryInfo]::new([IO.Path]::GetFullPath($RepoPath))
+  while ($current) { $directories.Add((Join-Path $current.FullName '.cargo')); $current=$current.Parent }
+  $directories.Add([IO.Path]::GetFullPath($CargoHome))
+  $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+  foreach($directory in $directories) {
+    foreach($name in @('config','config.toml')) {
+      $path=Join-Path $directory $name
+      if (-not $seen.Add($path)) { continue }
+      if (Test-Path -LiteralPath $path) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Cargo配置路径不是普通文件' }
+        # 仅登记身份，不保存配置正文或凭据。
+        'cargo_config={0}|sha256={1}' -f $path,(Get-IdentityFileHash -Path $path)
+      } else { 'cargo_config={0}|absent' -f $path }
+    }
+  }
+}
+
 function Get-BuildInputDescriptors {
   param(
     [Parameter(Mandatory = $true)][string]$RepoPath,
@@ -772,7 +909,8 @@ function Get-BuildInputDescriptors {
     $descriptors.Add(('env:{0}={1}' -f $name, $(if ([string]::IsNullOrWhiteSpace($value)) { '(unset)' } else { $value })))
   }
 
-  # 工作区内影响构建的配置文件（存在才登记；用户级 cargo 配置不纳入，避免把用户配置/凭据带进身份）
+  foreach($descriptor in @(Get-CargoConfigIdentityDescriptors -RepoPath $RepoPath)) { $descriptors.Add($descriptor) }
+  # 工作区构建配置与用户/祖先Cargo配置均登记身份，不保存配置正文。
   foreach ($relative in @('.cargo/config.toml', '.cargo/config', 'rust-toolchain.toml', 'rust-toolchain', '.config/cargo.toml')) {
     $full = Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) $relative
     if (Test-Path -LiteralPath $full -PathType Leaf) {
@@ -821,6 +959,15 @@ function Get-BuildInputDescriptors {
       continue
     }
     $args = @($artifact.build.args | ForEach-Object { ([string]$_).Replace('{profile}', $Configuration).Replace('{configuration}', $Configuration) })
+    $workingDirectory = $(if ($artifact.build.working_dir) { [string]$artifact.build.working_dir } else { '.' })
+    $workingDirectory = $workingDirectory.Replace('{profile}', $Configuration).Replace('{configuration}', $Configuration)
+    $workingFull = [IO.Path]::GetFullPath((Join-Path $RepoPath $workingDirectory))
+    $descriptors.Add(('artifact={0}|command={1}|working_dir={2}' -f $artifactId,[string]$artifact.build.command,$workingFull))
+    if ([string]$artifact.build.command -eq 'cargo') {
+      foreach ($descriptor in @(Get-CargoConfigIdentityDescriptors -RepoPath $workingFull)) {
+        $descriptors.Add(('artifact={0}|{1}' -f $artifactId,$descriptor))
+      }
+    }
     $features = @()
     for ($index = 0; $index -lt $args.Count; $index++) {
       if (($args[$index] -eq '--features' -or $args[$index] -eq '-F') -and ($index + 1) -lt $args.Count) {
@@ -1150,8 +1297,7 @@ function ConvertTo-IdentityBoolOrUnknown {
 function Get-PackageReportRootPath {
   param([Parameter(Mandatory = $true)][string]$RepoPath)
 
-  $repoFull = [System.IO.Path]::GetFullPath($RepoPath)
-  return (Join-Path $repoFull ($script:PackageReportRoot -replace '/', '\'))
+  return (Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:PackageReportRoot)
 }
 
 function Get-PackageFailureReportRoot {
@@ -1181,7 +1327,7 @@ function Get-PackageRunStatusPath {
 function Get-PackageFailureQuarantineRoot {
   param([Parameter(Mandatory = $true)][string]$RepoPath)
 
-  return (Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) ($script:PackageFailureQuarantineRoot -replace '/', '\'))
+  return (Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:PackageFailureQuarantineRoot)
 }
 
 function Get-PackageArtifactReleaseStatusPath {
@@ -1639,9 +1785,17 @@ function New-PackageReleaseEligibility {
   )
 
   $notPassed = @($Gates | Where-Object { [string]$_.result -ne 'pass' })
+  # 缺失或重复的门禁不是通过；空集合不能凭“没有失败项”获得已验证身份。
+  $sourceSnapshotVerified = $true
+  foreach ($requiredName in @('declared_source_snapshot_scope','source_input_stability','declared_roots_present')) {
+    $matching = @($Gates | Where-Object { [string]$_.gate -eq $requiredName })
+    if ($matching.Count -ne 1 -or [string]$matching[0].result -ne 'pass') {
+      $sourceSnapshotVerified = $false
+    }
+  }
   return [ordered]@{
     schema = [int]$script:BuildIdentitySchema
-    release_eligible = ($notPassed.Count -eq 0)
+    release_eligible = ($sourceSnapshotVerified -and $notPassed.Count -eq 0)
     configuration = $Configuration
     live_worktree_changed = (ConvertTo-IdentityBoolOrUnknown -Value $LiveWorktreeChanged)
     live_worktree_changed_note = 'true/false = 构建前后两次独立采样之间是否观察到活动树变化；未声明源码快照范围时为 not-confirmed（未确认），绝不写成 false。'
@@ -1663,7 +1817,7 @@ function New-PackageReleaseEligibility {
     external_inputs = @($ExternalInputs)
     external_inputs_verified = $(if (@($ExternalInputs).Count -gt 0) { $true } else { 'not-applicable' })
     external_inputs_note = 'external_inputs_verified=true 表示本次出现的第三方 registry 构建产物均已按 manifest 登记的 crate/version/checksum 与 Cargo.lock 逐字比对通过；not-applicable 表示本次没有出现需要登记的外部输入。'
-    source_snapshot_verified = (@($Gates | Where-Object { @('declared_source_snapshot_scope','source_input_stability','declared_roots_present') -contains [string]$_.name -and [string]$_.result -ne 'pass' }).Count -eq 0)
+    source_snapshot_verified = $sourceSnapshotVerified
     source_snapshot_verified_note = 'source_snapshot_verified=true 只表示**源码快照侧**的范围、稳定性与 roots 检查通过；它**不**等于"源码快照包含全部二进制来源"。'
     cleared_artifact_revocations = @($ClearedRevocations)
     reasons = @($Reasons)
@@ -2233,7 +2387,7 @@ $script:CargoLockSemantics = [ordered]@{
 
 function Get-PackageInputFreezeRoot {
   param([Parameter(Mandatory = $true)][string]$RepoPath)
-  return (Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) $script:PackageInputFreezeRoot)
+  return (Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:PackageInputFreezeRoot)
 }
 
 function Get-PackagePrepareReportRoot {

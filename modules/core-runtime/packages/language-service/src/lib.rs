@@ -1,10 +1,12 @@
 mod client;
 mod error;
 mod manager;
+mod paths;
 mod types;
 
 pub use error::LspError;
 pub use manager::LspManager;
+pub use paths::canonical_document_path;
 pub use types::{
     FileDiagnostics, LspContextEnrichment, LspServerConfig, SymbolLocation, WorkspaceDiagnostics,
 };

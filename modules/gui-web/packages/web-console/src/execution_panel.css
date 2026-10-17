@@ -1,0 +1,21 @@
+/* 沿用玉石竹林配色与卷轴卡片；独立作用域不影响原定时配置和聊天室。 */
+.execution-panel { padding: 12px; color: var(--text-primary, #dce9df); overflow-y: auto; min-height: 0; }
+.execution-panel .execution-heading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.execution-panel .execution-heading small { flex: 1; opacity: .7; }
+.execution-panel button, .execution-panel select { color: inherit; background: rgba(42, 79, 66, .55); border: 1px solid rgba(163, 197, 170, .35); border-radius: 6px; padding: 6px 9px; cursor: pointer; }
+.execution-panel button:disabled { opacity: .5; cursor: default; }
+.execution-panel button:focus-visible, .execution-panel select:focus-visible { outline: 2px solid #cabb84; outline-offset: 2px; }
+.execution-panel .execution-card, .execution-panel .execution-details { background: linear-gradient(110deg, rgba(28, 57, 46, .92), rgba(49, 65, 45, .85)); border: 1px solid rgba(168, 183, 139, .38); border-radius: 9px; margin: 10px 0; padding: 12px; box-shadow: inset 3px 0 rgba(192, 182, 119, .35); }
+.execution-panel .execution-card header { display: flex; justify-content: space-between; gap: 8px; }
+.execution-panel .execution-source { color: #cfc390; }
+.execution-panel .execution-card h4 { margin: 8px 0; overflow-wrap: anywhere; }
+.execution-panel p { margin: 6px 0; font-size: 12px; overflow-wrap: anywhere; }
+.execution-panel p b { color: #b8c7b9; font-weight: 500; }
+.execution-panel footer { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.execution-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; max-height: 340px; overflow-y: auto; }
+.execution-panel [data-state="failed"], .execution-panel [data-state="outcome_unknown"] { border-color: #aa8661; }
+.execution-panel .execution-notice { color: #d3bb8a; }
+.execution-panel .execution-empty { padding: 20px 4px; opacity: .75; }
+
+.execution-panel .execution-avatar { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; }
+.execution-panel .execution-source { flex: 1; align-self: center; }

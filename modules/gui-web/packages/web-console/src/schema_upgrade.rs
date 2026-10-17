@@ -103,6 +103,75 @@ fn backup_while_write_locked(path: &Path, from: i64, target: i64) -> rusqlite::R
 #[cfg(test)]
 mod tests {
     #[test]
+    fn sqlite配额耗尽时迁移回滚且旧记录备份可读() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("quota.sqlite3");
+        let connection = rusqlite::Connection::open(&path).unwrap();
+        connection.execute_batch("CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE history(content TEXT); INSERT INTO history VALUES ('配额故障前中文记录'); PRAGMA user_version=1;").unwrap();
+        let pages: i64 = connection.query_row("PRAGMA page_count", [], |row| row.get(0)).unwrap();
+        connection.pragma_update(None, "max_page_count", pages).unwrap();
+        let error = super::run(&connection, 2, |db| {
+            db.execute_batch("CREATE TABLE expansion(content BLOB); INSERT INTO expansion VALUES(zeroblob(1048576)); PRAGMA user_version=2;")
+        }, |_| Ok(())).unwrap_err();
+        assert!(matches!(error, rusqlite::Error::SqliteFailure(code, _) if code.code == rusqlite::ErrorCode::DiskFull));
+        assert!(connection.is_autocommit());
+        assert_eq!(connection.query_row("PRAGMA user_version", [], |row| row.get::<_,i64>(0)).unwrap(), 1);
+        assert!(connection.prepare("SELECT * FROM expansion").is_err());
+        let backup = std::fs::read_dir(temp.path().join("schema-backups")).unwrap().next().unwrap().unwrap().path();
+        for db in [&connection, &rusqlite::Connection::open(&backup).unwrap()] {
+            assert_eq!(db.query_row("SELECT content FROM history", [], |row| row.get::<_,String>(0)).unwrap(), "配额故障前中文记录");
+            assert_eq!(db.query_row("PRAGMA quick_check", [], |row| row.get::<_,String>(0)).unwrap(), "ok");
+        }
+    }
+
+    #[test]
+    fn 迁移进程被强制终止后重开回滚并能重新升级() {
+        const CHILD: &str = "COOLZHU_TEST_MIGRATION_CRASH_ROOT";
+        if let Some(root) = std::env::var_os(CHILD) {
+            let root = std::path::PathBuf::from(root);
+            let db = rusqlite::Connection::open(root.join("crash.sqlite3")).unwrap();
+            super::run(&db, 2, |db| {
+                db.execute_batch("ALTER TABLE history ADD COLUMN unfinished TEXT; INSERT INTO history(content) VALUES ('未提交记录'); PRAGMA user_version=2;")?;
+                std::fs::write(root.join("migration-in-transaction"), b"ready").unwrap();
+                std::thread::sleep(std::time::Duration::from_secs(30));
+                panic!("父进程应在迁移事务内终止此测试子进程");
+            }, |_| Ok(())).unwrap();
+            return;
+        }
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("crash.sqlite3");
+        {
+            let db = rusqlite::Connection::open(&path).unwrap();
+            db.execute_batch("PRAGMA journal_mode=WAL; CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE history(content TEXT); INSERT INTO history VALUES ('终止前已提交中文记录'); PRAGMA user_version=1;").unwrap();
+        }
+        let mut command = std::process::Command::new(std::env::current_exe().unwrap());
+        command.args(["--exact", "schema_upgrade::tests::迁移进程被强制终止后重开回滚并能重新升级", "--nocapture"])
+            .env(CHILD, temp.path()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+        #[cfg(windows)]
+        { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
+        let mut child = command.spawn().unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(15);
+        while !temp.path().join("migration-in-transaction").exists() {
+            if std::time::Instant::now() >= deadline || child.try_wait().unwrap().is_some() {
+                let _ = child.kill(); let _ = child.wait(); panic!("测试子进程未进入迁移写事务");
+            }
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        child.kill().unwrap();
+        assert!(!child.wait().unwrap().success());
+        let db = rusqlite::Connection::open(&path).unwrap();
+        assert_eq!(db.query_row("PRAGMA user_version", [], |row| row.get::<_,i64>(0)).unwrap(), 1);
+        assert_eq!(db.query_row("SELECT count(*) FROM history", [], |row| row.get::<_,i64>(0)).unwrap(), 1);
+        assert!(db.prepare("SELECT unfinished FROM history").is_err());
+        let backup = std::fs::read_dir(temp.path().join("schema-backups")).unwrap().next().unwrap().unwrap().path();
+        let saved = rusqlite::Connection::open(backup).unwrap();
+        assert_eq!(saved.query_row("SELECT content FROM history", [], |row| row.get::<_,String>(0)).unwrap(), "终止前已提交中文记录");
+        super::run(&db, 2, |db| db.execute_batch("ALTER TABLE history ADD COLUMN unfinished TEXT; PRAGMA user_version=2;"), |_| Ok(())).unwrap();
+        assert_eq!(db.query_row("PRAGMA user_version", [], |row| row.get::<_,i64>(0)).unwrap(), 2);
+        assert_eq!(db.query_row("PRAGMA quick_check", [], |row| row.get::<_,String>(0)).unwrap(), "ok");
+    }
+
+    #[test]
     fn 首次迁移等待写锁且只执行一次阶梯() {
         let temp = tempfile::tempdir().unwrap();
         let path = temp.path().join("first.sqlite3");

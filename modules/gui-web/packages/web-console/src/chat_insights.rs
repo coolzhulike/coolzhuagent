@@ -220,19 +220,62 @@ pub(super) fn record_source_messages(path: &Path, run_id: &str, messages: &[Chat
 }
 
 #[derive(Debug, Default, Deserialize)]
-pub(super) struct TraceQuery { before: Option<String>, limit: Option<usize> }
+pub(super) struct TraceQuery {
+    before: Option<String>,
+    limit: Option<usize>,
+    run_id: Option<String>,
+    message_id: Option<String>,
+}
+
+impl TraceQuery {
+    pub(super) fn for_run(mut self, run: &str) -> Self {
+        self.run_id = Some(run.to_owned());
+        self.before = None;
+        self.message_id = None;
+        self
+    }
+}
 
 pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Query<TraceQuery>) -> ApiResult<Json<JsonValue>> {
     let path = history_path(&room_id)?; let workspace = workspace_identity(&active_workspace_path());
     let result = tokio::task::spawn_blocking(move || -> ApiResult<JsonValue> {
         let connection = open_session_connection(&path).map_err(sqlite_api_error)?;
         ensure_tables(&connection).map_err(sqlite_api_error)?;
-        let limit = query.limit.unwrap_or(30).clamp(1,100);
+        let mut query = query;
+        if let Some(message_id) = query.message_id.as_deref() {
+            if message_id.trim().is_empty() || query.run_id.is_some() || query.before.is_some() {
+                return Err(api_error(StatusCode::BAD_REQUEST,"回复定位不能同时指定其他运行或分页游标"));
+            }
+            // 只使用宿主已落盘的回复归属；不按作者、时间或消息ID格式猜运行。
+            let mut statement = connection.prepare(
+                "SELECT DISTINCT r.id FROM runtime_runs r
+                 JOIN runtime_run_events e ON e.run_id=r.id AND e.event_type='chat.context_outputs'
+                 JOIN json_each(e.payload_json,'$.messages') stamp
+                 JOIN chat_room_messages m ON m.id=json_extract(stamp.value,'$.id')
+                 WHERE r.workspace_id=?1 AND r.chat_room_id=?2 AND m.room_id=?2 AND m.id=?3
+                   AND json_type(stamp.value,'$.id')='text' AND lower(trim(m.role))='assistant'
+                   AND lower(replace(trim(m.kind),'_','-')) IN ('assistant-reply','bot')
+                 LIMIT 2"
+            ).map_err(sqlite_api_error)?;
+            let runs = statement.query_map(params![workspace,room_id,message_id], |row| row.get::<_,String>(0))
+                .map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
+            query.run_id = Some(match runs.as_slice() {
+                [run] => run.clone(),
+                [] => return Err(api_error(StatusCode::NOT_FOUND,"这条回复没有可定位的运行记录")),
+                _ => return Err(api_error(StatusCode::CONFLICT,"这条回复对应多个运行，请从运行列表查看")),
+            });
+        }
+        let limit = if query.message_id.is_some() { 1 } else { query.limit.unwrap_or(30).clamp(1,100) };
+        if let Some(run) = query.run_id.as_deref() {
+            let exists: bool = connection.query_row("SELECT EXISTS(SELECT 1 FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3)",
+                params![run,workspace,room_id], |row| row.get(0)).map_err(sqlite_api_error)?;
+            if !exists { return Err(api_error(StatusCode::NOT_FOUND,"运行轨迹不存在或不属于本工程房间")); }
+        }
         let before = if let Some(id) = query.before {
             Some(connection.query_row("SELECT created_at,id FROM runtime_runs WHERE id=?1 AND workspace_id=?2 AND chat_room_id=?3",params![id,workspace,room_id],|row| Ok((row.get::<_,i64>(0)?,row.get::<_,String>(1)?))).optional().map_err(sqlite_api_error)?.ok_or_else(|| api_error(StatusCode::NOT_FOUND,"轨迹游标已失效"))?)
         } else { None };
-        let mut statement = connection.prepare("SELECT id,session_id,legacy_turn_id,state,created_at,started_at,finished_at,stop_reason FROM runtime_runs WHERE workspace_id=?1 AND chat_room_id=?2 AND (?3 IS NULL OR created_at<?3 OR (created_at=?3 AND id<?4)) ORDER BY created_at DESC,id DESC LIMIT ?5").map_err(sqlite_api_error)?;
-        let mut runs = statement.query_map(params![workspace,room_id,before.as_ref().map(|v|v.0),before.as_ref().map(|v|v.1.as_str()),(limit+1) as i64], |row| Ok(json!({"run_id":row.get::<_,String>(0)?,"session_id":row.get::<_,Option<String>>(1)?,"turn_id":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,"created_at":row.get::<_,i64>(4)?,"started_at":row.get::<_,Option<i64>>(5)?,"finished_at":row.get::<_,Option<i64>>(6)?,"stop_reason":row.get::<_,Option<String>>(7)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
+        let mut statement = connection.prepare("SELECT id,session_id,legacy_turn_id,state,created_at,started_at,finished_at,stop_reason FROM runtime_runs WHERE workspace_id=?1 AND chat_room_id=?2 AND (?6 IS NULL OR id=?6) AND (?3 IS NULL OR created_at<?3 OR (created_at=?3 AND id<?4)) ORDER BY created_at DESC,id DESC LIMIT ?5").map_err(sqlite_api_error)?;
+        let mut runs = statement.query_map(params![workspace,room_id,before.as_ref().map(|v|v.0),before.as_ref().map(|v|v.1.as_str()),(limit+1) as i64,query.run_id], |row| Ok(json!({"run_id":row.get::<_,String>(0)?,"session_id":row.get::<_,Option<String>>(1)?,"turn_id":row.get::<_,Option<String>>(2)?,"status":row.get::<_,String>(3)?,"created_at":row.get::<_,i64>(4)?,"started_at":row.get::<_,Option<i64>>(5)?,"finished_at":row.get::<_,Option<i64>>(6)?,"stop_reason":row.get::<_,Option<String>>(7)?}))).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
         let has_more = runs.len()>limit; if has_more { runs.pop(); }
         for run in &mut runs {
             let run_id = run["run_id"].as_str().unwrap_or_default().to_string();
@@ -245,7 +288,8 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
             run["requests"] = json!(usage);
         }
         let next_before = if has_more { runs.last().and_then(|run| run["run_id"].as_str()).map(str::to_string) } else { None };
-        Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,"source":"runtime_runs/tool_calls/chat_usage_events/devin_acp_attempts"}))
+        Ok(json!({"runs":runs,"has_more":has_more,"next_before":next_before,
+            "requested_message_id":query.message_id,"source":"runtime_runs/tool_calls/chat_usage_events/devin_acp_attempts"}))
     }).await.map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,&error.to_string()))??;
     Ok(Json(result))
 }
@@ -253,6 +297,89 @@ pub(super) async fn trace(AxumPath(room_id): AxumPath<String>, Query(query): Que
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn exact_run_trace_finds_old_run_and_rejects_foreign_scope() {
+        let _lock = crate::tests::config_test_guard();
+        let _state = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1/v1");
+        {
+            let mut store = session_store().lock().unwrap();
+            store.state.chat_rooms.push(PersistedChatRoom { id: "exact-trace-room".into(),
+                name: "轨迹测试".into(), created_at: 1, updated_at: 1, messages: Vec::new() });
+            store.save().unwrap();
+        }
+        let path = default_session_sqlite_path();
+        let workspace = workspace_identity(&active_workspace_path());
+        let connection = open_session_connection(&path).unwrap();
+        for index in 0..=120 {
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,state,claim_token,created_at) VALUES(?1,'chat_turn',?2,'target-text','exact-trace-room','completed','trace-claim',?3)",
+                params![format!("trace-{index}"),workspace,index]).unwrap();
+        }
+        for (id, ws, room) in [("foreign-workspace", "other-workspace", "exact-trace-room"),
+            ("foreign-room", workspace.as_str(), "other-room")] {
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,chat_room_id,state,claim_token,created_at) VALUES(?1,'chat_turn',?2,?3,'completed','trace-claim',999)", params![id,ws,room]).unwrap();
+        }
+        let query = TraceQuery { before: Some("invalid-cursor".into()), limit: Some(1),
+            run_id: Some("foreign-room".into()), message_id: Some("ignored-by-run-route".into()) }.for_run("trace-0");
+        let Json(result) = trace(AxumPath("exact-trace-room".into()), Query(query)).await.unwrap();
+        assert_eq!(result["runs"].as_array().unwrap().len(), 1);
+        assert_eq!(result["runs"][0]["run_id"], "trace-0");
+        assert_eq!(result["has_more"], false);
+        assert!(result["next_before"].is_null());
+        for run in ["foreign-workspace", "foreign-room", "missing-run"] {
+            let error = trace(AxumPath("exact-trace-room".into()), Query(TraceQuery::default().for_run(run))).await.unwrap_err();
+            assert_eq!(error.0, StatusCode::NOT_FOUND);
+        }
+    }
+
+    #[tokio::test]
+    async fn reply_trace_uses_persisted_ownership_and_rejects_foreign_ambiguous_or_deleted_messages() {
+        let _lock = crate::tests::config_test_guard();
+        let _state = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1/v1");
+        {
+            let mut store = session_store().lock().unwrap();
+            for id in ["reply-room", "other-reply-room"] {
+                store.state.chat_rooms.push(PersistedChatRoom { id:id.into(), name:id.into(),
+                    created_at:1, updated_at:1, messages:Vec::new() });
+            }
+            store.save().unwrap();
+        }
+        let path = default_session_sqlite_path();
+        let workspace = workspace_identity(&active_workspace_path());
+        let connection = open_session_connection(&path).unwrap();
+        for (id, ws, room) in [
+            ("old-reply-run", workspace.as_str(), "reply-room"),
+            ("newer-reply-run", workspace.as_str(), "reply-room"),
+            ("other-workspace-run", "foreign-workspace", "reply-room"),
+            ("other-room-run", workspace.as_str(), "other-reply-room"),
+        ] {
+            connection.execute("INSERT INTO runtime_runs(id,kind,workspace_id,session_id,chat_room_id,state,claim_token,created_at)
+                VALUES(?1,'chat_turn',?2,'target-text',?3,'completed','reply-claim',1)", params![id,ws,room]).unwrap();
+        }
+        for id in ["reply-owned", "reply-foreign-workspace", "reply-foreign-room", "reply-unmapped"] {
+            connection.execute("INSERT INTO chat_room_messages(room_id,id,author,role,target,content,kind,attachments_json,created_at)
+                VALUES('reply-room',?1,'同名显示作者','assistant','chat','已完成回复','assistant-reply','[]',1)", params![id]).unwrap();
+        }
+        for (run, message) in [("old-reply-run","reply-owned"),
+            ("other-workspace-run","reply-foreign-workspace"), ("other-room-run","reply-foreign-room")] {
+            crate::devin_acp::context::record_outputs(&path,run,"reply-room","target-text",&[message.into()]).unwrap();
+        }
+        let request = |message: &str| TraceQuery {message_id:Some(message.into()),..TraceQuery::default()};
+        let Json(found) = trace(AxumPath("reply-room".into()),Query(request("reply-owned"))).await.unwrap();
+        assert_eq!(found["requested_message_id"],"reply-owned");
+        assert_eq!(found["runs"].as_array().unwrap().len(),1);
+        assert_eq!(found["runs"][0]["run_id"],"old-reply-run");
+        assert_eq!(found["has_more"],false);
+        for message in ["reply-foreign-workspace","reply-foreign-room","reply-unmapped","missing-reply"] {
+            assert_eq!(trace(AxumPath("reply-room".into()),Query(request(message))).await.unwrap_err().0,StatusCode::NOT_FOUND);
+        }
+        let conflict = TraceQuery {message_id:Some("reply-owned".into()),run_id:Some("newer-reply-run".into()),..TraceQuery::default()};
+        assert_eq!(trace(AxumPath("reply-room".into()),Query(conflict)).await.unwrap_err().0,StatusCode::BAD_REQUEST);
+        crate::devin_acp::context::record_outputs(&path,"newer-reply-run","reply-room","target-text",&["reply-owned".into()]).unwrap();
+        assert_eq!(trace(AxumPath("reply-room".into()),Query(request("reply-owned"))).await.unwrap_err().0,StatusCode::CONFLICT);
+        connection.execute("DELETE FROM chat_room_messages WHERE id='reply-owned'",[]).unwrap();
+        assert_eq!(trace(AxumPath("reply-room".into()),Query(request("reply-owned"))).await.unwrap_err().0,StatusCode::NOT_FOUND);
+    }
 
     fn search_messages(messages: &[PersistedChatMessage], query: &SearchQuery) -> JsonValue {
         let connection = Connection::open_in_memory().unwrap();
@@ -344,6 +471,75 @@ mod tests {
         assert_eq!(count, 1);
         let context: (String,String,String) = connection.query_row("SELECT turn_id,call_id,request_kind FROM chat_usage_events WHERE id=1", [], |row| Ok((row.get(0)?,row.get(1)?,row.get(2)?))).unwrap();
         assert_eq!(context, ("turn".into(),"call".into(),"computer_use_planning".into()));
+    }
+
+    #[test]
+    fn live_search_reads_while_progress_writes_stay_bounded() {
+        // 持续 UPSERT 期间读者走真实 search_sqlite：无 SQL 异常、结果不越房间边界。
+        let directory = tempfile::tempdir().unwrap();
+        let db = directory.path().join("sessions.sqlite3");
+        let schema = "CREATE TABLE chat_room_messages(room_id TEXT,id TEXT,author TEXT,role TEXT,target TEXT,content TEXT,kind TEXT,attachments_json TEXT,created_at INTEGER,PRIMARY KEY(room_id,id));";
+        fn live_upsert(connection: &Connection, room: &str, id: &str, content: &str, created_at: i64) -> rusqlite::Result<usize> {
+            connection.execute(
+                "INSERT INTO chat_room_messages(room_id,id,author,role,target,content,kind,attachments_json,created_at)
+                 VALUES(?1,?2,'助手','assistant','',?3,'assistant-partial','[]',?4)
+                 ON CONFLICT(room_id,id) DO UPDATE SET author=excluded.author, role=excluded.role,
+                     target=excluded.target, content=excluded.content, kind=excluded.kind,
+                     attachments_json=excluded.attachments_json, created_at=excluded.created_at",
+                params![room, id, content, created_at])
+        }
+        {
+            let seed = Connection::open(&db).unwrap();
+            seed.execute_batch(schema).unwrap();
+            // 异房间含同词干扰：搜索必须被房间边界挡住。
+            live_upsert(&seed, "b", "foreign", "live-write-marker 外部房间正文", 1).unwrap();
+            live_upsert(&seed, "a", "m1", "live-write-marker v0", 1).unwrap();
+            // 先跑一次真实搜索建立索引与派生结构，避免并发窗口内首次 DDL 竞争。
+            search_sqlite(&seed, "a", &SearchQuery { q: Some("live-write-marker".into()), ..Default::default() }).unwrap();
+        }
+        let barrier = std::sync::Barrier::new(3);
+        std::thread::scope(|scope| {
+            let writer_db = &db;
+            let barrier_ref = &barrier;
+            scope.spawn(move || {
+                let connection = Connection::open(writer_db).unwrap();
+                connection.busy_timeout(std::time::Duration::from_secs(5)).unwrap();
+                barrier_ref.wait();
+                for pass in 1..=24 {
+                    live_upsert(&connection, "a", "m1", &format!("live-write-marker v{pass}"), pass).unwrap();
+                }
+            });
+            let reader_db = &db;
+            let barrier_ref = &barrier;
+            scope.spawn(move || {
+                let connection = Connection::open(reader_db).unwrap();
+                connection.busy_timeout(std::time::Duration::from_secs(5)).unwrap();
+                barrier_ref.wait();
+                let query = SearchQuery { q: Some("live-write-marker".into()), ..Default::default() };
+                for _ in 0..24 {
+                    let result = search_sqlite(&connection, "a", &query)
+                        .expect("并发读取不得产生 SQL 异常");
+                    for item in result["items"].as_array().unwrap() {
+                        assert_eq!(item["id"].as_str().unwrap(), "m1", "结果必须只属于当前房间");
+                        assert!(!item["snippet"].as_str().unwrap_or_default().contains("外部房间"),
+                            "片段不得泄漏异房间正文");
+                    }
+                }
+            });
+            barrier.wait();
+        });
+        // 写完后的终态检索：最终版本命中，被覆盖的旧版本不再命中。
+        let connection = Connection::open(&db).unwrap();
+        connection.busy_timeout(std::time::Duration::from_secs(5)).unwrap();
+        let result = search_sqlite(&connection, "a", &SearchQuery { q: Some("v24".into()), ..Default::default() }).unwrap();
+        assert_eq!(result["total"].as_u64().unwrap(), 1);
+        assert_eq!(result["items"][0]["id"].as_str().unwrap(), "m1");
+        let stale = search_sqlite(&connection, "a", &SearchQuery { q: Some("v0".into()), ..Default::default() }).unwrap();
+        assert_eq!(stale["total"].as_u64().unwrap(), 0);
+        let foreign = search_sqlite(&connection, "b", &SearchQuery { q: Some("live-write-marker".into()), ..Default::default() }).unwrap();
+        for item in foreign["items"].as_array().unwrap() {
+            assert_eq!(item["id"].as_str().unwrap(), "foreign");
+        }
     }
 
 }

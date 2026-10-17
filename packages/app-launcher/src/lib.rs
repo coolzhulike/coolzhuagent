@@ -1696,6 +1696,40 @@ mod tests {
         assert_eq!(v["resolution_notes"][0], "[test] note");
     }
 
+    /// 大历史库的冷启动可超过旧30秒期限；消费真实随包配置，避免测试自造宽松期限。
+    #[test]
+    fn packaged_launch_allows_slow_database_startup_before_showing_ui() {
+        let log_dir = temp_dir_unique("packaged-slow-start");
+        let mut cfg = LauncherConfig::from_json_with_env(
+            include_str!("../../../config/package-launcher.json"),
+            Path::new("."),
+            |_| Some(log_dir.clone().into_os_string()),
+        ).unwrap();
+        cfg.web_console.path = touch_executable("slow-start-web");
+        cfg.tauri.path = touch_executable("slow-start-tauri");
+        cfg.log_dir = log_dir.clone();
+        cfg.selfcheck_file = log_dir.join("package-selfcheck-last.json");
+        let resolved = workspace_for("slow-start-workspace");
+        let mut spawner = FakeSpawner::new(555, 666);
+        let clock = std::cell::Cell::new(Duration::ZERO);
+        let ready_at = Duration::from_secs(45);
+        let mut probe = || {
+            if clock.get() >= ready_at { ProbeOutcome::Ready } else { ProbeOutcome::Transient }
+        };
+        let result = launch(
+            &cfg, &resolved, &mut spawner, &mut probe,
+            || clock.get(), |d| clock.set(clock.get() + d),
+            7, &mut no_observation, &[],
+        );
+        assert!(result.is_ok(), "慢启动不应被旧30秒期限提前回收：{result:?}");
+        assert_eq!(clock.get(), ready_at);
+        assert_eq!(spawner.web_calls, 1);
+        assert_eq!(spawner.tauri_calls, 1);
+        assert!(spawner.terminated_pids.is_empty());
+        let persisted: Value = serde_json::from_str(&fs::read_to_string(&cfg.selfcheck_file).unwrap()).unwrap();
+        assert_eq!(persisted["ok"], true);
+    }
+
     #[test]
     fn launch_writes_failed_selfcheck_on_health_timeout() {
         let web = touch_executable("web-timeout");

@@ -69,6 +69,19 @@ pub fn execute_bash(input: BashCommandInput) -> io::Result<BashCommandOutput> {
         .map_or_else(env::current_dir, |cwd| Ok(std::path::PathBuf::from(cwd)))?;
     let sandbox_status = sandbox_status_for_input(&input, &cwd);
 
+    if sandbox_status.enabled && sandbox_status.filesystem_mode == FilesystemIsolationMode::WindowsLowIntegrity {
+        if !sandbox_status.active || input.run_in_background.unwrap_or(false) {
+            return Err(io::Error::new(io::ErrorKind::Unsupported, "低完整性命令必须受监督前台执行，且不能请求未实现的命名空间或网络隔离"));
+        }
+        #[cfg(windows)]
+        {
+            let scratch = windows_process_guard::create_low_integrity_workspace(&cwd)?;
+            return execute_bash_managed(input, sandbox_status, scratch);
+        }
+        #[cfg(not(windows))]
+        return Err(io::Error::new(io::ErrorKind::Unsupported, "低完整性写隔离仅支持 Windows"));
+    }
+
     if input.run_in_background.unwrap_or(false) {
         let mut child = prepare_command(&input.command, &cwd, &sandbox_status, false);
         let child = child
@@ -105,12 +118,15 @@ fn execute_bash_managed(
     cwd: std::path::PathBuf,
 ) -> io::Result<BashCommandOutput> {
     let mut command = prepare_command(&input.command, &cwd, &sandbox_status, true);
-    let managed = crate::managed_process::output(&mut command, input.timeout.map(Duration::from_millis))?;
-    let output = managed.output;
-    let interrupted = managed.interruption.is_some();
+    let low_integrity = sandbox_status.enabled && sandbox_status.filesystem_mode == FilesystemIsolationMode::WindowsLowIntegrity;
+    let managed = if low_integrity {
+        crate::managed_process::output_low_integrity(&mut command, input.timeout.map(Duration::from_millis))?
+    } else { crate::managed_process::output(&mut command, input.timeout.map(Duration::from_millis))? };
+    let output = managed.output();
+    let interrupted = managed.interruption().is_some();
     let stdout = crate::managed_process::decode_console_output(&output.stdout);
     let mut stderr = crate::managed_process::decode_console_output(&output.stderr);
-    if let Some(reason) = managed.interruption {
+    if let Some(reason) = managed.interruption() {
         if !stderr.is_empty() { stderr.push('\n'); }
         stderr.push_str(&match reason {
             crate::managed_process::Interruption::TimedOut => format!("Command exceeded timeout of {} ms", input.timeout.unwrap_or(0)),
@@ -118,7 +134,7 @@ fn execute_bash_managed(
         });
     }
     let no_output_expected = Some(stdout.trim().is_empty() && stderr.trim().is_empty());
-    let return_code_interpretation = managed.interruption.map(|reason| match reason {
+    let return_code_interpretation = managed.interruption().map(|reason| match reason {
         crate::managed_process::Interruption::TimedOut => "timeout".to_string(),
         crate::managed_process::Interruption::Cancelled => "cancelled".to_string(),
     }).or_else(|| output.status.code().and_then(|code| {
@@ -141,7 +157,10 @@ fn execute_bash_managed(
         dangerously_disable_sandbox: input.dangerously_disable_sandbox,
         return_code_interpretation,
         no_output_expected,
-        structured_content: None,
+        structured_content: low_integrity.then(|| vec![serde_json::json!({
+            "isolation": "windows-low-integrity", "working_directory": cwd,
+            "write_boundary": "MIC no-write-up", "read_isolation": false, "network_isolation": false,
+        })]),
         persisted_output_path: None,
         persisted_output_size: None,
         sandbox_status: Some(sandbox_status),
@@ -197,6 +216,10 @@ fn prepare_command(
     if sandbox_status.filesystem_active {
         prepared.env("HOME", cwd.join(".sandbox-home"));
         prepared.env("TMPDIR", cwd.join(".sandbox-tmp"));
+        if sandbox_status.filesystem_mode == FilesystemIsolationMode::WindowsLowIntegrity {
+            prepared.env("TEMP", cwd.join(".sandbox-tmp"));
+            prepared.env("TMP", cwd.join(".sandbox-tmp"));
+        }
     }
     prepared
 }
@@ -210,6 +233,30 @@ fn prepare_sandbox_dirs(cwd: &std::path::Path) {
 mod tests {
     use super::{execute_bash, BashCommandInput};
     use crate::sandbox::FilesystemIsolationMode;
+
+    #[cfg(windows)]
+    #[test]
+    fn low_integrity_runtime_write_boundary_and_background_refusal() {
+        let root=tempfile::tempdir().unwrap();
+        let protected=root.path().join("protected.txt");
+        std::fs::write(&protected,b"unchanged").unwrap();
+        let mut input=BashCommandInput {
+            command:format!("(echo allowed> allowed.txt) && (echo blocked> \"{}\")",protected.display()),
+            cwd:Some(root.path().display().to_string()),timeout:Some(5_000),description:None,
+            run_in_background:Some(false),dangerously_disable_sandbox:Some(false),
+            namespace_restrictions:Some(false),isolate_network:Some(false),
+            filesystem_mode:Some(FilesystemIsolationMode::WindowsLowIntegrity),allowed_mounts:None,
+        };
+        let result=execute_bash(input.clone()).unwrap();
+        assert!(result.sandbox_status.as_ref().unwrap().filesystem_active);
+        assert!(result.return_code_interpretation.as_ref().is_some_and(|s|s.starts_with("exit_code:")));
+        assert_eq!(std::fs::read(&protected).unwrap(),b"unchanged");
+        let scratch=result.structured_content.as_ref().unwrap()[0]["working_directory"].as_str().unwrap();
+        assert!(std::path::Path::new(scratch).starts_with(root.path().canonicalize().unwrap()));
+        assert!(std::fs::read_to_string(std::path::Path::new(scratch).join("allowed.txt")).unwrap().contains("allowed"));
+        input.run_in_background=Some(true);
+        assert_eq!(execute_bash(input).unwrap_err().kind(),std::io::ErrorKind::Unsupported);
+    }
 
     #[test]
     fn executes_simple_command() {

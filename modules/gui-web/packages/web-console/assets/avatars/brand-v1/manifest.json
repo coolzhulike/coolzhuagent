@@ -1,0 +1,114 @@
+[
+  {
+    "file": "brand-v1/generic.png",
+    "name": "通用助手",
+    "theme_color": "#64bea9",
+    "brand": "generic",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/generic.png",
+      "48": "brand-v1/48/generic.png",
+      "64": "brand-v1/64/generic.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/deepseek.png",
+    "name": "DeepSeek 鲸鱼娘",
+    "theme_color": "#559be8",
+    "brand": "deepseek",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/deepseek.png",
+      "48": "brand-v1/48/deepseek.png",
+      "64": "brand-v1/64/deepseek.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/chatgpt.png",
+    "name": "ChatGPT 白龙娘",
+    "theme_color": "#40a87a",
+    "brand": "chatgpt",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/chatgpt.png",
+      "48": "brand-v1/48/chatgpt.png",
+      "64": "brand-v1/64/chatgpt.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/qwen.png",
+    "name": "千问 Qwen 娘",
+    "theme_color": "#9a78d9",
+    "brand": "qwen",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/qwen.png",
+      "48": "brand-v1/48/qwen.png",
+      "64": "brand-v1/64/qwen.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/claude.png",
+    "name": "Claude 太阳娘",
+    "theme_color": "#ca7947",
+    "brand": "claude",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/claude.png",
+      "48": "brand-v1/48/claude.png",
+      "64": "brand-v1/64/claude.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/gemini.png",
+    "name": "Gemini 星光娘",
+    "theme_color": "#546ce8",
+    "brand": "gemini",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/gemini.png",
+      "48": "brand-v1/48/gemini.png",
+      "64": "brand-v1/64/gemini.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/grok.png",
+    "name": "Grok 星环娘",
+    "theme_color": "#777988",
+    "brand": "grok",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/grok.png",
+      "48": "brand-v1/48/grok.png",
+      "64": "brand-v1/64/grok.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  },
+  {
+    "file": "brand-v1/glm.png",
+    "name": "GLM 智谱娘",
+    "theme_color": "#66b7ea",
+    "brand": "glm",
+    "official": false,
+    "variants": {
+      "32": "brand-v1/32/glm.png",
+      "48": "brand-v1/48/glm.png",
+      "64": "brand-v1/64/glm.png"
+    },
+    "visual_direction_review": "approved",
+    "integrated_ui_review": "pending"
+  }
+]

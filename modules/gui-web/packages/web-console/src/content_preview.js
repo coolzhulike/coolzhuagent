@@ -85,7 +85,9 @@ window.CoolzhuContentPreview = (() => {
     const rows = lines.map((line,index) => {
       const row = node("span"); row.className = "content-preview-line"; row.dataset.line = String(first + index);
       const number = node("span", String(first + index)); number.className = "content-preview-line-number"; number.setAttribute("aria-hidden", "true");
-      const value = node("span", line || "\u200b"); value.className = "content-preview-line-value"; row.append(number,value); pre.append(row); return row;
+      const value = node("span", line || "\u200b"); value.className = "content-preview-line-value";
+      if (!options.bytePage) row.append(number);
+      row.append(value); pre.append(row); return row;
     });
     let matches = [], selected = -1;
     const locate = direction => {
@@ -186,17 +188,46 @@ window.CoolzhuContentPreview = (() => {
       if (ref.file && !["image", "video", "audio", "pdf"].includes(ref.kind)) {
         if (!["text", "web"].includes(ref.kind)) throw new Error("工作区媒体需要先作为聊天附件上传，或使用已授权的附件引用。");
         const query = new URLSearchParams({path:ref.locator});
-        query.set("start_line", String(Math.max(1, (ref.line || 1) - 20)));
-        query.set("end_line", String((ref.line || 1) + 399));
-        const response = await fetch(`/api/project/file?${query}`, {signal});
-        const data = await response.json();
+        const bytePage = Number.isSafeInteger(ref.byteOffset) && ref.byteOffset >= 0;
+        if (bytePage) {
+          query.set("offset", String(ref.byteOffset));
+          query.set("limit", "262144");
+        } else {
+          query.set("start_line", String(Math.max(1, (ref.line || 1) - 20)));
+          query.set("end_line", String((ref.line || 1) + 399));
+        }
+        let response = await fetch(`/api/project/file?${query}`, {signal});
+        let data = await response.json();
+        // 超长行不能由缩小行范围解决，沿用后端UTF-8边界安全的字节分页。
+        if (response.status === 413 && !bytePage) {
+          query.delete("start_line"); query.delete("end_line");
+          query.set("offset", "0"); query.set("limit", "262144");
+          response = await fetch(`/api/project/file?${query}`, {signal});
+          data = await response.json();
+        }
         if (!response.ok) throw new Error(data.error || "文件无法预览，请检查工作区与文件路径。");
         if (!current()) return;
         const changed = ref.revision && data.meta?.revision && ref.revision !== data.meta.revision;
         options.onResolved?.(data.meta); options.onLocation?.(ref.line || data.start_line || 1);
         if (changed) heading.append(node("small", "文件已更新，当前显示磁盘上的最新内容。"));
+        if (data.start_line === undefined) {
+          renderText(content, data.content, {bytePage:true});
+          heading.append(node("small", `字节 ${data.offset}–${data.offset + data.bytes_read} / 共 ${data.meta.file_size} 字节 · 只读分段`));
+          const history = ref.byteHistory || [];
+          if (history.length) {
+            const previous = node("button", "上一段"); previous.type = "button";
+            previous.addEventListener("click", () => void open(container, {...ref, byteOffset:history.at(-1), byteHistory:history.slice(0,-1)}, options));
+            content.append(previous);
+          }
+          if (data.next_offset !== null && data.next_offset !== undefined) {
+            const next = node("button", "下一段"); next.type = "button";
+            next.addEventListener("click", () => void open(container, {...ref, byteOffset:data.next_offset, byteHistory:[...history,data.offset]}, options));
+            content.append(next);
+          }
+          return;
+        }
         renderText(content, data.content, {startLine:data.start_line || 1,targetLine:ref.line,totalLines:data.total_lines,
-          onLine: line => void open(container, {...ref,line}, options)});
+          onLine: line => void open(container, {...ref,line,byteOffset:undefined,byteHistory:undefined}, options)});
         heading.append(node("small", `第 ${data.start_line || 1}–${data.end_line || 1} 行 / 共 ${data.total_lines || "未知"} 行 · 只读`));
         if (data.end_line < data.total_lines) {
           const next = node("button", "继续读取后续内容"); next.type = "button";

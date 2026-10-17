@@ -1,0 +1,643 @@
+//! 回合失败也保存已记录的会话事实；保存失败不得抹去原执行错误。
+use std::{error::Error, path::Path};
+use runtime::{AgentEvent, RuntimeError, Session, TurnSummary};
+
+const MAX_EVENT_RECORD_BYTES: usize = 8 * 1024 * 1024;
+
+/// 序列化与恢复使用同一字节上限；超限不创建 pending，也不发布截断记录。
+fn encode_event_record<T: serde::Serialize>(value: &T, limit: usize) -> std::io::Result<Vec<u8>> {
+    struct BoundedBytes { bytes: Vec<u8>, limit: usize }
+    impl std::io::Write for BoundedBytes {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.bytes.len()) {
+                return Err(std::io::Error::other("回合轨迹超过恢复大小上限，未发布"));
+            }
+            self.bytes.extend_from_slice(bytes);
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> { Ok(()) }
+    }
+    let mut output = BoundedBytes { bytes: Vec::new(), limit };
+    serde_json::to_writer_pretty(&mut output, value).map_err(std::io::Error::other)?;
+    Ok(output.bytes)
+}
+
+pub(super) trait PersistedTurn {
+    fn events(&self) -> &[AgentEvent];
+}
+
+impl PersistedTurn for TurnSummary {
+    fn events(&self) -> &[AgentEvent] { &self.events }
+}
+
+#[cfg(test)]
+impl PersistedTurn for () {
+    fn events(&self) -> &[AgentEvent] { &[] }
+}
+
+fn event_namespace(path: &Path) -> std::io::Result<std::path::PathBuf> {
+    let mut name = path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?.to_os_string();
+    name.push(".events.json");
+    Ok(path.with_file_name(name))
+}
+
+fn event_directory(path: &Path) -> std::io::Result<std::path::PathBuf> {
+    Ok(path.parent().unwrap_or_else(|| Path::new(".")).join("turn-events-v2")
+        .join(path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?))
+}
+
+fn reject_linked_history_directory(directory: &Path) -> std::io::Result<()> {
+    // 工作区父目录已经规范化；事件根和会话子目录不得再重定向到另一个锁身份。
+    for path in [directory.parent(), Some(directory)].into_iter().flatten() {
+        let metadata = match std::fs::symlink_metadata(path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error),
+        };
+        let mut linked = metadata.file_type().is_symlink();
+        #[cfg(windows)]
+        { use std::os::windows::fs::MetadataExt; linked |= metadata.file_attributes() & 0x400 != 0; }
+        if linked || !metadata.is_dir() { return Err(std::io::Error::other("历史目录不是普通目录，拒绝路径重定向")); }
+    }
+    Ok(())
+}
+
+/// 恢复持久轨迹；旧会话没有轨迹目录时兼容为空，不忽略已存在的损坏记录。
+pub(super) fn load_event_history(path: &Path) -> std::io::Result<Vec<Vec<AgentEvent>>> {
+    load_event_history_with_usage(path).map(|(history, _)| history)
+}
+
+fn load_event_history_with_usage(path: &Path) -> std::io::Result<(Vec<Vec<AgentEvent>>, usize)> {
+    use std::io::Read;
+    let root = path.parent().unwrap_or_else(|| Path::new(".")).join("internal-turns");
+    let current = event_namespace(path)?;
+    let legacy = path.with_extension("events.json");
+    let mut entries = Vec::new();
+    let mut visited = std::collections::BTreeSet::new();
+    for directory in [event_directory(path)?, root.join(current.file_name().unwrap()), root.join(legacy.file_name().unwrap())] {
+        if !visited.insert(directory.clone()) { continue; }
+        reject_linked_history_directory(&directory)?;
+        let found = match std::fs::read_dir(directory) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error),
+        };
+        for entry in found {
+            if entries.len() >= 10_000 { return Err(std::io::Error::other("回合历史超过恢复数量上限")); }
+            entries.push(entry?);
+        }
+    }
+    let mut history = Vec::new();
+    let mut total_bytes = 0_usize;
+    let mut identities = std::collections::BTreeSet::new();
+    for entry in entries {
+        if history.len() >= 10_000 { return Err(std::io::Error::other("回合历史超过恢复数量上限")); }
+        if entry.path().extension().is_some_and(|extension| extension == "pending") {
+            return Err(std::io::Error::other("发现未提交回合轨迹，执行结果未知，需恢复处置"));
+        }
+        if !entry.file_type()?.is_file() { return Err(std::io::Error::other("回合历史包含非普通文件")); }
+        let mut bytes = Vec::new();
+        std::fs::File::open(entry.path())?.take(MAX_EVENT_RECORD_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+        if bytes.len() > MAX_EVENT_RECORD_BYTES { return Err(std::io::Error::other("回合轨迹超过恢复大小上限")); }
+        total_bytes += bytes.len();
+        if total_bytes > 64 * 1024 * 1024 { return Err(std::io::Error::other("回合历史超过恢复总大小上限")); }
+        let events: Vec<AgentEvent> = serde_json::from_slice(&bytes).map_err(std::io::Error::other)?;
+        validate_event_record(&events)?;
+        let first = &events[0];
+        if !identities.insert((first.thread_id.clone(), first.turn_id.clone())) {
+            return Err(std::io::Error::other("回合起点或历史身份重复"));
+        }
+        history.push(events);
+    }
+    Ok((history, total_bytes))
+}
+
+/// 内部回合保留独立快照，先独占预留文件；不会覆盖主会话或已有内部回合。
+pub(super) fn reserve_internal_path(parent_session: &Path) -> std::io::Result<std::path::PathBuf> {
+    reserve_internal_file(parent_session).map(|(path, _file)| path)
+}
+
+fn reserve_internal_file(parent_session: &Path) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    reserve_internal_file_with_extension(parent_session, "json")
+}
+
+fn reserve_internal_file_with_extension(parent_session: &Path, extension: &str) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    let name = parent_session.file_name().ok_or_else(|| std::io::Error::other("主会话路径缺少文件名"))?;
+    let directory = parent_session.parent().unwrap_or_else(|| Path::new("."))
+        .join("internal-turns").join(name);
+    reserve_file_in_directory(&directory, extension)
+}
+
+fn reserve_file_in_directory(directory: &Path, extension: &str) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+    std::fs::create_dir_all(&directory)?;
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)
+        .map_err(std::io::Error::other)?.as_nanos();
+    for _ in 0..32 {
+        let path = directory.join(format!("{now}-{}-{}.{extension}", std::process::id(), SEQUENCE.fetch_add(1, Ordering::Relaxed)));
+        match std::fs::OpenOptions::new().write(true).create_new(true).open(&path) {
+            Ok(file) => return Ok((path, file)),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(error),
+        }
+    }
+    Err(std::io::Error::other("无法独占预留内部会话文件"))
+}
+
+pub(super) fn persist_result<T: PersistedTurn>(
+    result: Result<T, RuntimeError>, session: &Session, path: &Path,
+) -> Result<T, Box<dyn Error>> {
+    let session_saved = session.save_to_path(path);
+    let events_saved = match &result {
+        Err(error) => save_events(error.events(), path),
+        Ok(summary) => save_events(summary.events(), path),
+    };
+    if let Err(events_error) = events_saved {
+        let storage = session_saved.err().map(|error| format!("；会话保存也失败：{error}")).unwrap_or_default();
+        let execution = match &result {
+            Err(error) => format!("回合执行失败：{error}；"),
+            Ok(_) => String::new(),
+        };
+        return Err(Box::new(std::io::Error::other(format!("{execution}终态轨迹保存失败：{events_error}{storage}"))));
+    }
+    match (result, session_saved) {
+        (Ok(value), Ok(())) => Ok(value),
+        (Err(error), Ok(())) => Err(Box::new(error)),
+        (Ok(_), Err(error)) => Err(Box::new(error)),
+        (Err(execution), Err(storage)) => Err(Box::new(std::io::Error::other(
+            format!("回合执行失败：{execution}；会话事实保存也失败：{storage}"),
+        ))),
+    }
+}
+
+/// 回合轨迹与会话消息分别留存；独占文件避免后续回合覆盖历史。
+fn validate_event_record(events: &[AgentEvent]) -> std::io::Result<()> {
+    use runtime::AgentEventKind::{TurnStarted, TurnCompleted, TurnFailed, TurnInterrupted};
+    let first = events.first().ok_or_else(|| std::io::Error::other("回合轨迹为空"))?;
+    if first.kind != TurnStarted || first.thread_id.as_str().trim().is_empty() || first.turn_id.as_str().trim().is_empty() {
+        return Err(std::io::Error::other("回合起点或身份无效"));
+    }
+    for (index, event) in events.iter().enumerate() {
+        let terminal = matches!(event.kind, TurnCompleted | TurnFailed | TurnInterrupted);
+        if event.schema_version != 1 || event.sequence != (index + 1) as u64
+            || event.thread_id != first.thread_id || event.turn_id != first.turn_id
+            || (index > 0 && event.kind == TurnStarted) || terminal != (index + 1 == events.len()) {
+            return Err(std::io::Error::other("回合轨迹序号、身份或唯一终态不一致"));
+        }
+    }
+    Ok(())
+}
+
+fn save_events(events: &[AgentEvent], path: &Path) -> std::io::Result<()> {
+    use std::io::Write;
+    if events.is_empty() { return Ok(()); }
+    validate_event_record(events)?;
+    let bytes = encode_event_record(&events, MAX_EVENT_RECORD_BYTES)?;
+    // 规范父目录，锁覆盖旧目录读取、预算检查及新记录发布；保留锁文件避免 inode 分裂。
+    let parent = std::fs::canonicalize(path.parent().filter(|parent| !parent.as_os_str().is_empty()).unwrap_or_else(|| Path::new(".")))?;
+    let canonical_path = parent.join(path.file_name().ok_or_else(|| std::io::Error::other("会话缺少文件名"))?);
+    reject_linked_history_directory(&event_directory(&canonical_path)?)?;
+    let _lock = runtime::lock_file_mutation(&event_directory(&canonical_path)?)?;
+    let (history, total_bytes) = load_event_history_with_usage(&canonical_path)?;
+    if history.len() >= 10_000 || total_bytes + bytes.len() > 64 * 1024 * 1024 {
+        return Err(std::io::Error::other("新增回合将超过恢复历史预算，未发布"));
+    }
+    if history.iter().any(|record| record[0].thread_id == events[0].thread_id && record[0].turn_id == events[0].turn_id) {
+        return Err(std::io::Error::other("回合历史身份重复，未发布"));
+    }
+    let (event_path, mut file) = reserve_file_in_directory(&event_directory(&canonical_path)?, "pending")?;
+    let saved = file.write_all(&bytes).and_then(|()| file.sync_all());
+    drop(file);
+    if let Err(error) = saved {
+        // 清理本次独占文件，避免普通写入失败留下可误读的半份轨迹。
+        return match std::fs::remove_file(&event_path) {
+            Ok(()) => Err(error),
+            Err(cleanup) => Err(std::io::Error::other(format!("{error}；未完成轨迹清理失败：{cleanup}"))),
+        };
+    }
+    // 同目录硬链接以不覆盖方式发布完整记录；失败保留 pending，恢复时明确报未知。
+    publish_pending_events(&event_path)
+}
+
+fn publish_pending_events(path: &Path) -> std::io::Result<()> {
+    std::fs::hard_link(path, path.with_extension("json"))?;
+    std::fs::remove_file(path)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use runtime::{ApiClient, ApiRequest, AssistantEvent, ConversationRuntime, PermissionMode,
+        PermissionPolicy, ToolExecutor, ToolError};
+
+    #[test]
+    fn history_lock_rejects_real_competing_process_then_releases() {
+        const CHILD_PATH: &str = "COOLZHU_HISTORY_LOCK_TEST_PATH";
+        const CHILD_BUSY: &str = "COOLZHU_HISTORY_LOCK_TEST_BUSY";
+        let events = vec![
+            AgentEvent::new(1, "thread".into(), "child".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "child".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        if let Some(path) = std::env::var_os(CHILD_PATH) {
+            let result = save_events(&events, Path::new(&path));
+            if std::env::var(CHILD_BUSY).unwrap() == "1" {
+                assert_eq!(result.unwrap_err().kind(), std::io::ErrorKind::WouldBlock);
+                assert!(!event_directory(Path::new(&path)).unwrap().exists());
+            } else { result.unwrap(); }
+            return;
+        }
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-real-lock-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = std::fs::canonicalize(&directory).unwrap().join("main.json");
+        let lock = runtime::lock_file_mutation(&event_directory(&path).unwrap()).unwrap();
+        let run_child = |busy: &str| {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", "turn_persistence::tests::history_lock_rejects_real_competing_process_then_releases", "--nocapture"])
+                .env(CHILD_PATH, &path).env(CHILD_BUSY, busy).output().unwrap();
+            assert!(output.status.success(), "子进程失败：{} {}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+        };
+        run_child("1");
+        drop(lock);
+        run_child("0");
+        assert_eq!(load_event_history(&path).unwrap(), vec![events.clone()]);
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("身份重复"));
+        let event_dir = event_directory(&path).unwrap();
+        assert_eq!(std::fs::read_dir(&event_dir).unwrap().count(), 1);
+        for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn event_encoding_checks_serialized_bytes_before_publication() {
+        // 中文与 JSON 转义的长度必须按序列化字节计算，不能按字符计数。
+        let value = serde_json::json!({"text": "中文\n\""});
+        let expected = serde_json::to_vec_pretty(&value).unwrap();
+        assert_eq!(encode_event_record(&value, expected.len()).unwrap(), expected);
+        assert!(encode_event_record(&value, expected.len() - 1).unwrap_err().to_string().contains("未发布"));
+        let large = "x".repeat(MAX_EVENT_RECORD_BYTES);
+        assert!(encode_event_record(&large, MAX_EVENT_RECORD_BYTES).is_err());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn junction_history_root_is_rejected_without_touching_target() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-junction-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let target = directory.join("target");
+        std::fs::create_dir(&target).unwrap();
+        let sentinel = target.join("keep.txt");
+        std::fs::write(&sentinel, b"original").unwrap();
+        let link = directory.join("turn-events-v2");
+        let output = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", "$ErrorActionPreference='Stop'; $null=New-Item -ItemType Junction -Path $env:COOLZHU_TEST_LINK -Target $env:COOLZHU_TEST_TARGET"])
+            .env("COOLZHU_TEST_LINK", &link).env("COOLZHU_TEST_TARGET", &target).output().unwrap();
+        assert!(output.status.success(), "junction 创建失败：{}", String::from_utf8_lossy(&output.stderr));
+        let path = directory.join("main.json");
+        let events = vec![
+            AgentEvent::new(1, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("重定向"));
+        assert!(load_event_history(&path).unwrap_err().to_string().contains("重定向"));
+        assert_eq!(std::fs::read(&sentinel).unwrap(), b"original");
+        assert_eq!(std::fs::read_dir(&target).unwrap().count(), 1);
+        std::fs::remove_dir(link).unwrap();
+        std::fs::remove_file(sentinel).unwrap();
+        std::fs::remove_dir(target).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn aggregate_byte_budget_rejects_before_publishing_another_turn() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-byte-budget-{}", std::process::id()));
+        let path = directory.join("main.json");
+        let event_dir = event_directory(&path).unwrap();
+        std::fs::create_dir_all(&event_dir).unwrap();
+        let mut events = vec![
+            AgentEvent::new(1, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnCompleted,
+                serde_json::json!({"output": "x".repeat(7 * 1024 * 1024)})),
+        ];
+        // 模拟已存在合法历史，原始总字节低于 64MiB，新一轮会越界。
+        for index in 0..9 {
+            for event in &mut events { event.turn_id = format!("old-{index}").into(); }
+            let bytes = encode_event_record(&events, MAX_EVENT_RECORD_BYTES).unwrap();
+            std::fs::write(event_dir.join(format!("{index}.json")), bytes).unwrap();
+        }
+        for event in &mut events { event.turn_id = "new".into(); }
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("历史预算"));
+        assert_eq!(std::fs::read_dir(&event_dir).unwrap().count(), 9);
+        let (history, total_bytes) = load_event_history_with_usage(&path).unwrap();
+        assert_eq!(history.len(), 9);
+        assert!(total_bytes < 64 * 1024 * 1024);
+        for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn history_count_boundary_accepts_last_slot_and_rejects_next() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-history-count-budget-{}", std::process::id()));
+        let path = directory.join("main.json");
+        let event_dir = event_directory(&path).unwrap();
+        std::fs::create_dir_all(&event_dir).unwrap();
+        let mut events = vec![
+            AgentEvent::new(1, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "seed".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        for index in 0..9999 {
+            for event in &mut events { event.turn_id = format!("old-{index}").into(); }
+            std::fs::write(event_dir.join(format!("{index}.json")), encode_event_record(&events, MAX_EVENT_RECORD_BYTES).unwrap()).unwrap();
+        }
+        for event in &mut events { event.turn_id = "last-slot".into(); }
+        save_events(&events, &path).unwrap();
+        assert_eq!(load_event_history(&path).unwrap().len(), 10_000);
+        for event in &mut events { event.turn_id = "over-budget".into(); }
+        assert!(save_events(&events, &path).unwrap_err().to_string().contains("历史预算"));
+        let entries = std::fs::read_dir(&event_dir).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(entries.len(), 10_000);
+        assert!(entries.iter().all(|entry| entry.path().extension().unwrap() == "json"));
+        assert_eq!(load_event_history(&path).unwrap().len(), 10_000);
+        for entry in entries { std::fs::remove_file(entry.path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn oversized_event_save_preserves_existing_recoverable_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-size-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("main.json");
+        let original = vec![
+            AgentEvent::new(1, "thread".into(), "original".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "original".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        save_events(&original, &path).unwrap();
+        let event_dir = event_directory(&path).unwrap();
+        let entries = std::fs::read_dir(&event_dir).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(entries.len(), 1);
+        let published = entries[0].path();
+        let original_bytes = std::fs::read(&published).unwrap();
+        let oversized = vec![
+            AgentEvent::new(1, "thread".into(), "oversized".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "oversized".into(), None, runtime::AgentEventKind::TurnCompleted,
+                serde_json::json!({"output": "x".repeat(MAX_EVENT_RECORD_BYTES)})),
+        ];
+        assert!(save_events(&oversized, &path).unwrap_err().to_string().contains("未发布"));
+        assert_eq!(std::fs::read_dir(&event_dir).unwrap().count(), 1);
+        assert_eq!(std::fs::read(&published).unwrap(), original_bytes);
+        assert_eq!(load_event_history(&path).unwrap(), vec![original]);
+        let untouched = directory.join("new.json");
+        assert!(save_events(&oversized, &untouched).is_err());
+        assert!(!event_directory(&untouched).unwrap().exists());
+        std::fs::remove_file(published).unwrap();
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn invalid_event_contract_is_rejected_before_creating_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-contract-{}", std::process::id()));
+        let path = directory.join("main.json");
+        let valid = vec![
+            AgentEvent::new(1, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnFailed, serde_json::json!({})),
+        ];
+        let mut invalid = Vec::new();
+        let mut record = valid.clone(); record[1].schema_version = 99; invalid.push(record);
+        let mut record = valid.clone(); record[1].sequence = 3; invalid.push(record);
+        let mut record = valid.clone(); record[0].thread_id = " ".into(); invalid.push(record);
+        let mut record = valid.clone(); record[1].turn_id = "different".into(); invalid.push(record);
+        let mut record = valid.clone(); record[0].kind = runtime::AgentEventKind::TurnCompleted; invalid.push(record);
+        invalid.push(vec![valid[0].clone()]);
+        for record in invalid {
+            assert!(save_events(&record, &path).is_err());
+            assert!(!event_directory(&path).unwrap().exists());
+        }
+        assert!(validate_event_record(&valid).is_ok());
+    }
+
+    #[test]
+    fn full_session_filename_isolates_event_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-namespace-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let first = directory.join("main.json");
+        let second = directory.join("main.txt");
+        assert_ne!(event_namespace(&first).unwrap(), event_namespace(&second).unwrap());
+        let events = vec![
+            AgentEvent::new(1, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnStarted, serde_json::json!({})),
+            AgentEvent::new(2, "thread".into(), "turn".into(), None, runtime::AgentEventKind::TurnCompleted, serde_json::json!({})),
+        ];
+        save_events(&events, &first).unwrap();
+        assert_eq!(load_event_history(&first).unwrap(), vec![events]);
+        assert!(load_event_history(&second).unwrap().is_empty());
+        assert!(load_event_history(&directory.join("main.json.txt")).unwrap().is_empty());
+        let bare = directory.join("bare");
+        let bare_events = load_event_history(&first).unwrap().remove(0);
+        save_events(&bare_events, &bare).unwrap();
+        assert_eq!(load_event_history(&bare).unwrap(), vec![bare_events]);
+        let bare_dir = directory.join("turn-events-v2/bare");
+        for entry in std::fs::read_dir(&bare_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(bare_dir).unwrap();
+        let event_dir = directory.join("turn-events-v2/main.json");
+        for entry in std::fs::read_dir(&event_dir).unwrap() { std::fs::remove_file(entry.unwrap().path()).unwrap(); }
+        std::fs::remove_dir(event_dir).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn pending_publication_never_overwrites_existing_history() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-pending-collision-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let pending = directory.join("turn.pending");
+        let committed = directory.join("turn.json");
+        std::fs::write(&pending, b"new-complete-record").unwrap();
+        std::fs::write(&committed, b"old-record").unwrap();
+        assert!(publish_pending_events(&pending).is_err());
+        assert_eq!(std::fs::read(&committed).unwrap(), b"old-record");
+        assert_eq!(std::fs::read(&pending).unwrap(), b"new-complete-record");
+        std::fs::remove_file(&committed).unwrap();
+        publish_pending_events(&pending).unwrap();
+        assert!(!pending.exists());
+        assert_eq!(std::fs::read(&committed).unwrap(), b"new-complete-record");
+        std::fs::remove_file(committed).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn completed_turn_is_saved_and_storage_failure_is_not_success() {
+        struct Client;
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                Ok(vec![AssistantEvent::TextDelta("已完成".into()), AssistantEvent::MessageStop])
+            }
+        }
+        struct Executor;
+        impl ToolExecutor for Executor {
+            fn execute(&mut self, _: &str, _: &str) -> Result<String, ToolError> { unreachable!() }
+        }
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-completed-events-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("main.json");
+        assert!(load_event_history(&path).unwrap().is_empty());
+        let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
+            PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
+        let summary = persist_result(runtime.run_turn("完成", None), runtime.session(), &path).unwrap();
+        let event_directory = directory.join("turn-events-v2/main.json");
+        let files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(files.len(), 1);
+        let actual: serde_json::Value = serde_json::from_slice(&std::fs::read(files[0].path()).unwrap()).unwrap();
+        assert_eq!(actual, serde_json::to_value(&summary.events).unwrap());
+        assert_eq!(actual.as_array().unwrap().last().unwrap()["kind"], "turn_completed");
+        assert_eq!(load_event_history(&path).unwrap(), vec![summary.events.clone()]);
+        let pending = event_directory.join("unfinished.pending");
+        std::fs::write(&pending, b"{").unwrap();
+        let pending_error = load_event_history(&path).unwrap_err();
+        assert!(pending_error.to_string().contains("未提交回合轨迹"));
+        std::fs::remove_file(pending).unwrap();
+        let mut malformed = actual.clone();
+        malformed.as_array_mut().unwrap().pop();
+        std::fs::write(files[0].path(), serde_json::to_vec(&malformed).unwrap()).unwrap();
+        assert!(load_event_history(&path).is_err());
+        std::fs::write(files[0].path(), b"{").unwrap();
+        assert!(load_event_history(&path).is_err());
+        std::fs::remove_file(files[0].path()).unwrap();
+        std::fs::remove_dir(event_directory).unwrap();
+        std::fs::remove_dir(directory.join("turn-events-v2")).unwrap();
+        std::fs::write(directory.join("turn-events-v2"), b"blocked").unwrap();
+        let error = persist_result(runtime.run_turn("再次完成", None), runtime.session(), &path).unwrap_err();
+        assert!(error.to_string().contains("终态轨迹保存失败"));
+        assert!(!error.to_string().contains("回合执行失败"));
+        assert_eq!(Session::load_from_path(&path).unwrap(), *runtime.session());
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn model_error_after_tool_preserves_saved_execution_fact() {
+        struct Client(usize);
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                self.0 += 1;
+                if self.0 == 1 {
+                    Ok(vec![AssistantEvent::ToolUse { id: "actual-call".into(), name: "Read".into(), input: "{}".into() }, AssistantEvent::MessageStop])
+                } else { Err(RuntimeError::new("模型反馈请求失败")) }
+            }
+        }
+        struct Executor;
+        impl ToolExecutor for Executor {
+            fn execute(&mut self, _: &str, _: &str) -> Result<String, ToolError> { Ok("已执行工具事实".into()) }
+        }
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp");
+        std::fs::create_dir_all(&root).unwrap();
+        let path = root.join(format!("cli-error-facts-{}.json", std::process::id()));
+        let mut runtime = ConversationRuntime::new(Session::new(), Client(0), Executor,
+            PermissionPolicy::new(PermissionMode::DangerFullAccess)
+                .with_tool_requirement("Read", PermissionMode::ReadOnly), Vec::new());
+        let result = runtime.run_turn("read", None);
+        let expected_events = serde_json::to_value(result.as_ref().unwrap_err().events()).unwrap();
+        let error = persist_result(result, runtime.session(), &path).unwrap_err();
+        assert!(error.to_string().contains("模型反馈请求失败"));
+        let saved = Session::load_from_path(&path).unwrap();
+        assert_eq!(saved, *runtime.session());
+        let event_directory = event_directory(&path).unwrap();
+        let event_files = std::fs::read_dir(&event_directory).unwrap().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(event_files.len(), 1);
+        let persisted: serde_json::Value = serde_json::from_slice(&std::fs::read(event_files[0].path()).unwrap()).unwrap();
+        assert_eq!(persisted, expected_events);
+        assert_eq!(serde_json::to_value(load_event_history(&path).unwrap()[0].clone()).unwrap(), expected_events);
+        let events = persisted.as_array().unwrap();
+        assert_eq!(events.last().unwrap()["kind"], "turn_failed");
+        assert!(!events.iter().any(|event| event["kind"] == "turn_completed"));
+        assert!(saved.messages.iter().flat_map(|message| &message.blocks).any(|block| matches!(block,
+            runtime::ContentBlock::ToolResult { tool_use_id, output, is_error: false, .. }
+            if tool_use_id == "actual-call" && output == "已执行工具事实")));
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(event_files[0].path()).unwrap();
+        std::fs::remove_dir(event_directory).unwrap();
+    }
+
+    #[test]
+    fn event_storage_error_keeps_original_execution_error() {
+        struct Client;
+        impl ApiClient for Client {
+            fn stream(&mut self, _: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+                Err(RuntimeError::new("模型请求原错误"))
+            }
+        }
+        struct Executor;
+        impl ToolExecutor for Executor {
+            fn execute(&mut self, _: &str, _: &str) -> Result<String, ToolError> { unreachable!() }
+        }
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-event-storage-error-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("main.json");
+        // 用普通文件阻止轨迹目录创建，同时允许会话正常保存。
+        std::fs::write(directory.join("turn-events-v2"), b"blocked").unwrap();
+        let mut runtime = ConversationRuntime::new(Session::new(), Client, Executor,
+            PermissionPolicy::new(PermissionMode::ReadOnly), Vec::new());
+        let result = runtime.run_turn("request", None);
+        assert!(!result.as_ref().unwrap_err().events().is_empty());
+        let error = persist_result(result, runtime.session(), &path).unwrap_err();
+        assert!(error.to_string().contains("模型请求原错误"));
+        assert!(error.to_string().contains("终态轨迹保存失败"));
+        assert_eq!(Session::load_from_path(&path).unwrap(), *runtime.session());
+        std::fs::remove_file(path).unwrap();
+        std::fs::remove_file(directory.join("turn-events-v2")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+
+    #[test]
+    fn storage_error_preserves_execution_error_and_never_reports_success() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp");
+        std::fs::create_dir_all(&root).unwrap();
+        let error = persist_result::<()>(Err(RuntimeError::new("执行原错误")), &Session::new(), &root).unwrap_err();
+        assert!(error.to_string().contains("执行原错误"));
+        assert!(error.to_string().contains("保存也失败"));
+        assert!(persist_result(Ok(()), &Session::new(), &root).is_err());
+    }
+
+    #[test]
+    fn internal_snapshots_keep_parent_and_previous_turn_unchanged() {
+        let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../tmp")
+            .join(format!("cli-internal-snapshots-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let parent = directory.join("main.json");
+        let original = Session::new();
+        original.save_to_path(&parent).unwrap();
+        let before = std::fs::read(&parent).unwrap();
+        let first = reserve_internal_path(&parent).unwrap();
+        let mut internal = original.clone();
+        internal.messages.push(runtime::ConversationMessage::tool_result("internal-id", "Read", "独立执行事实", false));
+        assert!(persist_result::<()>(Err(RuntimeError::new("内部请求失败")), &internal, &first).is_err());
+        let first_bytes = std::fs::read(&first).unwrap();
+        let second = reserve_internal_path(&parent).unwrap();
+        assert_ne!(first, second);
+        persist_result(Ok(()), &original, &second).unwrap();
+        assert_eq!(std::fs::read(&parent).unwrap(), before);
+        assert_eq!(std::fs::read(&first).unwrap(), first_bytes);
+        assert_eq!(Session::load_from_path(&first).unwrap(), internal);
+        for file in [first, second, parent] { std::fs::remove_file(file).unwrap(); }
+        std::fs::remove_dir(directory.join("internal-turns/main.json")).unwrap();
+        std::fs::remove_dir(directory.join("internal-turns")).unwrap();
+        std::fs::remove_dir(directory).unwrap();
+    }
+}

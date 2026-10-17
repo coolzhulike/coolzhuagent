@@ -17,9 +17,11 @@
           "coolzhu-web-console",
           "--offline",
           "--target-dir",
-          "modules/gui-web/target"
+          "modules/gui-web/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -37,9 +39,11 @@
           "coolzhu-browser-native-host",
           "--offline",
           "--target-dir",
-          "modules/gui-web/target"
+          "modules/gui-web/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -57,9 +61,11 @@
           "coolzhu-clawbot-sidecar",
           "--offline",
           "--target-dir",
-          "modules/gui-web/target"
+          "modules/gui-web/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -77,9 +83,11 @@
           "coolzhu-cli",
           "--offline",
           "--target-dir",
-          "modules/cli/target"
+          "modules/cli/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -97,9 +105,11 @@
           "coolzhu-computer-use-check",
           "--offline",
           "--target-dir",
-          "modules/computer-use/target"
+          "modules/computer-use/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -117,9 +127,11 @@
           "coolzhu-vision-smoke",
           "--offline",
           "--target-dir",
-          "modules/vision/target"
+          "modules/vision/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -137,9 +149,11 @@
           "coolzhu-latest-desktop-vision",
           "--offline",
           "--target-dir",
-          "modules/vision/target"
+          "modules/vision/target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     },
     {
@@ -209,9 +223,13 @@
           "coolzhu-app-launcher",
           "--bin",
           "COOLZHU-AGENT",
-          "--offline"
+          "--offline",
+          "--target-dir",
+          "target",
+          "--message-format=json-render-diagnostics"
         ],
-        "working_dir": "."
+        "working_dir": ".",
+        "capture": "cargo-json-messages"
       }
     }
   ],
@@ -257,6 +275,16 @@
       "optional": true
     },
     {
+      "id": "gui-web.console-pages",
+      "source": "modules/gui-web/packages/web-console",
+      "target": "modules/gui-web/packages/web-console",
+      "include": [
+        "^index\\.html$",
+        "^src/[^/]+\\.(js|css)$",
+        "^assets/bamboo-banner-wind\\.js$"
+      ]
+    },
+    {
       "id": "browser.extension",
       "source": "modules/browser-extension",
       "target": "modules/browser-extension",
@@ -289,6 +317,11 @@
       "id": "documentation.command-line",
       "source": "docs/command-line.md",
       "target": "docs/command-line.md"
+    },
+    {
+      "id": "documentation.first-party-license",
+      "source": "LICENSE",
+      "target": "LICENSE"
     }
   ],
   "build_inputs": {
@@ -296,11 +329,13 @@
     "files": [
       "Cargo.toml",
       "Cargo.lock",
+      "LICENSE",
       "config/dsh-runtime-lock.json",
       "modules/tooling/packages/dsh-plugin-host/package.json",
       "modules/tooling/packages/dsh-plugin-host/package-lock.json",
       "scripts/prepare-dsh-runtime.py",
       "scripts/lib/dsh-runtime.ps1",
+      "scripts/lib/cargo-build-evidence.ps1",
       "config/package-manifest.json",
       "config/package-launcher.json",
       "installer/Product.wxs",
@@ -432,6 +467,7 @@
     "roots": [
       "Cargo.toml",
       "Cargo.lock",
+      "LICENSE",
       "package.json",
       "package.ps1",
       "src",

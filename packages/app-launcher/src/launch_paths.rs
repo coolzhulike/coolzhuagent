@@ -36,7 +36,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::ffi::OsString;
 use std::fs;
-use std::hash::Hasher;
+use std::hash::{Hash, Hasher};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -1150,7 +1150,9 @@ pub fn workspace_identity(workspace: &Path) -> Option<String> {
         .replace('\\', "/")
         .to_ascii_lowercase();
     let mut hasher = DefaultHasher::new();
-    hasher.write(normalized.as_bytes());
+    // 与 web-console 的 hash_bytes 同构：slice 的 Hash 实现会先写长度前缀再写内容，
+    // 不能用 hasher.write(raw)（两者摘要不同，会让复用判定看到不同 workspace_id）。
+    normalized.as_bytes().hash(&mut hasher);
     Some(format!("ws-{:016x}", hasher.finish()))
 }
 
@@ -2696,6 +2698,20 @@ mod tests {
             .notes
             .iter()
             .any(|note| note.code == "packaged_config_workspace_changed"));
+    }
+
+    // 与正式 web-console 的跨实现契约：同一真实 D 工作区根必须产出同一 ws id
+    // （web-console 侧 ws-8d17063fefe5c23c，见 api/state.workspace_id）。
+    #[test]
+    fn workspace_identity_matches_web_console_for_real_root() {
+        let real = Path::new("D:/coolzhuagent");
+        if real.is_dir() {
+            assert_eq!(
+                workspace_identity(real).as_deref(),
+                Some("ws-8d17063fefe5c23c"),
+                "launcher workspace_identity 必须与 web-console hash_bytes 同构"
+            );
+        }
     }
 
     // 用户级选择根不能从 log_dir 反推。

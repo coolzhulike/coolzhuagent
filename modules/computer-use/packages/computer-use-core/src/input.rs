@@ -32,6 +32,8 @@ use crate::cleanup::{
 };
 use runtime::{ActionReceipt, EffectStatus, GoalVerdict, InputDelivery, InputReleaseStatus};
 pub use crate::prepared_input::{NativeInputAuthorization, NativeInputPermit, PreparedNativeInput};
+#[path = "uia_semantic.rs"]
+mod uia_semantic;
 use crate::prepared_input::{NativeInputCompletion, PreparedInputSession, SupervisedHelperChild};
 #[cfg(windows)]
 pub(crate) use windows_process_guard::HelperPipeReadersAdmission;
@@ -2669,6 +2671,13 @@ impl<'a> NativeInputAttempt<'a> {
     }
 }
 
+/// 调用已观察控件的Invoke模式；失配、缺模式或失败均不回退到坐标点击。
+pub fn controlled_uia_invoke(
+    runtime_id: &[i32], name: &str, attempt: &NativeInputAttempt, timeout: Duration,
+) -> Result<NativeInputOutcome, NativeInputFailure> {
+    uia_semantic::invoke(runtime_id, name, attempt, timeout)
+}
+
 /// 受控点击（`clicks > 1` = 双击）；释放义务按实际按钮登记（左键）。
 pub fn controlled_click(
     x: i32,
@@ -3478,7 +3487,7 @@ fn run_native_helper(
     request["mock_scenario"] = serde_json::json!(mock_scenario);
     if let Some(prepared) = prepared.as_ref() { prepared.apply_request(&mut request); }
 
-    let script = native_helper_script();
+    let script = if request["mode"] == "uia_invoke" { uia_semantic::helper_script() } else { native_helper_script() };
     let mut command = native_helper_command(&script);
     if let Some(dll) = dll.as_ref().and_then(|dll| dll.parent()) {
         // interception.dll 只能从 DLL 搜索路径里解析：在启动之前把它放进子进程 PATH。
@@ -4507,17 +4516,10 @@ if ($r.mode -eq 'release') {
  'released'
  exit
 }
-$identity = $r.identity
-$hasIdentity = $null -ne $identity
-$handle = [long]0
-$targetProcess = [uint32]0
-$rect = $null
-$targetDpi = [uint32]0
-if ($hasIdentity) {
- $handle = [long]$identity.handle
- $targetProcess = [uint32]$identity.process_id
- $rect = [int[]]$identity.rect
- $targetDpi = [uint32]$identity.dpi
+$identity=$r.identity;$hasIdentity=$null-ne$identity
+$handle=[long]0;$targetProcess=[uint32]0;$rect=$null;$targetDpi=[uint32]0
+if($hasIdentity){
+ $handle=[long]$identity.handle;$targetProcess=[uint32]$identity.process_id;$rect=[int[]]$identity.rect;$targetDpi=[uint32]$identity.dpi
 }
 $driver = [CoolzhuNative.Drivers]::Create(
  [string]$r.backend,
@@ -4533,32 +4535,22 @@ $driver = [CoolzhuNative.Drivers]::Create(
  $targetDpi)
 if($sp[2]){Start-Sleep -Milli ([int]$sp[2])}
 $progress = New-Object CoolzhuNative.FileProgress ([string]$r.progress_file, [string]$r.request_id)
-# 正式输入由宿主启用两相授权；诊断夹具仍可直接验证底层输入引擎。
 if($r.two_phase_helper){$q=[string]$r.ready_file;$m=[string]$r.permit_file;$n=[string]$r.two_phase_nonce
 function DenyInput($e){$progress.Report('final',$false,0,$false,@(),@(),$false,$true);throw $e}
 if(!$q -or !$m -or !$n){DenyInput 'rejected_permit: missing handshake fields'}
 $t=[Diagnostics.Stopwatch]::StartNew()
 [IO.File]::WriteAllText($q+'.tmp',(@{type='ready';helper_protocol_version=1;nonce=$n;pid=$PID;timestamp_unix_ms=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()}|ConvertTo-Json -Compress));[IO.File]::Move($q+'.tmp',$q)
-while($true){if((Test-Path -LiteralPath ([string]$r.cancel_file)) -or $t.ElapsedMilliseconds -ge [long]$r.self_watchdog_ms){DenyInput 'stroke_cancelled: awaiting permit'}
+for($readErr=0;;){if((Test-Path -LiteralPath ([string]$r.cancel_file)) -or $t.ElapsedMilliseconds -ge [long]$r.self_watchdog_ms){DenyInput 'stroke_cancelled: awaiting permit'}
 if($r.input_deadline_unix_ms -and [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() -ge [long]$r.input_deadline_unix_ms){DenyInput 'stroke_cancelled: permit expired'}
-if(Test-Path -LiteralPath $m){try{$v=[IO.File]::ReadAllText($m)|ConvertFrom-Json}catch{DenyInput 'rejected_permit: invalid JSON'}
+if(Test-Path -LiteralPath $m){try{$x=[IO.File]::ReadAllText($m)}catch{if(++$readErr -ge 10){DenyInput 'rejected_permit: unreadable'}Start-Sleep -Milli 20;continue}
+try{$v=$x|ConvertFrom-Json}catch{DenyInput 'rejected_permit: invalid JSON'}
 if($v.type -cne 'execute' -or $v.nonce -cne $n -or [string]::IsNullOrWhiteSpace($v.permit_id) -or [string]::IsNullOrWhiteSpace($v.attempt_id)){DenyInput 'rejected_permit: invalid session'}
 if($r.input_deadline_unix_ms -and [string]::IsNullOrWhiteSpace($v.executor_instance_id)){DenyInput 'rejected_permit: missing executor'}
 if($r.input_deadline_unix_ms){if(!$v.expires_at_unix_ms){DenyInput 'rejected_permit: missing expiry'};[CoolzhuNative.Deadline]::At=[Math]::Min([long]$r.input_deadline_unix_ms,[long]$v.expires_at_unix_ms);[CoolzhuNative.Deadline]::Check()}
 break};Start-Sleep -Milli 20}}
 if($sp[1]){$null=ni $sp[1]}
-$keys = if ($null -ne $p.keys) { [int[]]$p.keys } else { $null }
-[CoolzhuNative.Engine]::Run(
- $driver,
- $progress,
- [string]$r.mode,
- [string]$p.action,
- [int]$p.x,
- [int]$p.y,
- [string]$p.text,
- [int]$p.delta,
- $keys,
- [int]$p.hold_ms)
+$keys=if($null-ne$p.keys){[int[]]$p.keys}else{$null}
+[CoolzhuNative.Engine]::Run($driver,$progress,[string]$r.mode,[string]$p.action,[int]$p.x,[int]$p.y,[string]$p.text,[int]$p.delta,$keys,[int]$p.hold_ms)
 'native-input:ok'
 "#;
 
@@ -6534,6 +6526,63 @@ foreach($mode in @(0,1,2,3)) {{
             result
         }
 
+        /// 与 run_two_phase_case 相同的真实 helper 两相夹具，但许可发布由调用方控制：
+        /// 用于覆盖瞬时不可读/坏 JSON 的拒绝与有界重试语义，不据此宣称生产 PermitGate 已接通。
+        #[cfg(windows)]
+        fn run_two_phase_case_published_by(
+            label: &str,
+            nonce: &str,
+            publish: impl FnOnce(&std::path::Path),
+        ) -> Result<NativeInputOutcome, NativeInputFailure> {
+            let _handshake_slot = test_pipe_reader_capacity_slot(NATIVE_RUN_READER_UNITS);
+            let directory = tempfile::TempDir::new().expect("tempdir");
+            let ready_file = directory.path().join("ready.json");
+            let permit_file = directory.path().join("permit.json");
+            let options = TwoPhaseHelperTestOptions {
+                two_phase_nonce: nonce.to_string(),
+                ready_file: ready_file.clone(),
+                permit_file: permit_file.clone(),
+            };
+            let (ready, result) = std::thread::scope(|threads| {
+                let helper = threads.spawn(|| {
+                    PIPE_READER_TEST_HELD.with(|held| held.set(NATIVE_RUN_READER_UNITS));
+                    let cancelled = || false;
+                    let attempt = attempt_without_identity(&cancelled);
+                    native_run_with_mock_two_phase(
+                        "text",
+                        serde_json::json!({"text": "abc"}),
+                        &text_release_obligation(InputBackend::SendInput),
+                        &attempt,
+                        Duration::from_secs(30),
+                        "slow_steps",
+                        &options,
+                    )
+                });
+                let ready = crate::helper_ready::await_helper_ready(
+                    &ready_file, nonce, Duration::from_secs(60),
+                );
+                if matches!(ready, crate::helper_ready::ReadyOutcome::Ready { .. }) {
+                    publish(&permit_file);
+                }
+                let result = helper.join().expect("helper 测试线程不得崩溃");
+                (ready, result)
+            });
+            let signal = match ready {
+                crate::helper_ready::ReadyOutcome::Ready { signal, .. } => signal,
+                other => panic!("{label}: 没有合法 READY：{other:?}；helper={result:#?}"),
+            };
+            let observed = match &result { Ok(value) => value, Err(failure) => &failure.outcome };
+            eprintln!("{label}: ready_pid={} nonce={} outcome={observed:#?}", signal.pid, signal.nonce);
+            assert!(observed.stillness_confirmed(), "{label}: 必须确认自己创建的 helper 已退出");
+            assert!(observed.fact_anomaly.is_none(), "{label}: 回执不得被解析器拒绝");
+            let process = observed.helper_process.as_ref().expect("必须捕获真实实例身份");
+            assert_eq!(signal.pid, process.pid, "READY 与已捕获实例必须一致");
+            let facts = observed.facts().expect("Err 或缺回执不等于零输入，必须有可信事实");
+            assert_eq!(facts.protocol, HELPER_FACT_PROTOCOL_V2);
+            assert_eq!(facts.phase, HelperFactPhase::Final);
+            result
+        }
+
         #[cfg(windows)]
         fn assert_handshake_refused(result: Result<NativeInputOutcome, NativeInputFailure>, code: &str) {
             let failure = result.expect_err("未获合法通知必须失败，不能执行后再报失败");
@@ -6592,6 +6641,66 @@ foreach($mode in @(0,1,2,3)) {{
             assert_eq!(facts.injected_steps, 3);
             assert!(facts.completed);
             assert!(outcome.reply_received());
+        }
+
+        /// 回归：许可文件**瞬时不可读**（零共享持锁）不得被立即误报为无效 JSON；
+        /// 既有看门狗内的有界重试之后，完整合法许可必须照常放行。
+        #[test]
+        #[cfg(windows)]
+        fn t6_d_helper_retries_a_transiently_locked_permit_then_executes() {
+            use std::io::Write as _;
+            use std::os::windows::fs::OpenOptionsExt as _;
+            let outcome = run_two_phase_case_published_by(
+                "T6-D",
+                "locked-then-open",
+                move |permit| {
+                    let mut guard = std::fs::OpenOptions::new()
+                        .write(true)
+                        .share_mode(0)
+                        .create_new(true)
+                        .open(permit)
+                        .expect("独占许可文件");
+                    guard
+                        .write_all(
+                            br#"{"type":"execute","permit_id":"test-only","attempt_id":"locked-then-open","nonce":"locked-then-open"}"#,
+                        )
+                        .expect("写许可内容");
+                    guard.flush().expect("flush");
+                    std::thread::sleep(std::time::Duration::from_millis(120));
+                    // guard 随闭包返回释放；helper 下一轮轮询应读到完整 JSON。
+                },
+            )
+            .expect("瞬时不可读的合法许可应在有界重试后放行");
+            let facts = outcome.facts().expect("facts");
+            assert_eq!(facts.injected_steps, 3);
+            assert!(facts.completed);
+        }
+
+        /// 回归：读取失败与真正 JSON 解析失败必须**分开**——
+        /// 坏 JSON 立即拒绝（不静默放行、不再重试）；持续独占在重试耗尽后
+        /// 以独立诊断拒绝。两种拒绝都零注入、无需独立释放。
+        #[test]
+        #[cfg(windows)]
+        fn t6_e_helper_splits_unreadable_from_invalid_json_permit() {
+            use std::os::windows::fs::OpenOptionsExt as _;
+            assert_handshake_refused(
+                run_two_phase_case_published_by("T6-E1", "bad-json-session", move |permit| {
+                    std::fs::write(permit, b"{not json").expect("写坏许可");
+                }),
+                "rejected_permit: invalid JSON",
+            );
+            assert_handshake_refused(
+                run_two_phase_case_published_by("T6-E2", "locked-session", move |permit| {
+                    let _guard = std::fs::OpenOptions::new()
+                        .write(true)
+                        .share_mode(0)
+                        .create_new(true)
+                        .open(permit)
+                        .expect("独占许可文件");
+                    std::thread::sleep(std::time::Duration::from_secs(1));
+                }),
+                "rejected_permit: unreadable",
+            );
         }
 
         /// 真实受控 helper 的成功路径：**收到回复**与**子进程结束**分别记录。

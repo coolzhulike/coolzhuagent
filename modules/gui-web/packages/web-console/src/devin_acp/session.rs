@@ -15,9 +15,11 @@ use tokio::{
 };
 
 const MAX_NOTIFICATIONS: usize = 16_384;
+// 恢复原远端长会话会重放全部历史；与单轮实时通知分别设有界上限。
+const MAX_LOAD_NOTIFICATIONS: usize = 65_536;
 const MAX_TEXT_BYTES: usize = 8 * 1024 * 1024;
-// 入站仍保持 1 MiB；原图多帧提示仅扩大出站图片请求，不影响工具消息或握手。
-const MAX_IMAGE_PROMPT_BYTES: usize = 8 * 1024 * 1024;
+// 原图比较可能包含三张截图；仅图片提示允许 16 MiB，文本与其它请求仍限 1 MiB。
+const MAX_IMAGE_PROMPT_BYTES: usize = 16 * 1024 * 1024;
 
 fn prompt_image_count(value: &Value) -> usize {
     if value["method"] != "session/prompt" { return 0; }
@@ -44,7 +46,7 @@ fn validate_outgoing_bytes(value: &Value, bytes: &[u8]) -> io::Result<()> {
     }
     if bytes.len() >= outgoing_limit(value) {
         return Err(invalid(if prompt_image_count(value) > 0 {
-            "ACP 图片提示超过本地 8 MiB 出站限制；未发送。"
+            "ACP 图片提示超过本地 16 MiB 出站限制；未发送。"
         } else { "ACP 请求超过本地 1 MiB 出站限制；未发送。" }));
     }
     Ok(())
@@ -255,6 +257,7 @@ impl<W: AsyncWrite + Unpin> SessionTransport<W> {
             return Err(invalid("ACP 配置请求不在允许集合中。"));
         }
         let id = self.id()?;
+        let notification_limit = if method == "session/load" { MAX_LOAD_NOTIFICATIONS } else { MAX_NOTIFICATIONS };
         let result = tokio::time::timeout_at(deadline, async {
             self.write(&json!({"jsonrpc":"2.0","id":id,"method":method,"params":params}))
                 .await?;
@@ -267,7 +270,7 @@ impl<W: AsyncWrite + Unpin> SessionTransport<W> {
                     .ok_or_else(|| invalid("ACP 接收器已关闭。"))??;
                 if frame.get("method").is_some() {
                     count += 1;
-                    if count > MAX_NOTIFICATIONS {
+                    if count > notification_limit {
                         return Err(invalid("ACP 配置通知过多。"));
                     }
                     if frame.get("id").is_some() {
@@ -591,6 +594,9 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
             "outgoing_limit_bytes":outgoing_limit(&envelope)
         })).map_err(|e|invalid(&e))?;
         validate_outgoing_bytes(&envelope, &encoded)?;
+        // session/load 会重放原远端会话的历史；每个新提示段独立计算实时通知预算。
+        // 历史重放不会发布为本轮回复，不能逐轮挤占新任务的事件容量。
+        self.text_bytes = 0;
         self.prompt_round = self.prompt_round.checked_add(1).ok_or_else(||invalid("ACP 提示段计数已耗尽。"))?;
         if cancellation.is_requested() || tokio::time::Instant::now() >= self.deadline {
             self.journal
@@ -793,10 +799,13 @@ fn emit(
             return Err(invalid("ACP 在任务中改变模型，生效身份不再匹配。"));
         }
     }
-    // 对所有投影计入总量，不能通过大量工具/配置通知绕过单纯文本上限。
-    *text_bytes = text_bytes.saturating_add(serde_json::to_vec(&update)?.len());
-    if *text_bytes > MAX_TEXT_BYTES {
-        return Err(invalid("ACP 累计事件内容超过限制。"));
+    // 历史重放只用于恢复原绑定，聊天室本就不把 replay 发布成新回复。
+    // 实时事件仍对所有类型计量，防止工具/配置通知绕过单轮预算。
+    if !replay {
+        *text_bytes = text_bytes.saturating_add(serde_json::to_vec(&update)?.len());
+        if *text_bytes > MAX_TEXT_BYTES {
+            return Err(invalid("ACP 累计事件内容超过限制。"));
+        }
     }
     *sequence = sequence
         .checked_add(1)
@@ -834,6 +843,7 @@ mod tests {
         assert!(encoded.len() > MAX_FRAME_BYTES);
         assert!(validate_outgoing_bytes(&prompt, &encoded).is_ok());
         assert_eq!(prompt_image_count(&prompt), 1);
+        assert!(validate_outgoing_bytes(&prompt, &vec![0; 8 * 1024 * 1024 + 32 * 1024]).is_ok());
         assert!(validate_outgoing_bytes(&prompt, &vec![0;MAX_IMAGE_PROMPT_BYTES]).is_err());
         prompt["method"] = json!("session/update");
         assert!(validate_outgoing_bytes(&prompt, &encoded).is_err());
@@ -935,6 +945,33 @@ mod tests {
             }
             peer.await.unwrap();
         }
+    }
+    #[tokio::test]
+    async fn long_session_load_replay_does_not_exhaust_live_turn_notification_budget() {
+        let (mut transport, mut reader, mut writer) = pair();
+        let replay_count = MAX_NOTIFICATIONS + 1;
+        let peer = tokio::spawn(async move {
+            let request = read_frame(&mut reader).await.unwrap();
+            assert_eq!(request["method"], "session/load");
+            let mut frame = serde_json::to_vec(&json!({
+                "jsonrpc":"2.0", "method":"session/update",
+                "params":{"sessionId":"remote", "update":{"sessionUpdate":"usage_update","used":1,"size":100}}
+            })).unwrap();
+            frame.push(b'\n');
+            for _ in 0..replay_count {
+                writer.write_all(&frame).await.unwrap();
+            }
+            reply(&mut writer, &request["id"], json!({"sessionId":"remote","configOptions":config()})).await;
+        });
+        let mut observed = 0;
+        let response = transport.configure("session/load", json!({"sessionId":"remote"}),
+            tokio::time::Instant::now() + Duration::from_secs(30), |_| {
+                observed += 1;
+                Ok(())
+            }).await.unwrap();
+        assert_eq!(response["sessionId"], "remote");
+        assert_eq!(observed, replay_count);
+        peer.await.unwrap();
     }
     async fn reply(writer: &mut Writer, id: &Value, result: Value) {
         let mut bytes =
@@ -1166,6 +1203,8 @@ mod tests {
         .unwrap();
         assert_eq!(events.len(), 1);
         assert!(events[0].replay);
+        assert_eq!(service.text_bytes, 0, "历史重放不得耗尽下一轮实时预算");
+        service.text_bytes = MAX_TEXT_BYTES;
         service.set_deadline(tokio::time::Instant::now() + Duration::from_secs(30));
         service
             .prompt(
@@ -1176,7 +1215,25 @@ mod tests {
             )
             .await
             .unwrap();
+        assert_eq!(service.text_bytes, 0, "新提示段必须重置前段事件预算");
         peer.await.unwrap();
+    }
+    #[test]
+    fn replay_events_do_not_consume_live_event_budget() {
+        let frame = json!({"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"remote",
+            "update":{"sessionUpdate":"tool_call","toolCallId":"x".repeat(600_000),"status":"completed"}}});
+        let mut sequence = 0;
+        let mut bytes = 0;
+        for _ in 0..20 {
+            emit(&scope("replay-budget"), "remote", true, &mut sequence, &mut bytes,
+                frame.clone(), &mut |_| Ok(()), None).unwrap();
+        }
+        assert_eq!(bytes, 0);
+        let live = json!({"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"remote",
+            "update":{"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"本轮回复"}}}});
+        emit(&scope("replay-budget"), "remote", false, &mut sequence, &mut bytes,
+            live, &mut |_| Ok(()), None).unwrap();
+        assert!(bytes > 0 && bytes < MAX_TEXT_BYTES);
     }
     #[test]
     fn aggregate_limit_also_bounds_non_text_events() {
@@ -1295,11 +1352,14 @@ mod tests {
                 claim.clone(),
                 "actual",
                 vec![],
-                tokio::time::Instant::now() + Duration::from_secs(3),
+                // 连接握手与任务共用 deadline；CI 落盘可能占用数秒，先给足握手窗口，
+                // 再在提交前重置任务时限，保证验证的是"已派发未确认"分支。
+                tokio::time::Instant::now() + Duration::from_secs(30),
                 |_| Ok(()),
             )
             .await
             .unwrap();
+            service.set_deadline(tokio::time::Instant::now() + Duration::from_secs(30));
             assert!(
                 service
                     .prompt("hi", cancellation, Duration::from_millis(50), |_| panic!(

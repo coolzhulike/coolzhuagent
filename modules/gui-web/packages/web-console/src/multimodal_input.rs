@@ -169,6 +169,7 @@ pub(crate) mod tests {
             };
             let db_path = temp.path().join("sessions.sqlite3");
             let store = SessionStore {
+                writer: None,
                 history_edits: Vec::new(),
                 committed_state: None,
                 path: db_path.clone(), legacy_json_path: temp.path().join("sessions.json"),

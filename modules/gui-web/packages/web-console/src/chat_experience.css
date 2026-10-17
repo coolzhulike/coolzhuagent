@@ -20,6 +20,8 @@ body.ui-3d .chat-main-column > .chat-activity { position: relative; z-index: 1; 
 .chat-history-toolbar { display: flex; justify-content: flex-end; gap: 8px; padding: 4px 12px; flex: 0 0 auto; }
 .chat-history-toolbar button { font: inherit; font-size: 12px; color: inherit; border: 0; background: transparent; cursor: pointer; padding: 5px 8px; }
 .chat-history-toolbar button:hover { text-decoration: underline; }
+.message-trace-link { display: inline-block; margin-top: 6px; padding: 2px 0; border: 0; background: transparent; color: #9de6ff; font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
+.message-trace-link:hover, .message-trace-link:focus-visible { color: #fff1a8; }
 .chat-activity { margin: 0 12px 5px; padding: 6px 10px; border-top: 1px solid #738c8140; font-size: 12px; flex: 0 0 auto; min-width: 0; }
 .chat-activity-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .chat-activity-summary > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

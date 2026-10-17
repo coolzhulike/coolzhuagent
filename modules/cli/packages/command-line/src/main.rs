@@ -1,9 +1,15 @@
 mod init;
+mod controlled_future;
+mod cli_control;
+mod permission_input;
+#[cfg(test)]
+mod cli_cancel_tests;
 mod input;
 mod render;
 mod shared_chat;
 mod shared_chat_binding;
 mod stream_facts;
+mod turn_persistence;
 
 use std::collections::BTreeSet;
 use std::env;
@@ -728,6 +734,10 @@ fn print_version() {
 }
 
 fn resume_session(session_path: &Path, commands: &[String]) {
+    if let Err(error) = turn_persistence::load_event_history(session_path) {
+        eprintln!("无法恢复回合轨迹：{error}");
+        std::process::exit(1);
+    }
     let session = match Session::load_from_path(session_path) {
         Ok(session) => session,
         Err(error) => {
@@ -1080,6 +1090,10 @@ fn run_resume_command(
                 )),
             })
         }
+        SlashCommand::ExportBundle { dir } => Ok(ResumeCommandOutcome {
+            session: session.clone(),
+            message: Some(export_diagnostics_bundle(dir.as_deref(), session)?),
+        }),
         SlashCommand::Agents { args } => {
             let cwd = env::current_dir()?;
             Ok(ResumeCommandOutcome {
@@ -1346,7 +1360,9 @@ impl LiveCli {
             &mut stdout,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let result = self.runtime.run_turn(input, Some(&mut permission_prompter));
+        self.runtime.set_thread_id(runtime::ThreadId::from_session_path(&self.session.path)?);
+        let result = cli_control::run(||self.runtime.run_turn(input, Some(&mut permission_prompter)))?;
+        let result = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path);
         match result {
             Ok(_) => {
                 spinner.finish(
@@ -1355,7 +1371,6 @@ impl LiveCli {
                     &mut stdout,
                 )?;
                 println!();
-                self.persist_session()?;
                 Ok(())
             }
             Err(error) => {
@@ -1364,7 +1379,7 @@ impl LiveCli {
                     TerminalRenderer::new().color_theme(),
                     &mut stdout,
                 )?;
-                Err(Box::new(error))
+                Err(error)
             }
         }
     }
@@ -1393,9 +1408,10 @@ impl LiveCli {
             None,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let summary = runtime.run_turn(input, Some(&mut permission_prompter))?;
+        runtime.set_thread_id(runtime::ThreadId::from_session_path(&self.session.path)?);
+        let result = cli_control::run(||runtime.run_turn(input, Some(&mut permission_prompter)))?;
         self.runtime = runtime;
-        self.persist_session()?;
+        let summary = turn_persistence::persist_result(result, self.runtime.session(), &self.session.path)?;
         println!(
             "{}",
             json!({
@@ -1490,6 +1506,13 @@ impl LiveCli {
             }
             SlashCommand::Export { path } => {
                 self.export_session(path.as_deref())?;
+                false
+            }
+            SlashCommand::ExportBundle { dir } => {
+                println!(
+                    "{}",
+                    export_diagnostics_bundle(dir.as_deref(), self.runtime.session())?
+                );
                 false
             }
             SlashCommand::Session { action, target } => {
@@ -1696,6 +1719,7 @@ impl LiveCli {
 
         let handle = resolve_session_reference(&session_ref)?;
         let session = Session::load_from_path(&handle.path)?;
+        let _history = turn_persistence::load_event_history(&handle.path)?;
         let message_count = session.messages.len();
         self.runtime = build_runtime(
             session,
@@ -1781,6 +1805,7 @@ impl LiveCli {
                 };
                 let handle = resolve_session_reference(target)?;
                 let session = Session::load_from_path(&handle.path)?;
+                let _history = turn_persistence::load_event_history(&handle.path)?;
                 let message_count = session.messages.len();
                 self.runtime = build_runtime(
                     session,
@@ -1878,7 +1903,11 @@ impl LiveCli {
             progress,
         )?;
         let mut permission_prompter = CliPermissionPrompter::new(self.permission_mode);
-        let summary = runtime.run_turn(prompt, Some(&mut permission_prompter))?;
+        let internal_path = turn_persistence::reserve_internal_path(&self.session.path)?;
+        runtime.set_thread_id(runtime::ThreadId::from_session_path(&internal_path)?);
+        let result = cli_control::run(||runtime.run_turn(prompt, Some(&mut permission_prompter)))?;
+        eprintln!("内部回合记录：{}", internal_path.display());
+        let summary = turn_persistence::persist_result(result, runtime.session(), &internal_path)?;
         Ok(final_assistant_text(&summary).trim().to_string())
     }
 
@@ -2700,9 +2729,9 @@ fn render_export_text(session: &Session) -> String {
         lines.push(format!("## {}. {role}", index + 1));
         for block in &message.blocks {
             match block {
-                ContentBlock::Text { text } => lines.push(text.clone()),
+                ContentBlock::Text { text } => lines.push(::diagnostics::redact_text(text)),
                 ContentBlock::ToolUse { id, name, input } => {
-                    lines.push(format!("[tool_use id={id} name={name}] {input}"));
+                    lines.push(format!("[tool_use id={id} name={name}] {}", ::diagnostics::redact_text(input)));
                 }
                 ContentBlock::ToolResult {
                     tool_use_id,
@@ -2711,7 +2740,8 @@ fn render_export_text(session: &Session) -> String {
                     is_error,
                 } => {
                     lines.push(format!(
-                        "[tool_result id={tool_use_id} name={tool_name} error={is_error}] {output}"
+                        "[tool_result id={tool_use_id} name={tool_name} error={is_error}] {}",
+                        ::diagnostics::redact_text(output)
                     ));
                 }
             }
@@ -2755,6 +2785,125 @@ fn default_export_filename(session: &Session) -> String {
         &stem
     };
     format!("{fallback}.txt")
+}
+
+/// 转录暂存文件守卫：`create_new(true)` 原子创建，同名碰撞换候选名、绝不打开改写既有文件；
+/// 任何成功/错误路径（含写失败与 `?` 提前返回）都由 Drop 删除自身暂存文件。
+struct TranscriptStaging {
+    path: PathBuf,
+}
+
+impl TranscriptStaging {
+    const MAX_ATTEMPTS: u32 = 64;
+
+    fn write_in(
+        parent: &Path,
+        pid: u32,
+        stamp: u128,
+        content: &str,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        use std::io::Write as _;
+        for attempt in 0..Self::MAX_ATTEMPTS {
+            let name = if attempt == 0 {
+                format!(".coolzhu-transcript-src-{pid}-{stamp}.tmp")
+            } else {
+                format!(".coolzhu-transcript-src-{pid}-{stamp}-{attempt}.tmp")
+            };
+            let candidate = parent.join(name);
+            match fs::OpenOptions::new().write(true).create_new(true).open(&candidate) {
+                Ok(mut file) => {
+                    if let Err(error) = file.write_all(content.as_bytes()).and_then(|()| file.sync_all()) {
+                        let _ = fs::remove_file(&candidate);
+                        return Err(error.into());
+                    }
+                    return Ok(Self { path: candidate });
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                Err(error) => return Err(error.into()),
+            }
+        }
+        Err("暂存文件名候选耗尽，拒绝覆盖既有文件".into())
+    }
+}
+
+impl Drop for TranscriptStaging {
+    fn drop(&mut self) {
+        let _ = fs::remove_file(&self.path);
+    }
+}
+
+/// `/export-bundle [dir]`：把已脱敏的会话转录与诊断日志打成显式本地诊断包。
+/// 只纳入白名单附件（transcript.txt、现有诊断日志）；密钥库、数据库、原始附件一律不碰，
+/// 且从不自动上传或外发。返回人读摘要。
+fn export_diagnostics_bundle(
+    requested_dir: Option<&str>,
+    session: &Session,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let cwd = env::current_dir()?;
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |duration| duration.as_millis());
+    let dir = requested_dir.map_or_else(
+        || cwd.join(format!("diagnostics-bundle-{stamp}")),
+        |dir| {
+            let path = PathBuf::from(dir);
+            if path.is_absolute() { path } else { cwd.join(path) }
+        },
+    );
+    // 转录文本先落唯一隐藏暂存文件再作为显式附件输入；不使用系统 TEMP，
+    // 一律放在包目录同盘父目录，成功与失败路径都会删除，不覆盖他人文件。
+    let staging_parent = dir
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .map_or_else(|| cwd.clone(), Path::to_path_buf);
+    fs::create_dir_all(&staging_parent)?;
+    let transcript_staging = TranscriptStaging::write_in(
+        &staging_parent,
+        std::process::id(),
+        stamp,
+        &render_export_text(session),
+    )?;
+    let mut attachments = vec![::diagnostics::ExportAttachment {
+        source: transcript_staging.path.clone(),
+        bundle_path: "transcript.txt".to_string(),
+    }];
+    if let Some(log_path) = ::diagnostics::log_path() {
+        if log_path.is_file() {
+            let name = log_path.file_name().map_or_else(
+                || "diagnostics.log".to_string(),
+                |name| name.to_string_lossy().into_owned(),
+            );
+            attachments.push(::diagnostics::ExportAttachment {
+                source: log_path.to_path_buf(),
+                bundle_path: format!("diagnostics/{name}"),
+            });
+        }
+    }
+    let result = ::diagnostics::export_bundle(
+        &dir,
+        &attachments,
+        ::diagnostics::ExportLimits::default(),
+    );
+    let report = result?;
+    let mut lines = format!(
+        "Export Bundle
+  Result           wrote diagnostics bundle (not uploaded)
+  Dir              {}
+  Manifest         {} (sha256 {})",
+        dir.display(),
+        report.manifest_path.display(),
+        report.manifest_sha256,
+    );
+    for entry in &report.entries {
+        lines.push_str(&format!(
+            "
+  {:<17} {:?} {}",
+            entry.bundle_path,
+            entry.status,
+            entry.bytes.map_or_else(|| entry.note.clone().unwrap_or_default(), |b| format!("{b} bytes")),
+        ));
+    }
+    Ok(lines)
 }
 
 fn resolve_export_path(
@@ -3212,9 +3361,8 @@ impl runtime::PermissionPrompter for CliPermissionPrompter {
         print!("Approve this tool call? [y/N]: ");
         let _ = io::stdout().flush();
 
-        let mut response = String::new();
-        match io::stdin().read_line(&mut response) {
-            Ok(_) => {
+        match permission_input::read_line() {
+            Ok(response) => {
                 let normalized = response.trim().to_ascii_lowercase();
                 if matches!(normalized.as_str(), "y" | "yes") {
                     runtime::PermissionPromptDecision::Allow
@@ -3297,11 +3445,10 @@ impl ApiClient for DefaultRuntimeClient {
             stream: true,
         };
 
+        let control = runtime::managed_process::current_execution_control();
         self.runtime.block_on(async {
-            let mut stream = self
-                .client
-                .stream_message(&message_request)
-                .await
+            let mut stream = controlled_future::wait(&control, self.client.stream_message(&message_request))
+                .await.map_err(|reason| RuntimeError::new(format!("根执行已中断：{reason:?}；模型请求未确认完成，用量未知，不自动重放")).with_interruption(reason))?
                 .map_err(|error| RuntimeError::new(error.to_string()))?;
             let mut stdout = io::stdout();
             let mut sink = io::sink();
@@ -3318,8 +3465,9 @@ impl ApiClient for DefaultRuntimeClient {
             let mut facts = stream_facts::StreamFacts::default();
 
             loop {
-                let received = stream.next_event().await;
+                let received = controlled_future::wait(&control, stream.next_event()).await;
                 facts.merge(stream.usage_evidence());
+                let received = received.map_err(|reason| facts.incomplete(&format!("根执行已中断：{reason:?}")).with_interruption(reason))?;
                 let event = match received {
                     Ok(Some(event)) => event,
                     Ok(None) => break,
@@ -4534,6 +4682,168 @@ mod tests {
 
         assert!(error.to_string().contains("awaiting user approval"));
         assert!(!outside.exists());
+    }
+
+    #[test]
+    fn export_redacts_credentials_but_keeps_structure_and_evidence() {
+        // 合成标记均为假凭据；断言导出文件不含其原文、结构与故障证据仍在。
+        let session = runtime::Session { version: 1, messages: vec![
+            ConversationMessage { role: MessageRole::User, usage: None, blocks: vec![
+                ContentBlock::Text { text: "请用 sk-ant-fake262SECRETkey 访问 https://user:pw262secret@example.test/x 排查".to_string() }]},
+            ConversationMessage { role: MessageRole::Tool, usage: None, blocks: vec![
+                ContentBlock::ToolUse { id: "t1".into(), name: "bash".into(),
+                    input: "curl -H 'Authorization: Bearer tok262SECRETvalue' https://api.test/v1".into() },
+                ContentBlock::ToolResult { tool_use_id: "t1".into(), tool_name: "bash".into(),
+                    output: "错误 password=pw262secret-value 文件 D:/proj/logs/app.log 行42 超时".into(), is_error: true }]},
+        ]};
+        let text = super::render_export_text(&session);
+        let path = std::env::temp_dir().join("coolzhu-cli-export-redact-262.txt");
+        fs::write(&path, &text).expect("write export");
+        let on_disk = fs::read_to_string(&path).expect("read export back");
+        for marker in ["sk-ant-fake262SECRETkey", "user:pw262secret", "tok262SECRETvalue", "pw262secret-value"] {
+            assert!(!on_disk.contains(marker), "导出泄漏合成标记: {marker}");
+        }
+        for keep in ["# Conversation Export", "1. user", "2. tool", "[tool_use id=t1 name=bash]", "[tool_result id=t1 name=bash error=true]", "D:/proj/logs/app.log", "超时", "请用"] {
+            assert!(on_disk.contains(keep), "导出丢失结构/证据: {keep}");
+        }
+        assert!(on_disk.contains("[REDACTED]"));
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn export_bundle_command_writes_redacted_local_bundle() {
+        // 只纳入显式安全附件（脱敏转录 + 诊断日志），不含密钥库/DB/原始附件。
+        let session = runtime::Session { version: 1, messages: vec![
+            ConversationMessage { role: MessageRole::User, usage: None, blocks: vec![
+                ContentBlock::Text { text: "密钥 sk-cli265SECRETvalue 见 D:/proj/app.log".to_string() }]},
+        ]};
+        let dir = std::env::temp_dir()
+            .join(format!("coolzhu-cli-bundle-265-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        // TEMP/TMP 指到哨兵目录：导出临时转录必须走包目录同盘父目录，这里必须保持为空。
+        let fake_temp = std::env::temp_dir()
+            .join(format!("coolzhu-cli-faketemp-265-{}", std::process::id()));
+        fs::create_dir_all(&fake_temp).unwrap();
+        let old_temp = std::env::var("TEMP").ok();
+        let old_tmp = std::env::var("TMP").ok();
+        std::env::set_var("TEMP", &fake_temp);
+        std::env::set_var("TMP", &fake_temp);
+        let message = super::export_diagnostics_bundle(Some(dir.to_str().unwrap()), &session)
+            .expect("export bundle");
+        assert!(message.contains("not uploaded"));
+        let transcript = fs::read_to_string(dir.join("transcript.txt")).expect("transcript");
+        assert!(!transcript.contains("sk-cli265SECRETvalue"), "包内转录泄漏标记");
+        assert!(transcript.contains("[REDACTED]"));
+        assert!(transcript.contains("D:/proj/app.log"), "非敏感证据应保留");
+        assert!(dir.join("manifest.json").is_file());
+        assert!(dir.join("manifest.sha256").is_file());
+        let manifest = fs::read_to_string(dir.join("manifest.json")).unwrap();
+        assert!(manifest.contains("transcript.txt"));
+        assert!(!manifest.contains("sk-cli265SECRETvalue"));
+        // 已存在目录被拒绝（不覆盖语义）
+        assert!(super::export_diagnostics_bundle(Some(dir.to_str().unwrap()), &session).is_err());
+        // 无暂存残留：哨兵 TEMP 与包父目录均无 coolzhu-transcript-src 文件
+        assert!(
+            fs::read_dir(&fake_temp).unwrap().next().is_none(),
+            "系统 TEMP 不得被使用"
+        );
+        let leftovers: Vec<_> = fs::read_dir(dir.parent().unwrap())
+            .unwrap()
+            .filter_map(std::result::Result::ok)
+            .filter(|e| e.file_name().to_string_lossy().contains("coolzhu-transcript-src"))
+            .collect();
+        assert!(leftovers.is_empty(), "暂存转录必须已删除");
+        match old_temp { Some(v) => std::env::set_var("TEMP", v), None => std::env::remove_var("TEMP") }
+        match old_tmp { Some(v) => std::env::set_var("TMP", v), None => std::env::remove_var("TMP") }
+        let _ = fs::remove_dir_all(&dir);
+        let _ = fs::remove_dir_all(&fake_temp);
+    }
+
+    #[test]
+    fn transcript_staging_create_new_never_overwrites() {
+        let dir = std::env::temp_dir()
+            .join(format!("coolzhu-staging-267-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        // 确定性注入：预置同名旧文件，create_new 必须换候选名且旧字节不变
+        let preexisting = dir.join(".coolzhu-transcript-src-7-42.tmp");
+        fs::write(&preexisting, b"KEEP-BYTES-267").unwrap();
+        let staged = super::TranscriptStaging::write_in(&dir, 7, 42, "new-content").unwrap();
+        assert_ne!(staged.path, preexisting);
+        assert_eq!(fs::read(&preexisting).unwrap(), b"KEEP-BYTES-267");
+        assert_eq!(fs::read_to_string(&staged.path).unwrap(), "new-content");
+        // 重复调用继续取不同候选名，不覆盖任何既有文件
+        let staged2 = super::TranscriptStaging::write_in(&dir, 7, 42, "third").unwrap();
+        assert_ne!(staged2.path, staged.path);
+        assert_ne!(staged2.path, preexisting);
+        assert_eq!(fs::read(&preexisting).unwrap(), b"KEEP-BYTES-267");
+        assert_eq!(fs::read_to_string(&staged2.path).unwrap(), "third");
+        drop(staged);
+        drop(staged2);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn transcript_staging_cleans_on_drop_and_exhaustion_is_safe() {
+        let dir = std::env::temp_dir()
+            .join(format!("coolzhu-staging-clean-267-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let dropped_path;
+        {
+            let staged = super::TranscriptStaging::write_in(&dir, 9, 99, "x").unwrap();
+            dropped_path = staged.path.clone();
+            assert!(dropped_path.is_file());
+        }
+        assert!(!dropped_path.exists(), "守卫 Drop 必须删除暂存文件");
+        // 全部候选名被占用 → 失败退出且不改动任何既有文件
+        for attempt in 0..super::TranscriptStaging::MAX_ATTEMPTS {
+            let name = if attempt == 0 {
+                ".coolzhu-transcript-src-8-8.tmp".to_string()
+            } else {
+                format!(".coolzhu-transcript-src-8-8-{attempt}.tmp")
+            };
+            fs::write(dir.join(&name), b"occupied").unwrap();
+        }
+        assert!(super::TranscriptStaging::write_in(&dir, 8, 8, "boom").is_err());
+        for entry in fs::read_dir(&dir).unwrap().flatten() {
+            assert_eq!(fs::read(entry.path()).unwrap(), b"occupied", "既有文件字节不得改动");
+        }
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn export_bundle_failure_leaves_no_staging_and_success_matches_manifest() {
+        let session = runtime::Session { version: 1, messages: vec![
+            ConversationMessage { role: MessageRole::User, usage: None, blocks: vec![
+                ContentBlock::Text { text: "token sk-stage267marker 见 app.log".to_string() }]},
+        ]};
+        let base = std::env::temp_dir()
+            .join(format!("coolzhu-staging-fail-267-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        // 失败路径：包目录已存在 → Err，但暂存守卫仍必须清理
+        let occupied_dir = base.join("bundle");
+        fs::create_dir_all(&occupied_dir).unwrap();
+        assert!(super::export_diagnostics_bundle(
+            Some(occupied_dir.to_str().unwrap()), &session).is_err());
+        let leftovers: Vec<_> = fs::read_dir(&base).unwrap().flatten()
+            .filter(|e| e.file_name().to_string_lossy().contains("transcript-src"))
+            .collect();
+        assert!(leftovers.is_empty(), "失败路径不得留暂存文件");
+        // 成功路径：导出文件存在且 manifest 记录 transcript.txt
+        let ok_dir = base.join("bundle-ok");
+        super::export_diagnostics_bundle(Some(ok_dir.to_str().unwrap()), &session).unwrap();
+        assert!(ok_dir.join("transcript.txt").is_file());
+        let manifest = fs::read_to_string(ok_dir.join("manifest.json")).unwrap();
+        assert!(manifest.contains("transcript.txt"));
+        assert!(!fs::read_to_string(ok_dir.join("transcript.txt")).unwrap()
+            .contains("sk-stage267marker"));
+        let leftovers: Vec<_> = fs::read_dir(&base).unwrap().flatten()
+            .filter(|e| e.file_name().to_string_lossy().contains("transcript-src"))
+            .collect();
+        assert!(leftovers.is_empty(), "成功路径不得留暂存文件");
+        let _ = fs::remove_dir_all(&base);
     }
 
     #[test]

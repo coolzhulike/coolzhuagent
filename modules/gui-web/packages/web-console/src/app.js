@@ -9,23 +9,7 @@ let agentRegistry = { agents: [], active_agent_ids: [] };
 let sessionRegistry = { sessions: [], active_session_id: null, max_sessions: 10 };
 let avatarManifest = [];
 let avatarManifestByFile = new Map();
-const DEFAULT_WUXIA_AVATAR_PATH = "assets/avatars/wuxia-v3/bamboo-swordsman.png";
-const LEGACY_AVATAR_MIGRATIONS = new Map([
-  ["assets/avatars/wuxia-swordsman.png", DEFAULT_WUXIA_AVATAR_PATH],
-  ["assets/avatars/robot-gold.png", "assets/avatars/wuxia-v3/gold-commander.png"],
-  ["assets/avatars/robot-cyan.png", "assets/avatars/wuxia-v3/jade-strategist.png"],
-  ["assets/avatars/robot-green.png", "assets/avatars/wuxia-v3/mechanist.png"],
-  ["assets/avatars/robot-purple.png", "assets/avatars/wuxia-v3/scripture-monk.png"],
-  ["assets/avatars/robot-red.png", "assets/avatars/wuxia-v3/ink-shadow.png"],
-  ["assets/avatars/mushroom-butler.png", "assets/avatars/wuxia-v3/wandering-physician.png"],
-  ["assets/avatars/star-sprite.png", "assets/avatars/wuxia-v3/feather-guard.png"],
-  ["assets/avatars/turtle-mechanic.png", "assets/avatars/wuxia-v3/mechanist.png"],
-  ["assets/avatars/cat-black.png", "assets/avatars/wuxia-v3/ink-shadow.png"],
-  ["assets/avatars/shiba-captain.png", "assets/avatars/wuxia-v3/gold-commander.png"],
-  ["assets/avatars/astronaut-pixel.png", "assets/avatars/wuxia-v3/feather-guard.png"],
-  ["assets/avatars/alien-jelly.png", "assets/avatars/wuxia-v3/jade-strategist.png"],
-  ["assets/avatars/ai-core.png", "assets/avatars/wuxia-v3/scripture-monk.png"],
-]);
+const DEFAULT_BRAND_AVATAR_PATH = CoolzhuBrandAvatars.fallback;
 const WUXIA_ICON_ALIASES = new Map([
   ["project-tree", "project"],
   ["settings", "settings"],
@@ -219,7 +203,7 @@ const CHAT_TOOL_WINDOW_META = Object.freeze({
   vision: Object.freeze({ label: "视觉实验", kicker: "视觉工具", asset: "./assets/icons-wuxia/vision.svg" }),
 });
 const CHAT_TOOL_WINDOW_IDS = new Set(Object.keys(CHAT_TOOL_WINDOW_META));
-const CHAT_RIGHT_RAIL_TABS = Object.freeze(["collaboration", "tasks", "status", "tools"]);
+const CHAT_RIGHT_RAIL_TABS = Object.freeze(["collaboration", "tasks", "executions", "status", "tools"]);
 let chatRightRailTab = "collaboration";
 let chatToolWindowId = null;
 let chatToolWindowOrigin = null;
@@ -257,6 +241,7 @@ function projectInvalidateWorkspaceRequests(workspace) {
   projectLineWindowSerial += 1;
   projectFileSaveSerial += 1;
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
 }
 // IDE 工程窗口 · 阶段D：View/Diff 合并按钮状态机（plan §4.6）
 let ideViewDiffMode = "view"; // "view" | "diff"
@@ -650,16 +635,19 @@ document.addEventListener("DOMContentLoaded", () => {
   providerSelect?.addEventListener("change", () => {
     updateModelOptions();
     updateCustomProviderFields();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
 
   const modelSelect = document.querySelector('[data-role="session-model"]');
   modelSelect?.addEventListener("change", () => {
     renderModelTypeSelect();
     updateReasoningEffortOptions();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
   document.querySelector('[data-role="session-custom-model"]')?.addEventListener("input", () => {
     renderModelTypeSelect();
     updateReasoningEffortOptions();
+    setSessionAvatarForm(currentAvatarPathFromForm());
   });
   document.querySelector('[data-role="session-reasoning-effort"]')?.addEventListener("change", () => {
     renderSessionReasoningHint();
@@ -7488,11 +7476,11 @@ function agentHealthSnapshot(registry = agentRegistry) {
 function topStatusLabel(kind, state) {
   if (kind === "ready") {
     return {
-      good: "系统健康：良好 · 就绪",
-      warn: "系统健康：需留意",
-      critical: "系统健康：异常",
-      idle: "系统健康：等待自检",
-    }[state] || "系统健康：等待自检";
+      good: "Agent 就绪：良好 · 凭据已确认",
+      warn: "Agent 就绪：需留意",
+      critical: "Agent 就绪：凭据/配置未就绪",
+      idle: "Agent 就绪：等待自检",
+    }[state] || "Agent 就绪：等待自检";
   }
   if (kind === "alert") {
     return {
@@ -7597,8 +7585,11 @@ function renderOverviewMascot() {
   const configuredAvatar = avatarForSession(agent);
   const fallbackAvatar = avatarManifest.length
     ? avatarPathFromFile(avatarManifest[0].file)
-    : DEFAULT_WUXIA_AVATAR_PATH;
+    : DEFAULT_BRAND_AVATAR_PATH;
   const avatar = configuredAvatar || fallbackAvatar;
+  document.querySelectorAll(".chat-right-agent-avatar").forEach((portrait) => {
+    portrait.src = avatarUrl(avatarForSession(sessionById(activeSessionId) || agent));
+  });
   const label = document.querySelector('[data-role="overview-agent-label"]');
   image.src = avatarUrl(avatar);
   const selectedNames = selectedAgents
@@ -7679,7 +7670,17 @@ function visionRealtimeTaskItem(status = {}) {
   );
   const loopActive = Boolean(status.loop_running || status.loop_requested);
   const resourceIssue = status.detection_service_reachable === false || status.detection_model_path_exists === false;
-  if (!hasDetectorConfig || (!loopActive && !resourceIssue)) {
+  // 只有真正请求过/运行过（或有 last_error 失败事实）的检测循环，资源缺失才计为执行失败；
+  // 从未请求的预留配置缺资源只是未就绪信息，不制造 failed 任务误报“任务异常”。
+  const hasRunEvidence = Boolean(
+    loopActive
+    || (status.frames_processed || 0) > 0
+    || status.started_at_ms
+    || status.last_frame_ms
+    || status.stopped_at_ms
+  );
+  const executionFailed = Boolean(status.last_error) || (resourceIssue && hasRunEvidence);
+  if (!hasDetectorConfig || (!loopActive && !resourceIssue && !executionFailed)) {
     return null;
   }
   const states = [
@@ -7692,6 +7693,9 @@ function visionRealtimeTaskItem(status = {}) {
     `frames=${status.frames_processed || 0}`,
     `elements=${status.element_count || 0}`,
   ];
+  if (status.last_error) {
+    states.push(`last_error=${status.last_error}`);
+  }
   if (status.detection_launcher_hint) {
     states.push(`launcher=${status.detection_launcher_hint}`);
   }
@@ -7699,7 +7703,7 @@ function visionRealtimeTaskItem(status = {}) {
     id: "runtime-vision-realtime",
     owner_agent: "vision-realtime",
     executor_agent: "Realtime vision detector",
-    status: loopActive ? "running" : (resourceIssue ? "failed" : "pending"),
+    status: executionFailed ? "failed" : (loopActive ? "running" : "pending"),
     summary: states.join(" / "),
     readiness_gates: [],
     startedAt: Number(status.started_at_ms || status.last_frame_ms || Date.now()),
@@ -8970,6 +8974,8 @@ async function loadAvatarManifest() {
     const manifest = await response.json();
     avatarManifest = Array.isArray(manifest) ? manifest.filter((item) => avatarPathAllowed(item?.file)) : [];
     avatarManifestByFile = new Map(avatarManifest.map((item) => [avatarPathFromFile(item.file), item]));
+    renderSessionList(sessionRegistry.sessions || [], activeSessionId);
+    renderAgentOptions(agentRegistry.agents || [], agentRegistry.active_agent_ids || []);
     renderAvatarPicker();
     renderOverviewMascot();
   } catch (error) {
@@ -8982,20 +8988,19 @@ async function loadAvatarManifest() {
 
 function avatarPathAllowed(file) {
   const value = String(file || "").trim().replace(/\\/g, "/");
-  return /^(?:wuxia-v3\/)?[a-z0-9][a-z0-9._-]*\.(png|webp)$/i.test(value);
+  return /^(?:brand-v1\/)?[a-z0-9][a-z0-9._-]*\.(png|webp)$/i.test(value);
 }
 
 function avatarPathFromFile(file) {
   return `assets/avatars/${String(file || "").trim().replace(/\\/g, "/")}`;
 }
 
-function migrateLegacyAvatarPath(path) {
-  const normalized = String(path || "").trim().replace(/\\/g, "/").replace(/^\.\//, "");
-  return LEGACY_AVATAR_MIGRATIONS.get(normalized) || normalized;
+function migrateLegacyAvatarPath(path, session) {
+  return CoolzhuBrandAvatars.migrate(path, session);
 }
 
 function avatarUrl(path) {
-  return path ? `./${path}` : "";
+  return CoolzhuBrandAvatars.url(path);
 }
 
 function iconUrl(icon) {
@@ -9064,7 +9069,6 @@ function initializeIconControls() {
     "terminal-window-close": ["stop", "关闭终端"],
     "terminal-window-run": ["terminal", "运行命令"],
     "chat-history-open": ["search", "搜索聊天记录与消息索引"],
-    "chat-trace-open": ["context-ring", "查看运行轨迹与安全详情"],
     "task-schedule-create": ["plus", "添加定时任务"],
     "task-schedule-run-due": ["send", "运行到期任务"],
     "task-schedule-relay-timeout-save": ["save", "保存接力超时"],
@@ -9120,12 +9124,13 @@ function sessionById(sessionId) {
 }
 
 function avatarForSession(session) {
-  const path = migrateLegacyAvatarPath(session?.avatar || "");
-  return avatarManifestByFile.has(path) ? path : null;
+  return CoolzhuBrandAvatars.resolve(session);
 }
 
-function avatarForAuthor(author) {
-  return avatarForSession(sessionByAuthor(author));
+function avatarForAuthor(author, sessionId, role, kind) {
+  if (role === "user" || role === "tool" || kind === "user" || String(kind || "").startsWith("tool-") || kind === "computer-use") return null;
+  const session = sessionById(sessionId) || sessionByAuthor(author);
+  return session ? avatarForSession(session) : null;
 }
 
 function avatarThemeForPath(path) {
@@ -9134,7 +9139,7 @@ function avatarThemeForPath(path) {
 
 function defaultIconUrlForIcon(icon) {
   if (icon === "mario" || icon === "robot-message") {
-    return `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+    return `./${DEFAULT_BRAND_AVATAR_PATH}`;
   }
   return iconUrl(icon);
 }
@@ -9144,17 +9149,7 @@ function defaultIconUrlForMessage(message) {
 }
 
 function defaultIconUrlForSession(session) {
-  const modelType = String(session?.model_type || MODEL_TYPE_MAP[session?.model] || "text").toLowerCase();
-  if (modelType === "vision" || modelType === "multimodal") {
-    return iconUrl("inner-vision");
-  }
-  if (modelType === "video") {
-    return iconUrl("image-preview");
-  }
-  if (modelType === "audio") {
-    return iconUrl("microphone");
-  }
-  return `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+  return avatarUrl(avatarForSession(session));
 }
 
 function currentAvatarPathFromForm() {
@@ -9162,8 +9157,9 @@ function currentAvatarPathFromForm() {
 }
 
 function setSessionAvatarForm(path) {
-  const migrated = migrateLegacyAvatarPath(path);
-  const normalized = migrated && avatarManifestByFile.has(migrated) ? migrated : "";
+  const raw = String(path || "").trim();
+  const normalized = CoolzhuBrandAvatars.isLegacy(raw) ? "" : raw;
+  const automatic = avatarForSession({ provider: sessionProviderValue(), model: sessionModelValueFromForm() });
   const trigger = document.querySelector('[data-action="session-avatar-toggle"]');
   const preview = document.querySelector('[data-role="session-avatar-preview"]');
   const label = document.querySelector('[data-role="session-avatar-label"]');
@@ -9172,10 +9168,10 @@ function setSessionAvatarForm(path) {
     trigger.style.setProperty("--avatar-theme", normalized ? avatarThemeForPath(normalized) : "#ffd552");
   }
   if (preview) {
-    preview.src = normalized ? avatarUrl(normalized) : `./${DEFAULT_WUXIA_AVATAR_PATH}`;
+    preview.src = avatarUrl(normalized || automatic);
   }
   if (label) {
-    label.textContent = normalized ? (avatarManifestByFile.get(normalized)?.name || "自定义头像") : "默认图标";
+    label.textContent = normalized ? (avatarManifestByFile.get(normalized)?.name || "自定义头像") : "随模型自动选择";
   }
   document.querySelectorAll("[data-avatar-choice]").forEach((node) => {
     node.classList.toggle("is-selected", node.dataset.avatarChoice === normalized);
@@ -9190,7 +9186,7 @@ function renderAvatarPicker() {
   defaultButton.type = "button";
   defaultButton.className = "avatar-choice is-default";
   defaultButton.dataset.avatarChoice = "";
-  defaultButton.innerHTML = `<span class="avatar-choice-fallback">默认</span><b>默认图标</b>`;
+  defaultButton.innerHTML = `<span class="avatar-choice-fallback">默认</span><b>随模型自动选择</b>`;
   picker.append(defaultButton);
 
   avatarManifest.forEach((item) => {
@@ -11483,6 +11479,7 @@ function chatRightRailTabNodes() {
 const CHAT_RIGHT_RAIL_HEADING_META = Object.freeze({
   collaboration: Object.freeze({ kicker: "协作阵列", title: "Agent 与任务链" }),
   tasks: Object.freeze({ kicker: "任务链", title: "当前任务" }),
+  executions: Object.freeze({ kicker: "执行卷轴", title: "子 Agent 与定时执行" }),
   status: Object.freeze({ kicker: "状态总览", title: "Agent 状态" }),
 });
 
@@ -11815,6 +11812,13 @@ function initializeChatRightRailTabs() {
     return;
   }
   tablist.dataset.bound = "1";
+  window.CoolzhuExecutionPanel?.mount(document.querySelector("#chat-right-panel-executions"), {
+    getScope: () => projectRequestScope(),
+    getAvatar: (spec) => avatarUrl(avatarForSession({
+      id: spec.session_id, avatar: sessionById(spec.session_id)?.avatar,
+      provider: spec.provider, model: spec.model,
+    })),
+  });
   tabs.forEach((button) => {
     button.addEventListener("click", () => setChatRightRailTab(button.dataset.rightTab, { fromUser: true }));
     button.addEventListener("keydown", (event) => {
@@ -13018,7 +13022,13 @@ function renderSessionList(sessions, activeId) {
     option.type = "button";
     option.className = "session-option";
     option.dataset.sessionId = session.id;
-    option.textContent = session.display_name;
+    const portrait = document.createElement("img");
+    portrait.className = "brand-session-avatar";
+    portrait.src = avatarUrl(avatarForSession(session));
+    portrait.alt = "";
+    const text = document.createElement("span");
+    text.textContent = session.display_name;
+    option.append(portrait, text);
     option.setAttribute("role", "option");
     option.tabIndex = 0;
     option.setAttribute("aria-selected", String(session.id === activeId));
@@ -13567,8 +13577,11 @@ function setSessionForm(session) {
   if (customModel) customModel.value = isCustomProvider(providerId) || providerId === "devin" ? session.model : "";
   if (baseUrl) baseUrl.value = session.base_url || "";
   if (endpoint) endpoint.value = session.endpoint || "";
-  setSessionAvatarForm(session.avatar || "");
+  document.querySelectorAll(".chat-right-agent-avatar").forEach((portrait) => {
+    portrait.src = avatarUrl(avatarForSession(session));
+  });
   updateModelOptions(session.model, { allowCurrent: true });
+  setSessionAvatarForm(session.avatar || "");
   if (session.model_type) {
     const mt = document.querySelector('[data-role="session-model-type"]');
     if (mt) mt.value = session.model_type;
@@ -16947,7 +16960,7 @@ function highlightLineFragment(lineText, keywords) {
 const IDE_EDITOR_MAX_BYTES = 200 * 1024;
 const IDE_EDITOR_LINE_WINDOW = 400;
 let ideEditorState = { path: "", startLine: 1, lineCount: 0, truncated: false, editable: false };
-let lspPreviewState = { path: "", handle: "", line: 1, character: 1, seq: 0, startSeq: 0 };
+let lspPreviewState = { path: "", handle: "", ready: false, line: 1, character: 1, seq: 0, startSeq: 0, watchSeq: 0 };
 
 function lspPreviewNode(role) {
   return document.querySelector(`[data-role="lsp-preview-${role}"]`);
@@ -16980,11 +16993,12 @@ function showLspPreviewResults(title, items = []) {
   panel.replaceChildren(heading, ...rows);
 }
 
-function renderLspPreviewControls({ configured = false, running = false, handle = "", message = "" } = {}) {
+function renderLspPreviewControls({ configured = false, running = false, ready = false, handle = "", message = "" } = {}) {
   const toolbar = lspPreviewNode("toolbar");
   if (!toolbar) return;
   toolbar.hidden = !lspPreviewState.path;
   lspPreviewState.handle = running ? String(handle || "") : "";
+  lspPreviewState.ready = running && ready;
   setLspPreviewStatus(message || (running ? "Rust 语言服务已启动" : "Rust 语言服务未启动"));
   const start = actionButtons.get("lsp-preview-start");
   if (start) {
@@ -16993,10 +17007,39 @@ function renderLspPreviewControls({ configured = false, running = false, handle 
   }
   for (const name of ["refresh", "definition", "references", "close"]) {
     const button = actionButtons.get(`lsp-preview-${name}`);
-    if (button) button.hidden = !running;
+    if (button) {
+      button.hidden = !running;
+      if (name === "definition" || name === "references") button.disabled = !ready;
+    }
   }
   const position = lspPreviewNode("position");
   if (position) position.hidden = !running;
+}
+
+// 仅在当前文件可见、服务索引中时短期刷新；换工程/聊天室/文件即停止。
+async function watchLspPreviewReadiness(status) {
+  const watchSeq = ++lspPreviewState.watchSeq;
+  if (!status.running || status.ready || !status.handle) return;
+  const { seq, path, handle } = lspPreviewState;
+  const workspace = activeWorkspaceKey, room = activeChatRoomId, session = activeSessionId;
+  const current = () => watchSeq === lspPreviewState.watchSeq && seq === lspPreviewState.seq
+    && path === lspPreviewState.path && handle === lspPreviewState.handle
+    && workspace === activeWorkspaceKey && room === activeChatRoomId && session === activeSessionId
+    && !lspPreviewNode("toolbar")?.hidden;
+  for (let count = 0; count < 36; count += 1) {
+    await new Promise((resolve) => window.setTimeout(resolve, 5000));
+    if (!current()) return;
+    try {
+      const latest = await requestJson("/api/lsp/status");
+      if (!current()) return;
+      renderLspPreviewControls(latest);
+      if (!latest.running || latest.ready) return;
+    } catch (error) {
+      if (current()) setLspPreviewStatus(error.message);
+      return;
+    }
+  }
+  if (current()) setLspPreviewStatus("索引仍在进行，可稍后点击刷新查看状态；服务继续运行。");
 }
 
 async function updateLspPreviewForFile(path) {
@@ -17013,7 +17056,8 @@ async function updateLspPreviewForFile(path) {
     const status = await requestJson("/api/lsp/status");
     if (seq !== lspPreviewState.seq || path !== lspPreviewState.path) return;
     renderLspPreviewControls(status);
-    if (status.running && status.handle) void refreshLspPreviewDiagnostics();
+    void watchLspPreviewReadiness(status);
+    if (status.running && status.ready && status.handle) void refreshLspPreviewDiagnostics();
   } catch (error) {
     if (seq === lspPreviewState.seq) renderLspPreviewControls({ message: error.message });
   }
@@ -17060,7 +17104,8 @@ async function startLspPreview() {
     });
     if (!scopeCurrent() || path !== lspPreviewState.path) return;
     renderLspPreviewControls(started);
-    await refreshLspPreviewDiagnostics();
+    void watchLspPreviewReadiness(started);
+    if (started.ready) await refreshLspPreviewDiagnostics();
   } catch (error) {
     if (scopeCurrent()) setLspPreviewStatus(error.message);
   } finally {
@@ -17076,6 +17121,12 @@ async function refreshLspPreviewDiagnostics(retry = 0) {
     return;
   }
   try {
+    if (!lspPreviewState.ready) {
+      const status = await requestJson("/api/lsp/status");
+      if (seq !== lspPreviewState.seq || handle !== lspPreviewState.handle) return;
+      renderLspPreviewControls(status);
+      if (!status.ready) { void watchLspPreviewReadiness(status); return; }
+    }
     const result = await requestJson("/api/lsp/diagnostics", {
       method: "POST", body: JSON.stringify({ handle, path }),
     });
@@ -18763,6 +18814,7 @@ async function enterIdeDiffMode() {
 
 async function exitIdeDiffMode() {
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
   ideViewDiffMode = "view";
   updateIdeModeToggleButton();
   // 回 view：重新打开左侧文件的普通视图。
@@ -19116,6 +19168,7 @@ function activateIdeTab(id) {
   projectFileOpenSerial += 1;
   projectLineWindowSerial += 1;
   projectDiffRequestSerial += 1;
+  window.dispatchEvent(new CustomEvent("coolzhu-project-scope-changed"));
   setIdeActiveTab(id);
   // 按 tab.kind 切 mode 并同步关联状态，再渲染对应视图。
   if (tab.kind === "diff") {
@@ -19270,7 +19323,7 @@ function initializeWorkbenchWindows() {
     active: () => chatToolWindowId,
     open: id => openChatToolWindow(id),
     close: options => closeChatToolWindow({ focusChat: true, restoreTab: false, restoreLayout: false, discardLayoutSnapshot: true, ...options }),
-    collapse: () => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll:true}); },
+    collapse: (preserveScroll = true) => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll}); },
     refreshSchedules: () => refreshTaskSchedules(),
     refreshWechat: () => refreshClawbotWindow({silent:false}),
     resetBrowser: browserWindowResetContext,
@@ -19653,7 +19706,7 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
     }
     const portrait = existing.querySelector(".portrait");
     if (portrait) {
-      const avatarPath = avatarForAuthor(message.author);
+      const avatarPath = avatarForAuthor(message.author, message.session_id || existing.dataset.sessionId || sessionId, messageRole, messageKind);
       portrait.src = avatarPath ? avatarUrl(avatarPath) : defaultIconUrlForMessage(message);
       existing.classList.toggle("has-session-avatar", Boolean(avatarPath));
       if (avatarPath) {
@@ -19672,6 +19725,7 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
       });
     }
     renderAttachments(existing.querySelector(".attachments"), message.attachments || []);
+    attachMessageTraceLink(existing, messageRole, messageKind, streaming);
     list.scrollTop = list.scrollHeight;
     return existing;
   }
@@ -19687,6 +19741,22 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
     role: message.role,
     createdAt: message.created_at,
   });
+}
+
+function attachMessageTraceLink(article, role, kind, streaming) {
+  const normalizedKind = String(kind || "").toLowerCase();
+  const isReply = String(role || "").toLowerCase() === "assistant"
+    && (normalizedKind === "assistant-reply" || normalizedKind === "bot");
+  const existing = article.querySelector('[data-role="message-trace-link"]');
+  if (!isReply || streaming) { existing?.remove(); return; }
+  if (existing) return;
+  const link = document.createElement("button");
+  link.type = "button";
+  link.className = "message-trace-link";
+  link.dataset.role = "message-trace-link";
+  link.textContent = "查看运行过程";
+  link.addEventListener("click", () => window.CoolzhuWorkspacePanels?.openTraceArchive(article.dataset.messageId));
+  article.querySelector(".attachments")?.after(link);
 }
 
 function appendMessageText(id, delta) {
@@ -19727,7 +19797,7 @@ function addMessage({ id, author, text, kind, icon, attachments = [], createdAt 
     article.dataset.messageRole = role;
   }
   article.classList.toggle("is-streaming", streaming);
-  const avatarPath = avatarForAuthor(author);
+  const avatarPath = avatarForAuthor(author, sessionId, role, kind);
   article.classList.toggle("has-session-avatar", Boolean(avatarPath));
   if (avatarPath) {
     article.style.setProperty("--message-theme", avatarThemeForPath(avatarPath));
@@ -19755,6 +19825,7 @@ function addMessage({ id, author, text, kind, icon, attachments = [], createdAt 
     streaming,
   });
   renderAttachments(article.querySelector(".attachments"), attachments);
+  attachMessageTraceLink(article, role, kind, streaming);
   if (prepend) {
     list.prepend(article);
   } else {
@@ -21059,6 +21130,7 @@ async function reportAudioRealtimeSegment(blob, { finalSegment = false, duration
   if (!blob || !audioRealtimeRunning) {
     return null;
   }
+  const requestSessionId = sttSessionId;
   const now = Date.now();
   audioRealtimeLastSegmentReportAt = now;
   let audioBase64 = "";
@@ -21067,12 +21139,13 @@ async function reportAudioRealtimeSegment(blob, { finalSegment = false, duration
   } catch (error) {
     console.warn("实时语音分段读取失败，仅上报 metadata:", error);
   }
+  if (!audioRealtimeRunning || sttSessionId !== requestSessionId) return null;
   try {
     const response = await fetch("/api/audio/realtime/segment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        session_id: sttSessionId,
+        session_id: requestSessionId,
         bytes: blob.size,
         duration_ms: Number.isFinite(Number(durationMs)) ? Math.max(0, Math.round(Number(durationMs))) : null,
         mime_type: blob.type || "audio/webm",
@@ -21081,7 +21154,7 @@ async function reportAudioRealtimeSegment(blob, { finalSegment = false, duration
       }),
     });
     const segment = response.ok ? await response.json() : null;
-    if (!segment) return null;
+    if (!segment || !segment.running || !audioRealtimeRunning || sttSessionId !== requestSessionId || segment.session_id !== requestSessionId) return null;
     realtimeSessionStatus = {
       ...realtimeSessionStatus,
       audio_segments_received: segment.audio_segments_received,
@@ -21195,12 +21268,13 @@ function reportAudioRealtimePartial({
   if (!transcript || !audioRealtimeRunning) {
     return;
   }
+  const requestSessionId = sttSessionId;
   const numericConfidence = Number(confidence);
   fetch("/api/audio/realtime/partial", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      session_id: sttSessionId,
+      session_id: requestSessionId,
       text: transcript,
       confidence: Number.isFinite(numericConfidence) ? numericConfidence : null,
       is_final: Boolean(isFinal),
@@ -21214,7 +21288,7 @@ function reportAudioRealtimePartial({
   })
     .then((response) => (response.ok ? response.json() : null))
     .then((partial) => {
-      if (!partial) return;
+      if (!partial || !partial.running || !audioRealtimeRunning || sttSessionId !== requestSessionId || partial.session_id !== requestSessionId) return;
       realtimeSessionStatus = {
         ...realtimeSessionStatus,
         partial_transcripts_received: partial.partial_transcripts_received,
