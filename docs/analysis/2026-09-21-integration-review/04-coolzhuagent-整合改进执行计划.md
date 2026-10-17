@@ -184,7 +184,7 @@ Planner 使用 `objective + criteria + constraints + current_observation + last_
 
 > 当次实际请求的非秘密内容，可由已经提交的请求快照确定性重建。
 
-不能写成“所有日志都给模型”。审计、反馈、秘密、跨轮内部思考和 log-only 事件必须继续隔离。还应检查 provider 适配后真正发送的 payload，不能只比较适配前的抽象消息。现有跨轮过滤和同轮原生协议配对必须保持。[附件：release-0.2.14-agent-fixes-repo…](C:/Users/zhupu/Desktop/coolzhuagent/docs/analysis/2026-09-21-integration-review/evidence/submitted/release-0.2.14-agent-fixes-report.md)
+不能写成“所有日志都给模型”。审计、反馈、秘密、跨轮内部思考和 log-only 事件必须继续隔离。还应检查 provider 适配后真正发送的 payload，不能只比较适配前的抽象消息。现有跨轮过滤和同轮原生协议配对必须保持。[附件：release-0.2.14-agent-fixes-repo…](../../testing/release-0.2.14-agent-fixes-report.md)
 
 ### 3.5 SQLite 分步迁移
 
@@ -226,7 +226,7 @@ Goal、beads、ClawBot 等领域可以继续保留各自关系状态，不要求
 8. 图片直传默认保持；纯文本路线使用当前配置的默认视觉会话。Agnes 是现有配置名，不写入核心逻辑。
 9. 缺少可用视觉会话、图像与 frame 不匹配或定位不确定时，明确阻断，不产生猜测坐标。
 
-这些要求针对已有能力的收敛，不是重新建设参数页面。[附件：release-0.2.14-agent-fixes-repo…](C:/Users/zhupu/Desktop/coolzhuagent/docs/analysis/2026-09-21-integration-review/evidence/submitted/release-0.2.14-agent-fixes-report.md) [附件：01-coolzhu-dsh-架构差异与整合决策](C:/Users/zhupu/Desktop/coolzhuagent/docs/analysis/2026-09-21-integration-review/evidence/submitted/01-coolzhu-dsh-架构差异与整合决策.md)
+这些要求针对已有能力的收敛，不是重新建设参数页面。[附件：release-0.2.14-agent-fixes-repo…](../../testing/release-0.2.14-agent-fixes-report.md) [附件：01-coolzhu-dsh-架构差异与整合决策](evidence/submitted/01-coolzhu-dsh-架构差异与整合决策.md)
 
 ---
 

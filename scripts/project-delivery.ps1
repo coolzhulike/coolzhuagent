@@ -101,7 +101,7 @@ function Get-DeliveryInventory {
             if ($seen.Add($file.FullName)) { $candidates.Add($file) }
         }
     }
-    foreach ($name in @('README.md', 'LICENSE', 'Cargo.toml', 'Cargo.lock', 'package.json', 'package.ps1', 'AGENT.md', 'AGENTS.md', 'CLAUDE.md', '.gitignore', 'config\package-launcher.json', 'config\package-manifest.json')) {
+    foreach ($name in @('README.md', 'LICENSE', 'Cargo.toml', 'Cargo.lock', 'package.json', 'package.ps1', 'AGENT.md', '.gitignore', 'config\package-launcher.json', 'config\package-manifest.json')) {
         $path = Join-Path $workspace $name
         if (Test-Path -LiteralPath $path -PathType Leaf) {
             $file = Get-Item -LiteralPath $path
@@ -368,6 +368,14 @@ $githubIgnoreLines = @(
     '**/*.key',
     '**/*.p12',
     '**/*.pfx',
+    '',
+    '# Local execution state and captured browser/desktop artifacts',
+    '/.claw/',
+    '/.playwright-cli/',
+    '/deploy/',
+    '/.diag-quota.lock',
+    '/.diag-quota.members',
+    '/err.log.lock',
     '',
     '# OS / editor',
     'Thumbs.db',

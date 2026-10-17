@@ -1,5 +1,7 @@
 # Goal 循环状态图化 · 需求管理 & GitHub Issue 蓝本
 
+> **历史文档（2026-10-17 标记归档）**：GL-01～15 已实现并提 PR（见文末交付记录），本文件移出活动待办入口，仅保留 Issue/PR 追溯价值。文内迁移版本号与 `main.rs` 行号已漂移。当前 Goal 状态以 `docs/testing/2026-10-13-goal-32wbs-acceptance-checklist.md` 及 `docs/testing/2026-10-16-active-acceptance-plan.md` 为准。
+
 - 关联设计：`2026-07-22-goal-loop-state-graph-design.md`（`DESIGN-GOAL-LOOP-001`）
 - 目标仓库：https://github.com/coolzhulike/coolzhuagent
 - 用途：本文件即"落到 GitHub 的 issue 清单源"。每个 `GL-xx` 对应一个 Issue，可直接复制或用脚本批量创建。

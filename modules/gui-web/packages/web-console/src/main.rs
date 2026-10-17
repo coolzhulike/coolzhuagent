@@ -21122,7 +21122,6 @@ async fn run_tool_dry_run(tool_id: &str, input: JsonValue) -> ApiResult<Json<Too
                 capture_path: input_string(&input, "capture_path"),
                 use_latest_capture: input_bool(&input, "use_latest_capture"),
                 use_model: input_bool(&input, "use_model"),
-                system_control: None,
             })
             .await?;
             json!(response)
@@ -24945,46 +24944,6 @@ async fn api_tool_execute(
         "旧视觉实验执行接口已停用。请在聊天室使用电脑操作，由正式执行器统一负责定位、授权、输入和回执。"))
 }
 
-fn locate_request_from_tool_payload(
-    payload: &ToolDispatchRequest,
-    target: &str,
-) -> vision::locate::LocateRequest {
-    let target = payload
-        .system_control
-        .as_deref()
-        .and_then(try_parse_system_control)
-        .or_else(|| detect_system_control_from_target(target))
-        .map(|id| vision::locate::LocateTarget::System { id })
-        .unwrap_or_else(|| vision::locate::LocateTarget::Natural {
-            text: target.to_string(),
-        });
-    let router = active_vision_router_config();
-    vision::locate::LocateRequest {
-        target,
-        backends: None,
-        min_confidence: router.min_confidence,
-        cross_verify: router.cross_verify,
-        region_hint: None,
-        capture_path: None,
-        timeout_ms: router.timeout_ms,
-        diagnostics: true,
-    }
-}
-
-#[allow(dead_code)]
-fn try_parse_system_control(name: &str) -> Option<vision::locate::SystemControlId> {
-    use vision::locate::SystemControlId;
-    match name {
-        "start-button" | "StartButton" => Some(SystemControlId::StartButton),
-        "taskbar" | "Taskbar" => Some(SystemControlId::Taskbar),
-        "system-tray" | "SystemTray" => Some(SystemControlId::SystemTray),
-        "window-close" | "WindowCloseButton" => Some(SystemControlId::WindowCloseButton),
-        "window-minimize" | "WindowMinimizeButton" => Some(SystemControlId::WindowMinimizeButton),
-        _ => None,
-    }
-}
-
-#[allow(dead_code)]
 fn detect_system_control_from_target(target: &str) -> Option<vision::locate::SystemControlId> {
     use vision::locate::SystemControlId;
     let lower = target.to_lowercase();
@@ -35885,7 +35844,6 @@ async fn legacy_semantic_dispatch(input: &JsonValue) -> ApiResult<ToolDispatchRe
         capture_path: input_string(input, "capture_path"),
         use_latest_capture: input_bool(input, "use_latest_capture"),
         use_model: input_bool(input, "use_model"),
-        system_control: None,
     })
     .await;
     match &dispatch {
@@ -54381,8 +54339,6 @@ struct ToolDispatchRequest {
     capture_path: Option<String>,
     use_latest_capture: Option<bool>,
     use_model: Option<bool>,
-    #[serde(default)]
-    system_control: Option<String>,
 }
 
 impl Default for ToolDispatchRequest {
@@ -54399,7 +54355,6 @@ impl Default for ToolDispatchRequest {
             capture_path: None,
             use_latest_capture: None,
             use_model: None,
-            system_control: None,
         }
     }
 }
@@ -59395,7 +59350,7 @@ pub(crate) mod tests {
         attachment_preview, build_closed_loop_plan, build_overview_metrics, build_stability_matrix,
         build_tools_catalog, clip_roi, content_type_for_path, default_agent_sessions,
         default_reasoning_effort, desktop_pet_executable_candidates, heuristic_screen_description,
-        is_multimodal_agent, latest_capture_metadata, locate_request_from_tool_payload,
+        is_multimodal_agent, latest_capture_metadata,
         locate_status_from_attempts, memory_beads_summary, mime_type_for_url,
         office_tool_robot_state, parse_png_dimensions, realtime_session_vision_state_name,
         render_prompt_memory_context, resolve_model_type, resolve_static_path, run_action_plan,
@@ -60649,31 +60604,6 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn locate_request_from_tool_payload_prefers_system_control_target() {
-        let payload = ToolDispatchRequest {
-            intent: "点击开始按".to_string(),
-            target: Some("Windows 开始按".to_string()),
-            system_control: None,
-            menu_item: None,
-            confirm_after: None,
-            text: None,
-            roi_radius: None,
-            raw_response: None,
-            capture_path: None,
-            use_latest_capture: None,
-            use_model: None,
-            execute: Some(true),
-        };
-        let request = locate_request_from_tool_payload(&payload, "Windows 开始按");
-        assert!(matches!(
-            request.target,
-            vision::locate::LocateTarget::System {
-                id: vision::locate::SystemControlId::StartButton
-            }
-        ));
-    }
-
-    #[test]
     fn locate_status_prefers_low_confidence_over_unavailable() {
         let attempts = vec![vision::locate::BackendAttempt {
             backend: vision::locate::BackendId::LocalVlm,
@@ -60781,7 +60711,6 @@ pub(crate) mod tests {
             capture_path: None,
             use_latest_capture: None,
             use_model: None,
-            system_control: None,
         })
         .await
         .expect("dispatch should build");
@@ -60817,7 +60746,6 @@ pub(crate) mod tests {
             capture_path: None,
             use_latest_capture: None,
             use_model: None,
-            system_control: None,
         })
         .await
         .expect("dispatch should build");
@@ -60851,7 +60779,6 @@ pub(crate) mod tests {
                 capture_path: None,
                 use_latest_capture: None,
                 use_model: None,
-                system_control: None,
             },
         )
         .await
@@ -61010,7 +60937,6 @@ pub(crate) mod tests {
             capture_path: Some(capture.display().to_string()),
             use_latest_capture: Some(false),
             use_model: Some(false),
-            system_control: None,
         })
         .await
         .expect("semantic dispatch should build visual action");
@@ -61057,7 +60983,6 @@ pub(crate) mod tests {
             capture_path: Some(capture.display().to_string()),
             use_latest_capture: Some(false),
             use_model: Some(false),
-            system_control: None,
         })
         .await
         .expect("semantic dispatch should build visual drag-select");

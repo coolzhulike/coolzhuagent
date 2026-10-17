@@ -43,13 +43,6 @@ __pycache__/
 **/.claude/
 .superpowers/
 **/.superpowers/
-# 本机执行态、浏览器抓取和旧部署展开副本不属于源码。
-/.claw/
-/.playwright-cli/
-/deploy/
-/.diag-quota.lock
-/.diag-quota.members
-/err.log.lock
 **/web-sessions.*
 **/*.sqlite
 **/*.sqlite3
@@ -75,6 +68,14 @@ __pycache__/
 **/*.key
 **/*.p12
 **/*.pfx
+
+# Local execution state and captured browser/desktop artifacts
+/.claw/
+/.playwright-cli/
+/deploy/
+/.diag-quota.lock
+/.diag-quota.members
+/err.log.lock
 
 # OS / editor
 Thumbs.db
