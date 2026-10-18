@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "coolzhu-web-console"
 version.workspace = true
 edition.workspace = true
@@ -14,6 +14,7 @@ name = "coolzhu-browser-native-host"
 path = "src/bin/browser_native_host.rs"
 
 [dependencies]
+app_launcher = { package = "coolzhu-app-launcher", path = "../../../../packages/app-launcher" }
 api.workspace = true
 axum = { version = "0.8", features = ["multipart", "ws"] }
 base64 = "0.22"

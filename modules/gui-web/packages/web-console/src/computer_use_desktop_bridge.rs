@@ -19,12 +19,14 @@ const UIA_ELEMENT_LIMIT: usize = 500;
 #[derive(Clone)]
 pub(crate) struct DesktopNativeBridge {
     cancelled: Arc<dyn Fn() -> bool + Send + Sync>,
+    evidence_directory: std::path::PathBuf,
 }
 
 impl Default for DesktopNativeBridge {
     fn default() -> Self {
         Self {
             cancelled: Arc::new(|| false),
+            evidence_directory: vision::default_latest_desktop_capture_dir().join("computer-use"),
         }
     }
 }
@@ -38,7 +40,11 @@ impl std::fmt::Debug for DesktopNativeBridge {
 
 impl DesktopNativeBridge {
     pub(crate) fn with_cancelled(cancelled: Arc<dyn Fn() -> bool + Send + Sync>) -> Self {
-        Self { cancelled }
+        Self { cancelled, ..Self::default() }
+    }
+    pub(crate) fn with_evidence_directory(mut self, directory: std::path::PathBuf) -> Self {
+        self.evidence_directory=directory;
+        self
     }
     pub(crate) fn preflight() -> Result<(), ComputerUseError> {
         let input = computer_use::input::preflight_report();
@@ -100,7 +106,7 @@ impl DesktopBridge for DesktopNativeBridge {
             ],
             dpi: snapshot.dpi,
         };
-        let image = capture_image(identity, remaining)?;
+        let image = capture_image(identity, remaining, &self.evidence_directory)?;
         let canvas_rect = intersect_rect(
             rect_from_element(&json!({"rect":image["client_rect"]}))?,
             rect_from_element(&json!({"rect":image["screen_rect"]}))?,
@@ -505,7 +511,7 @@ impl DesktopNativeBridge {
                     ),
                 };
                 // 成功和可恢复失败都尝试留后图；截图本身不会移动鼠标或改变画布。
-                let after = capture_image(identity, remaining);
+                let after = capture_image(identity, remaining, &self.evidence_directory);
                 let facts = match result {
                     Ok(facts) => facts,
                     Err(failure) => {
@@ -861,6 +867,7 @@ const CAPTURE_TIMEOUT: Duration = Duration::from_secs(10);
 fn capture_image(
     identity: computer_use::input::StrokeWindow,
     remaining: Duration,
+    directory: &std::path::Path,
 ) -> Result<JsonValue, ComputerUseError> {
     let mut image = computer_use::input::capture_window_image(
         identity,
@@ -888,7 +895,6 @@ fn capture_image(
         .and_then(JsonValue::as_str)
         .filter(|value| value.len() == 64 && value.bytes().all(|c| c.is_ascii_hexdigit()))
         .ok_or_else(|| backend_error("截图 hash 无效"))?;
-    let directory = vision::default_latest_desktop_capture_dir().join("computer-use");
     std::fs::create_dir_all(&directory)
         .map_err(|error| backend_error(format!("截图证据目录不可用: {error}")))?;
     let path = directory.join(format!("window-{}-{hash}.png", identity.process_id));

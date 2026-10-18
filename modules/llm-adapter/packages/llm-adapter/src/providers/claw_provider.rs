@@ -353,6 +353,7 @@ impl ClawApiClient {
         // 约束 7：guard 在**实际发出请求之前**登记，非流式请求同样覆盖完整请求生命周期。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::NonStreaming);
         let mut observation = RequestObservation::new(self.request_observer.clone());
+        observation.configure(&request.model, "anthropic_messages");
         let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
@@ -408,6 +409,7 @@ impl ClawApiClient {
         // 约束 7：guard 在**实际发出请求之前**登记；握手完成后随流对象转移。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::Streaming);
         let mut observation = RequestObservation::new(self.request_observer.clone());
+        observation.configure(&request.model, "anthropic_messages");
         let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
@@ -901,6 +903,7 @@ impl MessageStream {
             if self.done {
                 // 先收尾解析尾部残留帧，再看是否拿到了协议级结束事实。
                 let remaining = self.parser.finish()?;
+                self.observation.stream_events(&remaining);
                 self.observation.usage(self.parser.usage_evidence());
                 self.note_protocol_end(&remaining);
                 self.settle_stream_termination();
@@ -914,6 +917,7 @@ impl MessageStream {
             match self.response.chunk().await? {
                 Some(chunk) => {
                     let events = self.parser.push(&chunk)?;
+                    self.observation.stream_events(&events);
                     self.observation.usage(self.parser.usage_evidence());
                     self.note_protocol_end(&events);
                     if self.protocol_end_observed {

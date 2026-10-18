@@ -9,7 +9,7 @@ pub(crate) fn extension(name: &str) -> bool {
 }
 
 pub(crate) fn supported(name: &str, computer: bool) -> bool {
-    super::bridge::REVIEW_TOOLS.contains(&name)
+    name == "Skill" || super::bridge::REVIEW_TOOLS.contains(&name)
         || name == "computer_use_perform" && computer
         || extension(name)
 }

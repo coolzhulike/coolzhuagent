@@ -152,7 +152,7 @@ pub fn trusted_custom_command(label: &str, url: &Url, command: &str) -> bool {
         super::STARTUP_PERFORMANCE_LABEL
             if super::trusted_startup_performance_url(url) =>
         {
-            command == "report_startup_performance"
+            matches!(command, "report_startup_performance" | "show_console_command" | "quit_app")
         }
         _ => false,
     }
@@ -1073,11 +1073,10 @@ mod tests {
             &Url::parse(&format!("{page}?mode=first&secret=1")).unwrap(),
             "report_startup_performance"
         ));
-        assert!(!trusted_custom_command(
-            "launch-performance",
-            &page,
-            "quit_app"
-        ));
+        assert!(trusted_custom_command("launch-performance", &page, "quit_app"));
+        assert!(trusted_custom_command("launch-performance", &page, "show_console_command"));
+        assert!(!trusted_custom_command("launch-performance", &page, "browser_panel_command"));
+        assert!(!trusted_custom_command("launch-performance", &Url::parse("https://example.com").unwrap(), "quit_app"));
     }
 
     #[test]

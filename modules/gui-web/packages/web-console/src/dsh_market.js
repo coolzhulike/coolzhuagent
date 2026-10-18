@@ -90,7 +90,7 @@
     card.append(element("p", "兼容状态：尚未核验。DSH 的 Node/Cordis 插件不能直接作为 COOLZHU 原生插件运行。", "dsh-market-compatibility"));
     const compatibility = card.querySelector(".dsh-market-compatibility");
     const check = element("button", "检查原生清单");
-    setWuxiaIconOnly(check, "check", "检查原生清单兼容性");
+
     check.type = "button";
     check.addEventListener("click", async () => {
       const key = workspaceKey();
@@ -116,18 +116,19 @@
     });
     card.append(check);
     const sourceCheck = element("button", "检查固定来源");
-    setWuxiaIconOnly(sourceCheck, "check", "检查 DSH 固定来源");
+
     sourceCheck.type = "button";
-    const sourceStatus = element("p", "", "dsh-market-source-status");
+    const sourceStatus = element("p", "先检查固定来源与兼容性，通过后即可安装。", "dsh-market-source-status");
     let confirmedSource = null;
     const install = element("button", "安装为停用状态");
-    setWuxiaIconOnly(install, "package-crate", "安装固定来源包（默认停用）");
+
     install.type = "button";
     install.disabled = true;
     install.addEventListener("click", async () => {
       const source = confirmedSource;
       const key = workspaceKey();
       if (!source || overlay.dataset.workspaceKey !== key) return;
+      if (!window.confirm(`安装 ${item.name || item.id}？\n来源：${detail.repository || "社区仓库"}\n提交：${source.commit}\n安装后默认停用；启用后插件可在授予的权限内运行。`)) return;
       install.disabled = true;
       sourceCheck.disabled = true;
       sourceStatus.textContent = "正在核对刚才确认的固定来源并安装为停用状态…";
@@ -190,7 +191,7 @@
     card.append(element("small", meta.join(" · ")));
     card.append(element("p", item.description || "暂无说明。"));
     const detailButton = element("button", "查看详情与兼容性");
-    setWuxiaIconOnly(detailButton, "file", "查看详情与兼容性");
+
     detailButton.type = "button";
     detailButton.addEventListener("click", async () => {
       detailButton.disabled = true;

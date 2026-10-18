@@ -2580,13 +2580,18 @@ impl ComputerUseRunStore {
         &self,
         limit: usize,
     ) -> rusqlite::Result<Vec<RecentComputerUseRun>> {
+        self.recent_runs_filtered(limit,None,None,None,None)
+    }
+    pub(crate) fn recent_runs_filtered(&self,limit:usize,room:Option<&str>,since:Option<i64>,state:Option<&str>,before:Option<&str>)->rusqlite::Result<Vec<RecentComputerUseRun>> {
         let connection = self.connection.lock().expect("computer-use store lock");
         let mut statement = connection.prepare(
             "SELECT call_id, session_id, turn_id, state, workspace_id, created_at_ms
-               FROM computer_use_runs ORDER BY created_at_ms DESC, call_id DESC LIMIT ?1",
+               FROM computer_use_runs WHERE (?2 IS NULL OR chat_room_id=?2) AND (?3 IS NULL OR created_at_ms>=?3) AND (?4 IS NULL OR state=?4)
+               AND (?5 IS NULL OR (created_at_ms,call_id)<(SELECT created_at_ms,call_id FROM computer_use_runs WHERE call_id=?5))
+               ORDER BY created_at_ms DESC, call_id DESC LIMIT ?1",
         )?;
         let rows = statement
-            .query_map([limit as i64], |row| {
+            .query_map(params![limit as i64,room,since,state,before], |row| {
                 Ok(RecentComputerUseRun {
                     call_id: row.get(0)?,
                     session_id: row.get(1)?,

@@ -2029,6 +2029,7 @@ fn now_ms() -> u64 {
 }
 
 struct ProductionAdapterFactory {
+    evidence_directory: std::path::PathBuf,
     desktop_enabled: bool,
     browser_enabled: bool,
     browser_policy: BrowserComputerUsePolicy,
@@ -2053,7 +2054,7 @@ impl ComputerUseAdapterFactory for ProductionAdapterFactory {
             ComputerUseSurface::Desktop if self.desktop_enabled => {
                 DesktopNativeBridge::preflight()?;
                 Ok(DynComputerUseAdapter::new(DesktopComputerUseAdapter::new(
-                    DesktopNativeBridge::with_cancelled(self.cancelled.clone()),
+                    DesktopNativeBridge::with_cancelled(self.cancelled.clone()).with_evidence_directory(self.evidence_directory.clone()),
                 )))
             }
             ComputerUseSurface::Browser if self.browser_enabled => {
@@ -2242,6 +2243,7 @@ pub(crate) async fn execute_with_current_runtime(
     let cancelled: Arc<dyn Fn() -> bool + Send + Sync> =
         Arc::new(move || host_cancelled() || dropped.load(Ordering::SeqCst) || cancellation_budget.as_ref().is_some_and(|budget| budget.is_expired()));
     let adapters = ProductionAdapterFactory {
+        evidence_directory: admission_db_path.parent().unwrap_or(std::path::Path::new(".")).join("computer-use"),
         desktop_enabled: config.desktop.enabled,
         browser_enabled: config.browser.enabled,
         browser_policy: BrowserComputerUsePolicy {

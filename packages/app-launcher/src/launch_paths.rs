@@ -25,7 +25,7 @@
 //! 5. [`CandidateSource::LegacyLogDirDerivation`]：兼容支路——旧配置缺键时从 `log_dir` 推导
 //!    （**只识别旧行为与迁移候选，不再作为新版本常规的隐式数据源切换**）
 //!
-//! **高优先级来源无效时，不自动落到低优先级**：否则"用户磁盘暂时断开"会再次变成"系统创建了一个新空工作区"。
+//! 明确指定路径及权限错误仍阻断；已保存目录消失时临时打开保留的默认工程，保留原选择与恢复提示。
 //!
 //! # 副作用边界
 //!
@@ -60,6 +60,12 @@ pub const CONFIG_SNAPSHOT_LIMIT: usize = 16;
 pub const SELECTION_LOCK_WAIT_MS: u64 = 2_000;
 /// 选择文件的临时文件后缀（`launcher-user.json.tmp`）。
 pub const SELECTION_TMP_SUFFIX: &str = ".tmp";
+
+/// 固定保留的用户工程；不受当前工程、安装目录或日志目录影响。
+#[must_use]
+pub fn reserved_workspace_path(home: &Path) -> PathBuf {
+    home.join("coolzhuagent")
+}
 
 /// 后台回读结果（**后台实际使用**的路径与构建身份）。
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -253,6 +259,8 @@ pub enum ResolutionSource {
     ExplicitThisLaunch,
     /// ② 已持久保存的用户级选择。
     PersistedUserSelection { revision: u64 },
+    /// 上次工程已消失，临时进入保留的默认目录；不覆盖原选择。
+    ReservedWorkspaceRecovery { previous: PathBuf },
     /// ③ 旧版用户覆盖 / 旧有效选择（一次性导入，保留来源与旧值）。
     ImportedLegacySelection { origin: String },
     /// ④ 随包 `runtime_dir` 默认值——**仅用于尚未建立选择的首次初始化**。
@@ -269,6 +277,7 @@ impl ResolutionSource {
         match self {
             Self::ExplicitThisLaunch => "explicit_this_launch",
             Self::PersistedUserSelection { .. } => "persisted_user_selection",
+            Self::ReservedWorkspaceRecovery { .. } => "reserved_workspace_recovery",
             Self::ImportedLegacySelection { .. } => "imported_legacy_selection",
             Self::PackagedDefaultFirstInit { .. } => "packaged_default_first_init",
             Self::PackagedDefaultExistingData { .. } => "packaged_default_existing_data",
@@ -282,6 +291,7 @@ impl ResolutionSource {
         match self {
             Self::ExplicitThisLaunch => " declared=this_launch".to_string(),
             Self::PersistedUserSelection { revision } => format!(" revision={revision}"),
+            Self::ReservedWorkspaceRecovery { previous } => format!(" previous={}", previous.display()),
             Self::ImportedLegacySelection { origin }
             | Self::LegacyConfigDeclaredDefault { origin } => format!(" origin={origin}"),
             Self::PackagedDefaultFirstInit { config_key }
@@ -295,6 +305,7 @@ impl ResolutionSource {
         match self {
             Self::ExplicitThisLaunch => 1,
             Self::PersistedUserSelection { .. } => 2,
+            Self::ReservedWorkspaceRecovery { .. } => 4,
             Self::ImportedLegacySelection { .. } => 3,
             Self::LegacyConfigDeclaredDefault { .. } => 3,
             Self::PackagedDefaultExistingData { .. } => 4,
@@ -1165,6 +1176,11 @@ pub fn canonical_key(path: &Path) -> String {
         .to_string_lossy()
         .replace('\\', "/")
         .to_ascii_lowercase();
+    let key = if let Some(unc) = key.strip_prefix("//?/unc/") {
+        format!("//{unc}")
+    } else {
+        key.strip_prefix("//?/").unwrap_or(&key).to_string()
+    };
     key.trim_end_matches('/').to_string()
 }
 
@@ -1182,6 +1198,8 @@ pub struct LaunchPathInputs {
     pub config_schema_version: u64,
     /// 随包配置声明的默认工作区（v2 的 `runtime_dir`；v1 存在该键时也在此）。
     pub packaged_default_workspace: Option<PathBuf>,
+    /// 当前用户固定保留的默认工程，仅用于已保存目录消失后的恢复。
+    pub reserved_workspace: Option<PathBuf>,
     /// v1 兼容：旧配置缺 `runtime_dir` 时从 `log_dir` 推导的结果（**仅迁移候选**）。
     pub legacy_log_dir_derived_workspace: Option<PathBuf>,
     /// v1 兼容：`runtime_dir` 键是否存在（缺失才是"旧配置缺键"）。
@@ -1208,6 +1226,8 @@ pub struct ExplicitSelection {
 /// 解析动作（写盘集中在 [`apply_resolution_actions`]，解析本身无副作用）。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ResolutionAction {
+    /// 仅创建恢复目录；不改写已保存的原工程或最近记录。
+    EnsureRecoveryWorkspace { path: PathBuf, expected_revision: u64 },
     /// 首次初始化：显式创建随包默认工作区，并把它记为已建立的选择。
     InitializeWorkspaceAndPersistSelection {
         path: PathBuf,
@@ -1243,6 +1263,7 @@ impl ResolutionAction {
     #[must_use]
     pub fn describe(&self) -> String {
         match self {
+            Self::EnsureRecoveryWorkspace { path, .. } => format!("打开默认恢复工程 {}，保留原工程选择", path.display()),
             Self::InitializeWorkspaceAndPersistSelection { path, source, .. } => {
                 format!("首次初始化工作区 {}（source={source}）并持久化选择", path.display())
             }
@@ -1265,6 +1286,7 @@ impl ResolutionAction {
 
     fn expected_revision(&self) -> u64 {
         match self {
+            Self::EnsureRecoveryWorkspace { expected_revision, .. } => *expected_revision,
             Self::InitializeWorkspaceAndPersistSelection {
                 expected_revision, ..
             }
@@ -1285,6 +1307,7 @@ impl ResolutionAction {
 
     fn selection(&self) -> (PathBuf, String) {
         match self {
+            Self::EnsureRecoveryWorkspace { .. } => unreachable!("恢复动作不得发布选择"),
             Self::InitializeWorkspaceAndPersistSelection { path, source, .. } => {
                 (path.clone(), source.clone())
             }
@@ -1332,7 +1355,7 @@ pub struct LaunchPathDecision {
 /// **冻结的解析优先级**实现（①–⑤）。
 ///
 /// 纯函数：不写盘、不创建目录、不打开数据库、不升级 schema。
-/// **高优先级来源无效时直接阻断，不落到低优先级。**
+/// 已保存目录消失时可临时恢复到保留工程；原选择不变，其余无效来源仍明确阻断。
 pub fn resolve_launch_paths(
     inputs: &LaunchPathInputs,
     probe: &dyn WorkspaceAccessProbe,
@@ -1428,9 +1451,26 @@ pub fn resolve_launch_paths(
         ));
     }
 
-    // ② 已持久保存的用户级选择：正常启动默认使用；无效即阻断（绝不落到 ③/④/⑤）。
+    // ② 优先使用原选择；目录消失时进入保留工程，不将临时恢复写成新的用户选择。
     if let Some(selection) = &inputs.user_state.selection {
         let access = probe.access(&selection.workspace_root);
+        if access == WorkspaceAccess::Missing {
+            if let Some(default) = inputs.reserved_workspace.as_ref().filter(|path| path.is_absolute()) {
+                let recovery_access = probe.access(default);
+                if matches!(recovery_access, WorkspaceAccess::Missing | WorkspaceAccess::Writable) {
+                    notes.push(ResolutionNote::new("reserved_workspace_recovery", format!(
+                        "上次工程 {} 不存在，已改用默认工程 {}；原工程记录保留，恢复磁盘后可重新打开。",
+                        selection.workspace_root.display(), default.display()
+                    )));
+                    actions.push(ResolutionAction::EnsureRecoveryWorkspace {
+                        path: default.clone(), expected_revision: inputs.user_state.revision,
+                    });
+                    return Ok(finish(default.clone(), ResolutionSource::ReservedWorkspaceRecovery {
+                        previous: selection.workspace_root.clone(),
+                    }, inputs.user_state.revision, notes, actions));
+                }
+            }
+        }
         if !access.is_usable() {
             return Err(LaunchError::WorkspaceUnavailable {
                 role: "saved_user_selection".into(),
@@ -1852,6 +1892,10 @@ pub fn apply_resolution_actions(
         let label = action.describe();
         let expected_revision = action.expected_revision();
         let result = (|| -> Result<u64, LaunchError> {
+            if let ResolutionAction::EnsureRecoveryWorkspace { path, .. } = action {
+                fs::create_dir_all(path).map_err(LaunchError::Persistence)?;
+                return Ok(expected_revision);
+            }
             let current = load_user_state(user_state_root)?;
             let (path, selection_source) = action.selection();
             if let ResolutionAction::InitializeWorkspaceAndPersistSelection { path, .. } = action {
@@ -2083,6 +2127,7 @@ mod tests {
                 package_identity: "coolzhu-app-launcher/0.2.0+test".to_string(),
                 config_schema_version: LAUNCHER_CONFIG_SCHEMA_VERSION,
                 packaged_default_workspace: None,
+                reserved_workspace: None,
                 legacy_log_dir_derived_workspace: None,
                 config_declares_runtime_dir: true,
                 log_dir,
@@ -2220,6 +2265,63 @@ mod tests {
     }
 
     // P04（权限拒绝）：目录存在但不可写时同样阻断，不落到下一个候选。
+    #[test]
+    fn 丢失全部工程时恢复默认目录且保留原选择以便磁盘恢复() {
+        let (mut inputs, root, _) = base_inputs("reserved-recovery");
+        let previous = root.join("removed-project");
+        let default = reserved_workspace_path(&root.join("home"));
+        inputs.user_state.selection = Some(LauncherUserSelection {
+            workspace_root: previous.clone(), workspace_id: None,
+            source: "explicit_select".into(), recorded_at_ms: 1,
+        });
+        store_user_state(&inputs.user_state_root, &inputs.user_state, 0).unwrap();
+        inputs.user_state = load_user_state(&inputs.user_state_root).unwrap();
+        inputs.reserved_workspace = Some(default.clone());
+        let before = fs::read(user_state_file(&inputs.user_state_root)).unwrap();
+        let decision = resolve_launch_paths(&inputs, &RealWorkspaceAccess).unwrap();
+        assert_eq!(decision.resolved.workspace_root, default);
+        assert_eq!(decision.resolved.resolution_source.as_str(), "reserved_workspace_recovery");
+        assert!(!default.exists(), "解析不能创建目录");
+        let outcomes = apply_resolution_actions(&inputs.user_state_root, &decision, inputs.now_ms);
+        assert!(matches!(outcomes[0].1, ActionOutcome::Applied { .. }));
+        assert!(default.is_dir());
+        assert!(!previous.exists(), "不能重建丢失的用户工程");
+        assert_eq!(fs::read(user_state_file(&inputs.user_state_root)).unwrap(), before);
+        fs::create_dir_all(&previous).unwrap();
+        let restored = resolve_launch_paths(&inputs, &RealWorkspaceAccess).unwrap();
+        assert_eq!(restored.resolved.workspace_root, previous);
+        assert!(restored.actions.is_empty());
+    }
+
+    #[test]
+    fn 恢复入口不覆盖显式路径或权限错误且默认目录不可写时仍报错() {
+        let (mut inputs, root, _) = base_inputs("reserved-refusals");
+        let previous = root.join("selected");
+        let default = reserved_workspace_path(&root.join("home"));
+        inputs.reserved_workspace = Some(default.clone());
+        inputs.user_state.selection = Some(LauncherUserSelection {
+            workspace_root: previous.clone(), workspace_id: None,
+            source: "explicit_select".into(), recorded_at_ms: 1,
+        });
+        for denied in [WorkspaceAccess::ReadOnly, WorkspaceAccess::Unresolved, WorkspaceAccess::NotDirectory] {
+            let probe = ScriptedProbe::new(&[(&previous, denied)]);
+            assert!(resolve_launch_paths(&inputs, &probe).is_err());
+        }
+        let probe = ScriptedProbe::new(&[(&default, WorkspaceAccess::ReadOnly)]);
+        assert!(resolve_launch_paths(&inputs, &probe).is_err());
+        inputs.explicit_selection = Some(ExplicitSelection {
+            path: previous, persist: false, declared_by: "--workspace".into(),
+        });
+        assert!(resolve_launch_paths(&inputs, &RealWorkspaceAccess).is_err());
+        assert!(!default.exists());
+    }
+
+    #[test]
+    fn 不存在目录的普通路径与设备前缀仍指向同一比较键() {
+        assert!(same_canonical(Path::new(r"C:\missing\工程"), Path::new(r"\\?\C:\missing\工程")));
+        assert!(same_canonical(Path::new(r"\\server\share\工程"), Path::new(r"\\?\UNC\server\share\工程")));
+    }
+
     #[test]
     fn p04_permission_denied_saved_selection_blocks_instead_of_falling_through() {
         let (mut inputs, root, _) = base_inputs("p04-perm");

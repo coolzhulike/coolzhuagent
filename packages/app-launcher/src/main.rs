@@ -317,6 +317,8 @@ fn run(
         package_identity: package_identity(&config),
         config_schema_version: config.config_schema_version,
         packaged_default_workspace: config.packaged_default_workspace.clone(),
+        reserved_workspace: env::var_os("USERPROFILE").or_else(|| env::var_os("HOME"))
+            .map(PathBuf::from).map(|home| launch_paths::reserved_workspace_path(&home)),
         legacy_log_dir_derived_workspace: config.legacy_log_dir_derived_workspace.clone(),
         config_declares_runtime_dir: config.declared_runtime_dir_text.is_some(),
         log_dir: config.log_dir.clone(),
@@ -603,80 +605,14 @@ struct VerifiedReuse {
 fn preflight_web_console_port(
     config: &LauncherConfig,
     resolved: &ResolvedLaunchPaths,
-    expected_build_version: Option<&str>,
-    expected_session_db: Option<&Path>,
+    _expected_build_version: Option<&str>,
+    _expected_session_db: Option<&Path>,
 ) -> Result<Option<VerifiedReuse>, LaunchError> {
-    let port = health_endpoint_port(&config.health_url).ok_or_else(|| {
-        LaunchError::ConfigInvalid(format!("invalid health_url: {}", config.health_url))
-    })?;
-    let owner = query_listener_owner(port)?;
-    let health_ready = matches!(
-        http_probe(&config.health_url),
-        app_launcher::ProbeOutcome::Ready
-    );
-    match classify_listener_recovery(health_ready, owner.as_ref()) {
-        ListenerRecoveryAction::Free => Ok(None),
-        ListenerRecoveryAction::CleanupOrphan { parent_pid } => {
-            eprintln!(
-                "package-launcher: recovering stale listener on port {port}, dead owner pid={parent_pid}"
-            );
-            cleanup_stale_listener_processes(parent_pid, None)?;
-            wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
-            Ok(None)
-        }
-        ListenerRecoveryAction::CleanupKnownHolder { pid } => {
-            eprintln!(
-                "package-launcher: recovering known local-model holder on port {port}, pid={pid}"
-            );
-            cleanup_stale_listener_processes(pid, Some(pid))?;
-            wait_for_port_release(port, config.health_timeout, config.health_poll_interval)?;
-            Ok(None)
-        }
-        ListenerRecoveryAction::Block { pid, .. } => {
-            let owner_user = query_process_owner_user(pid);
-            let identity = service_identity::fetch_service_identity(&config.health_url)
-                .with_listener(owner.as_ref(), owner_user.as_deref());
-            let current_user = current_process_user();
-            match service_identity::decide_reuse(
-                &resolved.workspace_root,
-                expected_session_db,
-                expected_build_version,
-                current_user.as_deref(),
-                &identity,
-            ) {
-                ReuseDecision::Reuse { verification } => {
-                    eprintln!(
-                        "package-launcher: 既有实例身份核对通过（workspace={}，port={port}），转发 --show-console",
-                        resolved.workspace_root.display()
-                    );
-                    for check in &verification.checks {
-                        eprintln!(
-                            "  核对[{}] expected={} observed={} ⇒ {}",
-                            check.name, check.expected, check.observed, check.verdict
-                        );
-                    }
-                    Ok(Some(VerifiedReuse {
-                        verification,
-                        web_pid: identity.listener_pid,
-                        observed: ObservedBackground {
-                            workspace: identity.reported_workspace,
-                            session_db: identity.reported_session_db,
-                            build_version: identity.reported_build_version,
-                            health_status: identity.reported_health_status,
-                            active_sessions: identity.reported_active_sessions,
-                            port: identity.reported_port,
-                        },
-                    }))
-                }
-                ReuseDecision::Conflict { reason, details } => Err(LaunchError::ServiceConflict {
-                    port,
-                    reason,
-                    details,
-                }),
-                ReuseDecision::StartFresh => Ok(None),
-            }
-        }
-    }
+    let port = health_endpoint_port(&config.health_url).ok_or_else(|| LaunchError::ConfigInvalid("启动地址无效".into()))?;
+    let restarted = app_launcher::instance_restart::stop_owned_instance(&config.health_url, &resolved.user_state_root)
+        .map_err(|reason| LaunchError::ServiceConflict {port,reason,details:vec![]})?;
+    if restarted { eprintln!("package-launcher: 旧实例已优雅退出，将使用最新构建与所选工程启动"); }
+    Ok(None)
 }
 
 #[cfg(not(windows))]

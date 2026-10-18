@@ -56,12 +56,14 @@ pub(crate) fn reasoning_resolution(model: &str, requested: &str) -> crate::Reaso
 pub(crate) enum ModelStream {
     Http(api::MessageStream),
     Devin(TextStream),
+    OpenAi(crate::openai_subscription::TextStream),
 }
 impl ModelStream {
     pub(crate) async fn next_event(&mut self) -> Result<Option<api::StreamEvent>, api::ApiError> {
         match self {
             Self::Http(stream) => stream.next_event().await,
             Self::Devin(stream) => stream.next().await,
+            Self::OpenAi(stream) => stream.next().await,
         }
     }
     pub(crate) fn protocol_completed(&self) -> bool {
@@ -71,6 +73,7 @@ impl ModelStream {
                     == Some(api::TerminationFact::ProtocolCompletion)
             }
             Self::Devin(stream) => stream.completed,
+            Self::OpenAi(stream) => stream.completed,
         }
     }
 }
@@ -560,7 +563,7 @@ async fn execute(
     outcome
 }
 
-/// HTTP 与 ACP 共用同一段消费：公开文本增量写房间 live，思考增量只进 reasoning_text。
+/// HTTP、ACP 与 OpenAI 订阅共用消费：公开文本增量写房间 live，思考增量只进 reasoning_text。
 /// 正常终态必须由协议完成帧证明；缺完成回执或空回复一律失败，不重发本轮。
 async fn consume_model_stream(
     stream: &mut ModelStream,
@@ -606,7 +609,7 @@ async fn consume_model_stream(
         }
     }
     if !stream.protocol_completed() || response.answer_text.trim().is_empty() {
-        return Err(error("Devin 未返回完整可见回复。"));
+        return Err(error("会话未返回完整可见回复。"));
     }
     // 正常终态强制刷新：节流窗口内暂存的最新全文必须落盘（force 绕过内部频率上限）。
     if let Some(room) = live_room {

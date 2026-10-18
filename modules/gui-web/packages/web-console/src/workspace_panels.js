@@ -184,15 +184,16 @@ window.CoolzhuWorkspacePanels = (() => {
     const more = qs("window-dock-more");
     if (more) more.open = false;
     if (id === "chat") { home(); return; }
+    if (id === "trace") { openTaskTab("trace"); return; }
     api.open(id);
-    if (id === "schedules") void api.refreshSchedules();
+    if (id === "schedules") openTaskTab(taskTab);
     if (id === "clawbot") void api.refreshWechat();
     if (id === "trace") { traceMessageId = null; void loadTrace(); }
   }
   async function openTraceArchive(messageId = null) {
     if (!api) return;
     traceMessageId = typeof messageId === "string" && messageId.trim() ? messageId : null;
-    api.open("trace");
+    openTaskTab("trace", false);
     await loadTrace();
     if (traceMessageId) return;
     const archive = qs("chat-trace-items")?.querySelector(".chat-trace-archive");
@@ -209,7 +210,7 @@ window.CoolzhuWorkspacePanels = (() => {
       if (frame) { frame.src = "about:blank"; delete frame.dataset.currentUrl; }
     }
     if (id === "preview") window.CoolzhuContentPreview?.dispose();
-    if (id === "trace") { traceController?.abort(); traceController = null; }
+    if (id === "trace" || id === "schedules") { traceController?.abort(); traceController = null; taskGeneration++; taskExecution?.dispose(); taskExecution=null; }
   }
   function scopeChanged() {
     if (!api) return;
@@ -227,6 +228,8 @@ window.CoolzhuWorkspacePanels = (() => {
     qs("chat-trace-items")?.replaceChildren();
     if (["preview", "trace", "browser"].includes(api.active())) home();
     restoreTabs();
+    taskGeneration++;
+    if (api.active() === "schedules") { openTaskTab(taskTab, taskTab !== "trace"); if (taskTab === "trace" && qs("chat-trace-status")) qs("chat-trace-status").textContent="聊天室已切换，请重新选择轨迹标签读取。"; }
   }
   async function showReference(ref) {
     if (!ref) return;
@@ -323,13 +326,120 @@ window.CoolzhuWorkspacePanels = (() => {
     } catch (error) { if (error.name !== "AbortError" && scopeKey() === key) status.textContent = `运行轨迹加载失败：${error.message}`; }
   }
 
+
+  let taskTab = "scheduled", taskGeneration = 0, taskExecution = null;
+  async function taskRead(url) {
+    const version = taskGeneration, key = scopeKey();
+    const response = await fetch(url); const data = await response.json();
+    if (version !== taskGeneration || key !== scopeKey()) throw new DOMException("任务页作用域已变更", "AbortError");
+    if (!response.ok) throw new Error(data.error?.message || data.error || `读取失败 (${response.status})`);
+    return data;
+  }
+  function initTaskHub(schedules) {
+    const host = qs("schedules-panel"); if (!host) return;
+    const title=element("h2","任务"); const nav=element("nav"); nav.className="task-hub-tabs"; nav.setAttribute("role","tablist");
+    host.append(title,nav);
+    for (const [id,label] of [["scheduled","定时任务"],["background","后台任务"],["trace","轨迹"],["cu","CU 记录"]]) {
+      const button=element("button",label); button.type="button"; button.dataset.taskTab=id; button.setAttribute("role","tab"); button.setAttribute("aria-controls",`task-pane-${id}`);
+      button.addEventListener("click",()=>openTaskTab(id)); nav.append(button);
+      const pane=element("section"); pane.dataset.taskPane=id; pane.id=`task-pane-${id}`; pane.setAttribute("role","tabpanel"); pane.hidden=id!==taskTab; host.append(pane);
+    }
+    const pane=id=>host.querySelector(`[data-task-pane="${id}"]`);
+    if (schedules) pane("scheduled").append(schedules);
+    const history=element("details"); history.append(element("summary","历史任务消息")); const messages=element("div"); history.append(messages); pane("scheduled").append(history);
+    let historyBefore=null;
+    const moreHistory=element("button","更早的任务消息");moreHistory.type="button";moreHistory.hidden=true;history.append(moreHistory);
+    const readHistory=async(append=false)=>{try {
+      const query=new URLSearchParams({limit:"100"});if(append&&historyBefore)query.set("before",historyBefore);
+      if(!append)messages.textContent="正在读取…";
+      const data=await taskRead(`/api/chat/rooms/room-scheduled-tasks/messages?${query}`);
+      if(!append)messages.replaceChildren();
+      for(const message of (data.messages||[]).slice().reverse()) messages.append(element("p",`${new Date(message.created_at).toLocaleString()} · ${message.content}`));
+      historyBefore=data.next_before;moreHistory.hidden=!data.has_more;
+      if(!messages.childElementCount)messages.textContent="没有历史任务消息。";
+    }catch(error){if(error.name!=="AbortError")messages.textContent=error.message;}};
+    history.addEventListener("toggle",()=>{if(history.open)void readHistory();});
+    moreHistory.addEventListener("click",()=>void readHistory(true));
+    const trace=document.querySelector('[data-window-id="trace"] .workspace-content-panel'); if(trace) pane("trace").append(trace);
+    const storage=element("details"); storage.append(element("summary","运行数据与十二小时保留策略")); const info=element("div"); storage.append(info); host.append(storage);
+    storage.addEventListener("toggle",async()=> {if(!storage.open)return; info.textContent="正在估算…";try {
+      const data=await taskRead("/api/tasks/storage"); info.replaceChildren(element("p",data.note));
+      info.append(element("p",`运行表 ${(data.runtime_bytes/1048576).toFixed(1)} MB · 按当前增长估算十二小时 ${(data.estimated_12h_bytes/1048576).toFixed(1)} MB`));
+      info.append(element("p",`最早运行记录：${data.earliest_record_at?new Date(data.earliest_record_at).toLocaleString():"暂无"} · 最近清理：${data.last_cleanup?new Date(data.last_cleanup.at).toLocaleString()+"，删除 "+data.last_cleanup.deleted_rows+" 条":"尚未执行"}`));
+      if(data.growth_warning){const warning=element("p",data.growth_warning);warning.setAttribute("role","alert");info.append(warning);}
+      for(const row of data.tables||[])info.append(element("p",`${row.table}：${row.rows} 条 · ${row.bytes==null?"大小未知":(row.bytes/1048576).toFixed(2)+" MB"}`));
+    } catch(error){if(error.name!=="AbortError")info.textContent=error.message;}});
+    pane("cu").append(element("p","打开此标签读取当前工程的 CU 运行。"));
+  }
+  function openTaskTab(id, refresh=true) {
+    taskTab=id; taskGeneration++; api.open("schedules");
+    document.querySelectorAll("[data-task-tab]").forEach(button=>{button.setAttribute("aria-selected",String(button.dataset.taskTab===id));});
+    document.querySelectorAll("[data-task-pane]").forEach(pane=>{pane.hidden=pane.dataset.taskPane!==id;});
+    if (!refresh)return;
+    if(id==="scheduled")void api.refreshSchedules();
+    if(id==="trace"){traceMessageId=null;void loadTrace();}
+    if(id==="background") {
+      const root=document.querySelector('[data-task-pane="background"]');
+      taskExecution?.dispose(); taskExecution=window.CoolzhuExecutionPanel?.mount(root,{getScope:()=>projectRequestScope(),getAvatar:spec=>avatarUrl(avatarForSession(sessionById(spec.session_id)||{}))});
+    } else {taskExecution?.dispose();taskExecution=null;}
+    if(id==="cu")void loadCuTasks();
+  }
+  async function loadCuTasks() {
+    const host=document.querySelector('[data-task-pane="cu"]'); if(!host)return;host.replaceChildren();
+    const toolbar=element("div");toolbar.className="task-hub-filters";
+    const select=(label,options)=>{const box=element("label",label+" ");const control=element("select");for(const [value,text] of options){const option=element("option",text);option.value=value;control.append(option);}box.append(control);toolbar.append(box);return control;};
+    const room=select("范围",[["all","当前工程"],["room","当前聊天室"]]);
+    const period=select("时间",[["12","最近十二小时"],["24","最近一天"],["all","全部保留记录"]]);
+    const state=select("状态",[["","全部"],["running","运行中"],["succeeded","已完成"],["failed","失败"],["blocked","被阻止"],["cancelled","已取消"],["timed_out","超时"]]);
+    const refresh=element("button","刷新");refresh.type="button";toolbar.append(refresh);
+    const list=element("div"),status=element("p"),more=element("button","更早的 CU 记录");more.type="button";more.hidden=true;
+    host.append(toolbar,status,list,more);let before=null,serial=0;
+    const read=async(append=false)=>{const request=++serial;status.textContent="正在读取 CU 运行…";more.disabled=true;
+      try {
+        const query=new URLSearchParams({limit:"50"});if(room.value==="room")query.set("room_id",api.scope().room);
+        if(period.value!=="all")query.set("since",String(Date.now()-Number(period.value)*3600000));if(state.value)query.set("state",state.value);
+        if(append&&before)query.set("before",before);
+        const data=await taskRead(`/api/computer-use/runs?${query}`);if(request!==serial)return;if(data.unavailable)throw new Error(data.unavailable);
+        if(!append)list.replaceChildren();
+        for(const run of data.runs||[]) {
+          const row=element("details");row.append(element("summary",`${traceStatus(run.state)} · ${run.session_id} · ${new Date(run.created_at_ms).toLocaleString()}`));
+          row.append(element("p",`尝试 ${run.attempts} · 已发送输入 ${run.input_sent} · 验证步骤 ${run.verified_steps} · 清理事故 ${run.cleanup_incidents}`));
+          const report=element("div");row.append(report);let loaded=false;
+          row.addEventListener("toggle",async()=>{if(!row.open||loaded)return;report.textContent="读取详情…";try {
+            const data=await taskRead(`/api/computer-use/run-report?call_id=${encodeURIComponent(run.call_id)}`);if(data.unavailable)throw new Error(data.unavailable);report.replaceChildren();loaded=true;
+            for(const step of data.steps||[]) {
+              const block=element("section");block.className="task-cu-step";
+              const input=({none:"未发送",partial:"部分发送",complete:"完整发送",unknown:"未知"})[step.input_status]||step.input_status;
+              block.append(element("p",`步骤 ${step.step_index} · ${traceStatus(step.status)} · 输入${input}${step.error_code?" · "+step.error_code:""}`));
+              if(step.forbids_automatic_replay)block.append(element("p","输入可能已生效，此步骤禁止自动重放。"));
+              for(const [phase,label] of [["before","查看操作前截图"],["after","查看操作后截图"]]) {
+                const button=element("button",label);button.type="button";block.append(button);
+                button.addEventListener("click",()=>{button.disabled=true;const image=element("img");image.alt=label;image.className="task-cu-evidence";image.loading="lazy";
+                  image.src=`/api/computer-use/evidence?${new URLSearchParams({call_id:run.call_id,step:String(step.step_index),phase})}`;
+                  image.addEventListener("error",()=>{image.remove();block.append(element("p","该步骤没有截图或证据已过期。"));});block.append(image);});
+              }
+              report.append(block);
+            }
+            if(!data.steps?.length)report.append(element("p","没有已记录的操作步骤。"));
+            for(const incident of data.cleanup_incidents||[])report.append(element("p",`清理事故 ${incident.incident_id} · ${incident.recovery_eligible?"可进入输入释放恢复":"需要检查释放状态"}`));
+            const raw=element("details");raw.append(element("summary","原始诊断详情"),element("pre",JSON.stringify(data,null,2)));report.append(raw);
+          }catch(error){if(error.name!=="AbortError")report.textContent=error.message;}});list.append(row);
+        }
+        before=data.runs?.at(-1)?.call_id;more.hidden=(data.runs?.length||0)<50;status.textContent=list.childElementCount?`已显示 ${list.childElementCount} 次运行` :"没有符合筛选条件的 CU 记录。";
+      }catch(error){if(error.name!=="AbortError"&&request===serial)status.textContent=`CU 记录读取失败：${error.message}`;}finally{if(request===serial)more.disabled=false;}
+    };
+    refresh.addEventListener("click",()=>void read());more.addEventListener("click",()=>void read(true));
+    for(const control of [room,period,state])control.addEventListener("change",()=>void read());
+    await read();
+  }
+
   function init(adapter) {
     if (api) return; api = adapter; scopeId = scopeKey();
     restoreTabs();
     initMoreDock();
     qs("preview-tabs-reopen")?.addEventListener("click", showRestoredTabs);
     const schedules = document.querySelector('[data-role="task-schedule-section"]');
-    const scheduleHost = qs("schedules-panel"); if (schedules && scheduleHost) scheduleHost.append(schedules);
+    initTaskHub(schedules);
     document.addEventListener("click", contentClick, true);
     document.querySelector('[data-action="chat-trace-open"]')?.addEventListener("click", () => navigate("trace"));
     qs("chat-trace-refresh")?.addEventListener("click", () => void loadTrace());

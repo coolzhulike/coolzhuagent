@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const test = require("node:test");
+const brandAvatars = require("../src/brand_avatars.js");
 
 class Element {
   constructor(dataset = {}) {
@@ -26,14 +27,16 @@ class Element {
   contains() { return true; }
   reportValidity() { return true; }
   dispatchEvent() {}
+  setAttribute(name, value) { this[name] = value; }
 }
 
-function harness(protocol = "devin_acp") {
-  const elements = new Map(), actions = new Map(), calls = [];
+function harness(protocol = "devin_acp", sessionOverrides = {}) {
+  const elements = new Map(), actions = new Map(), calls = [], avatars = [];
   const container = new Element();
   Object.defineProperty(container, "innerHTML", {set(html) {
     for (const match of html.matchAll(/data-ms="([^"]+)"/g)) elements.set(match[1], new Element({ ms: match[1] }));
     for (const match of html.matchAll(/data-ms-action="([^"]+)"/g)) actions.set(match[1], new Element({ msAction: match[1] }));
+    for (const match of html.matchAll(/data-ms-avatar="([^"]+)"/g)) avatars.push(new Element({ msAvatar: match[1] }));
     for (const match of html.matchAll(/<select data-ms="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)) elements.get(match[1]).innerHTML = match[2];
   }});
   container.querySelector = selector => {
@@ -41,11 +44,11 @@ function harness(protocol = "devin_acp") {
     const action = selector.match(/data-ms-action="([^"]+)"/);
     return key ? elements.get(key[1]) : action ? actions.get(action[1]) : null;
   };
-  container.querySelectorAll = () => [];
+  container.querySelectorAll = selector => selector === "[data-ms-avatar]" ? avatars : [];
   let snapshot = {
     configuration_revision: 7, backend_kind: protocol === "devin_acp" ? "devin_acp" : "llm_http",
     protocol, base_url: protocol === "devin_acp" ? "" : "https://api.example.com/v1",
-    session: {id: "s1",name: "测试会话",model: "saved-model",model_type: "text",provider: protocol === "devin_acp" ? "devin" : "custom",reasoning_effort: "auto"},
+    session: {id: "s1",name: "测试会话",model: "saved-model",model_type: "text",provider: protocol === "devin_acp" ? "devin" : "custom",reasoning_effort: "auto",...sessionOverrides},
     parameters: {protocol, backend_kind: protocol === "devin_acp" ? "devin_acp" : "llm_http"},
   };
   let discoveryError = false;
@@ -60,16 +63,17 @@ function harness(protocol = "devin_acp") {
     if (body) snapshot = {...snapshot, protocol:body.parameters.protocol,backend_kind:body.parameters.backend_kind,parameters:body.parameters,session:{...snapshot.session,...body.session}};
     return {ok:true,json:async () => snapshot};
   };
-  const window = {location:{href:"http://127.0.0.1:8765/"}};
+  const window = {location:{href:"http://127.0.0.1:8765/"},CoolzhuBrandAvatars:brandAvatars};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../src/model_settings.js"),"utf8"), {
-    window,document:{createElement:() => new Element()},fetch,URL,AbortController,CustomEvent:class {},setWuxiaIconOnly() {},
+    window,document:{createElement:() => new Element()},fetch,URL,AbortController,setTimeout,clearTimeout,CustomEvent:class {},setWuxiaIconOnly() {},
   });
   const api = window.CoolzhuModelSettings.mount(container);
   return {
-    elements,actions,calls,api,
+    elements,actions,calls,api,avatars,
     failDiscovery:() => {discoveryError = true;},
     change(key,value) { elements.get(key).value = value; container.events.get("change")({target:elements.get(key)}); },
     click(action) { container.events.get("click")({target:actions.get(action)}); },
+    chooseAvatar(path) { container.events.get("click")({target:avatars.find(node => node.dataset.msAvatar === path)}); },
     save() { return elements.get("form").events.get("submit")({preventDefault() {}}); },
   };
 }
@@ -104,13 +108,13 @@ test("HTTP 切换至 Devin 保存时清理不适用覆盖，保留版本和会�
   const saved = h.calls.find(call => call.url === "/api/sessions/s1/model-settings" && call.body);
   assert.equal(saved.body.expected_revision,7);
   assert.equal(saved.body.session.provider,"devin");
-  assert.equal(saved.body.session.api_key_ref,undefined);
+  assert.equal(saved.body.session.api_key_ref,"");
   assert.equal(saved.body.parameters.backend_kind,"devin_acp");
   assert.equal(saved.body.parameters.temperature,null);
   assert.equal(saved.body.parameters.context_window,0);
   assert.equal(saved.body.parameters.base_url,null);
   assert.equal(saved.body.parameters.supports_multimodal,true);
-  assert.match(h.elements.get("status").textContent,/已保存 Devin 配置/);
+  assert.match(h.elements.get("status").textContent,/配置已保存/);
   assert.equal(saved.body.parameters.computer_use_enabled,false);
   assert.deepEqual(saved.body.parameters.tool_allowlist,[]);
   h.change("protocol","openai_chat_completions");
@@ -128,5 +132,66 @@ test("原有 HTTP 模型发现仍走原目录接口和一次性密钥", async ()
   assert.equal(query.body.api_key,"http-key");
   assert.equal(query.body.protocol,"openai_chat_completions");
   assert.equal(query.body.base_url,"https://api.example.com/v1");
+  h.api.destroy();
+});
+
+test("生成设置使用独立协议并清除对话采样参数", async () => {
+  const h=harness("openai_chat_completions");await settle();
+  h.elements.get("temperature").value="0.4";h.elements.get("context").value="8192";
+  h.change("model-type","image");
+  assert.equal(h.elements.get("protocol").value,"openai_images_generations");
+  h.elements.get("gen-n").value="2";await h.save();
+  const saved=h.calls.findLast(call=>call.body?.parameters)?.body.parameters;
+  assert.equal(saved.protocol,"openai_images_generations");assert.equal(saved.generation.parameters.n,2);
+  assert.equal(saved.temperature,null);assert.equal(saved.context_window,0);
+  h.api.destroy();
+});
+
+test("旧武侠头像在设置页恢复自动 Q 版品牌头像，图库选择可保存", async () => {
+  const h = harness("openai_chat_completions", {model:"deepseek-chat",avatar:"assets/avatars/wuxia-v3/bamboo-swordsman.png"});
+  await settle();
+  assert.equal(h.api.dirty,false);
+  assert.equal(h.elements.get("avatar").value,"");
+  assert.equal(h.elements.get("avatar-preview").src,"assets/avatars/brand-v1/deepseek.png");
+  assert.match(h.elements.get("avatar").innerHTML,/DeepSeek 鲸鱼娘/);
+  assert.doesNotMatch(h.elements.get("avatar").innerHTML,/wuxia|自定义头像/);
+  h.change("model","claude-sonnet-4");
+  assert.equal(h.elements.get("avatar-preview").src,"assets/avatars/brand-v1/claude.png");
+  await h.save();
+  assert.equal(h.calls.findLast(call => call.body?.session)?.body.session.avatar,"");
+  const choice = "assets/avatars/brand-v1/deepseek.png";
+  assert.equal(h.avatars.length,8);
+  h.chooseAvatar(choice);
+  assert.equal(h.elements.get("avatar-preview").src,choice);
+  assert.equal(h.avatars.find(node => node.dataset.msAvatar === choice)["aria-pressed"],"true");
+  await h.save();
+  assert.equal(h.calls.findLast(call => call.body?.session)?.body.session.avatar,choice);
+  h.api.destroy();
+});
+
+test("用户上传的自定义头像在更换模型及保存后保持原样", async () => {
+  const custom = "/api/sessions/avatars/uploaded-whale.png";
+  const h = harness("openai_chat_completions", {model:"deepseek-chat",avatar:custom});
+  await settle();
+  h.change("model","glm-4.6");
+  assert.equal(h.elements.get("avatar-preview").src,custom);
+  assert.equal(h.elements.get("avatar").value,custom);
+  await h.save();
+  assert.equal(h.calls.findLast(call => call.body?.session)?.body.session.avatar,custom);
+  h.api.destroy();
+});
+
+test("新版 Agnes 视频表单提供时长与分辨率并禁用旧帧参数", async () => {
+  const h = harness("openai_videos", {model:"agnes-video-2.5-flash",model_type:"video"});
+  await settle();
+  assert.equal(h.elements.get("gen-width").disabled,true);
+  assert.equal(h.elements.get("gen-num_frames").label.hidden,true);
+  assert.equal(h.elements.get("gen-duration").disabled,false);
+  assert.equal(h.elements.get("gen-duration").min,"4");
+  assert.equal(h.elements.get("gen-duration").max,"12");
+  h.elements.get("gen-duration").value="5";
+  h.elements.get("gen-size").value="720P";
+  await h.save();
+  assert.deepEqual(h.calls.findLast(call => call.body?.parameters)?.body.parameters.generation.parameters,{duration:5,size:"720P"});
   h.api.destroy();
 });
