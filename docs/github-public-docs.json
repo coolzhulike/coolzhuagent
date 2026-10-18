@@ -1,6 +1,7 @@
 {
   "version": 1,
   "documents": [
+    "docs/releases/0.2.142.md",
     "docs/releases/0.2.137.md",
     "docs/releases/0.2.136.md",
     "docs/repository-cleanup-review-2026-10-17.md",

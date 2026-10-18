@@ -56,6 +56,8 @@ static PET_NATIVE_DRAG_RELEASE_WATCHER_ACTIVE: std::sync::atomic::AtomicBool =
 static PET_CROWNED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 static STARTUP_PERFORMANCE_STARTED_AT: OnceLock<Instant> = OnceLock::new();
 static STARTUP_PERFORMANCE_FINISHED: AtomicBool = AtomicBool::new(false);
+static BACKEND_READY: AtomicBool = AtomicBool::new(false);
+static BACKEND_WAITING: AtomicBool = AtomicBool::new(false);
 static THRONE_ZONE: OnceLock<Mutex<Option<ThroneZone>>> = OnceLock::new();
 static BROWSER_RUNTIME_STATE: OnceLock<Mutex<BrowserRuntimeState>> = OnceLock::new();
 
@@ -280,19 +282,6 @@ fn main() {
                 );
                 return Err(error);
             }
-            if let Err(error) = build_console_window(&handle) {
-                diagnostics::error_event(
-                    DIAGNOSTICS_MODULE,
-                    "console_window_build_failed",
-                    "Failed to build console window during startup",
-                    error.as_ref(),
-                    &[
-                        ("phase", "startup".to_string()),
-                        ("component", "console-window".to_string()),
-                    ],
-                );
-                return Err(error);
-            }
             if let Err(error) = build_pet_window(&handle) {
                 diagnostics::error_event(
                     DIAGNOSTICS_MODULE,
@@ -418,6 +407,15 @@ fn log_startup_performance_handoff(app: &AppHandle, route: &str) {
         .get_window(CONSOLE_LABEL)
         .and_then(|window| window.is_visible().ok())
         .unwrap_or(false);
+    if !console_visible && !BACKEND_READY.load(Ordering::SeqCst) {
+        diagnostics::info(
+            DIAGNOSTICS_MODULE,
+            "startup_performance_handoff_pending",
+            "Startup performance is waiting for the backend before showing the console",
+            &[("route", route.to_string())],
+        );
+        return;
+    }
     diagnostics::info(
         DIAGNOSTICS_MODULE,
         "startup_performance_handoff",
@@ -492,7 +490,6 @@ fn report_startup_performance(
     );
 
     if report.phase == "finished" {
-        hide_startup_performance(&app);
         show_console(&app);
         log_startup_performance_handoff(&app, "reported-finish");
     }
@@ -540,7 +537,6 @@ fn build_startup_performance_window(app: &AppHandle) -> Result<(), Box<dyn std::
     performance.on_window_event(move |event| {
         if let WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
-            hide_startup_performance(&app_for_close);
             show_console(&app_for_close);
             log_startup_performance_handoff(&app_for_close, "window-close");
         }
@@ -579,7 +575,6 @@ fn arm_startup_performance_fallback(app: &AppHandle) {
                         ("component", "startup-performance-window".to_string()),
                     ],
                 );
-                hide_startup_performance(&app_for_main);
                 show_console(&app_for_main);
                 log_startup_performance_handoff(&app_for_main, "host-timeout");
             }
@@ -759,7 +754,46 @@ fn build_pet_window(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn wait_for_backend(app: &AppHandle) {
+    if BACKEND_WAITING.swap(true, Ordering::SeqCst) { return; }
+    let _ = build_startup_performance_window(app);
+    if let Some(window) = app.get_webview_window(STARTUP_PERFORMANCE_LABEL) {
+        let _ = window.show();
+        let _ = window.eval("document.getElementById('startup-backend-status').hidden=false;document.getElementById('startup-backend-message').textContent='正在载入工程与会话…';");
+    }
+    let handle = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let client = reqwest::Client::builder().timeout(std::time::Duration::from_secs(2)).build();
+        let url = format!("{}/api/system/info", gui_web_url().trim_end_matches('/'));
+        let mut ready = false;
+        if let Ok(client) = client {
+            for _ in 0..120 {
+                if let Ok(response) = client.get(&url).send().await {
+                    if response.status().is_success() && response.json::<serde_json::Value>().await.ok().is_some_and(|value|value["workspace"].is_string() && value["build_version"].is_string()) { ready=true;break; }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            }
+        }
+        BACKEND_WAITING.store(false, Ordering::SeqCst);
+        let view = handle.clone();
+        let _ = handle.run_on_main_thread(move || {
+            if ready {
+                BACKEND_READY.store(true, Ordering::SeqCst);
+                show_console(&view);
+                log_startup_performance_handoff(&view, "backend-ready");
+            } else if let Some(window) = view.get_webview_window(STARTUP_PERFORMANCE_LABEL) {
+                diagnostics::error_event(
+                    DIAGNOSTICS_MODULE, "startup_backend_timeout", "Backend not ready; startup window offers retry",
+                    &std::io::Error::new(std::io::ErrorKind::TimedOut,"后台加载超时"), &[],
+                );
+                let _=window.eval("document.getElementById('startup-backend-message').textContent='后台尚未就绪，请查看启动日志或重试。';document.getElementById('startup-backend-retry').hidden=false;");
+            }
+        });
+    });
+}
+
 fn show_console(app: &AppHandle) {
+    if !BACKEND_READY.load(Ordering::SeqCst) { wait_for_backend(app); return; }
     hide_startup_performance(app);
     if app.get_window(CONSOLE_LABEL).is_none() {
         if let Err(error) = build_console_window(app) {
@@ -818,6 +852,7 @@ fn hide_pet(app: &AppHandle) {
 }
 
 fn do_toggle_console(app: &AppHandle) -> ConsoleState {
+    if !BACKEND_READY.load(Ordering::SeqCst) { wait_for_backend(app); return ConsoleState {visible:false,message:"后台正在准备".into()}; }
     if app.get_window(CONSOLE_LABEL).is_none() {
         if let Err(error) = build_console_window(app) {
             diagnostics::error_event(
@@ -2175,11 +2210,8 @@ mod tests {
             .map(|offset| close_start + offset)
             .expect("演出窗关闭处理应有边界");
         let close_section = &source[close_start..close_end];
-        assert!(
-            close_section.find("hide_startup_performance").unwrap()
-                < close_section.find("show_console").unwrap(),
-            "演出窗关闭必须先隐藏演出窗再显示控制台"
-        );
+        assert!(close_section.contains("show_console"));
+        assert!(!close_section.contains("hide_startup_performance"),"后台未就绪时保留可见等待窗");
 
         let fallback_start = source
             .find("if performance_visible && !console_visible {")
@@ -2189,11 +2221,11 @@ mod tests {
             .map(|offset| fallback_start + offset)
             .expect("演出超时兜底分支应有边界");
         let fallback_section = &source[fallback_start..fallback_end];
-        assert!(
-            fallback_section.find("hide_startup_performance").unwrap()
-                < fallback_section.find("show_console").unwrap(),
-            "演出超时兜底必须先隐藏演出窗再显示控制台"
-        );
+        assert!(fallback_section.contains("show_console"));
+        assert!(!fallback_section.contains("hide_startup_performance"));
+        let show=source.split("fn show_console(app:").nth(1).unwrap().split("\nfn ").next().unwrap();
+        assert!(show.find("BACKEND_READY.load").unwrap()<show.find("hide_startup_performance").unwrap());
+        assert!(show.find("hide_startup_performance").unwrap()<show.find("build_console_window").unwrap());
     }
 
     #[test]

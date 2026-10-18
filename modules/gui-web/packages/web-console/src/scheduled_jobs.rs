@@ -107,7 +107,11 @@ fn open(path: &Path) -> Result<Connection, String> {
         workspace_id TEXT NOT NULL, task_id TEXT NOT NULL, scheduled_for_ms INTEGER NOT NULL,
         fingerprint TEXT NOT NULL, owner_token TEXT NOT NULL, state TEXT NOT NULL,
         started_at_ms INTEGER NOT NULL, outcome_json TEXT,
-        PRIMARY KEY(workspace_id, task_id, scheduled_for_ms)); PRAGMA user_version=1;")
+        PRIMARY KEY(workspace_id, task_id, scheduled_for_ms));
+        CREATE TABLE IF NOT EXISTS scheduled_job_projection_receipts (
+            workspace_id TEXT NOT NULL, task_id TEXT NOT NULL, scheduled_for_ms INTEGER NOT NULL,
+            projected_at_ms INTEGER NOT NULL, goal_id TEXT,
+            PRIMARY KEY(workspace_id, task_id, scheduled_for_ms)); PRAGMA user_version=1;")
         .map_err(|e| e.to_string())?;
     Ok(connection)
 }
@@ -130,7 +134,7 @@ pub(crate) fn claim(path: &Path, key: JobKey<'_>, fingerprint: &str, now_ms: u64
         } else if state == "settled" {
             match outcome {
                 Some(outcome_json) => ClaimResult::Settled { outcome_json, started_at_ms: started.max(0) as u64 },
-                None => ClaimResult::Blocked("任务已结账但缺少结果，未重复执行".into()),
+                None => ClaimResult::Blocked("任务已结账，原始结果不可用或已过期；领取事实保留，未重复执行".into()),
             }
         } else {
             ClaimResult::Blocked(format!("本次触发已领取（{state}）；执行可能仍在运行或已中断，未重复调用模型或工具"))
@@ -155,6 +159,31 @@ impl JobClaim {
         self.finished = true;
         Ok(())
     }
+}
+
+/// 只有计划投影成功后才启动原始结果的保留窗口；失败或未知执行仍可恢复。
+pub(crate) fn mark_projected(path: &Path, key: JobKey<'_>, goal_id: Option<&str>, now_ms: u64) -> Result<(), String> {
+    open(path)?.execute("INSERT OR IGNORE INTO scheduled_job_projection_receipts
+        SELECT workspace_id,task_id,scheduled_for_ms,?4,?5 FROM scheduled_job_attempts
+        WHERE workspace_id=?1 AND task_id=?2 AND scheduled_for_ms=?3 AND state='settled'",
+        params![key.workspace_id,key.task_id,key.scheduled_for_ms,now_ms,goal_id]).map_err(|e|e.to_string())?;
+    Ok(())
+}
+
+/// 只去除可恢复投影已交付的原文，永久保留领取键，防止过期后重新执行副作用。
+pub(crate) fn clean_projected(path: &Path, cutoff_ms: u64, protected_goals: &[String]) -> Result<usize, String> {
+    if !path.exists() { return Ok(0); }
+    let mut c=open(path)?;
+    let tx=c.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).map_err(|e|e.to_string())?;
+    tx.execute_batch("CREATE TEMP TABLE protected_goals(id TEXT PRIMARY KEY)").map_err(|e|e.to_string())?;
+    for goal in protected_goals {tx.execute("INSERT OR IGNORE INTO protected_goals VALUES(?1)",[goal]).map_err(|e|e.to_string())?;}
+    let deleted=tx.execute("UPDATE scheduled_job_attempts SET outcome_json=NULL WHERE rowid IN (
+        SELECT a.rowid FROM scheduled_job_attempts a JOIN scheduled_job_projection_receipts p
+        USING(workspace_id,task_id,scheduled_for_ms) WHERE a.state='settled' AND a.outcome_json IS NOT NULL
+        AND p.projected_at_ms<?1 AND (p.goal_id IS NULL OR p.goal_id NOT IN (SELECT id FROM protected_goals))
+        ORDER BY p.projected_at_ms LIMIT 200)",[cutoff_ms]).map_err(|e|e.to_string())?;
+    tx.commit().map_err(|e|e.to_string())?;
+    Ok(deleted)
 }
 impl Drop for JobClaim {
     fn drop(&mut self) {
@@ -218,5 +247,21 @@ mod tests {
         assert!(pin_workspace().is_err());
         drop(change);
         assert!(pin_workspace().is_ok());
+    }
+    #[test]
+    fn 原始结果过期后保留领取键并保护未交付结果和目标() {
+        let temp=tempfile::tempdir().unwrap();let path=temp.path().join("jobs.sqlite3");
+        for (task,goal,projected) in [("old",None,true),("pending",None,false),("goal",Some("g"),true),("recent",None,true)] {
+            let key=JobKey {workspace_id:"ws",task_id:task,scheduled_for_ms:100};
+            let ClaimResult::Acquired(claim)=claim(&path,key,"fingerprint",100).unwrap() else {panic!()};
+            claim.finish(r#"{"executed":true}"#).unwrap();
+            if projected {mark_projected(&path,JobKey {workspace_id:"ws",task_id:task,scheduled_for_ms:100},goal,if task=="recent"{500}else{200}).unwrap();}
+        }
+        assert_eq!(clean_projected(&path,300,&["g".into()]).unwrap(),1);
+        assert!(matches!(claim(&path,JobKey {workspace_id:"ws",task_id:"old",scheduled_for_ms:100},"fingerprint",600).unwrap(),ClaimResult::Blocked(_)));
+        let c=open(&path).unwrap();
+        assert_eq!(c.query_row("SELECT COUNT(*) FROM scheduled_job_attempts",[],|r|r.get::<_,i64>(0)).unwrap(),4);
+        assert_eq!(c.query_row("SELECT COUNT(*) FROM scheduled_job_attempts WHERE outcome_json IS NOT NULL",[],|r|r.get::<_,i64>(0)).unwrap(),3);
+        assert_eq!(clean_projected(&path,300,&[]).unwrap(),1);
     }
 }

@@ -45,9 +45,13 @@ pub struct RequestAttemptSnapshot {
     pub usage: UsageEvidence,
     pub http_status: Option<u16>,
     pub terminal: bool,
+    pub model: Option<String>,
+    pub protocol: Option<String>,
+    pub started_at_ms: Option<u64>,
+    pub first_token_at_ms: Option<u64>,
 }
 impl Default for RequestAttemptSnapshot {
-    fn default() -> Self { Self { attempt_no:1,status:"prepared",dispatched:false,usage:UsageEvidence::default(),http_status:None,terminal:false } }
+    fn default() -> Self { Self { attempt_no:1,status:"prepared",dispatched:false,usage:UsageEvidence::default(),http_status:None,terminal:false,model:None,protocol:None,started_at_ms:None,first_token_at_ms:None } }
 }
 pub trait RequestObserver: std::fmt::Debug + Send + Sync {
     fn update(&self, snapshot: &RequestAttemptSnapshot);
@@ -65,7 +69,15 @@ impl RequestObservation {
     }
     fn publish(&self) { if let Some(observer)=&self.observer { observer.update(&self.snapshot); } }
     pub(crate) fn begin(&mut self, attempt_no:u32) {
-        self.snapshot=RequestAttemptSnapshot { attempt_no,..RequestAttemptSnapshot::default() }; self.publish();
+        self.snapshot=RequestAttemptSnapshot { attempt_no,model:self.snapshot.model.clone(),protocol:self.snapshot.protocol.clone(),started_at_ms:Some(now_ms()),..RequestAttemptSnapshot::default() }; self.publish();
+    }
+    pub(crate) fn configure(&mut self, model: &str, protocol: &str) {
+        self.snapshot.model=Some(model.into()); self.snapshot.protocol=Some(protocol.into());
+    }
+    pub(crate) fn stream_events<'a>(&mut self, events: impl IntoIterator<Item=&'a crate::StreamEvent>) {
+        if self.snapshot.first_token_at_ms.is_none() && events.into_iter().any(|event| matches!(event,crate::StreamEvent::ContentBlockDelta(_))) {
+            self.snapshot.first_token_at_ms=Some(now_ms()); self.publish();
+        }
     }
     pub(crate) fn dispatch(&mut self) { self.snapshot.dispatched=true;self.snapshot.status="dispatched";self.publish(); }
     pub(crate) fn usage(&mut self, usage:UsageEvidence) {
@@ -92,3 +104,5 @@ impl RequestObservation {
 impl Drop for RequestObservation {
     fn drop(&mut self) { self.finish(if self.snapshot.dispatched {"remote_unknown"} else {"abandoned_before_dispatch"}); }
 }
+
+fn now_ms() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis().min(u64::MAX as u128) as u64 }

@@ -17907,3 +17907,7 @@ body.ui-3d [data-role="quick-catalog-detail"] pre {
 .devin-plugin-panel input[type="checkbox"] { width: 20px; min-height: 20px; }
 .devin-plugin-output { max-height: 420px; overflow: auto; }
 .devin-plugin-output pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+
+.skill-create-dialog{width:min(680px,90vw);max-height:90vh;overflow:auto;background:var(--surface,#0d1913);color:var(--text,#e7eadf);border:1px solid #55725f;border-radius:14px;padding:24px}.skill-create-dialog::backdrop{background:#0009}.skill-create-dialog label{display:grid;gap:6px;margin:12px 0}.skill-create-dialog input,.skill-create-dialog textarea{width:100%;box-sizing:border-box;padding:9px;background:#07140e;color:inherit;border:1px solid #55725f;border-radius:6px}.skill-create-dialog form>div{display:flex;justify-content:flex-end;gap:12px}
+
+.task-hub-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}.task-cu-step{border-top:1px solid var(--border-color,#344b3f);padding:10px 0}.task-cu-step button{margin:4px}.task-cu-evidence{display:block;max-width:100%;max-height:600px;object-fit:contain;margin:10px 0}

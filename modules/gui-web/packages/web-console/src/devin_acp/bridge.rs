@@ -21,7 +21,7 @@ const INITIAL_TOOLS: &[&str] = &[
     "bash",
     "computer_use_perform",
 ];
-pub(super) const REVIEW_TOOLS: &[&str] = &["read_file", "glob_search", "grep_search"];
+pub(super) const REVIEW_TOOLS: &[&str] = &["read_file", "glob_search", "grep_search", "Skill"];
 
 tokio::task_local! {static FROZEN_POLICY:Arc<FrozenPolicy>;}
 thread_local! {static WORKER_POLICY:RefCell<Option<Arc<FrozenPolicy>>>=const{RefCell::new(None)};}
@@ -267,7 +267,7 @@ impl ToolBridge {
         let profile = if dev_open {
             PermissionProfile::FullAccess
         } else {
-            active_permission_profile()
+            PermissionProfile::from_str(&context_permission_profile(Some(&scope.room_id))).unwrap_or(PermissionProfile::WorkspaceAuto)
         };
         let rules = if dev_open {
             vec![]

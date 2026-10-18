@@ -41,6 +41,11 @@ body.ui-3d .chat-main-column > .chat-activity { position: relative; z-index: 1; 
 .environment-popover .chat-sidebar-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .environment-popover img { width: 20px; height: 20px; object-fit: contain; }
 .environment-popover [role="alert"] { color: #ffc4b9; }
+.workspace-recents { display: grid; gap: 8px; margin: 10px 0; min-width: 0; }
+.workspace-recent-row { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.workspace-recent-row > button { min-width: 0; max-width: 100%; box-sizing: border-box; white-space: normal; }
+.workspace-recent-row > button:first-child { flex: 1 1 100%; }
+.workspace-reserved-label { margin: 0; font-size: 12px; opacity: .75; }
 .chat-insights-panel { padding: 16px; height: 100%; box-sizing: border-box; overflow: auto; font-size: 14px; line-height: 1.6; }
 .chat-insights-panel h2 { margin-top: 0; font-size: 18px; }
 .chat-insights-panel label { display: grid; gap: 8px; }

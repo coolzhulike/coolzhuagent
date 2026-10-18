@@ -151,6 +151,13 @@ mod tests {
     #[tokio::test(flavor = "current_thread")]
     async fn scoped_execution_identity_reaches_computer_use_tool_result() {
         let _guard = crate::tests::config_test_guard();
+        let temporary = tempfile::tempdir().expect("独立测试目录");
+        let _database = crate::tests::scoped_session_db_env(temporary.path());
+        let connection = crate::open_session_connection(&crate::default_session_sqlite_path()).unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        drop(connection);
+        // 本用例只验证身份传递；权限门另有覆盖，显式开启测试授权接缝。
+        let _authorized = crate::tests::DevOpenPermissionsTestGuard::enable();
         let mut config = crate::WorkspaceConfig::default();
         config.model.enable_llm_tools = true;
         config.model.llm_tool_exposure = Some("all".to_string());

@@ -75,40 +75,26 @@
             </button>
           </div>
           <details class="chat-sidebar-group chat-room-permissions top-chat-permissions" data-sidebar-group="room-permissions" aria-label="当前聊天室权限">
-            <summary><span>权限</span><strong class="chat-permission-status" data-role="chat-permission-status">未选择</strong></summary>
+            <summary aria-label="查看或修改当前聊天室权限"><strong class="chat-permission-status" data-role="chat-permission-status">未选择</strong></summary>
             <div class="top-chat-permission-dialog" role="dialog" aria-label="选择当前聊天室权限">
               <label for="chat-permission-select">当前聊天室权限</label>
               <div class="chat-permission-controls">
                 <select id="chat-permission-select" class="chat-permission-select" data-role="chat-permission-select" aria-label="选择当前聊天室权限">
-                  <option value="workspace-write">目录权限（默认）</option>
+                  <option value="workspace-write">默认权限</option>
                   <option value="full-access">完全访问（双重确认）</option>
                 </select>
                 <button class="mini-button" data-action="chat-permission-save" type="button"><img src="./assets/icons-wuxia/check.svg" alt="" />应用</button>
               </div>
-              <small data-role="chat-permission-hint">请选择聊天室后设置权限。</small>
+              <span class="chat-trace-safety-badge" data-role="chat-trace-safety-badge" hidden></span><small data-role="chat-permission-hint">请选择聊天室后设置权限。</small>
             </div>
           </details>
-          <div class="chat-top-statuses" data-role="chat-top-statuses" aria-label="聊天室状态">
-            <span class="chat-top-status-indicator chat-top-status-ready is-dim" data-role="chat-top-status-ready" data-state="idle" role="img" aria-label="Agent 就绪：等待自检" title="Agent 就绪：等待自检">
-              <img src="./assets/ui-redesign/jade-controls-v3/status-jade.png" alt="" aria-hidden="true" />
-              <span>就绪</span>
-            </span>
-            <span class="chat-top-status-indicator chat-top-status-lantern is-dim" data-role="chat-top-status-lantern" data-state="idle" role="img" aria-label="系统状态灯：等待自检" title="系统状态灯：等待自检">
-              <img src="./assets/ui-redesign/jade-controls-v3/status-lantern.png" alt="" aria-hidden="true" />
-              <span>灯笼</span>
-            </span>
-            <span class="chat-top-status-indicator chat-top-status-alert is-dim" data-role="chat-top-status-alert" data-state="idle" role="img" aria-label="系统警示：无异常" title="系统警示：无异常">
-              <img src="./assets/ui-redesign/jade-controls-v3/status-lantern.png" alt="" aria-hidden="true" />
-              <span>警示</span>
-            </span>
-          </div>
         </section>
       </section>
       <section class="layout-workbench" data-role="workbench" data-active-window="chat" aria-label="多窗口工作台">
         <aside class="workbench-quick-rail" data-role="workbench-quick-rail" aria-label="快捷功能栏">
           <nav class="window-dock" aria-label="快捷功能">
             <button class="window-tab is-active" data-window-target="chat" data-window-icon="chat" type="button" title="首页" aria-label="首页" aria-pressed="true"><img class="window-icon" src="./assets/icons-wuxia/chat.svg" alt="" aria-hidden="true" /><span>首页</span></button>
-            <button class="window-tab" data-window-target="schedules" data-window-icon="tasks" type="button" title="定时任务" aria-label="定时任务" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>定时任务</span></button>
+            <button class="window-tab" data-window-target="schedules" data-window-icon="tasks" type="button" title="任务" aria-label="任务" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/tasks.svg" alt="" aria-hidden="true" /><span>任务</span></button>
             <button class="window-tab" data-window-target="settings" data-window-icon="settings" type="button" title="设置" aria-label="设置" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/settings.svg" alt="" aria-hidden="true" /><span>设置</span></button>
             <button class="window-tab" data-window-target="usage" data-window-icon="model-scroll" type="button" title="统计信息" aria-label="统计信息" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/model-scroll.svg" alt="" aria-hidden="true" /><span>统计信息</span></button>
             <button class="window-tab" data-window-target="clawbot" data-window-icon="link" type="button" title="微信连接" aria-label="微信连接" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/link.svg" alt="" aria-hidden="true" /><span>微信连接</span></button>
@@ -116,7 +102,6 @@
               <summary class="window-tab" data-window-icon="more-vertical" title="更多" aria-label="更多快捷功能" aria-controls="window-dock-secondary" aria-expanded="false"><img class="window-icon" src="./assets/icons-wuxia/more-vertical.svg" alt="" aria-hidden="true" /><span>更多</span></summary>
               <div id="window-dock-secondary" class="window-dock-secondary" role="group" aria-label="更多快捷功能">
                 <button class="window-tab" data-window-target="browser" data-window-icon="browser" type="button" title="浏览器" aria-label="浏览器" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /><span>浏览器</span></button>
-                <button class="window-tab" data-window-target="terminal" data-window-icon="terminal" type="button" title="终端" aria-label="终端" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/terminal.svg" alt="" aria-hidden="true" /><span>终端</span></button>
                 <button class="window-tab" data-window-target="skills" data-window-icon="skill-star" type="button" title="SKILL" aria-label="SKILL" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/skill-star.svg" alt="" aria-hidden="true" /><span>SKILL</span></button>
                 <button class="window-tab" data-window-target="plugin-market" data-window-icon="package-crate" type="button" title="插件市场" aria-label="插件市场" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/package-crate.svg" alt="" aria-hidden="true" /><span>插件市场</span></button>
               </div>
@@ -739,7 +724,7 @@
                   </div>
                 </div>
                 <section class="chat-panel">
-                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="chat-trace-open" type="button">思考与运行记录<span class="chat-trace-safety-badge" data-role="chat-trace-safety-badge" hidden></span></button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
+                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-role="chat-usage-meter" type="button" aria-label="当前聊天室用量明细">用量加载中</button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
                   <div class="message-list" data-role="chat-message-list" data-chat-window-lines="50">
                     <div class="chat-message-empty-state" data-role="chat-message-empty-state" role="status">
                       <span aria-hidden="true"><img src="./assets/icons-wuxia/chat.svg" alt="" /></span>
@@ -902,7 +887,7 @@
             </div>
           </article>
 
-          <article class="workbench-window" data-window-id="schedules" aria-label="定时任务"><div class="window-panel workspace-content-panel" data-role="schedules-panel"></div></article>
+          <article class="workbench-window" data-window-id="schedules" aria-label="任务"><div class="window-panel workspace-content-panel" data-role="schedules-panel"></div></article>
           <article class="workbench-window" data-window-id="preview" aria-label="内容预览"><div class="window-panel workspace-content-panel" data-role="content-preview"></div></article>
           <article class="workbench-window" data-window-id="trace" aria-label="运行轨迹与安全详情"><div class="window-panel workspace-content-panel">
             <div class="workspace-panel-toolbar"><strong>当前聊天室的运行轨迹</strong><button type="button" data-role="chat-trace-refresh">刷新</button></div>
@@ -926,7 +911,7 @@
             <div class="chat-insights-panel"><h2>聊天记录</h2><label>搜索当前聊天室的全部历史<input data-role="chat-history-query" type="search" placeholder="搜索内容或发言人" /></label><p data-role="chat-history-count" role="status"></p><div data-role="chat-history-results"></div><button data-role="chat-history-more" type="button" hidden>加载更多记录</button></div>
           </article>
           <article class="workbench-window" data-window-id="usage" aria-label="Token 用量统计">
-            <div class="chat-insights-panel"><h2>统计信息</h2><p>当前聊天室 · 按模型会话统计</p><button data-role="chat-usage-refresh" type="button">刷新统计</button><div data-role="chat-usage-list"></div><small data-role="chat-usage-note"></small></div>
+            <div class="chat-insights-panel"><h2>统计信息</h2><div class="usage-filters"><label>范围<select data-role="usage-scope"><option value="room">当前聊天室</option><option value="workspace">当前工程</option></select></label><label>时间<select data-role="usage-period"><option value="0">全部时间</option><option value="24">最近 24 小时</option><option value="168">最近 7 天</option><option value="720">最近 30 天</option></select></label><label>明细<select data-role="usage-group"><option value="session">按会话</option><option value="time">按小时</option></select></label><label>聊天栏显示<select data-role="usage-meter-mode"><option value="both">总量与速率</option><option value="total">仅总量</option><option value="rate">仅速率</option><option value="hidden">隐藏</option></select></label></div><button data-role="chat-usage-refresh" type="button">刷新统计</button><div data-role="chat-usage-list"></div><small data-role="chat-usage-note"></small></div>
           </article>
           <article class="workbench-window browser-workbench-window" data-window-id="browser" data-window-theme="observatory" aria-label="浏览器窗口">
             <div class="window-panel browser-window-panel">
@@ -947,29 +932,10 @@
             </div>
           </article>
 
-          <article class="workbench-window terminal-workbench-window" data-window-id="terminal" data-window-theme="reactor-console" aria-label="终端窗口">
-            <div class="terminal-console-shell">
-              <div class="window-panel terminal-window-panel">
-                <div class="terminal-window-toolbar">
-                  <span data-role="terminal-window-status">终端尚未启动</span>
-                  <div class="terminal-window-controls">
-                    <button class="mini-button" data-action="terminal-window-interrupt" type="button" title="中断当前命令">中断</button>
-                    <button class="mini-button" data-action="terminal-window-close" type="button" title="关闭终端">关闭</button>
-                  </div>
-                </div>
-                <pre class="terminal-window-output" data-role="terminal-window-output">启动后可在当前工程目录运行 PowerShell 命令。</pre>
-                <section class="terminal-window-command" aria-label="交互式 PowerShell 命令">
-                  <label class="terminal-command-input"><span>PS</span><textarea data-role="terminal-command" spellcheck="false" placeholder="输入 PowerShell 命令"></textarea></label>
-                  <button class="pixel-button wide is-primary-control" data-action="terminal-window-run" type="button"><img src="./assets/icons-wuxia/terminal.svg" alt="" />运行</button>
-                  <button class="mini-button terminal-clear-inline" data-action="terminal-window-clear" type="button" title="清空当前显示"><img src="./assets/icons-wuxia/delete.svg" alt="" /></button>
-                </section>
-              </div>
-            </div>
-          </article>
 
           <article class="workbench-window catalog-workbench-window" data-window-id="skills" aria-label="SKILL 目录">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
-              <div class="workspace-panel-toolbar"><strong>SKILL 目录</strong><button data-action="skills-catalog-refresh" type="button">刷新目录</button></div>
+              <div class="workspace-panel-toolbar"><strong>SKILL 目录</strong><input data-role="skills-search" aria-label="搜索技能" placeholder="搜索名称、描述或来源"><button data-action="skills-create" type="button">创建 SKILL</button><button data-action="skills-install-bundle" type="button">安装 Superpowers</button><button data-action="skills-install-local" type="button">从本地安装</button><button data-action="skills-catalog-refresh" type="button">刷新目录</button></div>
               <p class="quick-panel-intro">查看当前工程的 SKILL 内容，选用后进入普通聊天的工作指引。</p>
               <p data-role="skills-catalog-status" role="status">尚未读取目录。</p>
               <div class="quick-catalog-list" data-role="skills-catalog-list"></div>
@@ -983,22 +949,6 @@
                 <p class="ms-hint">登录后可在 Agent 的模型设置中获取账号模型。</p>
                 <div data-role="devin-account-panel"></div>
               </section>
-              <details class="dsh-market" data-role="devin-model-panel">
-                <summary>Devin 聊天室 · 模型与会话设置</summary>
-                <div data-role="devin-model-settings"></div>
-              </details>
-              <details class="dsh-market" data-provider-connector="opencode-zen@native">
-                <summary>OpenCode Zen · 免费模型连接器</summary>
-                <p class="ms-hint" data-role="provider-note"></p>
-                <button type="button" data-action="provider-docs" aria-label="查看 OpenCode 官方条款" title="查看 OpenCode 官方条款"><img src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /></button>
-                <div data-role="provider-editor"></div>
-              </details>
-              <details class="dsh-market" data-provider-connector="huggingface-inference@native">
-                <summary>Hugging Face · 推理模型连接器</summary>
-                <p class="ms-hint" data-role="provider-note"></p>
-                <button type="button" data-action="provider-docs" aria-label="查看 Hugging Face 官方额度" title="查看 Hugging Face 官方额度"><img src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /></button>
-                <div data-role="provider-editor"></div>
-              </details>
               <p class="quick-panel-intro">浏览、安装和管理 DSH 社区插件。安装后先启用，再在模型配置中选择需要的工具。</p>
               <section class="dsh-market" data-role="dsh-market-root" aria-label="DSH 社区目录">
                 <header class="dsh-market-heading"><strong>DSH 社区目录</strong><small>来源：awesome-dsh-plugin.com</small></header>

@@ -130,7 +130,7 @@ pub(super) async fn events(AxumPath(room_id): AxumPath<String>, Query(query): Qu
             }
         }
     };
-    Ok(Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::default()))
+    Ok(Sse::new(service_restart::until_shutdown(stream)).keep_alive(axum::response::sse::KeepAlive::default()))
 }
 
 #[cfg(test)]

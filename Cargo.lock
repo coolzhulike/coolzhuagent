@@ -1023,6 +1023,7 @@ dependencies = [
  "async-stream",
  "axum",
  "base64",
+ "coolzhu-app-launcher",
  "coolzhu-computer-use-core",
  "coolzhu-core-runtime",
  "coolzhu-diagnostics",

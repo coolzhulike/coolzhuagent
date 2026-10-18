@@ -343,6 +343,7 @@ impl OpenAiCompatClient {
         // 约束 7：guard 在**实际发出请求之前**登记，非流式请求同样覆盖完整请求生命周期。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::NonStreaming);
         let mut observation = RequestObservation::new(self.request_observer.clone());
+        observation.configure(&request.model, "openai_chat_completions");
         let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
@@ -393,6 +394,7 @@ impl OpenAiCompatClient {
         // 约束 7：guard 在**实际发出请求之前**登记；握手完成后随流对象转移。
         let guard = InFlightGuard::register(&self.endpoint_identity(), RequestMode::Streaming);
         let mut observation = RequestObservation::new(self.request_observer.clone());
+        observation.configure(&request.model, "openai_chat_completions");
         let response = match self.send_with_retry(&request, &guard, &mut observation).await {
             Ok(response) => response,
             Err(error) => {
@@ -586,7 +588,9 @@ impl MessageStream {
                     }
                     for chunk in parsed.chunks {
                         if let Some(usage)=&chunk.usage { self.observation.usage(usage.evidence()); }
-                        self.pending.extend(self.state.ingest_chunk(chunk)?);
+                        let events=self.state.ingest_chunk(chunk)?;
+                        self.observation.stream_events(&events);
+                        self.pending.extend(events);
                         if self.state.protocol_end_observed {
                             self.protocol_end_observed = true;
                         }

@@ -66,17 +66,19 @@ impl api::RequestObserver for LedgerObserver {
             let usage=event.usage;
             connection.execute("INSERT INTO chat_usage_events
                 (workspace_id,room_id,session_id,created_at,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,
-                 turn_id,run_id,call_id,request_kind,logical_request_id,attempt_id,attempt_no,status,dispatched,usage_known_mask,http_status,finished_at)
-                VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)
+                 turn_id,run_id,call_id,request_kind,logical_request_id,attempt_id,attempt_no,status,dispatched,usage_known_mask,http_status,finished_at,model_snapshot,protocol_snapshot,started_at,first_token_at)
+                VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24)
                 ON CONFLICT(attempt_id) DO UPDATE SET
                   input_tokens=MAX(input_tokens,excluded.input_tokens),output_tokens=MAX(output_tokens,excluded.output_tokens),
                   cache_read_tokens=MAX(cache_read_tokens,excluded.cache_read_tokens),cache_write_tokens=MAX(cache_write_tokens,excluded.cache_write_tokens),
                   status=excluded.status,dispatched=excluded.dispatched,usage_known_mask=usage_known_mask|excluded.usage_known_mask,
-                  http_status=excluded.http_status,finished_at=COALESCE(finished_at,excluded.finished_at)",
+                  http_status=excluded.http_status,finished_at=COALESCE(finished_at,excluded.finished_at),
+                  model_snapshot=COALESCE(model_snapshot,excluded.model_snapshot),protocol_snapshot=COALESCE(protocol_snapshot,excluded.protocol_snapshot),
+                  started_at=COALESCE(started_at,excluded.started_at),first_token_at=COALESCE(first_token_at,excluded.first_token_at)",
                 params![self.workspace,self.room,self.session,timestamp,usage.input_tokens.unwrap_or(0),usage.output_tokens.unwrap_or(0),
                     usage.cache_read_tokens.unwrap_or(0),usage.cache_write_tokens.unwrap_or(0),self.turn,self.run,self.call,self.kind,self.logical_id,
                     format!("{}:{}",self.logical_id,event.attempt_no),event.attempt_no,event.status,event.dispatched,usage.known_mask(),
-                    event.http_status,event.terminal.then_some(timestamp)])?;
+                    event.http_status,event.terminal.then_some(timestamp),event.model,event.protocol,event.started_at_ms,event.first_token_at_ms])?;
             Ok(())
         })();
         if let Err(error)=result { diag_log(&format!("[REQUEST-USAGE] 请求事实保存失败: {error}")); }
@@ -104,7 +106,8 @@ pub(super) fn migrate(connection:&Connection)->rusqlite::Result<()> {
     let columns=connection.prepare("PRAGMA table_info(chat_usage_events)")?.query_map([],|row|row.get::<_,String>(1))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     for (name,definition) in [
-        ("run_id","TEXT"),
+        ("run_id","TEXT"),("model_snapshot","TEXT"),("protocol_snapshot","TEXT"),
+        ("started_at","INTEGER"),("first_token_at","INTEGER"),
         ("logical_request_id","TEXT"),("attempt_id","TEXT"),("attempt_no","INTEGER"),
         ("status","TEXT NOT NULL DEFAULT 'legacy'"),("dispatched","INTEGER"),
         ("usage_known_mask","INTEGER"),("http_status","INTEGER"),("finished_at","INTEGER"),
@@ -118,12 +121,13 @@ pub(super) fn migrate(connection:&Connection)->rusqlite::Result<()> {
         }
     }
     connection.execute_batch("CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_usage_attempt ON chat_usage_events(attempt_id);
-        CREATE INDEX IF NOT EXISTS idx_chat_usage_run ON chat_usage_events(run_id) WHERE run_id IS NOT NULL;")
+        CREATE INDEX IF NOT EXISTS idx_chat_usage_run ON chat_usage_events(run_id) WHERE run_id IS NOT NULL;
+        CREATE INDEX IF NOT EXISTS idx_chat_usage_time ON chat_usage_events(workspace_id,room_id,created_at);")
 }
 
 /// 同一attempt优先取ACP权威归属和状态，只从同作用域旧投影复用真实用量。
 /// 旧库没有ACP表时保持HTTP读取；损坏JSON/缺失身份显式失败，不能返回虚假零。
-fn facts_sql(connection: &Connection) -> rusqlite::Result<String> {
+pub(super) fn facts_sql(connection: &Connection) -> rusqlite::Result<String> {
     let http = "SELECT workspace_id,room_id,session_id,created_at,turn_id,run_id,call_id,request_kind,
         logical_request_id,attempt_id,status,dispatched,usage_known_mask,
         input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,
