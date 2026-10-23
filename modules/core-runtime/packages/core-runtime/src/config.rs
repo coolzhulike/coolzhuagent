@@ -75,6 +75,11 @@ pub enum ContextEngineMode {
 pub struct RuntimeHookConfig {
     pre_tool_use: Vec<String>,
     post_tool_use: Vec<String>,
+    /// 同一助手消息的全部 tool_use 派发完毕后触发一次（对齐 Claude Code PostToolBatch）。
+    post_tool_batch: Vec<String>,
+    /// 主循环结束（模型无 tool_use、即将 break）前触发；deny(2) 会阻断退出并把输出
+    /// 作为新 user 消息注入续跑，由宿主侧熔断上限兜底。
+    stop: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -552,7 +557,23 @@ impl RuntimeHookConfig {
         Self {
             pre_tool_use,
             post_tool_use,
+            post_tool_batch: Vec::new(),
+            stop: Vec::new(),
         }
+    }
+
+    /// 追加 PostToolBatch 钩子命令（builder 风格，保持 `new` 签名兼容）。
+    #[must_use]
+    pub fn with_post_tool_batch(mut self, commands: Vec<String>) -> Self {
+        self.post_tool_batch = commands;
+        self
+    }
+
+    /// 追加 Stop 钩子命令。
+    #[must_use]
+    pub fn with_stop(mut self, commands: Vec<String>) -> Self {
+        self.stop = commands;
+        self
     }
 
     #[must_use]
@@ -566,6 +587,16 @@ impl RuntimeHookConfig {
     }
 
     #[must_use]
+    pub fn post_tool_batch(&self) -> &[String] {
+        &self.post_tool_batch
+    }
+
+    #[must_use]
+    pub fn stop(&self) -> &[String] {
+        &self.stop
+    }
+
+    #[must_use]
     pub fn merged(&self, other: &Self) -> Self {
         let mut merged = self.clone();
         merged.extend(other);
@@ -575,6 +606,8 @@ impl RuntimeHookConfig {
     pub fn extend(&mut self, other: &Self) {
         extend_unique(&mut self.pre_tool_use, other.pre_tool_use());
         extend_unique(&mut self.post_tool_use, other.post_tool_use());
+        extend_unique(&mut self.post_tool_batch, other.post_tool_batch());
+        extend_unique(&mut self.stop, other.stop());
     }
 }
 
@@ -688,6 +721,10 @@ fn parse_optional_hooks_config(root: &JsonValue) -> Result<RuntimeHookConfig, Co
         pre_tool_use: optional_string_array(hooks, "PreToolUse", "merged settings.hooks")?
             .unwrap_or_default(),
         post_tool_use: optional_string_array(hooks, "PostToolUse", "merged settings.hooks")?
+            .unwrap_or_default(),
+        post_tool_batch: optional_string_array(hooks, "PostToolBatch", "merged settings.hooks")?
+            .unwrap_or_default(),
+        stop: optional_string_array(hooks, "Stop", "merged settings.hooks")?
             .unwrap_or_default(),
     })
 }

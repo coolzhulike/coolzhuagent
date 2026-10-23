@@ -622,6 +622,34 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
             }),
             required_permission: PermissionMode::DangerFullAccess,
         },
+        ToolSpec {
+            name: "TaskOutput",
+            description: "Read output of a background task started with run_in_background (bash/PowerShell). Returns captured stdout/stderr and whether the task is still running. task_id comes from background_task_id in the spawn result.",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "task_id": { "type": "string", "description": "background_task_id returned by the spawning tool" },
+                    "cwd": { "type": "string", "description": "Working directory used when the task was spawned (default: current directory)" }
+                },
+                "required": ["task_id"],
+                "additionalProperties": false
+            }),
+            required_permission: PermissionMode::ReadOnly,
+        },
+        ToolSpec {
+            name: "TaskStop",
+            description: "Terminate a background task and its process tree by task_id (process id from background_task_id). Reports whether the task was running and whether the kill succeeded.",
+            input_schema: json!({
+                "type": "object",
+                "properties": {
+                    "task_id": { "type": "string", "description": "background_task_id returned by the spawning tool" },
+                    "cwd": { "type": "string", "description": "Unused for stop; kept symmetric with TaskOutput" }
+                },
+                "required": ["task_id"],
+                "additionalProperties": false
+            }),
+            required_permission: PermissionMode::WorkspaceWrite,
+        },
     ]
 }
 
@@ -648,6 +676,8 @@ pub fn execute_tool(name: &str, input: &Value) -> Result<String, String> {
         }
         "REPL" => from_value::<ReplInput>(input).and_then(run_repl),
         "PowerShell" => from_value::<PowerShellInput>(input).and_then(run_powershell),
+        "TaskOutput" => from_value::<TaskIdInput>(input).and_then(run_task_output),
+        "TaskStop" => from_value::<TaskIdInput>(input).and_then(run_task_stop),
         _ => Err(format!("unsupported tool: {name}")),
     }
 }
@@ -2209,6 +2239,8 @@ fn allowed_tools_for_subagent(subagent_type: &str) -> BTreeSet<String> {
             "StructuredOutput",
             "REPL",
             "PowerShell",
+            "TaskOutput",
+            "TaskStop",
         ],
     };
     tools.into_iter().map(str::to_string).collect()
@@ -3139,26 +3171,46 @@ fn execute_shell_command(
     run_in_background: Option<bool>,
 ) -> std::io::Result<runtime::BashCommandOutput> {
     if run_in_background.unwrap_or(false) {
+        // 后台任务：stdout/stderr 落盘到 <cwd>/.coolzhu/tasks/<pid>.log，
+        // 供 task_output 工具取回（对齐 Claude Code TaskOutput）。任务目录
+        // 在 workspace 内，随任务自然存留，不做自动清理。
+        let task_root = cwd
+            .map(PathBuf::from)
+            .or_else(|| std::env::current_dir().ok())
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join(".coolzhu")
+            .join("tasks");
+        std::fs::create_dir_all(&task_root)?;
         let mut process = std::process::Command::new(shell);
         process
             .arg("-NoProfile")
             .arg("-NonInteractive")
             .arg("-Command")
             .arg(command)
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null());
+            .stdin(std::process::Stdio::null());
         if let Some(cwd) = cwd {
             process.current_dir(cwd);
         }
+        // 先 spawn 拿 pid，再按 pid 命名日志文件并重挂 stdout/stderr。
+        // spawn 后无法改 Stdio，改为预分配占位文件名不可行——因此用
+        // 两次创建：先写到临时名，拿到 pid 后重命名。
+        let temp_log = task_root.join(format!("pending-{}.log", std::process::id()));
+        let log_file = std::fs::File::create(&temp_log)?;
+        let log_err = log_file.try_clone()?;
+        process.stdout(std::process::Stdio::from(log_file));
+        process.stderr(std::process::Stdio::from(log_err));
         let child = process.spawn()?;
+        let task_id = child.id().to_string();
+        let final_log = task_root.join(format!("{task_id}.log"));
+        let _ = std::fs::rename(&temp_log, &final_log);
+        drop(child);
         return Ok(runtime::BashCommandOutput {
-            stdout: String::new(),
+            stdout: format!("[background task {task_id}] output: {}", final_log.display()),
             stderr: String::new(),
-            raw_output_path: None,
+            raw_output_path: Some(final_log.display().to_string()),
             interrupted: false,
             is_image: None,
-            background_task_id: Some(child.id().to_string()),
+            background_task_id: Some(task_id),
             backgrounded_by_user: Some(true),
             assistant_auto_backgrounded: Some(false),
             dangerously_disable_sandbox: None,
@@ -3225,6 +3277,107 @@ fn execute_shell_command(
         sandbox_status: None,
         execution_receipt: Some(execution_receipt),
     })
+}
+
+// ── TaskOutput / TaskStop：挂 background_task_id（进程 pid）──────────────
+
+#[derive(Debug, Deserialize)]
+struct TaskIdInput {
+    task_id: String,
+    /// 任务 spawn 时的工作目录；缺省用当前进程 cwd（与 spawn 侧一致）。
+    cwd: Option<String>,
+}
+
+fn task_log_path(task_id: &str, cwd: Option<&str>) -> PathBuf {
+    cwd.map(PathBuf::from)
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join(".coolzhu")
+        .join("tasks")
+        .join(format!("{task_id}.log"))
+}
+
+#[cfg(windows)]
+fn task_is_running(pid: u32) -> bool {
+    // tasklist 过滤 PID；CSV 输出含 `"<pid>"` 即存活。进程枚举失败按不存活
+    // 处理（保守：不误报"还在跑"而拒绝停止）。
+    std::process::Command::new("tasklist")
+        .args(["/FI", &format!("PID eq {pid}"), "/NH", "/FO", "CSV"])
+        .output()
+        .map(|output| {
+            decode_console_output(&output.stdout)
+                .contains(&format!(",\"{pid}\""))
+        })
+        .unwrap_or(false)
+}
+
+#[cfg(not(windows))]
+fn task_is_running(pid: u32) -> bool {
+    std::process::Command::new("kill")
+        .arg("-0")
+        .arg(pid.to_string())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+fn run_task_output(input: TaskIdInput) -> Result<String, String> {
+    let pid: u32 = input
+        .task_id
+        .trim()
+        .parse()
+        .map_err(|_| format!("task_id `{}` 不是有效进程号", input.task_id))?;
+    let log = task_log_path(input.task_id.trim(), input.cwd.as_deref());
+    let output = std::fs::read(&log)
+        .map(|bytes| decode_console_output(&bytes))
+        .unwrap_or_default();
+    to_pretty_json(&serde_json::json!({
+        "task_id": input.task_id,
+        "running": task_is_running(pid),
+        "log_path": log.display().to_string(),
+        "log_exists": log.is_file(),
+        "output": output,
+    }))
+}
+
+fn run_task_stop(input: TaskIdInput) -> Result<String, String> {
+    let pid: u32 = input
+        .task_id
+        .trim()
+        .parse()
+        .map_err(|_| format!("task_id `{}` 不是有效进程号", input.task_id))?;
+    if !task_is_running(pid) {
+        return to_pretty_json(&serde_json::json!({
+            "task_id": input.task_id,
+            "stopped": false,
+            "was_running": false,
+        }));
+    }
+    #[cfg(windows)]
+    let status = std::process::Command::new("taskkill")
+        // /T 杀整棵进程树；后台任务可能已起孙进程，不能只杀壳层。
+        .args(["/PID", &pid.to_string(), "/T", "/F"])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status();
+    #[cfg(not(windows))]
+    let status = std::process::Command::new("kill")
+        .arg("-TERM")
+        .arg(pid.to_string())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status();
+    let invoked = status.map(|s| s.success()).unwrap_or(false);
+    let still_running = task_is_running(pid);
+    to_pretty_json(&serde_json::json!({
+        "task_id": input.task_id,
+        "stopped": invoked && !still_running,
+        "was_running": true,
+        "still_running": still_running,
+        "kill_invoked": invoked,
+    }))
 }
 
 fn resolve_cell_index(

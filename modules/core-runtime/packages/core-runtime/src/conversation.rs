@@ -106,8 +106,36 @@ impl Display for RuntimeError {
 
 impl std::error::Error for RuntimeError {}
 
+/// 回合终止的结构化原因（对齐 stop-reason 语义）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurnEndReason {
+    /// 正常完成：模型在 stop 检查下自然收尾。
+    Completed,
+    /// 超出 max_iterations 熔断上限。
+    MaxIterationsExceeded,
+    /// 模型/流/解析失败（含 malformed 输出重试仍失败）。
+    Failed,
+    /// 根执行被中断/取消。
+    Interrupted,
+}
+
+impl TurnEndReason {
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Completed => "completed",
+            Self::MaxIterationsExceeded => "max_iterations",
+            Self::Failed => "failed",
+            Self::Interrupted => "interrupted",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TurnSummary {
+    /// 终态原因；对成功返回的 summary 恒为 [`TurnEndReason::Completed`]，
+    /// 失败/中断原因记录在终态 `AgentEvent` payload 的 `end_reason` 字段。
+    pub end_reason: TurnEndReason,
     pub thread_id: ThreadId,
     pub turn_id: TurnId,
     pub context_snapshot: ContextSnapshot,
@@ -248,6 +276,11 @@ where
         let mut tool_results = Vec::new();
         let mut iterations = 0;
         let mut reasoning_text = String::new();
+        // 失败时的终态原因；中断仍以 error.interruption 为准（见收尾分支）。
+        let mut failure_reason = TurnEndReason::Failed;
+        // Stop hook 阻断熔断：deny 最多允许 N 次续跑，避免 hook 把回合卡死。
+        let mut stop_hook_blocks = 0usize;
+        const MAX_STOP_HOOK_BLOCKS: usize = 8;
 
         let outcome = (|| -> Result<(), RuntimeError> {
         loop {
@@ -257,6 +290,7 @@ where
             }
             iterations += 1;
             if iterations > self.max_iterations {
+                failure_reason = TurnEndReason::MaxIterationsExceeded;
                 return Err(RuntimeError::new(
                     "conversation loop exceeded the maximum number of iterations",
                 ));
@@ -267,8 +301,24 @@ where
                 messages: self.session.messages.clone(),
             };
             let stream_events = self.api_client.stream(request)?;
+            // malformed tool_use/空内容流只重试一次；第二次仍失败则如实报错，
+            // 不伪造工具调用或模型输出（对齐 Claude Code 的 malformed retry）。
             let (assistant_message, usage, iteration_reasoning) =
-                build_assistant_message(stream_events)?;
+                match build_assistant_message(stream_events) {
+                    Ok(built) => built,
+                    Err(first_error) => {
+                        let retry_request = ApiRequest {
+                            system_prompt: self.system_prompt.clone(),
+                            messages: self.session.messages.clone(),
+                        };
+                        let retry_events = self.api_client.stream(retry_request)?;
+                        build_assistant_message(retry_events).map_err(|second_error| {
+                            RuntimeError::new(format!(
+                                "malformed assistant stream; retry also failed: {second_error} (first attempt: {first_error})"
+                            ))
+                        })?
+                    }
+                };
             reasoning_text.push_str(&iteration_reasoning);
             if !iteration_reasoning.is_empty() {
                 event_log.push(AgentEvent::new(
@@ -321,9 +371,22 @@ where
             assistant_messages.push(assistant_message);
 
             if pending_tool_uses.is_empty() {
+                // Stop hook：deny(2) 阻断退出并把 hook 输出作为 user 消息续跑；
+                // 熔断上限兜底。hook 未授权/未配置时按 allow 语义正常退出。
+                let stop_result = self.hook_runner.run_stop("no_tool_uses");
+                if stop_result.is_denied() && stop_hook_blocks < MAX_STOP_HOOK_BLOCKS {
+                    stop_hook_blocks += 1;
+                    self.session.messages.push(ConversationMessage::user_text(format!(
+                        "[Stop hook blocked turn end]\n{}",
+                        format_hook_message(&stop_result, "Stop hook denied turn end")
+                    )));
+                    continue;
+                }
                 break;
             }
 
+            let batch_call_count = pending_tool_uses.len();
+            let mut batch_error_count = 0usize;
             for (tool_use_id, tool_name, input) in pending_tool_uses {
                 // 顺序硬约束（§7.3 保证表）：
                 //   宿主预检查（权限闸门）→ pre-tool hook → 目标执行器 → post-tool hook。
@@ -336,14 +399,34 @@ where
                     authorize_call(&self.permission_policy, &tool_name, &input, &mut prompter)
                 };
 
-                let result_message = match permission_outcome {
-                    PermissionOutcome::Deny { reason } => {
+                // AllowWithInput：审批方可改写输入；updated_permissions 回写策略。
+                // 无论哪种放行，后续 gate/hook/execute 一律使用 effective_input。
+                let (mut effective_input, denied_reason) = match permission_outcome {
+                    PermissionOutcome::AllowWithInput {
+                        updated_input,
+                        updated_permissions,
+                    } => {
+                        if let Some(updates) = updated_permissions {
+                            for (tool, mode) in updates {
+                                self.permission_policy =
+                                    self.permission_policy.clone().with_tool_requirement(tool, mode);
+                            }
+                        }
+                        (updated_input, None)
+                    }
+                    PermissionOutcome::Allow => (input, None),
+                    PermissionOutcome::Deny { reason } => (input, Some(reason)),
+                };
+
+                let result_message = match denied_reason {
+                    Some(reason) => {
                         // 宿主 deny 生效：目标执行器零调用，hook 也不运行。
                         ConversationMessage::tool_result(tool_use_id, tool_name, reason, true)
                     }
-                    PermissionOutcome::Allow => {
+                    None => {
                         // 没有独立执行授权的 hook 不会被运行（其中的事实仍被记录）。
-                        let pre_hook_result = self.hook_runner.run_pre_tool_use(&tool_name, &input);
+                        let pre_hook_result =
+                            self.hook_runner.run_pre_tool_use(&tool_name, &effective_input);
                         if pre_hook_result.is_denied() {
                             // 获授权的 hook deny ⇒ 目标执行器零调用；hook 自身的输出
                             // 仍然记录在结果里，不因为拒绝而丢失。
@@ -364,7 +447,7 @@ where
                                     authorize_call(
                                         &self.permission_policy,
                                         &tool_name,
-                                        &input,
+                                        &effective_input,
                                         &mut prompter,
                                     )
                                 });
@@ -395,8 +478,24 @@ where
                                     )
                                 }
                                 _ => {
+                                    // 重判也可能返回 AllowWithInput——同样照收。
+                                    if let Some(PermissionOutcome::AllowWithInput {
+                                        updated_input,
+                                        updated_permissions,
+                                    }) = rejudged
+                                    {
+                                        if let Some(updates) = updated_permissions {
+                                            for (tool, mode) in updates {
+                                                self.permission_policy = self
+                                                    .permission_policy
+                                                    .clone()
+                                                    .with_tool_requirement(tool, mode);
+                                            }
+                                        }
+                                        effective_input = updated_input;
+                                    }
                                     let (mut output, mut is_error) =
-                                        match self.tool_executor.execute(&tool_name, &input) {
+                                        match self.tool_executor.execute(&tool_name, &effective_input) {
                                             Ok(output) => (output, false),
                                             Err(error) => (error.to_string(), true),
                                         };
@@ -405,7 +504,7 @@ where
 
                                     // post-tool hook 只在目标执行器真正跑过之后运行。
                                     let post_hook_result = self.hook_runner.run_post_tool_use(
-                                        &tool_name, &input, &output, is_error,
+                                        &tool_name, &effective_input, &output, is_error,
                                     );
                                     if post_hook_result.is_denied() {
                                         is_error = true;
@@ -427,8 +526,29 @@ where
                         }
                     }
                 };
+                if result_message.blocks.iter().any(|block| {
+                    matches!(block, ContentBlock::ToolResult { is_error: true, .. })
+                }) {
+                    batch_error_count += 1;
+                }
                 self.session.messages.push(result_message.clone());
                 tool_results.push(result_message);
+            }
+
+            // PostToolBatch：同一助手消息的全部 tool_use 派发完毕后触发一次。
+            // 反馈合并进批次最后一个 tool_result（deny 同时标为错误），不伪造
+            // 额外消息、不回放已完成的执行。
+            let batch_hook = self.hook_runner.run_post_tool_batch(&format!(
+                "{batch_call_count} calls, {batch_error_count} errors"
+            ));
+            if !batch_hook.messages().is_empty() {
+                let feedback = format_hook_message(&batch_hook, "PostToolBatch hook feedback");
+                merge_into_last_tool_result(
+                    &mut self.session.messages,
+                    &feedback,
+                    batch_hook.is_denied(),
+                );
+                merge_into_last_tool_result(&mut tool_results, &feedback, batch_hook.is_denied());
             }
         }
 
@@ -441,10 +561,19 @@ where
         if let Err(mut error) = outcome {
             // 终态取实际错误来源，避免收尾时的新取消覆盖已发生的模型/解析失败。
             let interruption = error.interruption;
+            let end_reason = if interruption.is_some() {
+                TurnEndReason::Interrupted
+            } else {
+                failure_reason
+            };
             event_log.push(AgentEvent::new(
                 next_event_sequence, self.thread_id.clone(), turn_id.clone(), None,
                 if interruption.is_some() { AgentEventKind::TurnInterrupted } else { AgentEventKind::TurnFailed },
-                serde_json::json!({"error": error.to_string(), "interruption": interruption.map(|reason| format!("{reason:?}"))}),
+                serde_json::json!({
+                    "error": error.to_string(),
+                    "interruption": interruption.map(|reason| format!("{reason:?}")),
+                    "end_reason": end_reason.as_str(),
+                }),
             ));
             error.events = event_log;
             return Err(error);
@@ -458,10 +587,12 @@ where
             serde_json::json!({
                 "iterations": iterations,
                 "reasoning_chars": reasoning_text.chars().count(),
+                "end_reason": TurnEndReason::Completed.as_str(),
             }),
         ));
 
         Ok(TurnSummary {
+            end_reason: TurnEndReason::Completed,
             thread_id: self.thread_id.clone(),
             turn_id,
             context_snapshot,
@@ -576,6 +707,25 @@ fn format_hook_message(result: &HookRunResult, fallback: &str) -> String {
         fallback.to_string()
     } else {
         result.messages().join("\n")
+    }
+}
+
+/// 把批次级 hook 反馈合并进最后一条 tool_result 消息（会话与 summary 各自持有
+/// 克隆，需要分别合并保持一致）。
+fn merge_into_last_tool_result(
+    messages: &mut [ConversationMessage],
+    feedback: &str,
+    denied: bool,
+) {
+    if let Some(message) = messages.last_mut() {
+        for block in &mut message.blocks {
+            if let ContentBlock::ToolResult { output, is_error, .. } = block {
+                *output = format!("{output}\n\nHook feedback (batch):\n{feedback}");
+                if denied {
+                    *is_error = true;
+                }
+            }
+        }
     }
 }
 
@@ -720,6 +870,11 @@ mod tests {
         PermissionPolicy::new(PermissionMode::DangerFullAccess)
             .with_tool_requirement(HOOK_CAPABILITY_PRE_TOOL_USE, PermissionMode::DangerFullAccess)
             .with_tool_requirement(HOOK_CAPABILITY_POST_TOOL_USE, PermissionMode::DangerFullAccess)
+            .with_tool_requirement(
+                crate::hooks::HOOK_CAPABILITY_POST_TOOL_BATCH,
+                PermissionMode::DangerFullAccess,
+            )
+            .with_tool_requirement(crate::hooks::HOOK_CAPABILITY_STOP, PermissionMode::DangerFullAccess)
     }
 
     /// 记录调用次数的工具执行器（"目标执行器零调用"的可断言证据）。
@@ -1580,6 +1735,292 @@ mod tests {
 
         assert_eq!(runtime.usage().turns(), 1);
         assert_eq!(runtime.usage().cumulative_usage().total_tokens(), 21);
+    }
+
+    /// 脚本化模型客户端：按队列应答，队列空时回退为 "done"+MessageStop。
+    struct QueueApiClient {
+        calls: usize,
+        responses: std::collections::VecDeque<Result<Vec<AssistantEvent>, RuntimeError>>,
+    }
+
+    impl QueueApiClient {
+        fn new(responses: Vec<Result<Vec<AssistantEvent>, RuntimeError>>) -> Self {
+            Self {
+                calls: 0,
+                responses: responses.into(),
+            }
+        }
+    }
+
+    impl ApiClient for QueueApiClient {
+        fn stream(&mut self, _request: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+            self.calls += 1;
+            self.responses.pop_front().unwrap_or_else(|| {
+                Ok(vec![
+                    AssistantEvent::TextDelta("done".to_string()),
+                    AssistantEvent::MessageStop,
+                ])
+            })
+        }
+    }
+
+    /// 记录每次执行输入的工具执行器（AllowWithInput 的证据）。
+    #[derive(Clone, Default)]
+    struct InputRecorder {
+        inputs: Arc<std::sync::Mutex<Vec<String>>>,
+    }
+
+    impl InputRecorder {
+        fn inputs(&self) -> Vec<String> {
+            self.inputs.lock().expect("inputs").clone()
+        }
+
+        fn handler(&self, output: &'static str) -> impl FnMut(&str) -> Result<String, ToolError> + 'static {
+            let inputs = Arc::clone(&self.inputs);
+            move |input| {
+                inputs.lock().expect("inputs").push(input.to_string());
+                Ok(output.to_string())
+            }
+        }
+    }
+
+    #[test]
+    fn malformed_stream_is_retried_exactly_once_then_fails() {
+        let malformed = || Ok(vec![AssistantEvent::TextDelta("sin cierre".to_string())]);
+        let client = QueueApiClient::new(vec![malformed(), malformed(), malformed()]);
+        let mut runtime = ConversationRuntime::new(
+            Session::new(),
+            client,
+            StaticToolExecutor::new(),
+            PermissionPolicy::new(PermissionMode::DangerFullAccess),
+            Vec::new(),
+        );
+
+        let error = runtime.run_turn("go", None).unwrap_err();
+
+        assert!(error.to_string().contains("malformed assistant stream"));
+        assert!(error.to_string().contains("without a message stop"));
+        assert_eq!(runtime.api_client.calls, 2, "exactly one retry, not a loop");
+        let last = error.events().last().unwrap();
+        assert_eq!(last.kind, crate::agent_event::AgentEventKind::TurnFailed);
+        assert_eq!(last.payload["end_reason"], "failed");
+    }
+
+    #[test]
+    fn malformed_stream_retry_recovers_and_completes() {
+        let client = QueueApiClient::new(vec![
+            Ok(vec![AssistantEvent::TextDelta("truncado".to_string())]),
+            Ok(vec![
+                AssistantEvent::TextDelta("ok".to_string()),
+                AssistantEvent::MessageStop,
+            ]),
+        ]);
+        let mut runtime = ConversationRuntime::new(
+            Session::new(),
+            client,
+            StaticToolExecutor::new(),
+            PermissionPolicy::new(PermissionMode::DangerFullAccess),
+            Vec::new(),
+        );
+
+        let summary = runtime.run_turn("go", None).expect("retry should recover");
+
+        assert_eq!(runtime.api_client.calls, 2);
+        assert_eq!(summary.end_reason, super::TurnEndReason::Completed);
+        assert_eq!(summary.iterations, 1);
+        assert_eq!(
+            summary.events.last().unwrap().payload["end_reason"],
+            "completed"
+        );
+    }
+
+    #[test]
+    fn max_iterations_reports_structured_end_reason() {
+        let client = QueueApiClient::new(Vec::new());
+        let mut runtime = ConversationRuntime::new(
+            Session::new(),
+            client,
+            StaticToolExecutor::new(),
+            PermissionPolicy::new(PermissionMode::DangerFullAccess),
+            Vec::new(),
+        )
+        .with_max_iterations(0);
+
+        let error = runtime.run_turn("go", None).unwrap_err();
+
+        assert_eq!(
+            error.events().last().unwrap().payload["end_reason"],
+            "max_iterations"
+        );
+        assert_eq!(runtime.api_client.calls, 0, "no model request should be made");
+    }
+
+    #[test]
+    fn prompt_allow_with_input_executes_the_replacement_input() {
+        let recorder = InputRecorder::default();
+        let mut prompter = ScriptedPrompter::new(vec![PermissionPromptDecision::AllowWithInput {
+            updated_input: r#"{"path":"updated.txt"}"#.to_string(),
+            updated_permissions: None,
+        }]);
+        let mut runtime = ConversationRuntime::new(
+            Session::new(),
+            OneToolUseApiClient {
+                tool_name: "blocked",
+                tool_input: r#"{"path":"original.txt"}"#,
+            },
+            StaticToolExecutor::new().register("blocked", recorder.handler("tool-output")),
+            PermissionPolicy::new(PermissionMode::WorkspaceWrite)
+                .with_tool_requirement("blocked", PermissionMode::DangerFullAccess),
+            Vec::new(),
+        );
+
+        let summary = runtime
+            .run_turn("use the tool", Some(&mut prompter))
+            .expect("updated input should execute");
+
+        assert_eq!(prompter.seen(), 1);
+        assert_eq!(recorder.inputs(), vec![r#"{"path":"updated.txt"}"#]);
+        assert!(matches!(
+            &summary.tool_results[0].blocks[0],
+            ContentBlock::ToolResult { is_error: false, output, .. } if output == "tool-output"
+        ));
+    }
+
+    /// 每个回合都请求同一工具调用的模型（奇数流 tool_use、偶数流收尾）。
+    struct RepeatToolClient {
+        calls: usize,
+    }
+
+    impl ApiClient for RepeatToolClient {
+        fn stream(&mut self, _request: ApiRequest) -> Result<Vec<AssistantEvent>, RuntimeError> {
+            self.calls += 1;
+            if self.calls % 2 == 1 {
+                return Ok(vec![
+                    AssistantEvent::ToolUse {
+                        id: "tool-1".to_string(),
+                        name: "blocked".to_string(),
+                        input: r#"{"path":"x.txt"}"#.to_string(),
+                    },
+                    AssistantEvent::MessageStop,
+                ]);
+            }
+            Ok(vec![
+                AssistantEvent::TextDelta("done".to_string()),
+                AssistantEvent::MessageStop,
+            ])
+        }
+    }
+
+    #[test]
+    fn prompt_updated_permissions_persist_for_later_calls() {
+        let mut updates = std::collections::BTreeMap::new();
+        updates.insert("blocked".to_string(), PermissionMode::WorkspaceWrite);
+        let recorder = InputRecorder::default();
+        let mut prompter = ScriptedPrompter::new(vec![PermissionPromptDecision::AllowWithInput {
+            updated_input: r#"{"path":"a.txt"}"#.to_string(),
+            updated_permissions: Some(updates),
+        }]);
+        let mut runtime = ConversationRuntime::new(
+            Session::new(),
+            RepeatToolClient { calls: 0 },
+            StaticToolExecutor::new().register("blocked", recorder.handler("tool-output")),
+            PermissionPolicy::new(PermissionMode::WorkspaceWrite)
+                .with_tool_requirement("blocked", PermissionMode::DangerFullAccess),
+            Vec::new(),
+        );
+
+        runtime
+            .run_turn("first", Some(&mut prompter))
+            .expect("first call approved");
+        // Segunda llamada SIN prompter: la actualización de permisos persistida
+        // (WorkspaceWrite) ya cubre el modo activo ⇒ debe ejecutar sin preguntar.
+        runtime
+            .run_turn("second", None)
+            .expect("persisted permission should allow the second call");
+
+        assert_eq!(prompter.seen(), 1, "only the first call prompted");
+        assert_eq!(recorder.inputs().len(), 2);
+    }
+
+    #[test]
+    fn post_tool_batch_hook_feedback_merges_into_last_result() {
+        let batch = CountingHook::new("conv-batch-deny");
+        let counter = CallCounter::new();
+        let mut runtime = ConversationRuntime::new_with_features(
+            Session::new(),
+            OneToolUseApiClient {
+                tool_name: "worker",
+                tool_input: "{}",
+            },
+            StaticToolExecutor::new().register("worker", counter.handler("tool-output")),
+            PermissionPolicy::new(PermissionMode::DangerFullAccess)
+                .with_tool_requirement("worker", PermissionMode::ReadOnly),
+            vec!["system".to_string()],
+            RuntimeFeatureConfig::default().with_hooks(
+                RuntimeHookConfig::new(Vec::new(), Vec::new())
+                    .with_post_tool_batch(vec![batch.deny_command()]),
+            ),
+        )
+        .with_hook_authorization(hook_authorization());
+
+        let summary = runtime.run_turn("use the tool", None).expect("turn completes");
+
+        assert_eq!(counter.count(), 1, "batch hook runs after the tool, not instead of it");
+        assert!(batch.ran(), "authorized batch hook must run");
+        let (output, is_error) = single_tool_result(&summary);
+        assert!(is_error, "batch denial marks the batch result as error");
+        assert!(output.contains("tool-output"), "tool output preserved: {output}");
+        assert!(
+            output.contains(&batch.transcript_marker()),
+            "batch hook output merged: {output}"
+        );
+        batch.cleanup();
+    }
+
+    #[test]
+    fn stop_hook_denial_reloops_until_the_fuse() {
+        let stop = CountingHook::new("conv-stop-deny");
+        let client = QueueApiClient::new(Vec::new());
+        let mut runtime = ConversationRuntime::new_with_features(
+            Session::new(),
+            client,
+            StaticToolExecutor::new(),
+            PermissionPolicy::new(PermissionMode::DangerFullAccess),
+            vec!["system".to_string()],
+            RuntimeFeatureConfig::default().with_hooks(
+                RuntimeHookConfig::new(Vec::new(), Vec::new())
+                    .with_stop(vec![stop.deny_command()]),
+            ),
+        )
+        .with_hook_authorization(hook_authorization());
+
+        let summary = runtime
+            .run_turn("go", None)
+            .expect("stop denial must not fail the turn, only extend it");
+
+        assert!(stop.ran(), "authorized stop hook must run");
+        assert_eq!(summary.iterations, 9, "8 blocked stops + final exit at the fuse");
+        assert_eq!(runtime.api_client.calls, 9);
+        let injected = summary
+            .events
+            .iter()
+            .filter(|event| event.kind == crate::agent_event::AgentEventKind::MessageDone)
+            .count();
+        assert_eq!(injected, 9);
+        let stop_messages = runtime
+            .session()
+            .messages
+            .iter()
+            .filter(|message| {
+                message.role == MessageRole::User
+                    && message.blocks.iter().any(|block| matches!(
+                        block,
+                        ContentBlock::Text { text } if text.contains("Stop hook blocked turn end")
+                    ))
+            })
+            .count();
+        assert_eq!(stop_messages, 8, "each denied stop injects one feedback message");
+        stop.cleanup();
     }
 
     #[test]

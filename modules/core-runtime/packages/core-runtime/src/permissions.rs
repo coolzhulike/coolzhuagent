@@ -92,6 +92,12 @@ pub struct PermissionRequest {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PermissionPromptDecision {
     Allow,
+    /// 放行但以审批方修改后的输入执行（对齐 Claude Code `updatedInput`）；
+    /// 可选附带权限更新（`updatedPermissions`），由宿主回写策略。
+    AllowWithInput {
+        updated_input: String,
+        updated_permissions: Option<BTreeMap<String, PermissionMode>>,
+    },
     Deny { reason: String },
 }
 
@@ -102,6 +108,10 @@ pub trait PermissionPrompter {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PermissionOutcome {
     Allow,
+    AllowWithInput {
+        updated_input: String,
+        updated_permissions: Option<BTreeMap<String, PermissionMode>>,
+    },
     Deny { reason: String },
 }
 
@@ -178,6 +188,13 @@ impl PermissionPolicy {
             return match prompter.as_mut() {
                 Some(prompter) => match prompter.decide(&request) {
                     PermissionPromptDecision::Allow => PermissionOutcome::Allow,
+                    PermissionPromptDecision::AllowWithInput {
+                        updated_input,
+                        updated_permissions,
+                    } => PermissionOutcome::AllowWithInput {
+                        updated_input,
+                        updated_permissions,
+                    },
                     PermissionPromptDecision::Deny { reason } => PermissionOutcome::Deny { reason },
                 },
                 None => PermissionOutcome::Deny {

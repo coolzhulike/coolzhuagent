@@ -15,10 +15,18 @@ pub const HOOK_CAPABILITY_PRE_TOOL_USE: &str = "hook:PreToolUse";
 /// post-tool hook 的能力名。与 pre hook 分开声明，遵循最小权限。
 pub const HOOK_CAPABILITY_POST_TOOL_USE: &str = "hook:PostToolUse";
 
+/// 同一助手消息全部 tool_use 派发完毕后的批次 hook 能力名。
+pub const HOOK_CAPABILITY_POST_TOOL_BATCH: &str = "hook:PostToolBatch";
+
+/// 主循环即将退出前触发的 Stop hook 能力名；deny 可阻断退出。
+pub const HOOK_CAPABILITY_STOP: &str = "hook:Stop";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HookEvent {
     PreToolUse,
     PostToolUse,
+    PostToolBatch,
+    Stop,
 }
 
 impl HookEvent {
@@ -26,6 +34,8 @@ impl HookEvent {
         match self {
             Self::PreToolUse => "PreToolUse",
             Self::PostToolUse => "PostToolUse",
+            Self::PostToolBatch => "PostToolBatch",
+            Self::Stop => "Stop",
         }
     }
 
@@ -34,6 +44,8 @@ impl HookEvent {
         match self {
             Self::PreToolUse => HOOK_CAPABILITY_PRE_TOOL_USE,
             Self::PostToolUse => HOOK_CAPABILITY_POST_TOOL_USE,
+            Self::PostToolBatch => HOOK_CAPABILITY_POST_TOOL_BATCH,
+            Self::Stop => HOOK_CAPABILITY_STOP,
         }
     }
 }
@@ -184,6 +196,36 @@ impl HookRunner {
             tool_input,
             Some(tool_output),
             is_error,
+        )
+    }
+
+    /// 同一助手消息的整个 tool_use 批次派发完毕后触发一次。
+    ///
+    /// `batch_summary` 由宿主汇总（如 `"3 calls, 1 error"`）；deny(2) 的结果由
+    /// 宿主决定如何反馈给模型。
+    #[must_use]
+    pub fn run_post_tool_batch(&self, batch_summary: &str) -> HookRunResult {
+        self.run_commands(
+            HookEvent::PostToolBatch,
+            self.config.post_tool_batch(),
+            "batch",
+            batch_summary,
+            Some(batch_summary),
+            false,
+        )
+    }
+
+    /// 主循环退出前触发；`stop_reason` 描述退出原因（如 `no_tool_uses`）。
+    /// deny(2) 由宿主解释为"阻断退出，注入 hook 输出继续循环"。
+    #[must_use]
+    pub fn run_stop(&self, stop_reason: &str) -> HookRunResult {
+        self.run_commands(
+            HookEvent::Stop,
+            self.config.stop(),
+            "turn",
+            stop_reason,
+            None,
+            false,
         )
     }
 
@@ -355,6 +397,8 @@ fn shell_command(command: &str) -> CommandWithStdin {
         // 带引号的路径会被改写成反斜线+引号，cmd 执行失败后仅留下警告。
         // /S 只剥离这层完整外引号，保留命令开头可执行路径和参数自身的引号。
         command_builder.arg("/D").arg("/S").arg("/C").raw_arg(format!("\"{command}\""));
+        // 已授权 hook 子进程同样不继承凭据/注入变量；HOOK_* 显式设置在之后不受影响。
+        crate::env_denylist::sanitize_command_env(&mut command_builder);
         CommandWithStdin::new(command_builder)
     };
 
@@ -362,6 +406,7 @@ fn shell_command(command: &str) -> CommandWithStdin {
     let command_builder = {
         let mut command_builder = Command::new("sh");
         command_builder.arg("-lc").arg(command);
+        crate::env_denylist::sanitize_command_env(&mut command_builder);
         CommandWithStdin::new(command_builder)
     };
 
