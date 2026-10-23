@@ -76,6 +76,14 @@ __pycache__/
 **/*.p12
 **/*.pfx
 
+# Local execution state and captured browser/desktop artifacts
+/.claw/
+/.playwright-cli/
+/deploy/
+/.diag-quota.lock
+/.diag-quota.members
+/err.log.lock
+
 # OS / editor
 Thumbs.db
 .DS_Store
