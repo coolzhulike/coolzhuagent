@@ -1,0 +1,50 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\build.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\build.rs",
+    "sha256": "8f4a009c0524f2e013a802ef43dd91bb5cd8bee29a59d32631cf3b6fda5196da",
+    "archive_sha256": "8f4a009c0524f2e013a802ef43dd91bb5cd8bee29a59d32631cf3b6fda5196da"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\Cargo.toml",
+    "sha256": "b2a88074c685ac3185f136bd84eb515e83e54b5ce9052a0a9181bc6e11de7750",
+    "archive_sha256": "b2a88074c685ac3185f136bd84eb515e83e54b5ce9052a0a9181bc6e11de7750"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\src\\launch_paths.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\src\\launch_paths.rs",
+    "sha256": "13d050427319457321d294c905e01345e9b0277f5e23212b67ba98ab81d489b8",
+    "archive_sha256": "13d050427319457321d294c905e01345e9b0277f5e23212b67ba98ab81d489b8"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\src\\lib.rs",
+    "sha256": "73b8642924e8cfe5777d43fd797bdc6c17067cf99d749ba65e928feadaa40b59",
+    "archive_sha256": "73b8642924e8cfe5777d43fd797bdc6c17067cf99d749ba65e928feadaa40b59"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\src\\main.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\src\\main.rs",
+    "sha256": "d6da624f292083d36393f0d83f6f1c71e95bc0537b8a0363e637e5943e6a404d",
+    "archive_sha256": "d6da624f292083d36393f0d83f6f1c71e95bc0537b8a0363e637e5943e6a404d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\src\\native_recovery.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\src\\native_recovery.rs",
+    "sha256": "66738a7c9f840730ce5ad39b044d086e056f74c7a96e4b50e68e0c7c2feff408",
+    "archive_sha256": "66738a7c9f840730ce5ad39b044d086e056f74c7a96e4b50e68e0c7c2feff408"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\src\\service_identity.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\src\\service_identity.rs",
+    "sha256": "aa78f879791d476887e28ca559f22e347f5b5c0897ee97a47f44705b09c46256",
+    "archive_sha256": "aa78f879791d476887e28ca559f22e347f5b5c0897ee97a47f44705b09c46256"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\packages\\app-launcher\\src\\startup_diagnostics.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\packages\\app-launcher\\src\\startup_diagnostics.rs",
+    "sha256": "a0e5cc00053a9fde0c3f949484c6d1d99a9143918e40255f5783eaa15d51432b",
+    "archive_sha256": "a0e5cc00053a9fde0c3f949484c6d1d99a9143918e40255f5783eaa15d51432b"
+  }
+]

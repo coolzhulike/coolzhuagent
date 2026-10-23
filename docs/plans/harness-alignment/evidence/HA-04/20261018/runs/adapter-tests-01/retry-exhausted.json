@@ -1,0 +1,34 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": "http_error",
+      "wire": {
+        "model": "claude-sonnet-4-6",
+        "parameters_digest": "sha256:0733f7afd47b05cd18b39e1fc1a4b3c549cdfc40bef7c1d0f76701e9d8dcf023",
+        "stream": false,
+        "tool_names": [
+          "get_weather"
+        ],
+        "tools_digest": "sha256:c43f12e376322c223aedb72caab4bce94dda5286000588cfd91f450b92273d93"
+      }
+    },
+    {
+      "attempt": 2,
+      "status": "http_error",
+      "wire": {
+        "model": "claude-sonnet-4-6",
+        "parameters_digest": "sha256:0733f7afd47b05cd18b39e1fc1a4b3c549cdfc40bef7c1d0f76701e9d8dcf023",
+        "stream": false,
+        "tool_names": [
+          "get_weather"
+        ],
+        "tools_digest": "sha256:c43f12e376322c223aedb72caab4bce94dda5286000588cfd91f450b92273d93"
+      }
+    }
+  ],
+  "raw_http_bodies": [
+    "{\"max_tokens\":64,\"messages\":[{\"content\":[{\"text\":\"Say hello\",\"type\":\"text\"},{\"content\":[{\"type\":\"json\",\"value\":{\"forecast\":\"sunny\"}}],\"tool_use_id\":\"toolu_prev\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"claude-sonnet-4-6\",\"system\":\"Use tools when needed\",\"tool_choice\":{\"type\":\"auto\"},\"tools\":[{\"description\":\"Fetches the weather\",\"input_schema\":{\"properties\":{\"city\":{\"type\":\"string\"}},\"required\":[\"city\"],\"type\":\"object\"},\"name\":\"get_weather\"}]}",
+    "{\"max_tokens\":64,\"messages\":[{\"content\":[{\"text\":\"Say hello\",\"type\":\"text\"},{\"content\":[{\"type\":\"json\",\"value\":{\"forecast\":\"sunny\"}}],\"tool_use_id\":\"toolu_prev\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"claude-sonnet-4-6\",\"system\":\"Use tools when needed\",\"tool_choice\":{\"type\":\"auto\"},\"tools\":[{\"description\":\"Fetches the weather\",\"input_schema\":{\"properties\":{\"city\":{\"type\":\"string\"}},\"required\":[\"city\"],\"type\":\"object\"},\"name\":\"get_weather\"}]}"
+  ]
+}

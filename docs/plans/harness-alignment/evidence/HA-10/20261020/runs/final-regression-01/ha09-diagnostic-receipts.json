@@ -1,0 +1,117 @@
+{
+  "fallback": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\fallback.txt' -Value run; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\fallback.txt' -Value run; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792517626794,
+        "id": "goal-command-1792517626472-33576-16",
+        "input_digest": "5f87525a00db488e5ade990e0603cce4e64fbf09d2f81313626778e8b2000822",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517626472,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "fallback_line_count": 1,
+  "mismatch": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\mismatch.txt' -Value runtime; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\mismatch.txt' -Value runtime; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792517627452,
+        "id": "goal-command-1792517627150-33576-17",
+        "input_digest": "5f87525a00db488e5ade990e0603cce4e64fbf09d2f81313626778e8b2000822",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517627150,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "mismatch_line_count": 1,
+  "reused": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\reused.txt' -Value run; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\reused.txt' -Value run; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792517626435,
+        "id": "tool-process-33576-1792517626435",
+        "input_digest": "5f87525a00db488e5ade990e0603cce4e64fbf09d2f81313626778e8b2000822",
+        "reason": "复用模型诊断的真实宿主回执",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517626063,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "reused_line_count": 1,
+  "tool": {
+    "assistantAutoBackgrounded": null,
+    "backgroundTaskId": null,
+    "backgroundedByUser": null,
+    "dangerouslyDisableSandbox": null,
+    "executionReceipt": {
+      "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN\\reused.txt' -Value run; exit 0",
+      "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp9tphMN",
+      "exitCode": 0,
+      "finishedAtUnixMs": 1792517626435,
+      "id": "tool-process-33576-1792517626435",
+      "interrupted": false,
+      "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+      "startedAtUnixMs": 1792517626063,
+      "timeoutMs": 90000
+    },
+    "interrupted": false,
+    "isImage": null,
+    "noOutputExpected": true,
+    "persistedOutputPath": null,
+    "persistedOutputSize": null,
+    "rawOutputPath": null,
+    "returnCodeInterpretation": null,
+    "sandboxStatus": null,
+    "stderr": "",
+    "stdout": "",
+    "structuredContent": null
+  }
+}

@@ -1,0 +1,8 @@
+﻿{
+    "independent_cargo_test_exit":  0,
+    "final_lib":  "pub fn mul(a: i32, b: i32) -\u003e i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: \u0026[f64]) -\u003e f64 { v.iter().sum::\u003cf64\u003e() / v.len() as f64 } | pub fn shout(s: \u0026str) -\u003e String { s.to_uppercase() }",
+    "side":  "candidate",
+    "independent_cargo_test_tail":  "   Doc-tests ha11_multi\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n",
+    "round":  3,
+    "run_output":  "elapsed_ms=53436 http=200 room=room-1792635005037 out=D:\\coolzhuagent\\docs\\plans\\harness-alignment\\evidence\\HA-11\\20261021\\runs\\b04-candidate-3"
+}

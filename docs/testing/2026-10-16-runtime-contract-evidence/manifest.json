@@ -1,0 +1,176 @@
+{
+  "at_utc": "2026-10-16T16:38:31.915506+00:00",
+  "passed": 20,
+  "failed": 0,
+  "excluded_scope_checks": 8,
+  "files": [
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-runtime-matrices-review-20261016.json",
+      "file": "controller-runtime-matrices-review-20261016.json",
+      "bytes": 2846,
+      "sha256": "5ede42be51b64be175311c041049144a56d81577c5de4286a62f8028ea597fef"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-runtime-ledger-sync-20261016.log",
+      "file": "controller-runtime-ledger-sync-20261016.log",
+      "bytes": 613,
+      "sha256": "8bfdbe12a212fb9e1d5eb92e51c71f8da06bbf3a2d18b41f5122518ad0ff4582"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-runtime-final-health-20261016.json",
+      "file": "controller-runtime-final-health-20261016.json",
+      "bytes": 410,
+      "sha256": "44bb3446a94973ecbc86027bface649283444259420efaf59be26bc6e17875a0"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-complete-runtime-matrices-first-failure-20261016.log",
+      "file": "controller-complete-runtime-matrices-first-failure-20261016.log",
+      "bytes": 455,
+      "sha256": "a76e8edd14496f60f87810b03b1f2969664784e4efde9d7b279d5819e6531660"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-complete-runtime-matrices-20261016.py",
+      "file": "controller-complete-runtime-matrices-20261016.py",
+      "bytes": 12369,
+      "sha256": "c3127b46d5648be71b064550877588e60f8d816cf1113b908febaefb514de7a3"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-ledger-review-20261016.py",
+      "file": "controller-ledger-review-20261016.py",
+      "bytes": 18748,
+      "sha256": "bd19ba8c6bb6ded0ae948cdbd47878d83082d059194b0bdc6ef6613f3cc24dea"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-writer-live-matrix-20261016.py",
+      "file": "controller-writer-live-matrix-20261016.py",
+      "bytes": 8605,
+      "sha256": "5c1a2ea65340b9ab7d98549deb193a241a5fbb3e514dd859bf71d11b3a45fc0a"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-writer-live-matrix-20261016.json",
+      "file": "controller-writer-live-matrix-20261016.json",
+      "bytes": 5999,
+      "sha256": "57b632ccd9d8aa5a5d0528ee938ef31bc58af71c10be03bc7589c8e9dab59575"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-writer-live-matrix-20261016.log",
+      "file": "controller-writer-live-matrix-20261016.log",
+      "bytes": 553,
+      "sha256": "ac3a7dc733e03f595d65e313ff84a7cc1397ddf7dbc13365c9e8db9a4df84415"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-recovery-contract-matrix-20261016.py",
+      "file": "controller-recovery-contract-matrix-20261016.py",
+      "bytes": 14285,
+      "sha256": "ce14f12d204eebe058e3400bff056a024a3d8ea1cf2d519a1aa3a4b8644c5f90"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-recovery-contract-matrix-20261016.json",
+      "file": "controller-recovery-contract-matrix-20261016.json",
+      "bytes": 6091,
+      "sha256": "83a317463e510f5b4ed627aa596e51d1c262d734b2560fd2fef85c90edd25369"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-recovery-contract-matrix-20261016.log",
+      "file": "controller-recovery-contract-matrix-20261016.log",
+      "bytes": 902,
+      "sha256": "b1e649aba9c23dd1a2485efdca1260ea57c5db7bf58fa4f17710509fd56a33f2"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-permission-expiry-matrix-20261016.py",
+      "file": "controller-permission-expiry-matrix-20261016.py",
+      "bytes": 10952,
+      "sha256": "d64ef4acf5d55746e8905fb25a60938bc48d7cba3f1fbb160b35a6c16da076d5"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-permission-expiry-matrix-20261016.json",
+      "file": "controller-permission-expiry-matrix-20261016.json",
+      "bytes": 3435,
+      "sha256": "1fe17b4b873945cf40fa715a16b6d2f2b7d522e652fd471e916a07adf1928a78"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-permission-expiry-matrix-20261016.log",
+      "file": "controller-permission-expiry-matrix-20261016.log",
+      "bytes": 566,
+      "sha256": "c6a8fbc077708bae1831053302c7bd85c658ba1dc9f4ccf726e5a66ef2f80fd3"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\new-vs-old\\server.log",
+      "file": "other-matrix-20261016/writer-live/new-vs-old/server.log",
+      "bytes": 158,
+      "sha256": "7001f291f6c8e20e746e955869b160d6edab7a8ef2340839b1378856fd34698d"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\owner-135\\server.log",
+      "file": "other-matrix-20261016/writer-live/owner-135/server.log",
+      "bytes": 728,
+      "sha256": "24154b5cbab732b5e6b9b710fb2f384abbe8d95a3b80fd83d735e45bb349d920"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\reacquired-135\\server.log",
+      "file": "other-matrix-20261016/writer-live/reacquired-135/server.log",
+      "bytes": 728,
+      "sha256": "a164d9ae0a7bd94f4e6e888fc3ae7d8930d8e9c7231303935bdebea7c6a6c143"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\recovery-135\\server.log",
+      "file": "other-matrix-20261016/writer-live/recovery-135/server.log",
+      "bytes": 728,
+      "sha256": "d744c5b68e26294ee3147d3fbb9a8fc4a81a2cd2d13cb346338fb4f9cb3443b0"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\rejected-134\\server.log",
+      "file": "other-matrix-20261016/writer-live/rejected-134/server.log",
+      "bytes": 158,
+      "sha256": "7001f291f6c8e20e746e955869b160d6edab7a8ef2340839b1378856fd34698d"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\rejected-135\\server.log",
+      "file": "other-matrix-20261016/writer-live/rejected-135/server.log",
+      "bytes": 158,
+      "sha256": "7001f291f6c8e20e746e955869b160d6edab7a8ef2340839b1378856fd34698d"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\writer-live\\successor-134\\server.log",
+      "file": "other-matrix-20261016/writer-live/successor-134/server.log",
+      "bytes": 728,
+      "sha256": "1ad1f95ca7f2eab2a56036b0c9635f9f88f1c7bf2f47e349df1215996432ce91"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\recovery-contract\\server-1.log",
+      "file": "other-matrix-20261016/recovery-contract/server-1.log",
+      "bytes": 728,
+      "sha256": "3e244b75a26a64da2eecfead5986c2aa85935331d5b3611f6b0a7242175b21e5"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\recovery-contract\\server-2.log",
+      "file": "other-matrix-20261016/recovery-contract/server-2.log",
+      "bytes": 728,
+      "sha256": "9a7d6504d78e4119a08056344bccd2ce60e66f10f0c3bd63c7d983b5510c30d7"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\recovery-contract\\server-3.log",
+      "file": "other-matrix-20261016/recovery-contract/server-3.log",
+      "bytes": 728,
+      "sha256": "36d1e8ad04fda600454c502a9ae78623219718b4bef34f9ddec5ac151742e664"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\recovery-contract\\server-4.log",
+      "file": "other-matrix-20261016/recovery-contract/server-4.log",
+      "bytes": 728,
+      "sha256": "dcc9b63437c1ad78af94daf58eac519c0aa85ca6de639d0bc0863114e459bfe4"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\permission-expiry\\server-1.log",
+      "file": "other-matrix-20261016/permission-expiry/server-1.log",
+      "bytes": 1697,
+      "sha256": "e1840bec606734cd145ea7bbcbbd3e40ecf16adaf7cbdce72dd6d82be47f8f91"
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\other-matrix-20261016\\permission-expiry\\server-2.log",
+      "file": "other-matrix-20261016/permission-expiry/server-2.log",
+      "bytes": 944,
+      "sha256": "6f6c8d0c7a9f6e73f8d47eab6efb51e623c1505fd7363a2f08670bd0126a31cf"
+    }
+  ]
+}

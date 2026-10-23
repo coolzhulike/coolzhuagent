@@ -1,0 +1,16 @@
+{
+  "state": "completed",
+  "exit_code": 0,
+  "command": "cargo build -p coolzhu-web-console --offline -j 1 --target-dir <统一临时根>/cargo-target",
+  "at_utc": "2026-10-16T16:13:50.066848+00:00",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-build-20261016.log",
+  "log_sha256": "c57fa1ea2dc9dcb6ad83b6b6e1767ce365de46922b21676d6bba3511937e4ddb",
+  "scope": "新增schema迁移故障测试后按仓库约定实际构建；没有新增生产行为修复；定点test4/4及前端9/9另见日志，未重跑完整套件",
+  "source_hashes": {
+    "modules/gui-web/packages/web-console/src/schema_upgrade.rs": "10349ccb39fb0438de82856425fc784d987ecc0456b71e0cfbe5d9248dde61ae",
+    "modules/gui-web/packages/web-console/tests/chat-trace-locate-sync.test.cjs": "607509817bf5e694ed116a86d6abf1acafd9b6e310f0ea26d59b2efbaebbff27",
+    "modules/gui-web/packages/web-console/src/workspace_panels.js": "d2292b676b5ed483c34ebc619c1480f538deb0343f6a7271dc7010820ac35892",
+    "modules/gui-web/packages/web-console/src/chat_insights.rs": "2929c2441f343b4aa0abf3dce41b43da9c3baabd7042f8c5c7ec40a8eef918cb",
+    "config/package-launcher.json": "d56dd2ca33f730d7145dbdde36f9782e9c14dfa3f4fcad6446c4f0342cab579d"
+  }
+}

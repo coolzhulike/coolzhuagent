@@ -37,6 +37,8 @@ pub(super) struct DiscoveredModel {
     id: String,
     name: String,
     input_modalities: Option<Vec<String>>,
+    output_modalities: Option<Vec<String>>,
+    generation_fields: Value,
     image_input: Option<bool>,
     capability_source: &'static str,
     capability_reference: Option<&'static str>,
@@ -126,6 +128,8 @@ fn listing_url(base: &Url, protocol: &str, endpoint: Option<&str>) -> Result<Url
         let route_protocol = match protocol {
             "openai_chat_completions" => api::ProviderProtocol::OpenAiChatCompletions,
             "anthropic_messages" => api::ProviderProtocol::AnthropicMessages,
+            "openai_images_generations" => api::ProviderProtocol::OpenAiImagesGenerations,
+            "openai_videos" => api::ProviderProtocol::OpenAiVideos,
             _ => return Err("该协议暂不支持发现模型，请手动填写模型 ID。"),
         };
         let resolved = api::EndpointResolver::resolve(base.as_str(), route_protocol, Some(endpoint))
@@ -141,6 +145,11 @@ fn listing_url(base: &Url, protocol: &str, endpoint: Option<&str>) -> Result<Url
         .unwrap_or(&route_path);
     match protocol {
         "openai_chat_completions" => url.set_path(&format!("{path}/models")),
+        "openai_images_generations" | "openai_videos" => {
+            let root=path.strip_suffix("/images/generations").or_else(||path.strip_suffix("/images")).or_else(||path.strip_suffix("/videos")).unwrap_or(path);
+            if base.host_str()==Some("openrouter.ai") {url.set_path(&format!("{root}/{}/models",if protocol=="openai_videos"{"videos"}else{"images"}));}
+            else {url.set_path(&format!("{root}/models"));}
+        },
         "anthropic_messages" => {
             let root = path.strip_suffix("/v1").unwrap_or(path);
             url.set_path(&format!("{root}/v1/models"));
@@ -239,6 +248,16 @@ fn modalities(entry: &Value) -> (Option<Vec<String>>, Option<bool>) {
     (None, None)
 }
 
+fn generation_fields(entry:&Value)->Value {
+    let mut fields=entry["supported_parameters"].as_object().cloned().unwrap_or_default();
+    for (source,key) in [("supported_durations","duration"),("supported_resolutions","resolution"),("supported_aspect_ratios","aspect_ratio"),("supported_sizes","size")] {
+        if let Some(values)=entry[source].as_array().filter(|v|!v.is_empty()) {fields.insert(key.into(),serde_json::json!({"type":"enum","values":values}));}
+    }
+    if entry["generate_audio"]==true {fields.insert("generate_audio".into(),serde_json::json!({"type":"boolean"}));}
+    if !entry["seed"].is_null() && entry["seed"]!=false {fields.insert("seed".into(),entry["seed"].clone());}
+    Value::Object(fields)
+}
+
 fn parse_listing(body: &Value) -> Result<(Vec<DiscoveredModel>, bool), &'static str> {
     let rows: Vec<(Option<&str>, &Value)> =
         if let Some(rows) = body.get("data").and_then(Value::as_array) {
@@ -290,6 +309,8 @@ fn parse_listing(body: &Value) -> Result<(Vec<DiscoveredModel>, bool), &'static 
             id,
             name,
             input_modalities,
+            output_modalities: entry.pointer("/architecture/output_modalities").or_else(||entry.get("output_modalities")).and_then(Value::as_array).map(|a|a.iter().filter_map(Value::as_str).map(str::to_string).collect()),
+            generation_fields: generation_fields(entry),
             image_input,
             capability_source,
             capability_reference: None,

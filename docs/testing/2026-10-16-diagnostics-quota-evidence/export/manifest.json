@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "kind": "coolzhu-diagnostics-bundle",
+  "redaction": "applied",
+  "uploaded": false,
+  "limits": {"max_file_bytes": 8388608, "max_total_bytes": 33554432},
+  "entries": [
+    {"path": "logs/sample.txt", "status": "exported", "bytes": 32, "sha256": "9fa79285b0f7b816de629a3e4e00c22b5af4e6698b2c805380345eb2918b9cf4", "note": null}
+  ]
+}

@@ -1,0 +1,97 @@
+{
+ "run_id": "run-chat-048a65af3dc3b19f53acb6efbf05f17c7a09f55e1c4e03eb",
+ "tool_executions": 13,
+ "rows": [
+  {
+   "tool_call_id": "tool-0c40fcaeeb71e9f0297250c03182083aa98f98e9dd77a88b0af7ef8f1c8604a6",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792687389405,
+   "updated_ms": 1792687390284
+  },
+  {
+   "tool_call_id": "tool-741d22fcd3150a793cc7c42e2ec21ed168d9d5685dd96852ce9b57bc22563536",
+   "tool_name": "TodoWrite",
+   "status": "completed",
+   "created_ms": 1792687389406,
+   "updated_ms": 1792687390510
+  },
+  {
+   "tool_call_id": "tool-495c86eb514b49950035bd9def0bcd2dc410a04deec4041c40666e88b0d4249f",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687403423,
+   "updated_ms": 1792687406602
+  },
+  {
+   "tool_call_id": "tool-6c3a134ab5c9ab3cf4b708025a9688eb8094b1e0c48c8b6516d102ecf95ba127",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687403846,
+   "updated_ms": 1792687409373
+  },
+  {
+   "tool_call_id": "tool-e24b3a437badb2c9be9f5dbf670a3f75f311d5ea434e33a69bf2ae4be0e1af99",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687403639,
+   "updated_ms": 1792687409373
+  },
+  {
+   "tool_call_id": "tool-1f59553940fed1cd0b522ce21ad69ad906cb71b7657eea464e4065c7727068c9",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687403846,
+   "updated_ms": 1792687409373
+  },
+  {
+   "tool_call_id": "tool-b3c7dfecbad28317feef162667293a260e99d5534edbcceb3cb8558031b971d0",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687417968,
+   "updated_ms": 1792687420818
+  },
+  {
+   "tool_call_id": "tool-1f03f5f20cda1ae9a324fc4fb36f6d8e92a0efa94d1f782192abcbbb2e299d9b",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687418032,
+   "updated_ms": 1792687421337
+  },
+  {
+   "tool_call_id": "tool-2351750a73872571be2a52bd180c08324bd4d614ef82860eb099a3aa2a431c19",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687418188,
+   "updated_ms": 1792687420922
+  },
+  {
+   "tool_call_id": "tool-7a85c54bc728dc2886f0d2237989954c4275a4849a4ecd937b62facbb757b1ec",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687432918,
+   "updated_ms": 1792687434645
+  },
+  {
+   "tool_call_id": "tool-7fc6e6bb514d7086d62e07f5c91b04caa014e042ecaca3ee5b9cc5d66b59a509",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687433092,
+   "updated_ms": 1792687434291
+  },
+  {
+   "tool_call_id": "tool-e3b64e72d09b8fe2b1a90327f1191c1cee3d79a8b34c7d3ca8347e71a9293a6e",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687433126,
+   "updated_ms": 1792687435280
+  },
+  {
+   "tool_call_id": "tool-68c0143c45ac60982cfb85eb787db248de935eb80acad7c63f6484e8a9221524",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792687444590,
+   "updated_ms": 1792687454840
+  }
+ ]
+}

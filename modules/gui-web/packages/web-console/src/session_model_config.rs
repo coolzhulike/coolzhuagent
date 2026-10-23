@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub(super) struct SessionModelLimitOverride {
     #[serde(default)]
+    pub(super) generation: Option<super::media_generation::Config>,
+    #[serde(default)]
     pub(super) backend_kind: Option<agent_session_backend::AgentSessionBackend>,
     #[serde(default)]
     pub(super) context_window: u32,
@@ -44,8 +46,11 @@ pub(super) fn model_settings_protocol(agent: &AgentSessionDto, settings: &Sessio
     match agent_session_backend::AgentSessionBackend::for_provider(&agent.provider) {
         agent_session_backend::AgentSessionBackend::DevinAcp => return "devin_acp",
         agent_session_backend::AgentSessionBackend::DevinCloud => return "devin_cloud",
+        agent_session_backend::AgentSessionBackend::OpenaiSubscription => return "openai_subscription",
         agent_session_backend::AgentSessionBackend::LlmHttp => {}
     }
+    if agent.model_type == "image" { return "openai_images_generations"; }
+    if agent.model_type == "video" { return "openai_videos"; }
     match settings.protocol.as_deref() {
         Some("anthropic_messages") => "anthropic_messages",
         Some("openai_chat_completions") => "openai_chat_completions",
@@ -70,7 +75,13 @@ pub(super) fn model_settings_base_url(agent: &AgentSessionDto, settings: &Sessio
 
 pub(super) fn validate_http_parameters(settings: &SessionModelLimitOverride, agent: &AgentSessionDto) -> Result<(), String> {
     let invalid = |message: &str| message.to_owned();
-    if !matches!(settings.protocol.as_deref(), None | Some("openai_chat_completions" | "anthropic_messages")) {
+    if let Some(config)=&settings.generation {
+        let mut effective=agent.clone();effective.base_url=Some(model_settings_base_url(agent,settings));
+        super::media_generation::validate(config,&effective)?;
+    }
+    if matches!(settings.protocol.as_deref(),Some("openai_images_generations")) && agent.model_type!="image"
+        || matches!(settings.protocol.as_deref(),Some("openai_videos")) && agent.model_type!="video" {return Err(invalid("生成协议与模型用途不匹配"));}
+    if !matches!(settings.protocol.as_deref(), None | Some("openai_chat_completions" | "anthropic_messages" | "openai_images_generations" | "openai_videos")) {
         return Err(invalid("不支持该模型协议"));
     }
     if settings.turn_timeout_ms.is_some_and(|value| !(60_000..=86_400_000).contains(&value)) {

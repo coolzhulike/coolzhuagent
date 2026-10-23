@@ -116,6 +116,85 @@ $script:PayloadInventoryCarrierName = 'payload-inventory.json'
 $script:SourceSnapshotFreezeRoot = 'tmp/source-snapshots'
 # 报告保留索引与 latest 指针所在目录（相对仓库根）。
 $script:PackageReportRoot = 'tmp/package-reports'
+# WBS 0.1 统一临时根：设置 COOLZHU_ACCEPTANCE_TMP_ROOT 后，所有默认落在 <repo>\tmp 的
+# 临时产物改落该目录下的同名子路径；该值必须解析为 <repo>\tmp 本身或其子目录，
+# 未设置时保持既有 <repo>\tmp 行为（发布路径不受影响）。
+function Get-IdentityTmpRoot {
+  param([Parameter(Mandatory = $true)][string]$RepoPath)
+  $repoFull = [System.IO.Path]::GetFullPath($RepoPath).TrimEnd('\', '/')
+  $defaultRoot = Join-Path $repoFull 'tmp'
+  $override = [string]$env:COOLZHU_ACCEPTANCE_TMP_ROOT
+  if ([string]::IsNullOrWhiteSpace($override)) { return $defaultRoot }
+  $resolved = [System.IO.Path]::GetFullPath($override).TrimEnd('\', '/')
+  $defaultFull = [System.IO.Path]::GetFullPath($defaultRoot).TrimEnd('\', '/')
+  $allowedPrefix = $defaultFull + [System.IO.Path]::DirectorySeparatorChar
+  if (-not ($resolved.Equals($defaultFull, [System.StringComparison]::OrdinalIgnoreCase) -or $resolved.StartsWith($allowedPrefix, [System.StringComparison]::OrdinalIgnoreCase))) {
+    throw "COOLZHU_ACCEPTANCE_TMP_ROOT must stay inside the workspace tmp directory: $resolved"
+  }
+  return $resolved
+}
+
+function Resolve-IdentityTmpPath {
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [Parameter(Mandatory = $true)][string]$Relative
+  )
+  $sub = ($Relative -replace '^tmp[\\/]', '') -replace '/', '\'
+  return (Join-Path (Get-IdentityTmpRoot -RepoPath $RepoPath) $sub)
+}
+
+
+function Resolve-AcceptanceOutputPath {
+  # WBS 0.1 打包产物定向（显式 opt-in）：仅当 COOLZHU_ACCEPTANCE_TMP_ROOT 设置时生效，
+  # 把仓内构建产物根重定向到验收根下同名相对路径：
+  #   modules/<名>/target[/...] 与顶层 target[/...]  ->  <验收根>/<同相对路径>
+  #   <repo>/tmp[/...]                                ->  沿用 Resolve-IdentityTmpPath 规则
+  # 其它路径（非产物目录、仓外绝对路径）原样透传；env 未设置时完全保持正式默认语义。
+  # 验收根本身必须落在当前工作树 tmp 内（由 Get-IdentityTmpRoot 强制校验），
+  # 因此重定向后的路径仍在仓内，不会绕过既有的仓内/包根包含校验。
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [Parameter(Mandatory = $true)][string]$Path
+  )
+  if ([string]::IsNullOrWhiteSpace([string]$env:COOLZHU_ACCEPTANCE_TMP_ROOT)) { return $Path }
+  $repoFull = [System.IO.Path]::GetFullPath($RepoPath).TrimEnd('\', '/')
+  $candidate = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $repoFull $Path }
+  $full = [System.IO.Path]::GetFullPath($candidate).TrimEnd('\', '/')
+  $prefix = $repoFull + [System.IO.Path]::DirectorySeparatorChar
+  if (-not $full.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) { return $Path }
+  $rel = $full.Substring($prefix.Length)
+  $redirects = ($rel -match '^tmp[\\/]') -or ($rel -match '^(modules[\\/][^\\/]+[\\/]target|target)([\\/]|$)')
+  if (-not $redirects) { return $Path }
+  # 越界 fail-closed：只有真正需要重定向的路径才解析验收根；env 不在工作树 tmp 内时此处抛出。
+  $accRoot = (Get-IdentityTmpRoot -RepoPath $repoFull).TrimEnd('\', '/')
+  $accPrefix = $accRoot + [System.IO.Path]::DirectorySeparatorChar
+  # 幂等：路径已在验收根内（无论绝对还是 repo 相对 tmp/ 形式）时原样返回，不重复拼接。
+  if ($full.Equals($accRoot, [System.StringComparison]::OrdinalIgnoreCase) -or
+      $full.StartsWith($accPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    return $full
+  }
+  if ($rel -match '^tmp[\\/]') {
+    return (Resolve-IdentityTmpPath -RepoPath $repoFull -Relative $rel)
+  }
+  return (Join-Path $accRoot $rel)
+}
+
+function ConvertTo-AcceptanceBuildArgs {
+  # 对构建参数列表做验收定向：把每个 --target-dir 的值交给 Resolve-AcceptanceOutputPath 解析，
+  # 其余参数原样保留；env 未设置时等价于原列表副本（正式打包语义不变）。
+  param(
+    [Parameter(Mandatory = $true)][string]$RepoPath,
+    [AllowEmptyCollection()][object[]]$Arguments
+  )
+  $out = @($Arguments | ForEach-Object { [string]$_ })
+  for ($i = 0; $i -lt $out.Count; $i++) {
+    if ($out[$i] -eq '--target-dir' -and ($i + 1) -lt $out.Count) {
+      $out[$i + 1] = Resolve-AcceptanceOutputPath -RepoPath $RepoPath -Path $out[$i + 1]
+      $i++
+    }
+  }
+  return $out
+}
 
 function New-IdentityFailureText {
   param(
@@ -706,7 +785,7 @@ function Write-SourceSnapshotFreezeRecord {
     [Parameter(Mandatory = $true)][object]$Snapshot
   )
 
-  $root = Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) $script:SourceSnapshotFreezeRoot
+  $root = Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:SourceSnapshotFreezeRoot
   New-Item -ItemType Directory -Force -Path $root | Out-Null
   $path = Join-Path $root ("source-snapshot-{0}.json" -f $Snapshot.source_snapshot_digest)
 
@@ -1218,8 +1297,7 @@ function ConvertTo-IdentityBoolOrUnknown {
 function Get-PackageReportRootPath {
   param([Parameter(Mandatory = $true)][string]$RepoPath)
 
-  $repoFull = [System.IO.Path]::GetFullPath($RepoPath)
-  return (Join-Path $repoFull ($script:PackageReportRoot -replace '/', '\'))
+  return (Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:PackageReportRoot)
 }
 
 function Get-PackageFailureReportRoot {
@@ -1249,7 +1327,7 @@ function Get-PackageRunStatusPath {
 function Get-PackageFailureQuarantineRoot {
   param([Parameter(Mandatory = $true)][string]$RepoPath)
 
-  return (Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) ($script:PackageFailureQuarantineRoot -replace '/', '\'))
+  return (Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:PackageFailureQuarantineRoot)
 }
 
 function Get-PackageArtifactReleaseStatusPath {
@@ -2309,7 +2387,7 @@ $script:CargoLockSemantics = [ordered]@{
 
 function Get-PackageInputFreezeRoot {
   param([Parameter(Mandatory = $true)][string]$RepoPath)
-  return (Join-Path ([System.IO.Path]::GetFullPath($RepoPath)) $script:PackageInputFreezeRoot)
+  return (Resolve-IdentityTmpPath -RepoPath $RepoPath -Relative $script:PackageInputFreezeRoot)
 }
 
 function Get-PackagePrepareReportRoot {

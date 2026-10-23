@@ -194,6 +194,7 @@ mod tests {
             notes: Vec::new(),
             runtime: None,
             execution_failed: false,
+            request_bindings: Vec::new(),
         };
         assert!(require_completed(&response).is_err());
         for status in [

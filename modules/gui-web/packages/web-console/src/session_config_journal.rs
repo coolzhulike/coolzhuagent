@@ -131,6 +131,23 @@ mod tests {
         let config = super::super::load_workspace_config_at(&super::super::active_workspace_path());
         assert_eq!(config.configuration_revision, snapshot.configuration_revision);
         super::ensure_resolved(&db).unwrap();
+        let count=sessions.lock().unwrap().state.sessions.len();
+        let new_payload=||serde_json::from_value(serde_json::json!({
+            "parameters":{"temperature":0.4},
+            "session":{"name":"原子新会话","provider":"custom","model":"new-journal-model"},
+            "expected_revision":snapshot.configuration_revision
+        })).unwrap();
+        connection.execute_batch("CREATE TRIGGER reject_new_session BEFORE INSERT ON sessions BEGIN SELECT RAISE(ABORT, 'new session rollback'); END;").unwrap();
+        assert!(service.create(new_payload()).is_err());
+        assert_eq!(sessions.lock().unwrap().state.sessions.len(),count);
+        assert_eq!(super::super::read_config(|config|config.configuration_revision),snapshot.configuration_revision);
+        connection.execute_batch("DROP TRIGGER reject_new_session").unwrap();
+        let created=service.create(new_payload()).unwrap();
+        assert_eq!(sessions.lock().unwrap().state.sessions.len(),count+1);
+        let created=service.read(created).unwrap();
+        assert_eq!(created.session.name,"原子新会话");
+        assert_eq!(created.parameters.temperature,Some(0.4));
+        super::ensure_resolved(&db).unwrap();
     }
 
     #[test]

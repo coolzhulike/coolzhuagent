@@ -835,6 +835,7 @@ fn parse_filesystem_mode_label(value: &str) -> Result<FilesystemIsolationMode, C
         "off" => Ok(FilesystemIsolationMode::Off),
         "workspace-only" => Ok(FilesystemIsolationMode::WorkspaceOnly),
         "allow-list" => Ok(FilesystemIsolationMode::AllowList),
+        "windows-low-integrity" => Ok(FilesystemIsolationMode::WindowsLowIntegrity),
         other => Err(ConfigError::Parse(format!(
             "merged settings.sandbox.filesystemMode: unsupported filesystem mode {other}"
         ))),

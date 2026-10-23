@@ -1,0 +1,350 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T03-01-24-102Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T03-01-24-102Z.log",
+    "sha256": "43a9a674b857920397b0e6e543298e44e0d255e275fa6261a2380992ee63767d",
+    "archive_sha256": "43a9a674b857920397b0e6e543298e44e0d255e275fa6261a2380992ee63767d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T03-12-01-064Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T03-12-01-064Z.log",
+    "sha256": "f1dfb4930c15812abd6ba70ab16d3c68410a7ce3eae2d9c44e1d54649b03d1b0",
+    "archive_sha256": "f1dfb4930c15812abd6ba70ab16d3c68410a7ce3eae2d9c44e1d54649b03d1b0"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T06-42-05-547Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T06-42-05-547Z.log",
+    "sha256": "95675553e348278a77d7eb76fb6df7fc7f66714c33c2087a354259b86721a806",
+    "archive_sha256": "95675553e348278a77d7eb76fb6df7fc7f66714c33c2087a354259b86721a806"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T07-07-41-628Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T07-07-41-628Z.log",
+    "sha256": "2cbb6b45ee034efbc10d95f409bee4eed2c116274733d34bfd54444b77bfe0d5",
+    "archive_sha256": "2cbb6b45ee034efbc10d95f409bee4eed2c116274733d34bfd54444b77bfe0d5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T07-18-38-439Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T07-18-38-439Z.log",
+    "sha256": "2c78d9fe0a9e87c27c98e459f96962cb28e80d292abf2037e55ab3033d366b68",
+    "archive_sha256": "2c78d9fe0a9e87c27c98e459f96962cb28e80d292abf2037e55ab3033d366b68"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T07-29-55-672Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T07-29-55-672Z.log",
+    "sha256": "53b6d30d686b0edce1430e362784ba71ae4fbcf9dea8a4dc512064b6443e10ea",
+    "archive_sha256": "53b6d30d686b0edce1430e362784ba71ae4fbcf9dea8a4dc512064b6443e10ea"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T07-34-24-690Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T07-34-24-690Z.log",
+    "sha256": "2983b0d4d00a2902651cdf824afaaf9790c757d7f5af407dedd0b7b06d6ad76e",
+    "archive_sha256": "2983b0d4d00a2902651cdf824afaaf9790c757d7f5af407dedd0b7b06d6ad76e"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T16-39-00-695Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T16-39-00-695Z.log",
+    "sha256": "6fee1dcb921c1163f694fd752bb577c29af95383adf834eed26aaa7bfca581f7",
+    "archive_sha256": "6fee1dcb921c1163f694fd752bb577c29af95383adf834eed26aaa7bfca581f7"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T16-49-27-795Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T16-49-27-795Z.log",
+    "sha256": "1a7aaf7198a0d8a2a94095572d7ad507d6aa807205b84048b7e98027c4d3c188",
+    "archive_sha256": "1a7aaf7198a0d8a2a94095572d7ad507d6aa807205b84048b7e98027c4d3c188"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\console-2026-09-27T17-13-09-383Z.log",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\console-2026-09-27T17-13-09-383Z.log",
+    "sha256": "ba6e178d9354cdd704fd460b206d14bd62130cf3a8f2c91ffba5778c36baa02e",
+    "archive_sha256": "ba6e178d9354cdd704fd460b206d14bd62130cf3a8f2c91ffba5778c36baa02e"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\element-2026-09-27T03-02-39-106Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\element-2026-09-27T03-02-39-106Z.png",
+    "sha256": "8c836a8790027acba096852c1128e6b0793ae280637ef23817aacf50e1a91ead",
+    "archive_sha256": "8c836a8790027acba096852c1128e6b0793ae280637ef23817aacf50e1a91ead"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\element-2026-09-27T03-14-27-220Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\element-2026-09-27T03-14-27-220Z.png",
+    "sha256": "bd0609ef83c2bb9895266394c273acb2164fdc041dbb969eeb6d5b89570c7e0f",
+    "archive_sha256": "bd0609ef83c2bb9895266394c273acb2164fdc041dbb969eeb6d5b89570c7e0f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\element-2026-09-27T03-29-01-542Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\element-2026-09-27T03-29-01-542Z.png",
+    "sha256": "38994410d02fd2c30fa5aa2969b9880a10d77438bbf6d9758080a71a10a72db9",
+    "archive_sha256": "38994410d02fd2c30fa5aa2969b9880a10d77438bbf6d9758080a71a10a72db9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\element-2026-09-27T03-29-32-330Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\element-2026-09-27T03-29-32-330Z.png",
+    "sha256": "c219a7b200d01540ac1ec13b82bf669d7910425803fc40e7ea60f1e24149fc5e",
+    "archive_sha256": "c219a7b200d01540ac1ec13b82bf669d7910425803fc40e7ea60f1e24149fc5e"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-01-24-948Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-01-24-948Z.yml",
+    "sha256": "093b2fcc497b47ab8440f4c33a3be2f7885a82dc73be4c0efdd192dfb2f4ce66",
+    "archive_sha256": "093b2fcc497b47ab8440f4c33a3be2f7885a82dc73be4c0efdd192dfb2f4ce66"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-01-45-383Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-01-45-383Z.yml",
+    "sha256": "8d862d0c8d284eb975a763ce017111abab62e775e28b293e5ba89dac6ffbe8c5",
+    "archive_sha256": "8d862d0c8d284eb975a763ce017111abab62e775e28b293e5ba89dac6ffbe8c5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-02-00-969Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-02-00-969Z.yml",
+    "sha256": "6b4578258f8f887d969220dc0ff824f980e703be2f9f301de53499eb7ce5aec9",
+    "archive_sha256": "6b4578258f8f887d969220dc0ff824f980e703be2f9f301de53499eb7ce5aec9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-02-23-439Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-02-23-439Z.yml",
+    "sha256": "151ff1634132943bc1a832baa931081a7147affef8bf2a25b5a8ab669a0b3df6",
+    "archive_sha256": "151ff1634132943bc1a832baa931081a7147affef8bf2a25b5a8ab669a0b3df6"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-05-30-000Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-05-30-000Z.yml",
+    "sha256": "8c663da9d4e76a478c15a7d6b391d5aa98d1dd1e21230d8ab97c7f72dbf4826c",
+    "archive_sha256": "8c663da9d4e76a478c15a7d6b391d5aa98d1dd1e21230d8ab97c7f72dbf4826c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-12-01-986Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-12-01-986Z.yml",
+    "sha256": "093b2fcc497b47ab8440f4c33a3be2f7885a82dc73be4c0efdd192dfb2f4ce66",
+    "archive_sha256": "093b2fcc497b47ab8440f4c33a3be2f7885a82dc73be4c0efdd192dfb2f4ce66"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-12-17-553Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-12-17-553Z.yml",
+    "sha256": "ae29b14467e81dfe9c84f080765638b7457876f6bd5db010a1c4cf87c2495198",
+    "archive_sha256": "ae29b14467e81dfe9c84f080765638b7457876f6bd5db010a1c4cf87c2495198"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-13-45-179Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-13-45-179Z.yml",
+    "sha256": "777b852246f0653eb73cab0258af4f45e1ad62b42c85581b0faf6d640ded7a1c",
+    "archive_sha256": "777b852246f0653eb73cab0258af4f45e1ad62b42c85581b0faf6d640ded7a1c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-14-12-756Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-14-12-756Z.yml",
+    "sha256": "0d1a155a99337c206b7392ce5f5efa8094ed1d47a9d4a5fcd056bbf363cf2006",
+    "archive_sha256": "0d1a155a99337c206b7392ce5f5efa8094ed1d47a9d4a5fcd056bbf363cf2006"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-24-12-019Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-24-12-019Z.yml",
+    "sha256": "0b3bb579e4a0cb8c2b4e14f8459ea7015e3da6890fb9ef181dd09b891796aa38",
+    "archive_sha256": "0b3bb579e4a0cb8c2b4e14f8459ea7015e3da6890fb9ef181dd09b891796aa38"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-25-44-640Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-25-44-640Z.yml",
+    "sha256": "f022401b9fb5d8e81371c1b929044d9f260d27cfd8da9be3590f361927b7f0a4",
+    "archive_sha256": "f022401b9fb5d8e81371c1b929044d9f260d27cfd8da9be3590f361927b7f0a4"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-26-04-032Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-26-04-032Z.yml",
+    "sha256": "356dd57512b57fd1500285f160491c006678328dd00754dda38beff138127f30",
+    "archive_sha256": "356dd57512b57fd1500285f160491c006678328dd00754dda38beff138127f30"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-26-25-075Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-26-25-075Z.yml",
+    "sha256": "d2724222f044d7a3ed01fe406d3da6c84aba17cc1555b7204d8ca832aa7669d3",
+    "archive_sha256": "d2724222f044d7a3ed01fe406d3da6c84aba17cc1555b7204d8ca832aa7669d3"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-26-57-631Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-26-57-631Z.yml",
+    "sha256": "de16297f5afd42966d6de8c603d3f336aae1a6f7d13f1f7e46a3219f6268216b",
+    "archive_sha256": "de16297f5afd42966d6de8c603d3f336aae1a6f7d13f1f7e46a3219f6268216b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-27-25-393Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-27-25-393Z.yml",
+    "sha256": "c2aa7f5bc4ac86e554a9e69065311a47c99daa8ec7d3fbfe343c42924f45101c",
+    "archive_sha256": "c2aa7f5bc4ac86e554a9e69065311a47c99daa8ec7d3fbfe343c42924f45101c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-28-00-240Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-28-00-240Z.yml",
+    "sha256": "e15f87a43bc176dec5d8c6697485f8d28949351e400f70f4ae38d27477fbced9",
+    "archive_sha256": "e15f87a43bc176dec5d8c6697485f8d28949351e400f70f4ae38d27477fbced9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-28-13-193Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-28-13-193Z.yml",
+    "sha256": "2ae1bca1936c28da0f8a8b53350c6157b952c5bdf51ceed2c3176a58268e21f9",
+    "archive_sha256": "2ae1bca1936c28da0f8a8b53350c6157b952c5bdf51ceed2c3176a58268e21f9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-28-40-299Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-28-40-299Z.yml",
+    "sha256": "bba1f2426018d14cf9293411bf2bbbc65247f89db8415af816432883a413ebd7",
+    "archive_sha256": "bba1f2426018d14cf9293411bf2bbbc65247f89db8415af816432883a413ebd7"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T03-29-21-074Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T03-29-21-074Z.yml",
+    "sha256": "13fe65cb73cf07a001dec6ae2e558d33b8eeb9e75e4f0b6ad3ccd8e24ab7ac6b",
+    "archive_sha256": "13fe65cb73cf07a001dec6ae2e558d33b8eeb9e75e4f0b6ad3ccd8e24ab7ac6b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T06-42-06-050Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T06-42-06-050Z.yml",
+    "sha256": "3120f82790b7cd8ce7de819951f3ef20be5e93242407d70c8af29bbc85598f2b",
+    "archive_sha256": "3120f82790b7cd8ce7de819951f3ef20be5e93242407d70c8af29bbc85598f2b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-07-42-174Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-07-42-174Z.yml",
+    "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784",
+    "archive_sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-18-39-192Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-18-39-192Z.yml",
+    "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784",
+    "archive_sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-29-56-216Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-29-56-216Z.yml",
+    "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784",
+    "archive_sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-34-25-297Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-34-25-297Z.yml",
+    "sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784",
+    "archive_sha256": "a7db56cc6ee8191dba694fc3e2223e0a1b1853f38ec080a6217edc6702d22784"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-36-40-395Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-36-40-395Z.png",
+    "sha256": "fcd5271798461eed81f589c8878fd50d6f62ab2b447ef4ef560c34f9c5d69a17",
+    "archive_sha256": "fcd5271798461eed81f589c8878fd50d6f62ab2b447ef4ef560c34f9c5d69a17"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-38-56-651Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-38-56-651Z.png",
+    "sha256": "b9c2ccb1eabaf1aab3a9d075b783702a8c5f4f593147a784b33f10f7a7e43e96",
+    "archive_sha256": "b9c2ccb1eabaf1aab3a9d075b783702a8c5f4f593147a784b33f10f7a7e43e96"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-39-27-841Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-39-27-841Z.yml",
+    "sha256": "63abf917c96e0a7fe1ad213a856db50752e8bd8fead461587663a6708ba88288",
+    "archive_sha256": "63abf917c96e0a7fe1ad213a856db50752e8bd8fead461587663a6708ba88288"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T07-39-46-968Z.png",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T07-39-46-968Z.png",
+    "sha256": "c391249b8b39c40212b7a620bf08345842ed15c61f638da9fc60e62bcbb59aca",
+    "archive_sha256": "c391249b8b39c40212b7a620bf08345842ed15c61f638da9fc60e62bcbb59aca"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T16-39-01-139Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T16-39-01-139Z.yml",
+    "sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f",
+    "archive_sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T16-49-28-298Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T16-49-28-298Z.yml",
+    "sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f",
+    "archive_sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T16-54-31-465Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T16-54-31-465Z.yml",
+    "sha256": "60353eb21781d7ec2f4ead582b1230c23d2b23890dc4f6410fb571071bce6b7c",
+    "archive_sha256": "60353eb21781d7ec2f4ead582b1230c23d2b23890dc4f6410fb571071bce6b7c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T16-55-13-121Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T16-55-13-121Z.yml",
+    "sha256": "81f826a19f6f9c8495fcd9e0956aeddcf1f15d7e02aa7d577e9a71de39b85b72",
+    "archive_sha256": "81f826a19f6f9c8495fcd9e0956aeddcf1f15d7e02aa7d577e9a71de39b85b72"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T16-57-16-280Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T16-57-16-280Z.yml",
+    "sha256": "bc83dc55eb46e5208486d51f34354dbb28eeef698a13061578b9916f8ab87c20",
+    "archive_sha256": "bc83dc55eb46e5208486d51f34354dbb28eeef698a13061578b9916f8ab87c20"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T16-59-38-879Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T16-59-38-879Z.yml",
+    "sha256": "63c6497d380497baf91508099fc14f1ab318d3e786ea7c002ca5d7ce77cc653c",
+    "archive_sha256": "63c6497d380497baf91508099fc14f1ab318d3e786ea7c002ca5d7ce77cc653c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-00-20-804Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-00-20-804Z.yml",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-00-43-169Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-00-43-169Z.yml",
+    "sha256": "05b127906ed5c4f37eca9ce9c08a736656ea353771bb36a41fa4b519e10f054a",
+    "archive_sha256": "05b127906ed5c4f37eca9ce9c08a736656ea353771bb36a41fa4b519e10f054a"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-00-48-977Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-00-48-977Z.yml",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-01-12-154Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-01-12-154Z.yml",
+    "sha256": "3ae9833fed6b2b829b051531ad4883c58f8f43e19192159661222a15970bd3e9",
+    "archive_sha256": "3ae9833fed6b2b829b051531ad4883c58f8f43e19192159661222a15970bd3e9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-01-34-548Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-01-34-548Z.yml",
+    "sha256": "4c8d956894c41d1a2899acac454a7a7b065e5a5b2b566668ccc07980aafb9c1c",
+    "archive_sha256": "4c8d956894c41d1a2899acac454a7a7b065e5a5b2b566668ccc07980aafb9c1c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-03-07-835Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-03-07-835Z.yml",
+    "sha256": "6ef690bcbf9310b13ea8a10a4535c3ddf07ee2c73e62a910e977963882c01b4b",
+    "archive_sha256": "6ef690bcbf9310b13ea8a10a4535c3ddf07ee2c73e62a910e977963882c01b4b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-03-15-044Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-03-15-044Z.yml",
+    "sha256": "a98dc5d60b2ff5102efa1c236f293f3c34f1d07bd9f5cdca87e0c51354d04787",
+    "archive_sha256": "a98dc5d60b2ff5102efa1c236f293f3c34f1d07bd9f5cdca87e0c51354d04787"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-04-25-491Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-04-25-491Z.yml",
+    "sha256": "2591bbeb5f17d13c14334b3edca8c8475d327d4353c49893005ea4924e8056b1",
+    "archive_sha256": "2591bbeb5f17d13c14334b3edca8c8475d327d4353c49893005ea4924e8056b1"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-04-45-452Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-04-45-452Z.yml",
+    "sha256": "01fce697d3f80d24bac015439d889d0945abd818376b7ba4566c65aa2eab4c2c",
+    "archive_sha256": "01fce697d3f80d24bac015439d889d0945abd818376b7ba4566c65aa2eab4c2c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.playwright-cli\\page-2026-09-27T17-13-09-867Z.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.playwright-cli\\page-2026-09-27T17-13-09-867Z.yml",
+    "sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f",
+    "archive_sha256": "14e74ce328e60a0e2e869259f704719d0f74101f136b86bb3ff66b54e698ae8f"
+  }
+]

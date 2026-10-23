@@ -264,6 +264,14 @@ const SLASH_COMMAND_SPECS: &[SlashCommandSpec] = &[
         category: SlashCommandCategory::Session,
     },
     SlashCommandSpec {
+        name: "export-bundle",
+        aliases: &[],
+        summary: "Export a redacted diagnostics bundle directory (never uploaded)",
+        argument_hint: Some("[dir]"),
+        resume_supported: true,
+        category: SlashCommandCategory::Session,
+    },
+    SlashCommandSpec {
         name: "session",
         aliases: &[],
         summary: "List or switch managed local sessions",
@@ -356,6 +364,9 @@ pub enum SlashCommand {
     Export {
         path: Option<String>,
     },
+    ExportBundle {
+        dir: Option<String>,
+    },
     Session {
         action: Option<String>,
         target: Option<String>,
@@ -438,6 +449,9 @@ impl SlashCommand {
             "version" => Self::Version,
             "export" => Self::Export {
                 path: parts.next().map(ToOwned::to_owned),
+            },
+            "export-bundle" => Self::ExportBundle {
+                dir: parts.next().map(ToOwned::to_owned),
             },
             "session" => Self::Session {
                 action: parts.next().map(ToOwned::to_owned),
@@ -1829,6 +1843,7 @@ pub fn handle_slash_command(
         | SlashCommand::Diff
         | SlashCommand::Version
         | SlashCommand::Export { .. }
+        | SlashCommand::ExportBundle { .. }
         | SlashCommand::Session { .. }
         | SlashCommand::Plugins { .. }
         | SlashCommand::Agents { .. }
@@ -2236,6 +2251,16 @@ mod tests {
             })
         );
         assert_eq!(
+            SlashCommand::parse("/export-bundle"),
+            Some(SlashCommand::ExportBundle { dir: None })
+        );
+        assert_eq!(
+            SlashCommand::parse("/export-bundle out/diag"),
+            Some(SlashCommand::ExportBundle {
+                dir: Some("out/diag".to_string())
+            })
+        );
+        assert_eq!(
             SlashCommand::parse("/session switch abc123"),
             Some(SlashCommand::Session {
                 action: Some("switch".to_string()),
@@ -2305,6 +2330,7 @@ mod tests {
         assert!(help.contains("/diff"));
         assert!(help.contains("/version"));
         assert!(help.contains("/export [file]"));
+        assert!(help.contains("/export-bundle [dir]"));
         assert!(help.contains("/session [list|switch <session-id>]"));
         assert!(help.contains(
             "/plugin [list|install <path>|enable <name>|disable <name>|uninstall <id>|update <id>]"
@@ -2312,8 +2338,8 @@ mod tests {
         assert!(help.contains("aliases: /plugins, /marketplace"));
         assert!(help.contains("/agents"));
         assert!(help.contains("/skills"));
-        assert_eq!(slash_command_specs().len(), 28);
-        assert_eq!(resume_supported_slash_commands().len(), 13);
+        assert_eq!(slash_command_specs().len(), 29);
+        assert_eq!(resume_supported_slash_commands().len(), 14);
     }
 
     #[test]

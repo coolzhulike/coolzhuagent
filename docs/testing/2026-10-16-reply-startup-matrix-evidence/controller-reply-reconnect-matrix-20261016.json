@@ -1,0 +1,70 @@
+{
+  "started_at": "2026-10-16T16:00:24.056954+00:00",
+  "state": "completed",
+  "boundary": "完整135发布包隔离真实HTTP/SSE、合成回复及工具，不写生产数据或调用外部模型",
+  "binary": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "313cb9ece330628b03b40ad7ffb5b98b5fdf60927a9c2cce45925fcc9dda0f7c",
+  "production_database_touched": false,
+  "external_model_calls": 0,
+  "cases": [
+    {
+      "name": "4.2 SSE首次连接携带工作区并产生初始失效通知",
+      "state": "passed",
+      "evidence": [
+        "hello",
+        "history-changed"
+      ]
+    },
+    {
+      "name": "4.2 迟到工具前精确运行状态",
+      "state": "passed",
+      "evidence": {
+        "run_id": "owned-run",
+        "call_id": "owned-call",
+        "status": "running"
+      }
+    },
+    {
+      "name": "4.2 断线期间提交正文和工具终态，重连重读不串轮次",
+      "state": "passed",
+      "evidence": {
+        "events": [
+          "hello",
+          "history-changed"
+        ],
+        "one_latest_body": true,
+        "trace": {
+          "run_id": "owned-run",
+          "call_id": "owned-call",
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "name": "4.2 SSE与重读消息跨工程拒绝",
+      "state": "passed",
+      "evidence": [
+        {
+          "route": "history-events",
+          "status": 409
+        },
+        {
+          "route": "history-messages",
+          "status": 409
+        }
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\reply-reconnect",
+      "pid": 28796,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "ready_seconds": 36.691,
+      "process_exited": true
+    }
+  ],
+  "passed": 4,
+  "failed": 0
+}

@@ -1,0 +1,67 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "before_sha256": "d8a7cc3c541d9c15670d10e08e6c8700c989923a47119614c6aefb2c44d22181",
+    "after_sha256": "1f87e130e3383c5d33d1723059a6a77ae209eb48842e79ad306b8ace7f0da1f7"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/request_binding.rs",
+    "before_sha256": "5e09a0e33234989ce34e692b4281f735beeca0e116b5e5623726be0a646865cc",
+    "after_sha256": "b61687ca8b942fbeea1047593dad1ed2f694c05241e2501dcab5ca1820b9205f"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/request_usage.rs",
+    "before_sha256": "99cfea97ea702ab21a621f876bae63dfadc25d71cd7a9a45d1f428aed03dcd7a",
+    "after_sha256": "8e423a0d4d4946983761facb0202628e0ee8ff333d16f4f3165d2fade45837d6"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+    "before_sha256": "4f3534e8e31b1a93f5f9c35e0e1f74c0c73c645768198366453aa27e0bcbe710",
+    "after_sha256": "ebc26922670a17b6f92baaa43f6654f1134ccd64c49443a6f3a70f97829f677b"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/Cargo.toml",
+    "before_sha256": "e4e4411daabdf5c71242cb90176e802ccd554a7ebe9aa7c3f7cdc26f42065438",
+    "after_sha256": "d5a3a38173cfe7f107a1603e9a5be755267119ead6aaada2ab8361bc133e551d"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/lib.rs",
+    "before_sha256": "f440eaa28bca4f570d662a26470fa771307d924a48e52a220454b5eb1beaf989",
+    "after_sha256": "28223f9f3a8b1c283b51ae83b850ae3e99f8a4f8afb23a33793b6e6e2a2bd742"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/request_observer.rs",
+    "before_sha256": "f4e4c65d19805e78f74cc2106bf13a24d694732bb862ca8b2c05b02276346593",
+    "after_sha256": "e4a2358407c044cd02e04003ce66a7882d6ebf08f10f662294a7d072a46c35da"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/providers/claw_provider.rs",
+    "before_sha256": "59447fa00bb26dd0f2cd0cd567c2beb62e20b86ce40c63300d57347d1b050a8b",
+    "after_sha256": "d2869de71fba57b795b50fa8fc2600207dd200ade83520f4adb962a23220b430"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+    "before_sha256": "ce31284a00b01ea5ca3d51a5cd2387203e57a6d30f4a0166520def8078b6f78d",
+    "after_sha256": "0fd15ac4fddbf3d2dca5a9c601d08ed878db0a5b4e9aa947f87835f2f41b564b"
+  },
+  {
+    "path": "Cargo.lock",
+    "before_sha256": "8841a12ba0ec3e1ab2250036428a20221552330f6349cde455ea102a9b3b093e",
+    "after_sha256": "823c9c1a9c4fdd3dfffffd29fda4ea5b422f47d214ae8b74bf794592cc27421c"
+  },
+  {
+    "path": "modules/llm-adapter/packages/llm-adapter/tests/client_integration.rs",
+    "before_sha256": "863e0dae02aa63699d6d261f9b66f612ba9939b89898c5e133dfdde67d7420d5",
+    "after_sha256": "e5e4d308e62aa6e9af35113045b9e128635ecd88541236f47eb5dae47da6b1db"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/openai_subscription.rs",
+    "before_sha256": "393901527f9c4ee2c63309bf400f49c1d00a9f8a9295fcab294e46a0bbc3b7f2",
+    "after_sha256": "640424a933c1a175b8591c1c21091e042e42f42b58158a11ca5433ffb02e5999"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/ha04_tests.rs",
+    "before_sha256": null,
+    "after_sha256": "f7634bea3950cc8e2f489a11ddfe0396197a4a3619f620ee34b80fedd4c9079d"
+  }
+]

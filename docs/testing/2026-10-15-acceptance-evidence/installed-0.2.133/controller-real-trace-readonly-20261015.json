@@ -1,0 +1,59 @@
+{
+  "at_utc": "2026-10-15T19:29:41.274928+00:00",
+  "mode": "read_only",
+  "scope": "正式8765的真实历史run；不创建任务、不发送模型消息、不执行输入",
+  "workspace_id": "ws-8d17063fefe5c23c",
+  "room_id": "room-1791131523339",
+  "run_id": "run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645",
+  "positive": {
+    "method": "GET",
+    "route": "/api/chat/rooms/room-1791131523339/trace?run_id=run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645",
+    "http_status": 200,
+    "selected_runs": 1,
+    "status": "completed",
+    "source_message_id": "msg-1792082991263-user",
+    "tool_calls_matched_sqlite": 2
+  },
+  "negative": [
+    {
+      "case": "other_room",
+      "method": "GET",
+      "route": "/api/chat/rooms/main-room/trace?run_id=run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645",
+      "http_status": 404
+    },
+    {
+      "case": "other_workspace_run",
+      "method": "GET",
+      "route": "/api/chat/rooms/room-1791131523339/trace?run_id=run-chat-4f5ee693ae94b8e14809dee3569765b56d867bc1bf430f0e",
+      "http_status": 404
+    },
+    {
+      "case": "missing_run",
+      "method": "GET",
+      "route": "/api/chat/rooms/room-1791131523339/trace?run_id=missing-acceptance-run-20261015",
+      "http_status": 404
+    }
+  ],
+  "installed_source_matches": {
+    "modules/gui-web/packages/web-console/src/app.js": true,
+    "modules/gui-web/packages/web-console/src/workspace_panels.js": true
+  },
+  "ui_boundary": {
+    "source": "app.js attachMessageTraceLink → workspace_panels.js openTraceArchive",
+    "finding": "该消息按钮调用无参数openTraceArchive，加载并打开通用历史归档；没有将消息或run定位参数传入",
+    "ui_direct_run_proven": false,
+    "uia_query_name": "查看运行过程",
+    "uia_query_matches": 0,
+    "input_sent": false,
+    "remaining": [
+      "正式UI逐run直达",
+      "完整后代执行树汇总",
+      "迟到重连与并发写入矩阵"
+    ]
+  },
+  "state": "completed",
+  "exit_code": 0,
+  "passed": 4,
+  "failed": 0,
+  "ignored": 0
+}

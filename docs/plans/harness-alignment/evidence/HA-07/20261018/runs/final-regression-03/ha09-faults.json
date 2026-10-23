@@ -1,0 +1,28 @@
+{
+  "finalizer_error": "HA09_EXPECTED_STORAGE_FAULT",
+  "persisted_status": "running",
+  "persisted_verdict": null,
+  "unable_results": [
+    {
+      "contract": null,
+      "legacy_failures": null,
+      "reason": "读取Goal验证合同失败：Goal 不存",
+      "receipts": [],
+      "state": "unable"
+    },
+    {
+      "contract": null,
+      "legacy_failures": null,
+      "reason": "验证阶段不存在，未执行Command",
+      "receipts": [],
+      "state": "unable"
+    },
+    {
+      "contract": null,
+      "legacy_failures": null,
+      "reason": "读取Goal验证合同失败：Conversion error from type Text at index: 8, expected value at line 1 column 1",
+      "receipts": [],
+      "state": "unable"
+    }
+  ]
+}

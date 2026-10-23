@@ -1,0 +1,4 @@
+{"ts": 1792755289.2592676, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792755359.0506237, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792755421.2832682, "seq": 2, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792755476.5602953, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}

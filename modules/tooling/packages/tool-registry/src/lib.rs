@@ -11,7 +11,7 @@ use plugins::PluginTool;
 use reqwest::blocking::Client;
 use runtime::{
     edit_file, execute_bash, glob_search, grep_search, read_file, write_file,
-    BashCommandInput, GrepSearchInput, PermissionMode,
+    BashCommandInput, GrepSearchInput, PermissionMode, ProcessExecutionReceipt,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -20,6 +20,13 @@ use serde_json::{json, Value};
 /// Windows console output is not rendered as 乱码 in the terminal / tool windows.
 /// Tries UTF-8 first (covers programs that already emit UTF-8), then GB18030,
 /// and only falls back to lossy UTF-8 when both fail.
+fn unix_timestamp_millis() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_millis() as u64)
+        .unwrap_or(0)
+}
+
 fn decode_console_output(bytes: &[u8]) -> String {
     if let Ok(text) = std::str::from_utf8(bytes) {
         return text.to_string();
@@ -2669,9 +2676,9 @@ fn execute_repl(input: ReplInput) -> Result<ReplOutput, String> {
     command.args(runtime.args).arg(&input.code);
     let managed = runtime::managed_process::output(&mut command, input.timeout_ms.map(Duration::from_millis))
         .map_err(|error| error.to_string())?;
-    let output = managed.output;
+    let output = managed.output();
     let mut stderr = decode_console_output(&output.stderr);
-    if let Some(reason) = managed.interruption {
+    if let Some(reason) = managed.interruption() {
         if !stderr.is_empty() { stderr.push('\n'); }
         stderr.push_str(&format!("REPL 已停止，原因：{reason:?}；受管进程已退出"));
     }
@@ -2680,9 +2687,9 @@ fn execute_repl(input: ReplInput) -> Result<ReplOutput, String> {
         language: input.language,
         stdout: decode_console_output(&output.stdout),
         stderr,
-        exit_code: if managed.interruption.is_some() { 124 } else { output.status.code().unwrap_or(1) },
+        exit_code: if managed.interruption().is_some() { 124 } else { output.status.code().unwrap_or(1) },
         duration_ms: started.elapsed().as_millis(),
-        interrupted: managed.interruption.is_some(),
+        interrupted: managed.interruption().is_some(),
     })
 }
 
@@ -3019,6 +3026,11 @@ fn detect_powershell_shell() -> std::io::Result<String> {
     detect_powershell_shell_with(find_command_path)
 }
 
+/// Goal Command 与 PowerShell 工具共用同一解释器选择，避免宿主回执与实际执行器不一致。
+pub fn resolve_powershell_shell() -> std::io::Result<String> {
+    detect_powershell_shell()
+}
+
 /// 在**显式给出**的搜索目录集合里定位 PowerShell 可执行文件（P-08/I6 注入接缝，见
 /// [`execute_powershell_with_search_paths`]）。
 #[cfg(test)]
@@ -3156,23 +3168,42 @@ fn execute_shell_command(
             persisted_output_path: None,
             persisted_output_size: None,
             sandbox_status: None,
+            execution_receipt: None,
         });
     }
 
     let mut process = std::process::Command::new(shell);
     process.arg("-NoProfile").arg("-NonInteractive").arg("-Command").arg(command);
     if let Some(cwd) = cwd { process.current_dir(cwd); }
+    let started_at_unix_ms = unix_timestamp_millis();
     let managed = runtime::managed_process::output(&mut process, timeout.map(Duration::from_millis))?;
-    let output = managed.output;
+    let finished_at_unix_ms = unix_timestamp_millis();
+    let process_cwd = process.get_current_dir()
+        .map(Path::to_path_buf)
+        .or_else(|| std::env::current_dir().ok())
+        .unwrap_or_else(|| PathBuf::from("."));
+    let process_cwd = std::fs::canonicalize(&process_cwd).unwrap_or(process_cwd);
+    let execution_receipt = ProcessExecutionReceipt {
+        id: format!("tool-process-{}-{}", std::process::id(), unix_timestamp_millis()),
+        shell: shell.to_string(),
+        command: command.to_string(),
+        cwd: process_cwd.to_string_lossy().into_owned(),
+        timeout_ms: timeout.unwrap_or(0),
+        started_at_unix_ms,
+        finished_at_unix_ms,
+        exit_code: managed.output().status.code(),
+        interrupted: managed.interruption().is_some(),
+    };
+    let output = managed.output();
     let mut stderr = decode_console_output(&output.stderr);
-    if let Some(reason) = managed.interruption {
+    if let Some(reason) = managed.interruption() {
         if !stderr.is_empty() { stderr.push('\n'); }
         stderr.push_str(&match reason {
             runtime::managed_process::Interruption::TimedOut => format!("Command exceeded timeout of {} ms", timeout.unwrap_or(0)),
             runtime::managed_process::Interruption::Cancelled => "Command cancelled; managed process exited".to_string(),
         });
     }
-    let return_code_interpretation = managed.interruption.map(|reason| match reason {
+    let return_code_interpretation = managed.interruption().map(|reason| match reason {
         runtime::managed_process::Interruption::TimedOut => "timeout".to_string(),
         runtime::managed_process::Interruption::Cancelled => "cancelled".to_string(),
     }).or_else(|| output.status.code().filter(|code| *code != 0).map(|code| format!("exit_code:{code}")));
@@ -3180,7 +3211,7 @@ fn execute_shell_command(
         stdout: decode_console_output(&output.stdout),
         stderr,
         raw_output_path: None,
-        interrupted: managed.interruption.is_some(),
+        interrupted: managed.interruption().is_some(),
         is_image: None,
         background_task_id: None,
         backgrounded_by_user: None,
@@ -3192,6 +3223,7 @@ fn execute_shell_command(
         persisted_output_path: None,
         persisted_output_size: None,
         sandbox_status: None,
+        execution_receipt: Some(execution_receipt),
     })
 }
 

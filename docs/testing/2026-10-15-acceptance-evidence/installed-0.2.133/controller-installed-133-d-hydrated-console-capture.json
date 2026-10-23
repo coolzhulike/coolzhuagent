@@ -1,0 +1,212 @@
+{
+  "at_utc": "2026-10-15T19:09:49.440163+00:00",
+  "windows": [
+    {
+      "hwnd": 3016676,
+      "pid": 34004,
+      "title": "COOLZHU",
+      "class": "Tauri Window",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        200,
+        12,
+        2382,
+        1369
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 4654448,
+      "pid": 34004,
+      "title": "",
+      "class": "Tauri Window",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        180,
+        180,
+        408,
+        408
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 3344016,
+      "pid": 34004,
+      "title": "COOLZHU AGENT 控制台",
+      "class": "Tauri Window",
+      "visible": true,
+      "minimized": false,
+      "bounds": [
+        189,
+        12,
+        2371,
+        1367
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 2098828,
+      "pid": 34004,
+      "title": "",
+      "class": "tray_icon_app",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        76,
+        76,
+        1996,
+        1073
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 984712,
+      "pid": 34004,
+      "title": "com.coolzhu.agent-siw",
+      "class": "com.coolzhu.agent-sic",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        22,
+        22
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 1181182,
+      "pid": 34004,
+      "title": "",
+      "class": "Tao Thread Event Target",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        22,
+        22
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 2032978,
+      "pid": 34004,
+      "title": "",
+      "class": "SoPY_Status",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        2211,
+        1313,
+        2560,
+        1379
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 2688272,
+      "pid": 34004,
+      "title": "MSCTFIME UI",
+      "class": "MSCTFIME UI",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 7670808,
+      "pid": 34004,
+      "title": "HintWnd",
+      "class": "SoPY_Hint",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 1705286,
+      "pid": 34004,
+      "title": "",
+      "class": "SoPY_UI",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 4457072,
+      "pid": 34004,
+      "title": "Sogou_TSF_UI",
+      "class": "Sogou_TSF_UI",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dpi": 144
+    },
+    {
+      "hwnd": 17303172,
+      "pid": 34004,
+      "title": "Default IME",
+      "class": "IME",
+      "visible": false,
+      "minimized": false,
+      "bounds": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dpi": 144
+    }
+  ],
+  "foreground_request_accepted": true,
+  "temporary_topmost_accepted": true,
+  "capture": {
+    "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-d-hydrated-console.png",
+    "sha256": "5319fb29548944961e5139c2f7ba79a754e9c56aaf1d1389ab2493af61b4397f",
+    "size": [
+      2182,
+      1355
+    ],
+    "foreground_hwnd": 3344016,
+    "at_utc": "2026-10-15T19:09:50.815141+00:00",
+    "window": {
+      "hwnd": 3344016,
+      "pid": 34004,
+      "title": "COOLZHU AGENT 控制台",
+      "class": "Tauri Window",
+      "visible": true,
+      "minimized": false,
+      "bounds": [
+        189,
+        12,
+        2371,
+        1367
+      ],
+      "dpi": 144
+    }
+  }
+}

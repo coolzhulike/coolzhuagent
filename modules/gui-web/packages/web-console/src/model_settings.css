@@ -126,3 +126,62 @@ body.ui-3d .ui-redesign .model-settings .ms-primary { background: linear-gradien
   .model-settings .ms-footer { position: static; }
   .model-settings :is(input, select, textarea) { scroll-margin-block-end: 16px; }
 }
+
+/* 2026-10-17：统一账号/API 配置页，沿用墨绿与暖金控件。 */
+.ms-heading-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; min-width:0; max-width:100%; }
+.model-settings .ms-heading-actions button { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+.model-settings .ms-intro { flex-wrap:wrap; }
+.model-settings .ms-intro { align-items:center; }
+.model-settings .ms-session-picker { position:relative; padding:12px; border:1px solid #42634f; border-radius:10px; }
+.model-settings [data-ms="dirty"] { color:#dfc37a; font-size:12px; }
+.ms-avatar-row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #354e3f; }
+.ms-avatar-row img { flex:0 0 40px; border-radius:50%; object-fit:cover; }
+.ms-avatar-row > span { flex-shrink:0; white-space:nowrap; }
+.ms-avatar-row select { min-width:130px; flex:1 1 150px; max-width:240px; }
+.ms-avatar-library { flex:1 0 100%; min-width:0; }
+.ms-avatar-library summary { cursor:pointer; color:#d4bd76; font-size:13px; padding:4px 0; }
+.ms-avatar-grid { --control-icon-size:64px; display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; margin-top:10px; }
+.model-settings .ms-avatar-grid button { display:flex; flex-direction:column; align-items:center; gap:6px; white-space:normal; background:#10261c; color:var(--ms-text); font-size:12px; }
+.ms-avatar-grid img { width:64px; height:64px; flex-basis:64px; object-fit:contain; border-radius:0; }
+.model-settings .ms-avatar-grid button[aria-pressed="true"] { border-color:#d4bd76; background:#294437; }
+.ms-upload { cursor:pointer; margin-left:auto; font-size:13px; }
+.ms-upload input { display:block; max-width:185px; }
+.ms-effort-row { display:flex; align-items:center; gap:20px; padding:14px; margin:12px 0; border:1px solid #42634f; border-radius:10px; }
+.ms-effort-row label small { display:block; opacity:.65; font-size:11px; margin-top:5px; }
+.ms-effort-track { flex:1; min-width:0; }
+.ms-effort-track input { width:100%; accent-color:#a4c9ad; }
+.ms-effort-track>div { display:flex; justify-content:space-between; font-size:10px; opacity:.8; }
+.ms-effort-row output { min-width:35px; color:#e6d29b; }
+.ms-access-tabs { display:flex; gap:8px; border-bottom:1px solid #42634f; margin:10px 0 16px; }
+.ms-access-tabs button { padding:12px 18px; border:0; border-radius:8px 8px 0 0; background:transparent; }
+.ms-access-tabs button.is-active { border-bottom:2px solid #d4bd76; color:#e6d29b; background:#203b2e; }
+.ms-access-layout { display:grid; grid-template-columns:180px minmax(0,1fr); gap:16px; }
+.ms-providers { border:1px solid #42634f; border-radius:9px; padding:8px; align-self:start; }
+.ms-providers button { display:block; width:100%; text-align:left; padding:10px; border:1px solid transparent; background:transparent; border-radius:6px; }
+.ms-providers button.is-active { background:#203b2e; border-color:#668671; }
+.ms-providers small { display:block; padding:12px 6px; color:#9bb4a4; font-size:11px; }
+.ms-account-card { padding:14px; border:1px solid #42634f; border-radius:8px; min-width:0; overflow-wrap:anywhere; }
+.ms-account-card p { font-size:13px; }
+.ms-account-card pre { white-space:pre-wrap; overflow-wrap:anywhere; max-width:100%; font-size:12px; }
+.model-settings .ms-toast { position:sticky; bottom:18px; z-index:5; width:fit-content; max-width:90%; margin:12px auto; padding:10px 18px; border:1px solid #74957e; border-radius:20px; background:#183024; color:#e4ecdf; box-shadow:0 6px 24px #0006; }
+.model-settings .ms-toast.ms-error { background:#472d25; border-color:#b47e63; }
+.model-settings [hidden] { display:none!important; }
+@media(max-width:760px) { .ms-access-layout {grid-template-columns:1fr;} .ms-providers>div {display:flex;flex-wrap:wrap;} .ms-providers button{width:auto;} .ms-avatar-row{flex-wrap:wrap;} .ms-effort-row{gap:8px;} .ms-heading-actions{gap:6px;} }
+/* 右侧设置面板可能很窄，按面板宽度布局，而非只看整个窗口。 */
+@container model-parameters (max-width:560px) {
+  .ms-access-layout { grid-template-columns:minmax(0,1fr); }
+  .ms-providers>div { display:flex; flex-wrap:wrap; }
+  .ms-providers button { width:auto; max-width:100%; white-space:normal; }
+  .ms-effort-row { gap:8px; }
+  .ms-heading-actions { gap:6px; }
+}
+
+.task-hub-tabs,.usage-filters {display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 20px}
+.task-hub-tabs button[aria-selected="true"] {background:#294437;color:#f0d591;border-color:#b79956}
+[data-task-pane][hidden] {display:none!important}
+[data-task-pane] pre {white-space:pre-wrap;overflow-wrap:anywhere;max-height:600px;overflow:auto}
+.usage-filters label {display:flex;flex-direction:column;gap:6px}
+.usage-bars {display:grid;gap:12px;margin:24px 0}.usage-bars>div {font-size:13px}
+.usage-bar {display:block;min-height:9px;margin-top:5px;background:linear-gradient(90deg,#92bd9f,#c3a965);border-radius:4px}
+.usage-table {border-collapse:collapse;width:100%;font-size:12px}.usage-table th,.usage-table td {border-bottom:1px solid #375044;padding:9px;text-align:left}
+.chat-history-toolbar [data-role="chat-usage-meter"] {font-variant-numeric:tabular-nums;font-size:12px}

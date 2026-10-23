@@ -1,0 +1,63 @@
+{
+  "evidence": {
+    "command_verification": {
+      "contract": {
+        "commands": [
+          "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI\\phase-diagnostic.txt' -Value phase; exit 0"
+        ],
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI",
+        "timeout_ms": 90000,
+        "type": "Command"
+      },
+      "legacy_failures": null,
+      "reason": "",
+      "receipts": [
+        {
+          "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI\\phase-diagnostic.txt' -Value phase; exit 0",
+          "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI",
+          "exit_code": 0,
+          "finished_at_unix_ms": 1792336959539,
+          "id": "tool-process-29780-1792336959539",
+          "reason": "复用模型诊断的真实宿主回执",
+          "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+          "started_at_unix_ms": 1792336959275,
+          "status": "passed",
+          "timeout_ms": 90000
+        }
+      ],
+      "state": "passed"
+    },
+    "text": "模型诊断已完成同一验证"
+  },
+  "gate": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI\\phase-diagnostic.txt' -Value phase; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI\\phase-diagnostic.txt' -Value phase; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpS3G5VI",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792336959539,
+        "id": "tool-process-29780-1792336959539",
+        "reason": "复用模型诊断的真实宿主回执",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792336959275,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "line_count": 1,
+  "status": "completed",
+  "tool_receipt_id": "tool-process-29780-1792336959539",
+  "verdict": "pass"
+}

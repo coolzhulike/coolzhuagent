@@ -1,0 +1,303 @@
+{
+  "at_utc": "2026-10-18T10:53:14.319647+00:00",
+  "test_count": 92,
+  "run": "web-regression-03",
+  "cases": [
+    {
+      "case": "MissingTool",
+      "requests": 1,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320416398-35156-52",
+          null
+        ]
+      ],
+      "elapsed_ms": 4321
+    },
+    {
+      "case": "ParamFixed",
+      "requests": 3,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [
+        [
+          "tool-a050969c6f3f9aae0ee78e4058af7d4a6b652ba6098c5e1f87d5f001b3f768dd",
+          "completed",
+          "request-1792320420989-35156-54"
+        ]
+      ],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320420906-35156-53",
+          null
+        ],
+        [
+          "parameter_repair",
+          "request-1792320420989-35156-54",
+          "request-1792320420906-35156-53"
+        ],
+        [
+          "tool_feedback",
+          "request-1792320421122-35156-55",
+          "request-1792320420989-35156-54"
+        ]
+      ],
+      "elapsed_ms": 4525
+    },
+    {
+      "case": "ParamInvalid",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320425594-35156-56",
+          null
+        ],
+        [
+          "parameter_repair",
+          "request-1792320425674-35156-57",
+          "request-1792320425594-35156-56"
+        ]
+      ],
+      "elapsed_ms": 4374
+    },
+    {
+      "case": "ParamProtocol",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320430154-35156-58",
+          null
+        ],
+        [
+          "parameter_repair",
+          "request-1792320430232-35156-59",
+          "request-1792320430154-35156-58"
+        ]
+      ],
+      "elapsed_ms": 4345
+    },
+    {
+      "case": "ParamExecutionFailure",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [
+        [
+          "tool-024eda0f87cc84926b6da09b3b6d657a793eb5f5a5a8dc48ed53cd7ee0de7034",
+          "failed",
+          "request-1792320434825-35156-61"
+        ]
+      ],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320434739-35156-60",
+          null
+        ],
+        [
+          "parameter_repair",
+          "request-1792320434825-35156-61",
+          "request-1792320434739-35156-60"
+        ]
+      ],
+      "elapsed_ms": 4461
+    },
+    {
+      "case": "ParamTimeout",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320439376-35156-62",
+          null
+        ],
+        [
+          "parameter_repair",
+          "request-1792320439461-35156-63",
+          "request-1792320439376-35156-62"
+        ]
+      ],
+      "elapsed_ms": 8030
+    },
+    {
+      "case": "ProtocolFixed",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320447668-35156-64",
+          null
+        ],
+        [
+          "text_recovery",
+          "request-1792320447747-35156-65",
+          "request-1792320447668-35156-64"
+        ]
+      ],
+      "elapsed_ms": 4383
+    },
+    {
+      "case": "ProtocolInvalid",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320452248-35156-66",
+          null
+        ],
+        [
+          "text_recovery",
+          "request-1792320452320-35156-67",
+          "request-1792320452248-35156-66"
+        ]
+      ],
+      "elapsed_ms": 4359
+    },
+    {
+      "case": "Cap",
+      "requests": 2,
+      "human_input_count": 1,
+      "effects": 0,
+      "tool_rows": [
+        [
+          "tool-15abba93717f1601e6d6bac0b1bfbf1a1afcd451794ab7a571e2bc694b60d6a6",
+          "completed",
+          "request-1792320456780-35156-68"
+        ]
+      ],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320456780-35156-68",
+          null
+        ],
+        [
+          "tool_feedback",
+          "request-1792320456941-35156-69",
+          "request-1792320456780-35156-68"
+        ]
+      ],
+      "elapsed_ms": 4455
+    },
+    {
+      "case": "PostDenied",
+      "requests": 1,
+      "human_input_count": 1,
+      "effects": 1,
+      "tool_rows": [
+        [
+          "tool-e27bcb01f9d947b7122d90f88101cc042118b9cbf787d1713d22a9cfc9600933",
+          "failed",
+          "request-1792320401817-35156-48"
+        ]
+      ],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320401817-35156-48",
+          null
+        ]
+      ],
+      "elapsed_ms": 4603
+    },
+    {
+      "case": "SettlementFailed",
+      "requests": 1,
+      "human_input_count": 1,
+      "effects": 1,
+      "tool_rows": [
+        [
+          "tool-c6a2c542e50ede7446c3fd4f494575c51b9f2532d85c36c45b553fb3395256d6",
+          "cancelled_outcome_unknown",
+          "request-1792320406565-35156-49"
+        ]
+      ],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320406565-35156-49",
+          null
+        ]
+      ],
+      "elapsed_ms": 4493
+    },
+    {
+      "case": "JoinLostReceipt",
+      "requests": 1,
+      "human_input_count": 1,
+      "effects": 1,
+      "tool_rows": [
+        [
+          "tool-8a0f741505ff5fa95d4c457e3534842bbc6df7031ac3b21d9a4989f8ea3fb1db",
+          "completed",
+          "request-1792320411234-35156-50"
+        ]
+      ],
+      "purposes": [
+        [
+          "chat",
+          "request-1792320411234-35156-50",
+          null
+        ]
+      ],
+      "elapsed_ms": 4470
+    },
+    {
+      "case": "identity",
+      "facts": {
+        "effects_after_distinct_request": 2,
+        "original_id": "tool-84aa1e0f08ed65c4282ef9c64b5f5c38c36c083b636b5a73148828a08f9c7b6c",
+        "original_status": "completed",
+        "same_identity_refusals": [
+          "工具调用标识已登记，原状态=completed；本次未执行，也未更改原记录",
+          "工具调用标识已登记，原状态=completed；本次未执行，也未更改原记录",
+          "工具调用标识已登记，原状态=completed；本次未执行，也未更改原记录"
+        ]
+      }
+    },
+    {
+      "case": "drop-after-effect",
+      "facts": {
+        "effects": 1,
+        "elapsed_ms": 289,
+        "execution_id": "tool-513e58302f32ce03afe2875cb531ff7cbed929dd4640fd7e88eebeaae8d9c032",
+        "hook_drained": true,
+        "hook_pid": 33096,
+        "late_effect": false,
+        "replay_refused": true,
+        "state": "cancelled_outcome_unknown"
+      }
+    },
+    {
+      "case": "stream-cut",
+      "facts": {
+        "effects": 0,
+        "host_response": "event: started\ndata: {\"turn_id\":\"chat-turn-1792320411760-26\",\"chat_room_id\":\"ha06-cut\",\"run_id\":\"run-chat-4c731238008d6213e65bd6c67d4abe1939235c4da10057af\"}\n\nevent: message\ndata: {\"id\":\"msg-1792320411760-user\",\"author\":\"\",\"role\":\"user\",\"target\":\"target-text(target-text)\",\"content\":\"ha06-cut：执行工具完成当前指定任务，仅按真实回执判断。\",\"kind\":\"text\",\"attachments\":[]}\n\nevent: request_bound\ndata: {\"request_id\":\"request-1792320411898-35156-51\",\"attempt_id\":\"request-1792320411898-35156-51:1\",\"turn_id\":\"000000000000005718df99eb219626cc\",\"model\":\"target-text\",\"protocol\":\"openai_chat_completions\",\"tool_names\":[\"bash\"],\"tools_digest\":\"sha256:6e9ae7887eeb64ef1191becb038b6052b2e9e87ab780305276b3ea1123cbd7b1\",\"parameters_digest\":\"sha256:11cc6aaaf31edf698961d1663a60205d5b25701decbf0e2b139d09f2b6bfe8dd\",\"stream\":true}\n\nevent: tool_status\ndata: {\"call_id\":\"tool-call-a99d4b801a9736e3\",\"chat_room_id\":\"ha06-cut\",\"status\":\"requested\",\"summary\":\"等待工具参数与执行授权检查\",\"tool_name\":\"bash\",\"tool_use_id\":\"cut-call\",\"turn_id\":\"chat-turn-1792320411760-26\"}\n\nevent: tool_status\ndata: {\"call_id\":\"tool-call-a99d4b801a9736e3\",\"chat_room_id\":\"ha06-cut\",\"status\":\"failed\",\"summary\":\"执行失败\",\"tool_name\":\"bash\",\"tool_use_id\":\"cut-call\",\"turn_id\":\"chat-turn-1792320411760-26\"}\n\nevent: message_replace\ndata: {\"id\":\"msg-1792320411876-0\",\"author\":\"target-text(target-text)\",\"role\":\"assistant\",\"target\":\"聊天\",\"content\":\"连接已结束，但未收到模型的完整结束标记；本轮保留已收到内容，未执行工具，也未重发请求\",\"kind\":\"assistant-error\",\"attachments\":[]}\n\nevent: error\ndata: {\"message\":\"连接已结束，但未收到模型的完整结束标记；本轮保留已收到内容，未执行工具，也未重发请求\"}\n\nevent: done\ndata: {\"turn_id\":\"chat-turn-1792320411760-26\",\"run_id\":\"run-chat-4c731238008d6213e65bd6c67d4abe1939235c4da10057af\",\"status\":\"failed\",\"accepted_agent_ids\":[\"target-text\"],\"tasks\":[]}\n\n",
+        "tool_registrations": 0
+      }
+    }
+  ],
+  "baseline_unchanged": true
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "before_sha256": "fc2b418ce847a6249d6e98b39a2bed8c0cc036ef08a682fb2a91aec9cbdfc408",
+    "after_sha256": "b4479939f26c83ebdbfba320a46b6282327559849c0032a8fb907520c8306970"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+    "before_sha256": "595b40ac71cf7e0cdd86c2ce2b0bbc288bc5b7e47357205135f83afa028833b2",
+    "after_sha256": "30281d9f98aec04e50a8d15f65a4f548dafbcd5e7f2caa743b8bc0e9b4b1b2f5"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/tool_loop_progress.rs",
+    "before_sha256": "ab23c1b2a34f42fb0803cdc5673b0d2a38cdf227ba6c6759e6ce1898a80a3a41",
+    "after_sha256": "2d055102c1d52f669677faa273cec541855a20a68115554e543240e91f765a41"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+    "before_sha256": "ebc26922670a17b6f92baaa43f6654f1134ccd64c49443a6f3a70f97829f677b",
+    "after_sha256": "f818b215ce9113309f8e1e6f7028e1af815b9de06a9903eb04cc528a12a12436"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/tool_recovery.rs",
+    "before_sha256": null,
+    "after_sha256": "4782f5dc59822c7ed1e6ad90fedcc9e9c1c15542c4400a21c74fbf2560f63a38"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/ha06_tests.rs",
+    "before_sha256": null,
+    "after_sha256": "9b9e19ff5ef1ecee23b335e230d22a8b05614041c84e7be9f90359c66ab66b09"
+  }
+]

@@ -1,0 +1,218 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\build-msi.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\build-msi.ps1",
+    "sha256": "b7b2b537f0467c000d29051d308dd478bd39cdffd318a3293e7d85429d8ad4a4",
+    "archive_sha256": "b7b2b537f0467c000d29051d308dd478bd39cdffd318a3293e7d85429d8ad4a4"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\clawbot-ilink-provider.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\clawbot-ilink-provider.mjs",
+    "sha256": "36419ed360f859c97f6e03488d1e1731260744b9f204532b9a3fcb01af0c3a31",
+    "archive_sha256": "36419ed360f859c97f6e03488d1e1731260744b9f204532b9a3fcb01af0c3a31"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\clawbot-real-provider-probe.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\clawbot-real-provider-probe.ps1",
+    "sha256": "8a2383e2ce9b3ea9e211130eb4cb2aa86bcde55adab0bf07a53a98de0a1eb3eb",
+    "archive_sha256": "8a2383e2ce9b3ea9e211130eb4cb2aa86bcde55adab0bf07a53a98de0a1eb3eb"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\generate-p5f-app-icon.py",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\generate-p5f-app-icon.py",
+    "sha256": "a97aa8478ac0714b2c095b8b0d7d68c13baad874cc806ad57ca61782b55dff55",
+    "archive_sha256": "a97aa8478ac0714b2c095b8b0d7d68c13baad874cc806ad57ca61782b55dff55"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\package-all.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\package-all.ps1",
+    "sha256": "9297a2b450015aab2d27ef790c0a322d78cd3154536ad45cb7cdfa02dc1a20d7",
+    "archive_sha256": "9297a2b450015aab2d27ef790c0a322d78cd3154536ad45cb7cdfa02dc1a20d7"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\package-report-retention.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\package-report-retention.ps1",
+    "sha256": "77e70c5ac134fd7799ca657bf29e62f98a25579e5139862ad0d75542db9b2593",
+    "archive_sha256": "77e70c5ac134fd7799ca657bf29e62f98a25579e5139862ad0d75542db9b2593"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\package-safety.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\package-safety.ps1",
+    "sha256": "a3b07ee01c11edd745d815aaea896b3eb77d488c4121ef0eff684c0ffb616d1f",
+    "archive_sha256": "a3b07ee01c11edd745d815aaea896b3eb77d488c4121ef0eff684c0ffb616d1f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\prepare-dsh-runtime.py",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\prepare-dsh-runtime.py",
+    "sha256": "59f3b52ca2770a6b7aa3b402ec04461d1e1a70427a546a3d1cc8af00aa84d7e1",
+    "archive_sha256": "59f3b52ca2770a6b7aa3b402ec04461d1e1a70427a546a3d1cc8af00aa84d7e1"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\project-delivery.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\project-delivery.ps1",
+    "sha256": "9333952fa7fe453a4d74f2e3bedead09ac5df8efe3021e479346a674decd3b24",
+    "archive_sha256": "9333952fa7fe453a4d74f2e3bedead09ac5df8efe3021e479346a674decd3b24"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\setup-browser-bridge.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\setup-browser-bridge.ps1",
+    "sha256": "1e11c61cf74943fee7df3b98fc19b6955b87ee9aadb4de143e4348469a3ad41a",
+    "archive_sha256": "1e11c61cf74943fee7df3b98fc19b6955b87ee9aadb4de143e4348469a3ad41a"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\start-clawbot-ilink-provider.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\start-clawbot-ilink-provider.ps1",
+    "sha256": "065985f71ae3d307d6f37d061f4a5448323382003f02f150bd86c829eff47e10",
+    "archive_sha256": "065985f71ae3d307d6f37d061f4a5448323382003f02f150bd86c829eff47e10"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-delivery.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-delivery.mjs",
+    "sha256": "81adf30c97270767fa905d8ff04c5e3b552b6c3a6d9a7e00c7f36b7cf6f92ba6",
+    "archive_sha256": "81adf30c97270767fa905d8ff04c5e3b552b6c3a6d9a7e00c7f36b7cf6f92ba6"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-media.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-media.mjs",
+    "sha256": "0c458fe42298c2489273f1e8b5db7b8be1439fc3f43f92c100abdec97b6a27a0",
+    "archive_sha256": "0c458fe42298c2489273f1e8b5db7b8be1439fc3f43f92c100abdec97b6a27a0"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-message.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-message.mjs",
+    "sha256": "3ae06da6cdfd3338cc368de99466b0fbd746e441dacaaabf60177d869860c22d",
+    "archive_sha256": "3ae06da6cdfd3338cc368de99466b0fbd746e441dacaaabf60177d869860c22d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-provider-file.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-provider-file.ps1",
+    "sha256": "f3be775755d77241d5de382c8169a2e8c0eec505fbe65c65710527d17529e4f0",
+    "archive_sha256": "f3be775755d77241d5de382c8169a2e8c0eec505fbe65c65710527d17529e4f0"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-provider-fresh-qr.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-provider-fresh-qr.ps1",
+    "sha256": "a73403d946950dd6407233fae5818b0bc5a0e901bec9a6c4abfddf5d2d4eb5c5",
+    "archive_sha256": "a73403d946950dd6407233fae5818b0bc5a0e901bec9a6c4abfddf5d2d4eb5c5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-provider-login-timeout.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-provider-login-timeout.ps1",
+    "sha256": "1bdcaa85bd9664aff422d42086d188c880126853b3eb3ed639753e05c69567ab",
+    "archive_sha256": "1bdcaa85bd9664aff422d42086d188c880126853b3eb3ed639753e05c69567ab"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-provider-long-poll.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-provider-long-poll.ps1",
+    "sha256": "73d846fee8e8ef773690ab7cce583000e5bda2a3c5407d95286b6f2801ef99dd",
+    "archive_sha256": "73d846fee8e8ef773690ab7cce583000e5bda2a3c5407d95286b6f2801ef99dd"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-provider-qr-link.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-provider-qr-link.ps1",
+    "sha256": "f3ba48807726938ab304f94024f35b1d71ba4eae0134b2c700bbff9674b40815",
+    "archive_sha256": "f3ba48807726938ab304f94024f35b1d71ba4eae0134b2c700bbff9674b40815"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-ilink-provider.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-ilink-provider.ps1",
+    "sha256": "731235d035ed657b124f2dc31dd667884bd1b0e16067d5dc455f97df60f1602b",
+    "archive_sha256": "731235d035ed657b124f2dc31dd667884bd1b0e16067d5dc455f97df60f1602b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-clawbot-real-provider-probe.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-clawbot-real-provider-probe.ps1",
+    "sha256": "ca36fd264c2b868c9ea13bfe33861ec2fa548954aad747b8cfdd3eb7c789f03d",
+    "archive_sha256": "ca36fd264c2b868c9ea13bfe33861ec2fa548954aad747b8cfdd3eb7c789f03d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-package-build-identity.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-package-build-identity.ps1",
+    "sha256": "e3a65b50c4f18f83fe636227ae4c4f64bad4f848b5d8c2d6744c70c2ad968ea6",
+    "archive_sha256": "e3a65b50c4f18f83fe636227ae4c4f64bad4f848b5d8c2d6744c70c2ad968ea6"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-package-manifest.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-package-manifest.ps1",
+    "sha256": "bbcdcd56a97c1ea1ae250789179b26b20da75d8e01537bd4744df7ca5311c748",
+    "archive_sha256": "bbcdcd56a97c1ea1ae250789179b26b20da75d8e01537bd4744df7ca5311c748"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-package-safety.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-package-safety.ps1",
+    "sha256": "3b629bf8059ff878c59852cce002252b51acd04c7f0baa8c248221b4db2b51cf",
+    "archive_sha256": "3b629bf8059ff878c59852cce002252b51acd04c7f0baa8c248221b4db2b51cf"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-package-webview2-loader.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-package-webview2-loader.ps1",
+    "sha256": "353bdd439890e04ec66762fe100c1a6027588331b8ee19dd57421f52dc50a479",
+    "archive_sha256": "353bdd439890e04ec66762fe100c1a6027588331b8ee19dd57421f52dc50a479"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-powershell-script-compat.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-powershell-script-compat.ps1",
+    "sha256": "723e4571c8dbaf497fc1ea8ea5823aeeb8d9c69a3e9a2883343b21454cf958a9",
+    "archive_sha256": "723e4571c8dbaf497fc1ea8ea5823aeeb8d9c69a3e9a2883343b21454cf958a9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\test-project-delivery.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\test-project-delivery.ps1",
+    "sha256": "b08b915021fea4423cc9561dabb66130e3447ee540eea1377123e26db953d8e4",
+    "archive_sha256": "b08b915021fea4423cc9561dabb66130e3447ee540eea1377123e26db953d8e4"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\validate-p5f-app-icon.py",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\validate-p5f-app-icon.py",
+    "sha256": "d3d3f239596d84885e94a3d2ad612fae964afcded35412db069c2512bfa39905",
+    "archive_sha256": "d3d3f239596d84885e94a3d2ad612fae964afcded35412db069c2512bfa39905"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\build-identity.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\build-identity.ps1",
+    "sha256": "c2fba8fe661468d6fba11d050a70306063c8a6b685e203ab5c338d1643260481",
+    "archive_sha256": "c2fba8fe661468d6fba11d050a70306063c8a6b685e203ab5c338d1643260481"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\clawbot-ilink-delivery.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\clawbot-ilink-delivery.mjs",
+    "sha256": "217ceb39b17c539cfeeb3834b77046c105109e5c59bb18b8e6582fab2cc1e1ee",
+    "archive_sha256": "217ceb39b17c539cfeeb3834b77046c105109e5c59bb18b8e6582fab2cc1e1ee"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\clawbot-ilink-http.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\clawbot-ilink-http.mjs",
+    "sha256": "442c3914b5e1f613e540c4b26ba5ec594bf37715ea9ded654304bc6bcf5c6368",
+    "archive_sha256": "442c3914b5e1f613e540c4b26ba5ec594bf37715ea9ded654304bc6bcf5c6368"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\clawbot-ilink-media.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\clawbot-ilink-media.mjs",
+    "sha256": "3014cbd42e4326438b8c8ceab61301f9af773eb9cf0e6c7d8289b187e101073a",
+    "archive_sha256": "3014cbd42e4326438b8c8ceab61301f9af773eb9cf0e6c7d8289b187e101073a"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\clawbot-ilink-message.mjs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\clawbot-ilink-message.mjs",
+    "sha256": "80fc07419af933b061233c3b92d3aea50a6587b6803e12e7f3ff57fd8ff4a382",
+    "archive_sha256": "80fc07419af933b061233c3b92d3aea50a6587b6803e12e7f3ff57fd8ff4a382"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\dsh-runtime.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\dsh-runtime.ps1",
+    "sha256": "595dfb42bb0e1c106c4b9f9431feccafa53923766b42bbd6d354aaa0c4de2b8d",
+    "archive_sha256": "595dfb42bb0e1c106c4b9f9431feccafa53923766b42bbd6d354aaa0c4de2b8d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\lib\\webview2-loader.ps1",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\lib\\webview2-loader.ps1",
+    "sha256": "14ec219c5038a33623f6f102d541dab89343216078154abaf6f725ae56566b20",
+    "archive_sha256": "14ec219c5038a33623f6f102d541dab89343216078154abaf6f725ae56566b20"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\scripts\\__pycache__\\prepare-dsh-runtime.cpython-314.pyc",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\scripts\\__pycache__\\prepare-dsh-runtime.cpython-314.pyc",
+    "sha256": "466679fc8c7f415c264961321bbd281c35fdeafcc2af6929c6633f5e6edb2bd7",
+    "archive_sha256": "466679fc8c7f415c264961321bbd281c35fdeafcc2af6929c6633f5e6edb2bd7"
+  }
+]

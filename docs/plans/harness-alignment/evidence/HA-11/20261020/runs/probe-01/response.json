@@ -1,0 +1,58 @@
+﻿{
+    "turn_id":  "chat-turn-1792519936094-1",
+    "run_id":  "run-chat-8ea9f4ba4a999dbad3e5667a4ca908568d269cf6a2bfc6ec",
+    "status":  "completed",
+    "accepted_agent_ids":  [
+                               "session-1792519612697-22ffea3a2956ec99"
+                           ],
+    "messages":  [
+                     {
+                         "id":  "msg-1792519936094-user",
+                         "author":  "",
+                         "role":  "user",
+                         "target":  "qwen-3.8 flash(qwen3.8-flash)",
+                         "content":  "è¯·åªåç­ä¸ä¸ªæ°å­ï¼2+2=ï¼ä¸è¦ä½¿ç¨å·¥å\u0085·ï¼ä¸è¦å\u0085æç´¢æè®¡åã",
+                         "kind":  "text",
+                         "attachments":  [
+
+                                         ]
+                     },
+                     {
+                         "id":  "msg-1792519971589-0",
+                         "author":  "qwen-3.8 flash(qwen3.8-flash)",
+                         "role":  "assistant",
+                         "target":  "èå¤©",
+                         "content":  "4\n\n---\nContext usage: 0.1% (1472/1000000 input tokens; source=remote). Local estimate: 1349 tokens; local prompt budget: 1349/848976 tokens; history truncated: false.\nContext turn: 000000000000000518e04f6965f879bc; Context snapshot: ctx-e6d0497527e121e8; history source: chat_room.messages; history loaded: 2; memory revision: mem-0dfdb802a4307b71",
+                         "kind":  "assistant-reply",
+                         "attachments":  [
+
+                                         ]
+                     },
+                     {
+                         "id":  "msg-1792519971589-0-thinking",
+                         "author":  "qwen-3.8 flash(qwen3.8-flash) æ¨ç",
+                         "role":  "assistant",
+                         "target":  "æ¨çå¡ç",
+                         "content":  "ç¨æ·æç¡®è¦æ±åªåç­ä¸ä¸ªæ°å­ï¼2+2=ï¼ç¦æ­¢å·¥å\u0085·ãç¦æ­¢å\u0085æç´¢æè®¡åï¼éè¦æç»ç­æ¡åªææ°å­ãå¿\u0085é¡»å·²ç»ç¨ä¸­ææèãæç»åºåªè¾åº 4ã",
+                         "kind":  "reasoning",
+                         "attachments":  [
+
+                                         ]
+                     }
+                 ],
+    "tasks":  [
+                  {
+                      "id":  "task-1792519965558-0",
+                      "owner_agent":  "qwen-3.8 flash(qwen3.8-flash)",
+                      "executor_agent":  "qwen-3.8 flash(qwen3.8-flash)",
+                      "status":  "æ¨¡åå·²å",
+                      "visible_in_chat":  true,
+                      "timeout_ms":  20000,
+                      "summary":  "çå®æ¨¡åè°ç¨å®æï¼request_id=79945df0-6e82-9d34-94a0-59ddd1ea916b"
+                  }
+              ],
+    "notes":  [
+                  "åç«¯å·²æä¼è¯ Provider/Model/API Key å¼ç¨å®æç®æ  Agent åå",
+                  "çå®æ¨¡åå·²å¯ç¨ (coolzhu.toml model.enable_real_llm=true)ã"
+              ]
+}

@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-10-16T19:30:35.041388+00:00",
+  "item": "0.2",
+  "decision": "key_functional_pass",
+  "pages": 24,
+  "bytes": 97269,
+  "resultSha256": "85462013991e96099f195836bdcc6f74a501a32782504cce0f8e597f6a86ddf7",
+  "toolExecutions": 1,
+  "cancelledReadDenied": true,
+  "testReceipt": "controller-long-result-test-corrected-20261016.json",
+  "buildReceipt": "controller-long-result-build-20261016.json",
+  "boundary": "真实本地MCP HTTP桥与read_file执行器；没有调用远端模型。旧plugin外壳30秒超时未据此宣称修复。",
+  "priorFailures": [
+    "controller-long-result-test-20261016.json",
+    "controller-long-result-test-retry1-20261016.json"
+  ]
+}

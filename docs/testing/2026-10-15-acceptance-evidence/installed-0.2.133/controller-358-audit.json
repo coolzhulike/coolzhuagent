@@ -1,0 +1,24 @@
+{
+  "round": 358,
+  "decision": "构建提交已受理，但该作业实际失败；后续正式包单独核验",
+  "job_id": "d937a25ae0624e94abf640e7e9bfdfd8",
+  "attempt_id": "49df4bb3481098f82a8d8a9773dbb38faacc00ec7cc6eaa9",
+  "job_state": "failed",
+  "exit_code": 1,
+  "failure": "SOURCE-MISSING: package.app-launcher 的声明产物路径不存在",
+  "job_receipt": "build-jobs/d937a25ae0624e94abf640e7e9bfdfd8.json",
+  "job_log": "build-jobs/d937a25ae0624e94abf640e7e9bfdfd8.log",
+  "later_package": {
+    "report_id": "pkg-report-release-20261015-085414907-b86a8314",
+    "run_id": "pkg-run-release-20261015-085140454-51b961ba",
+    "release_eligible": true,
+    "version": "0.2.133",
+    "source_snapshot_digest": "e069dde16b0b9dc8fa707ecaa52d3d1f5e0b816bacc93a141d429a5e70a9aaca",
+    "payload_digest": "0155e13b8eb4e6ad2c08ee071d7d7998f9fa4366b5d44191cd7071acbd2fae03",
+    "msi_sha256": "b9674a7e30936d04ca9da6158bb09057fb1a30cf80beefe4f71cc0466e183ee5",
+    "signed": false,
+    "installed_payload_files_matched": 1222,
+    "installed_payload_audit": "controller-installed-133-payload-files.json"
+  },
+  "scope": "不能把第358轮的 accepted 提交当打包完成；后续1222项安装字节匹配不替代全部许可证义务与签名验收。"
+}

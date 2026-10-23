@@ -16,6 +16,7 @@ struct UserLspConfig {
 pub(super) struct LspStatus {
     configured: bool,
     running: bool,
+    ready: bool,
     preset: Option<&'static str>,
     handle: Option<String>,
     message: String,
@@ -322,14 +323,17 @@ fn document(scope: &LspWorkspace, path: &str) -> ApiResult<PathBuf> {
 }
 
 fn relative_path(root: &Path, path: &Path) -> Option<String> {
-    path.canonicalize()
+    lsp::canonical_document_path(path)
         .ok()?
-        .strip_prefix(root)
+        .strip_prefix(lsp::canonical_document_path(root).ok()?)
         .ok()
         .map(|relative| relative.to_string_lossy().replace('\\', "/"))
 }
 
 fn server_error(error: lsp::LspError) -> ApiError {
+    if matches!(error, lsp::LspError::NotReady) {
+        return api_error(StatusCode::TOO_EARLY, "Rust 语言服务正在索引，完成后可查询定义与引用");
+    }
     api_error(
         StatusCode::BAD_GATEWAY,
         &format!("语言服务请求失败：{error}"),
@@ -380,16 +384,24 @@ pub(super) async fn api_status() -> ApiResult<Json<LspStatus>> {
     } else {
         false
     };
+    let ready = if alive {
+        if let Some(scope) = &running {
+            scope.manager.is_ready().await && is_active(scope) && authorize_running(scope).is_ok()
+        } else { false }
+    } else { false };
     Ok(Json(LspStatus {
         configured,
         running: alive,
+        ready,
         preset: configured.then_some(RUST_PRESET),
         handle: running
             .as_ref()
             .filter(|_| alive)
             .map(|scope| scope.handle.clone()),
-        message: if alive {
-            "Rust 语言服务已启动".to_string()
+        message: if ready {
+            "Rust 语言服务已就绪，可查询定义与引用".to_string()
+        } else if alive {
+            "Rust 语言服务正在索引工程，完成后可查询定义与引用".to_string()
         } else if running.is_some() {
             "Rust 语言服务已停止，可手动重新启动".to_string()
         } else if configured {
@@ -622,9 +634,19 @@ pub(super) async fn api_start(Json(request): Json<StartRequest>) -> ApiResult<Js
             name: RUST_PRESET.to_string(),
             command: binary.to_string_lossy().into_owned(),
             args: Vec::new(),
-            env: BTreeMap::new(),
+            env: BTreeMap::from([("CARGO_NET_OFFLINE".to_string(), "true".to_string())]),
             workspace_root: root.clone(),
-            initialization_options: None,
+            // 导航只需静态索引，不擅自执行工程 build.rs、宏或后台 cargo check。
+            initialization_options: Some(json!({
+                "cargo": { "buildScripts": { "enable": false } },
+                "procMacro": { "enable": false },
+                "checkOnSave": false,
+                "cachePriming": { "enable": false },
+                // 显式指定工程，避免发现过程遍历验收产物和旧构建缓存。
+                "linkedProjects": [root.join("Cargo.toml")],
+                "files": { "exclude": (["tmp", "dist", "package", "deploy", ".claw", ".coolzhu", "target"]
+                    .iter().map(|name| root.join(name)).collect::<Vec<_>>()) }
+            })),
             extension_to_language: BTreeMap::from([(".rs".to_string(), "rust".to_string())]),
         }])
         .map_err(server_error)?,

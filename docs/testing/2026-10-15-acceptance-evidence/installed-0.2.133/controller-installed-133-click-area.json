@@ -1,0 +1,310 @@
+{
+  "started_at_utc": "2026-10-15T22:34:08.582588+00:00",
+  "state": "completed",
+  "exit_code": 0,
+  "frames": [
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-00.png",
+      "sha256": "282a19aaecf317eefa313caeb1bfa91b5fe34cbee3e6a350de02c33b4b84834e",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3410646,
+      "at_utc": "2026-10-15T22:34:21.382459+00:00",
+      "window": {
+        "hwnd": 3410646,
+        "pid": 7140,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 12.19913659998565
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-01.png",
+      "sha256": "483f325384b5c4eba9ce9af1a12e4f22f2308b14d47cb79ec3579a34cd6b9490",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3410646,
+      "at_utc": "2026-10-15T22:34:22.613707+00:00",
+      "window": {
+        "hwnd": 3410646,
+        "pid": 7140,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 13.240964600001462
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-02.png",
+      "sha256": "e42e5eb68a50813da0d9ec6011217f7297710729c0d2723486df9b4f42c0f46e",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3410646,
+      "at_utc": "2026-10-15T22:34:24.293370+00:00",
+      "window": {
+        "hwnd": 3410646,
+        "pid": 7140,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 14.28334610001184
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-03.png",
+      "sha256": "8a89f5784063e727809156ce6fba03d56a5af5dbe53789ea4d10de583864df3f",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3410646,
+      "at_utc": "2026-10-15T22:34:26.248881+00:00",
+      "window": {
+        "hwnd": 3410646,
+        "pid": 7140,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 15.564549500006251
+    }
+  ],
+  "esc_sent": false,
+  "input_method": "native_mouse_area",
+  "mouse_click_sent": true,
+  "command": [
+    "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+    "--no-error-dialog"
+  ],
+  "explicit_environment": {
+    "COOLZHU_LOG_DIR": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\installed-133-acceptance-20261015"
+  },
+  "launcher_sha256": "57ba8e0bf8feb6988a182e744761f7251f587f001320d93bbc4d350302be65b8",
+  "installed_web_sha256": "6fec2863f595a6284a15ead7e3eff5b33f070d6d55ef7bc731b53fcb46311da7",
+  "launcher_pid": 4312,
+  "foreground_verified": true,
+  "click_point": [
+    1291,
+    686
+  ],
+  "console_frame": {
+    "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-console.png",
+    "sha256": "deefb78b98b27a99856fb294bc969946e2114da7e826bc4a3de90638cf8bcf1c",
+    "size": [
+      2182,
+      1355
+    ],
+    "foreground_hwnd": 3343702,
+    "at_utc": "2026-10-15T22:34:28.140810+00:00",
+    "window": {
+      "hwnd": 3343702,
+      "pid": 7140,
+      "title": "COOLZHU AGENT 控制台",
+      "class": "Tauri Window",
+      "visible": true,
+      "minimized": false,
+      "bounds": [
+        189,
+        12,
+        2371,
+        1367
+      ],
+      "dpi": 144
+    }
+  },
+  "tauri_pid": 7140,
+  "tauri_path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+  "launcher_exit_code": 0,
+  "workspace": {
+    "workspace": "D:\\coolzhuagent",
+    "workspace_id": "ws-8d17063fefe5c23c"
+  },
+  "health_paths": {
+    "workspace": "D:\\coolzhuagent",
+    "session_db": "D:/tmp/.coolzhu\\web-sessions.sqlite3",
+    "legacy_session_json": "D:/tmp/.coolzhu\\web-sessions.json",
+    "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  "backend_pid": 35284,
+  "backend_path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+  "history_unchanged": {
+    "runtime_history": true,
+    "acp_history": true,
+    "acp_bindings": true
+  },
+  "message_counts_after": {
+    "chat_room_messages": 2336,
+    "runtime_runs": 828,
+    "tool_calls": 6060,
+    "goals": 4,
+    "goal_phases": 34
+  },
+  "config_sha256_unchanged": true,
+  "resources": [
+    {
+      "path": "index.html",
+      "http_status": 200,
+      "sha256": "d58af71116263a3ee51db01638a81dbdc1f9e22733f331496a06ecad5a83cebb",
+      "matches_installed": true
+    },
+    {
+      "path": "src/app.js",
+      "http_status": 200,
+      "sha256": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+      "matches_installed": true
+    },
+    {
+      "path": "assets/icons-wuxia/chat.svg",
+      "http_status": 200,
+      "sha256": "658b3e88098d4d394f0a261709310b7a0af7a615daff17acf7808e9a698815e0",
+      "matches_installed": true
+    },
+    {
+      "path": "assets/avatars/brand-v1/generic.png",
+      "http_status": 200,
+      "sha256": "1df0cb6c1e433da3463a53c4d7776d077db5dbd4b464d2143dbb1dcb6829acc6",
+      "matches_installed": true
+    }
+  ],
+  "native_events": [
+    {
+      "ts_ms": 1792103661374,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_window_created",
+      "message": "Startup performance window was created",
+      "fields": {
+        "pid": "7140"
+      }
+    },
+    {
+      "ts_ms": 1792103661611,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "started",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "0",
+        "host_elapsed_ms": "588",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792103661631,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "assets_ready",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "193",
+        "host_elapsed_ms": "608",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792103661763,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "first_frame",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "337",
+        "host_elapsed_ms": "741",
+        "frame_count": "1",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792103666343,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "finished",
+        "mode": "daily",
+        "reason": "skipped",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "4916",
+        "host_elapsed_ms": "5320",
+        "frame_count": "1036",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792103666405,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_handoff",
+      "message": "Startup performance handed off to console",
+      "fields": {
+        "route": "reported-finish",
+        "console_visible": "true"
+      }
+    }
+  ],
+  "native_log": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\installed-133-acceptance-20261015\\coolzhu-tauri-shell.jsonl",
+  "native_log_sha256": "b46b49f09d6f3a2443b3ab9b3bc599ccd0b429e02881ebe0af9dc8d61ff9ce42",
+  "skip_verified": true,
+  "finished_at_utc": "2026-10-15T22:34:29.588095+00:00"
+}

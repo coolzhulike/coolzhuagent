@@ -1,0 +1,159 @@
+{
+  "job_id": "installed-133-e6f7e53e5a064d30bf71820d3510a3a3",
+  "started_at_utc": "2026-10-15T17:25:24.282737+00:00",
+  "state": "completed",
+  "exit_code": 0,
+  "scope": "安装二进制，独立配置/DB/输入安全根；静态资源只能来自安装目录或内嵌副本",
+  "base_url": "http://127.0.0.1:29421",
+  "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2",
+  "commands": [
+    [
+      "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe"
+    ],
+    [
+      "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe"
+    ]
+  ],
+  "lifecycles": [
+    {
+      "pid": 2856,
+      "started_at_utc": "2026-10-15T17:25:24.676221+00:00",
+      "health": {
+        "http_status": 200,
+        "paths": {
+          "workspace": "D:\\coolzhuagent",
+          "session_db": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\sessions.sqlite3",
+          "legacy_session_json": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\store.json",
+          "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+          "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+        }
+      },
+      "active_workspace": {
+        "http_status": 200,
+        "workspace": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2",
+        "workspace_id": "ws-4ac15dc32ff21874"
+      },
+      "exit_code": 1,
+      "stop_kind": "仅终止本夹具创建的独立后台，验证重开已有库"
+    },
+    {
+      "pid": 23584,
+      "started_at_utc": "2026-10-15T17:25:31.161222+00:00",
+      "health": {
+        "http_status": 200,
+        "paths": {
+          "workspace": "D:\\coolzhuagent",
+          "session_db": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\sessions.sqlite3",
+          "legacy_session_json": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\store.json",
+          "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+          "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+        }
+      },
+      "active_workspace": {
+        "http_status": 200,
+        "workspace": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2",
+        "workspace_id": "ws-4ac15dc32ff21874"
+      },
+      "exit_code": 1
+    }
+  ],
+  "explicit_environment": {
+    "COOLZHU_RUNTIME_DIR": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2",
+    "COOLZHU_CONFIG_PATH": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\coolzhu.toml",
+    "COOLZHU_WEB_SESSION_DB": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\sessions.sqlite3",
+    "COOLZHU_WEB_SESSION_STORE": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\store.json",
+    "COOLZHU_WEB_ATTACHMENT_STORE": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\attachments",
+    "COOLZHU_INPUT_SAFETY_STATE_ROOT": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\input-safety",
+    "COOLZHU_LOG_DIR": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\logs"
+  },
+  "payload": {
+    "manifest_sha256": "47dee40ecdb6f2418694e5798156d68586860b0eeb670452ef88a9073dc49385",
+    "payload_digest": "0155e13b8eb4e6ad2c08ee071d7d7998f9fa4366b5d44191cd7071acbd2fae03",
+    "files": 1222,
+    "matched": 1222,
+    "mismatches": [],
+    "receipt": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-payload-files.json",
+    "receipt_sha256": "47f0c881e1e8bb979f0cb3a4be46beec461349bc9b15c320c0f4ba76d0f24f2d"
+  },
+  "payload_prior_observed_at_utc": "2026-10-15T17:17:17.720289+00:00",
+  "retry_reason": "保留两次前置检查失败：关闭 pet 自动启动；health.paths.workspace 是 codex_project_root，实际工作区改核 /api/workspace",
+  "http_resources": {
+    "total": 513,
+    "matched": 513,
+    "mismatches": [],
+    "receipt": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-http-files.json",
+    "receipt_sha256": "92512faf4e905ae1cbb141219d8f8ddfefcb14e8620f8162a496fb2f88af7a97"
+  },
+  "session_before_restart": {
+    "http_status": 200,
+    "session": {
+      "backend_kind": "llm_http",
+      "id": "session-1792085130102",
+      "name": "安装版持久化隔离核验",
+      "display_name": "安装版持久化隔离核验(installed-persistence-fixture)",
+      "avatar": "assets/avatars/brand-v1/generic.png",
+      "provider": "custom",
+      "model": "installed-persistence-fixture",
+      "model_type": "text",
+      "base_url": "http://127.0.0.1:29423/v1",
+      "endpoint": null,
+      "reasoning_effort": "auto",
+      "reasoning_resolution": {
+        "requested": "auto",
+        "effective": "auto",
+        "status": "default",
+        "strategy": "provider_default",
+        "protocol": "openai_chat_completions",
+        "reason": "requested=auto：不主动覆盖供应商默认",
+        "supported_options": [
+          {
+            "value": "auto",
+            "label": "自动"
+          }
+        ]
+      },
+      "api_key_status": "未配置（能力已启用）",
+      "memory_mode": "enabled",
+      "active": true,
+      "updated_at": 1792085130102
+    }
+  },
+  "session_after_restart": {
+    "http_status": 200,
+    "id": "session-1792085130102",
+    "name": "安装版持久化隔离核验",
+    "provider": "custom",
+    "model": "installed-persistence-fixture",
+    "avatar": "assets/avatars/brand-v1/generic.png"
+  },
+  "session_identity_persisted": true,
+  "http_after_restart": [
+    {
+      "url": "/index.html",
+      "status": 200,
+      "sha256": "d58af71116263a3ee51db01638a81dbdc1f9e22733f331496a06ecad5a83cebb",
+      "matched": true
+    },
+    {
+      "url": "/assets/avatars/brand-v1/generic.png",
+      "status": 200,
+      "sha256": "1df0cb6c1e433da3463a53c4d7776d077db5dbd4b464d2143dbb1dcb6829acc6",
+      "matched": true
+    },
+    {
+      "url": "/assets/icons-wuxia/chat.svg",
+      "status": 200,
+      "sha256": "658b3e88098d4d394f0a261709310b7a0af7a615daff17acf7808e9a698815e0",
+      "matched": true
+    },
+    {
+      "url": "/src/app.js",
+      "status": 200,
+      "sha256": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+      "matched": true
+    }
+  ],
+  "checks_passed": true,
+  "stop_file": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\STOP",
+  "finished_at_utc": "2026-10-15T17:40:37.728287+00:00"
+}

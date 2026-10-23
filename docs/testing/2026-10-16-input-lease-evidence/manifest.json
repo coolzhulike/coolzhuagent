@@ -1,0 +1,86 @@
+[
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-review-20261016.json",
+    "file": "controller-input-lease-review-20261016.json",
+    "sha256": "520e46abd587da7c6894aa5884f0356912aad2bfc3becf600149c3380765fbce",
+    "bytes": 883
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-review-20261016.py",
+    "file": "controller-input-lease-review-20261016.py",
+    "sha256": "a60bd2583813b60c71fc0a85951eeea56948ec97024620cfeae6ac2dd621e7e5",
+    "bytes": 4135
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-checks-20261016.py",
+    "file": "controller-input-lease-checks-20261016.py",
+    "sha256": "98a05fe85d1d6af519cee1925a06385b92a15cca9905bc9e1c3f1e1ef5c6a156",
+    "bytes": 2567
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-key-build-batch-20261016.py",
+    "file": "controller-key-build-batch-20261016.py",
+    "sha256": "c80e49f3e37d844c92ed3e33abdbceb3245db68c63f6a83659795a85b8196737",
+    "bytes": 2159
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-test-20261016.json",
+    "file": "controller-input-lease-test-20261016.json",
+    "sha256": "c7cacd09eb7090856b17f076d3649a22b85bf8990a824de29f421f74113f7ec7",
+    "bytes": 1581
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-test-20261016.log",
+    "file": "controller-input-lease-test-20261016.log",
+    "sha256": "4b40316610dcdeb9587c0a75683c80104ab5ef7c8357265a09b3ddf504e943fd",
+    "bytes": 22741
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-test-fixed-20261016.json",
+    "file": "controller-input-lease-test-fixed-20261016.json",
+    "sha256": "071f965f4509bd68ce5824043272cc75ed52403ea12ec817787428ae741cea2a",
+    "bytes": 1588
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-input-lease-test-fixed-20261016.log",
+    "file": "controller-input-lease-test-fixed-20261016.log",
+    "sha256": "9f41689b4ce8b51eff44c9ac4e33aea144958c94f8e538018817fb67044a3321",
+    "bytes": 22210
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-key-batch-test-20261016.json",
+    "file": "controller-key-batch-test-20261016.json",
+    "sha256": "fa12a64cb799fcfae2cae1e88ad3f9ab8b62e504cc5f2988386ff0a09159fb47",
+    "bytes": 1873
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-key-batch-test-20261016.log",
+    "file": "controller-key-batch-test-20261016.log",
+    "sha256": "0f65c9e3129a3c28e1b2b16366ac71027c89d9942f10dab96e2439cd0b3a314d",
+    "bytes": 21844
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-key-batch-build-20261016.json",
+    "file": "controller-key-batch-build-20261016.json",
+    "sha256": "ce9f73d14f7f20f021bfa019a6ebe77d0893e9950d146f62d93f410276e23107",
+    "bytes": 1581
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-key-batch-build-20261016.log",
+    "file": "controller-key-batch-build-20261016.log",
+    "sha256": "2103356bd774835e324c8aae8de3da95698cb6f43233a68869b542c9eab458d6",
+    "bytes": 50266
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\gui-web\\packages\\web-console\\src\\input_safety_store.rs",
+    "file": "input_safety_store.rs",
+    "sha256": "92c539146f91218736b2a63892e9f68872ff1125429e034e3807e66f0df75e80",
+    "bytes": 140667
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\gui-web\\packages\\web-console\\src\\input_lease_process_acceptance_tests.rs",
+    "file": "input_lease_process_acceptance_tests.rs",
+    "sha256": "2913e766d6d4ffe1075a4c4ef443803fc1611066bd5b478b9ed906abb30df53c",
+    "bytes": 6623
+  }
+]

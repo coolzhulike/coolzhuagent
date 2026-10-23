@@ -1,0 +1,76 @@
+{
+  "at_utc": "2026-10-16T15:46:53.223307+00:00",
+  "source_root": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013",
+  "files": [
+    {
+      "name": "controller-reply-ui-20261016.json",
+      "sha256": "6162891e245c940ded3f2fd3e7b9803358d7179f7400866fa4bf3f8dcd151c53",
+      "bytes": 1841
+    },
+    {
+      "name": "controller-reply-formal135-20261016.json",
+      "sha256": "5f08be8c6b417e7934d3dd913c2a6365359f507c7993a101914c067a568fc1e0",
+      "bytes": 3212
+    },
+    {
+      "name": "controller-package135-live-20261016.json",
+      "sha256": "2f5f542b063b5638d4744ac6d02db6964c6c6ecab71c706150e794665f573120",
+      "bytes": 6712
+    },
+    {
+      "name": "controller-switch135-20261016.json",
+      "sha256": "7b6153c1b243a5f49763fdf4f03b09731465f31ee4fa860e6727013bc8adf761",
+      "bytes": 3263
+    },
+    {
+      "name": "controller-release135-20261016.json",
+      "sha256": "03a738f76447b5b66cb81af4afbd862d5991839f7f01b0b3f4bd26b02c59f0e6",
+      "bytes": 153279
+    },
+    {
+      "name": "controller-release135-launcher-tests-20261016.log",
+      "sha256": "435869d96b64258f6beaef49bb36ef6bc891568288d8df78ee4ef67db7804e34",
+      "bytes": 7431
+    },
+    {
+      "name": "controller-release135-launcher-build-20261016.log",
+      "sha256": "9648d2a6d3efbd7115daff0cfabd7689c60a3a6b9ffcd789a8ff232e9068ffdf",
+      "bytes": 678
+    },
+    {
+      "name": "controller-launcher-slow-red-20261016.log",
+      "sha256": "a6fb4ab8f0cec6baf732ab23ac170d87501b921eec4a9ae179fb9e5f6f54bf49",
+      "bytes": 1862
+    },
+    {
+      "name": "controller-reply-ui-latest-20261016.txt",
+      "sha256": "1a155224af39b419bbbfe92e6ae827728d0caedc81d47e7a6499b6acb1bf2dbc",
+      "bytes": 213116
+    },
+    {
+      "name": "controller-reply-ui-latest-question-20261016.txt",
+      "sha256": "6bcf4b440a3a076a9c377fa8503396d8b121f8d77e644860e9069406fc9fb78f",
+      "bytes": 182221
+    },
+    {
+      "name": "controller-reply-ui-previous-20261016.txt",
+      "sha256": "cbc021b470e11cfd696214d9d143bd7c2af09b2056b1b74e2e6e58d89f647a50",
+      "bytes": 182891
+    },
+    {
+      "name": "controller-reply-ui-previous-question-20261016.txt",
+      "sha256": "cbc021b470e11cfd696214d9d143bd7c2af09b2056b1b74e2e6e58d89f647a50",
+      "bytes": 182891
+    },
+    {
+      "name": "controller-reply-formal135-20261016.py",
+      "sha256": "9dcaeba59c468b77bbb867177a1949ed1e17e0243e1648f62bd0da39852b2da9",
+      "bytes": 3008
+    },
+    {
+      "name": "controller-package135-live-20261016.py",
+      "sha256": "d3a8ca9318303978ec0373ccd9d403564a9e2748a6fed513b3b113410513d2fc",
+      "bytes": 4268
+    }
+  ]
+}

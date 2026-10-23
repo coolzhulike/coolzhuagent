@@ -11,6 +11,8 @@ pub enum FilesystemIsolationMode {
     #[default]
     WorkspaceOnly,
     AllowList,
+    /// Windows 强制完整性写边界；不声明读隔离、网络隔离或任意路径白名单。
+    WindowsLowIntegrity,
 }
 
 impl FilesystemIsolationMode {
@@ -20,6 +22,7 @@ impl FilesystemIsolationMode {
             Self::Off => "off",
             Self::WorkspaceOnly => "workspace-only",
             Self::AllowList => "allow-list",
+            Self::WindowsLowIntegrity => "windows-low-integrity",
         }
     }
 }
@@ -163,9 +166,15 @@ pub fn resolve_sandbox_status_for_request(request: &SandboxRequest, cwd: &Path) 
     let container = detect_container_environment();
     let namespace_supported = cfg!(target_os = "linux") && command_exists("unshare");
     let network_supported = namespace_supported;
-    let filesystem_active =
-        request.enabled && request.filesystem_mode != FilesystemIsolationMode::Off;
+    // HOME/TMP 环境变量不是文件系统访问控制。当前只有显式 Windows MIC 模式有写边界。
+    let filesystem_supported = cfg!(windows)
+        && request.filesystem_mode == FilesystemIsolationMode::WindowsLowIntegrity;
+    let filesystem_active = request.enabled && filesystem_supported;
     let mut fallback_reasons = Vec::new();
+
+    if request.enabled && request.filesystem_mode != FilesystemIsolationMode::Off && !filesystem_supported {
+        fallback_reasons.push("requested filesystem mode has no enforced OS boundary on this execution path".to_string());
+    }
 
     if request.enabled && request.namespace_restrictions && !namespace_supported {
         fallback_reasons
@@ -185,14 +194,15 @@ pub fn resolve_sandbox_status_for_request(request: &SandboxRequest, cwd: &Path) 
 
     let active = request.enabled
         && (!request.namespace_restrictions || namespace_supported)
-        && (!request.network_isolation || network_supported);
+        && (!request.network_isolation || network_supported)
+        && (request.filesystem_mode == FilesystemIsolationMode::Off || filesystem_supported);
 
     let allowed_mounts = normalize_mounts(&request.allowed_mounts, cwd);
 
     SandboxStatus {
         enabled: request.enabled,
         requested: request.clone(),
-        supported: namespace_supported,
+        supported: namespace_supported || filesystem_supported,
         active,
         namespace_supported,
         namespace_active: request.enabled && request.namespace_restrictions && namespace_supported,

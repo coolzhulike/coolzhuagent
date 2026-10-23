@@ -1,0 +1,57 @@
+{
+  "command": [
+    "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+    "--select-workspace",
+    "D:\\coolzhuagent",
+    "--no-error-dialog"
+  ],
+  "exit_code": 0,
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-workspace-selection.log",
+  "log_sha256": "11018f67d7b2d753abd91c15bed11c5d8b65fc17f935d5a27031c917839525aa",
+  "resolution_exit_code": 0,
+  "resolved_paths": {
+    "config_schema_version": 2,
+    "input_safety_state_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\input-safety",
+    "launch_id": "launch-1792090721023-34380",
+    "observed": {
+      "build_version": null,
+      "data_dir": null,
+      "data_dir_override_observed": false,
+      "session_db": null,
+      "workspace": null
+    },
+    "package_identity": "coolzhu-app-launcher/0.2.0 config_schema=2",
+    "per_process_log_paths": [
+      {
+        "path": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\package-launcher\\package-selfcheck-last.json",
+        "process": "launcher.selfcheck"
+      },
+      {
+        "path": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\package-launcher\\web-console.stdout.log",
+        "process": "web-console.stdout"
+      },
+      {
+        "path": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\package-launcher\\web-console.stderr.log",
+        "process": "web-console.stderr"
+      },
+      {
+        "path": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\package-launcher\\tauri.stdout.log",
+        "process": "tauri.stdout"
+      },
+      {
+        "path": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\package-launcher\\tauri.stderr.log",
+        "process": "tauri.stderr"
+      }
+    ],
+    "requested": {
+      "data_dir_binding": "workspace_config_authority",
+      "session_db": null,
+      "workspace_root": "D:\\coolzhuagent"
+    },
+    "resolution_source": "persisted_user_selection",
+    "resolution_source_detail": " revision=18",
+    "selection_revision": 18,
+    "user_state_root": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent",
+    "workspace_id": "ws-8d17063fefe5c23c"
+  }
+}

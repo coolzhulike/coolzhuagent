@@ -1,0 +1,8 @@
+﻿{
+    "independent_cargo_test_exit":  0,
+    "final_lib":  "pub fn answer() -\u003e i32 { 42 }",
+    "side":  "candidate",
+    "independent_cargo_test_tail":  "   Doc-tests ha11_slow\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n",
+    "round":  3,
+    "run_output":  "elapsed_ms=113755 http=200 room=room-1792639579708 out=D:\\coolzhuagent\\docs\\plans\\harness-alignment\\evidence\\HA-11\\20261021\\runs\\b05-candidate-3"
+}

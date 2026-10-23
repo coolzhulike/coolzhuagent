@@ -1,0 +1,76 @@
+{
+ "run_id": "run-chat-c8842529742afe46646280baa781aa9d93c10777eab7d6d5",
+ "tool_executions": 10,
+ "rows": [
+  {
+   "tool_call_id": "tool-93087e5b8d331c90137f9c986c3765c12e9a86f8ef17bef03c40b7afa7f0b226",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792686569475,
+   "updated_ms": 1792686573850
+  },
+  {
+   "tool_call_id": "tool-fc9151207c7e296f24fc3c41a407f105cbe8e6bafc971444293346c9b1670125",
+   "tool_name": "glob_search",
+   "status": "completed",
+   "created_ms": 1792686584469,
+   "updated_ms": 1792686586924
+  },
+  {
+   "tool_call_id": "tool-9b0607875078760805bdd4441b37178d0f9b2e45d8a4b5e19a436f0099dae5fb",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686598225,
+   "updated_ms": 1792686600717
+  },
+  {
+   "tool_call_id": "tool-1e9fed1be9cd1d4fa965b0987ee749da43da6c1515e3c2f590491fd53fb91f87",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686598423,
+   "updated_ms": 1792686600797
+  },
+  {
+   "tool_call_id": "tool-0dd55f2278df1ad8fad3916e198be4845a68b4071dc60c39ecdbd657bb3b9426",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686598258,
+   "updated_ms": 1792686601717
+  },
+  {
+   "tool_call_id": "tool-5439998aaab50c64a352ca2110b19f08bd26f9f9f5f28971ae3c4321d54a4e7a",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792686618465,
+   "updated_ms": 1792686624332
+  },
+  {
+   "tool_call_id": "tool-12cde7b814256eee87518ccdd9259ce431fd00db6a550eeabef81fdf4c8928c6",
+   "tool_name": "PowerShell",
+   "status": "failed",
+   "created_ms": 1792686634472,
+   "updated_ms": 1792686651353
+  },
+  {
+   "tool_call_id": "tool-9b0d2f7105cb519cf4ba5f198bcf7f3a31b0cd216546a77b3f85c883b33d6b8a",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792686666261,
+   "updated_ms": 1792686670940
+  },
+  {
+   "tool_call_id": "tool-6204d7163c37450d7436e1c38126a2a75ce33f7b7f68472ec31f223c6f3655d2",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792686681267,
+   "updated_ms": 1792686685413
+  },
+  {
+   "tool_call_id": "tool-5a3608b68eb729e8cac4781385f3ef1619c6b69c4190cbc28fbb686a5383793f",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686697258,
+   "updated_ms": 1792686700833
+  }
+ ]
+}

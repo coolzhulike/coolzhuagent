@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>coolzhuagent 界面规划草案 v0.1</title>
+<style>
+  :root{
+    --bg:#050f0b; --panel:#0a1d16; --panel2:#0e271e; --panel3:#123226;
+    --line:#3c5f4e; --line2:#6f957d; --text:#edf5ee; --muted:#a9c0b0;
+    --jade:#a9dfbf; --gold:#e3cb8d; --danger:#e7a49b; --blue:#9cc7d8;
+    --mono:"Cascadia Code",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#020806;color:var(--text);font-family:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC",sans-serif;font-size:14px;line-height:1.5}
+  .page{width:1480px;margin:0 auto;padding:24px 24px 60px}
+  .doc-head{padding:18px 24px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(120deg,#0a1d16,#07130f);margin-bottom:22px}
+  .doc-head h1{margin:0 0 6px;font-size:24px;letter-spacing:.06em;color:#f1f7ee}
+  .doc-head p{margin:0;color:var(--muted);font-size:13px}
+  .doc-head .tag{display:inline-block;margin-right:8px;padding:2px 8px;border:1px solid var(--gold);border-radius:999px;color:var(--gold);font-size:12px}
+  .frame{position:relative;width:1408px;min-height:920px;margin:0 0 30px;padding:18px 20px 34px;border:1px solid var(--line);border-radius:16px;background:
+    radial-gradient(1100px 420px at 85% -10%,rgba(74,128,98,.22),transparent 60%),
+    radial-gradient(700px 300px at 0% 110%,rgba(160,126,63,.10),transparent 60%),
+    linear-gradient(150deg,#06130e,#040d09 70%)}
+  .frame-label{display:flex;align-items:center;gap:10px;margin:0 0 12px;color:var(--gold);font-size:13px;letter-spacing:.12em}
+  .frame-label::before{content:"";width:26px;height:1px;background:var(--gold);opacity:.8}
+  .win{position:relative;border:1px solid #557a64;border-radius:12px;background:linear-gradient(180deg,#0b2018,#081811);box-shadow:0 22px 48px rgba(0,0,0,.45);overflow:hidden}
+  .win-body{position:relative}
+  #frame-ia{min-height:820px}
+  .win-bar{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #335443;background:linear-gradient(180deg,#102a20,#0a1d16);color:#cfe4d5;font-size:12px;letter-spacing:.08em}
+  .win-bar .left{display:flex;align-items:center;gap:8px}
+  .win-bar .lamp{width:8px;height:8px;border-radius:99px;background:var(--jade);box-shadow:0 0 10px var(--jade)}
+  .win-bar .close{width:26px;height:26px;display:grid;place-items:center;border:1px solid #5d7d69;border-radius:6px;color:#d8e8dc}
+  .win-body{padding:22px 24px 52px}
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
+  .eyebrow{font-size:10px;letter-spacing:.22em;color:#87a891;margin-bottom:2px}
+  .page-head h1{margin:0;font-size:26px;letter-spacing:.08em;color:#f4f8ee}
+  .head-actions{display:flex;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;border:1px solid #6f957d;background:#10281f;color:#e8f2e7;font-size:13px;font-weight:600}
+  .btn.primary{border-color:#d8bd7d;background:linear-gradient(180deg,#b99751,#8d6d35);color:#1d1508}
+  .btn.ghost{background:#0b1e17;color:#cfe2d2}
+  .session-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 14px 10px;border:1px solid #466b56;border-radius:10px;background:#0b2119;margin-bottom:8px}
+  .avatar{width:52px;height:52px;border-radius:50%;border:1px solid var(--gold);display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#2f5a43,#10251c);color:#e7d29b;font-size:16px;font-weight:700;letter-spacing:.08em}
+  .avatar.small{width:34px;height:34px;font-size:12px;border-color:#6f957d}
+  .avatar-row{display:flex;align-items:center;gap:9px;padding:0 4px 10px;border-bottom:1px solid #2f4b3a;margin-bottom:10px;color:#9db9a5;font-size:12px}
+  .avatar-row .who{color:#e2efe4;font-weight:600}
+  .avatar-row .spacer{margin-left:auto}
+  .session-field label{display:block;font-size:11px;color:#8fab97;margin-bottom:5px}
+  .select{height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid #6f957d;border-radius:8px;background:#071a13;color:#e9f2e8;font-size:14px}
+  .select .mono{font-family:var(--mono);font-size:11px;color:#a9c4b2;border:1px solid #3f6352;border-radius:5px;padding:1px 6px}
+  .select .chev{margin-left:auto;color:#a9dfbf}
+  .session-side{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;border:1px solid #4c725d;font-size:11px;color:#bcd6c3}
+  .pill.ok{border-color:#5e9576;color:#b8e4c6;background:#0f2b1f}
+  .pill.warn{border-color:#b99355;color:#e3cb8d;background:#2a2112}
+  .link{background:none;border:0;color:#a9dfbf;font-size:12px;padding:0;text-decoration:underline;text-underline-offset:3px}
+  .think-row{display:grid;grid-template-columns:150px minmax(0,1fr) 72px;gap:16px;align-items:center;padding:10px 14px;border:1px solid #385846;border-radius:10px;background:#081a13;margin-bottom:14px}
+  .think-label{font-size:13px;color:#dcecdf}
+  .think-label small{display:block;font-size:11px;color:#8fac97;margin-top:2px}
+  .slider{padding:0 2px}
+  .track{position:relative;height:6px;border-radius:99px;background:#1b3829;border:1px solid #2f4f3e}
+  .track .fill{position:absolute;left:0;top:0;bottom:0;width:67%;border-radius:99px;background:linear-gradient(90deg,#5f9579,#a9dfbf)}
+  .track .knob{position:absolute;left:67%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#e9f7ec;border:3px solid #73a789;box-shadow:0 0 0 4px rgba(169,223,191,.12)}
+  .ticks{display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:#7f9e8b}
+  .ticks .on{color:#e3cb8d;font-weight:700}
+  .think-value{text-align:right;font-size:16px;color:#e3cb8d;font-weight:700}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid #3c5f4e;margin:4px 0 16px}
+  .tab{position:relative;padding:9px 18px;font-size:14px;color:#8fae99;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0}
+  .tab.active{color:#f0f7eb;background:#0f2a20;border-color:#5f8970}
+  .tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--gold)}
+  .body-grid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px}
+  .side-list{border:1px solid #3f6352;border-radius:10px;background:#081a13;padding:8px}
+  .side-title{font-size:11px;letter-spacing:.12em;color:#86a58f;padding:6px 8px}
+  .side-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:7px;border:1px solid transparent;color:#c6dccb;font-size:13px}
+  .side-item .dot{width:7px;height:7px;border-radius:99px;background:#557a64}
+  .side-item .dot.on{background:#8fd3b1;box-shadow:0 0 8px #8fd3b1}
+  .side-item.active{border-color:#6f957d;background:#123126;color:#f0f7ec}
+  .side-item small{margin-left:auto;color:#87a891;font-size:10px}
+  .side-add{margin-top:8px;padding:9px 10px;border:1px dashed #527763;border-radius:7px;color:#a9dfbf;font-size:12px;text-align:center}
+  .form-panel{border:1px solid #3f6352;border-radius:10px;background:linear-gradient(180deg,#0b2119,#081911);padding:14px 16px}
+  .sec-head{display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:12px;color:#8fae99;letter-spacing:.06em}
+  .sec-head b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid #6f957d;color:#a9dfbf;font-size:10px}
+  .sec-head strong{color:#e8f2e7;font-size:14px;letter-spacing:.04em}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field.wide{grid-column:1/-1}
+  .field > span{font-size:12px;color:#9db9a5}
+  .input,.selectbox{height:38px;display:flex;align-items:center;padding:0 10px;border:1px solid #5d8068;border-radius:7px;background:#061710;color:#e7f1e7;font-size:13px}
+  .input .mono{font-family:var(--mono);color:#c6dccb}
+  .input .suffix{margin-left:auto;color:#8fd3b1;font-size:11px;border:1px solid #4f7b61;border-radius:5px;padding:1px 6px}
+  .hint-line{font-size:11px;color:#87a891}
+  .inline{display:flex;align-items:center;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border:1px solid #4f7b61;border-radius:5px;font-size:11px;color:#bcd6c3;background:#0d241b}
+  .chip.gold{border-color:#a98b4e;color:#e3cb8d;background:#241d10}
+  .seg{display:flex;gap:4px;flex-wrap:wrap}
+  .seg span{padding:5px 11px;border:1px solid #41644f;border-radius:6px;font-size:12px;color:#a9c4b2}
+  .seg .on{border-color:#c7ab6b;background:#2a2413;color:#f0dfb3}
+  .divider{height:1px;background:#2f4b3a;margin:14px 0}
+  .toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid #6f957d;border-radius:999px;background:#10281f;color:#dff0e2;font-size:13px;box-shadow:0 12px 28px rgba(0,0,0,.4);pointer-events:none}
+  .toast b{color:#a9dfbf}
+  .n{display:inline-grid;place-items:center;width:18px;height:18px;margin:0 5px 0 0;border-radius:50%;background:#e3cb8d;color:#1b1407;font-size:11px;font-weight:800;vertical-align:1px;font-family:Consolas,monospace}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;margin-top:14px;padding:12px 14px;border:1px dashed #456553;border-radius:9px;background:#06130e;color:#b7cdbd;font-size:12px}
+  .legend b{color:#e3cb8d;font-family:Consolas,monospace}
+  .foot-note{margin-top:10px;color:#779382;font-size:11px;text-align:right}
+  .card{border:1px solid #3f6352;border-radius:10px;background:#081a13;padding:12px 14px}
+  .account{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center}
+  .account .logo{width:48px;height:48px;border-radius:11px;border:1px solid #6f957d;display:grid;place-items:center;background:#10281f;color:#e3cb8d;font-weight:800;letter-spacing:.04em}
+  .account h3{margin:0;font-size:15px;color:#f0f7eb}
+  .account p{margin:2px 0 0;font-size:12px;color:#92af9b}
+  .model-table{width:100%;border-collapse:collapse;font-size:12px}
+  .model-table th{text-align:left;color:#87a891;font-weight:500;padding:7px 8px;border-bottom:1px solid #335443}
+  .model-table td{padding:8px;border-bottom:1px solid #243c2f;color:#d4e6d8}
+  .model-table tr.sel td{background:#10281f}
+  .model-table .mono{font-family:var(--mono);font-size:11px;color:#bcd6c3}
+  .gen-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+  .dropzone{height:86px;display:grid;place-items:center;border:1px dashed #5f8970;border-radius:8px;color:#93b19c;font-size:12px;background:#071811}
+  .note-box{border-left:2px solid #c7ab6b;padding:8px 10px;background:#1a1a10;border-radius:0 6px 6px 0;color:#d9cba4;font-size:11px;line-height:1.6}
+  .rail{width:56px;border:1px solid #466b56;border-radius:12px;background:#081a13;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .rail .ric{width:40px;height:40px;border:1px solid transparent;border-radius:9px;display:grid;place-items:center;color:#a9c4b2;font-size:10px;text-align:center;line-height:1.1}
+  .rail .ric.on{border-color:#8ab28d;background:#10281f;color:#eaf4e8}
+  .rail .ric .glyph{font-size:15px;display:block;margin-bottom:1px}
+  .ia-grid{display:grid;grid-template-columns:56px minmax(0,1fr) 330px;gap:14px;height:700px}
+  .task-tabs{display:flex;gap:4px;border-bottom:1px solid #3c5f4e;margin-bottom:10px}
+  .task-tab{padding:7px 12px;font-size:12px;color:#8fae99;border:1px solid transparent;border-radius:7px 7px 0 0}
+  .task-tab.on{color:#f0f7eb;background:#10281f;border-color:#5f8970}
+  .task-list{display:flex;flex-direction:column;gap:8px}
+  .task-row{display:grid;grid-template-columns:8px 1fr auto;gap:9px;align-items:center;padding:9px 10px;border:1px solid #34513f;border-radius:8px;background:#081a13}
+  .task-row .st{width:6px;height:26px;border-radius:99px;background:#6f957d}
+  .task-row .st.run{background:#a9dfbf;box-shadow:0 0 8px #a9dfbf}
+  .task-row .st.fail{background:#e7a49b}
+  .task-row b{display:block;font-size:12px;color:#e4efe4}
+  .task-row small{display:block;font-size:10px;color:#87a891;margin-top:2px}
+  .task-row .time{font-size:10px;color:#93b19c;font-family:var(--mono)}
+  .storage{border:1px solid #4c725d;border-radius:8px;background:#0b2119;padding:10px 12px;margin-bottom:10px}
+  .storage .bar{height:8px;border-radius:99px;background:#173126;overflow:hidden;margin:7px 0 5px}
+  .storage .bar i{display:block;height:100%;width:23%;background:linear-gradient(90deg,#6f957d,#e3cb8d)}
+  .storage .row{display:flex;justify-content:space-between;font-size:11px;color:#9db9a5}
+  .detail{border:1px solid #466b56;border-radius:10px;background:#081a13;padding:12px 14px}
+  .detail h3{margin:0 0 3px;font-size:14px;color:#f0f7eb}
+  .detail .sub{font-size:11px;color:#87a891;margin-bottom:10px}
+  .trace{display:flex;flex-direction:column;gap:0;margin-top:6px}
+  .trace-item{position:relative;padding:0 0 12px 18px;border-left:1px solid #426451;font-size:11px;color:#b9d0be}
+  .trace-item::before{content:"";position:absolute;left:-4px;top:3px;width:7px;height:7px;border-radius:99px;background:#a9dfbf}
+  .trace-item b{color:#e4efe4;font-size:12px;display:block}
+  .trace-item small{color:#87a891}
+  .mini-chat{border:1px solid #466b56;border-radius:10px;background:#081a13;padding:10px 12px}
+  .mini-toolbar{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid #2f4b3a;font-size:11px;color:#9db9a5}
+  .mini-toolbar .spacer{margin-left:auto}
+  .mini-toolbar .tok{display:inline-flex;gap:6px;align-items:center;border:1px solid #4c725d;border-radius:999px;padding:3px 9px;color:#dcecdf;background:#0d241b}
+  .mini-toolbar .tok b{color:#e3cb8d}
+  .mini-msg{margin-top:8px;padding:8px 10px;border-radius:7px;background:#0d241b;border:1px solid #335443;font-size:11px;color:#c6dccb}
+  .callout{position:absolute;border:1px dashed #c7ab6b;border-radius:8px;pointer-events:none}
+  .callout-label{position:absolute;top:-11px;left:10px;background:#1b1508;color:#e3cb8d;font-size:10px;padding:1px 6px;border:1px solid #8a6f39;border-radius:4px}
+  .del{position:relative;opacity:.55}
+  .del::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:1px;background:#e7a49b;transform:rotate(-16deg)}
+  .del-x{color:#e7a49b;font-size:10px;margin-left:3px}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="doc-head">
+    <div><span class="tag">草案 v0.1</span><span class="tag">未实施</span></div>
+    <h1>coolzhuagent 界面规划草案 · 设置页与扩展栏</h1>
+    <p>仅用于需求与交互审核。图中字段、按钮位置与文案均为待确认稿，不代表已实现或最终方案；审核通过后再进入实施。</p>
+  </header>
+
+  <!-- ================= FRAME A ================= -->
+  <section class="frame" id="frame-api">
+    <div class="frame-label">A · 设置 / 模型与会话 · API 接入（文本 / 多模态）</div>
+    <div class="win">
+      <div class="win-bar"><div class="left"><span class="lamp"></span>COOLZHU CODE · 设置</div><span class="close">×</span></div>
+      <div class="win-body">
+        <header class="page-head">
+          <div>
+            <div class="eyebrow">MODEL &amp; SESSION</div>
+            <h1><span class="n">1</span>模型与会话</h1>
+          </div>
+          <div class="head-actions">
+            <button class="btn ghost"><span class="n">2</span>＋ 新建会话</button>
+            <button class="btn primary"><span class="n">3</span>保存配置</button>
+          </div>
+        </header>
+
+        <div class="session-strip">
+          <div class="session-field">
+            <label><span class="n">4</span>编辑配置的会话</label>
+            <div class="select">Devin SWE-2 真实CU验收 <span class="mono">swe-2-max</span> <span class="pill ok" style="margin-left:8px">发送中</span><span class="chev">▾</span></div>
+          </div>
+          <div class="session-side">
+            <span class="pill ok">已保存</span>
+            <span class="hint-line">配置仅作用于该会话</span>
+          </div>
+        </div>
+        <div class="avatar-row">
+          <div class="avatar small">竹</div>
+          <span>会话头像</span><span class="who">竹影剑客</span>
+          <span class="spacer"></span>
+          <button class="link">从品牌头像选择</button><span style="color:#557563">·</span><button class="link">上传图片</button>
+        </div>
+
+        <div class="think-row">
+          <div class="think-label"><span class="n">5</span>思考程度<small>拖动即生效，无需点保存</small></div>
+          <div class="slider">
+            <div class="track"><div class="fill"></div><div class="knob"></div></div>
+            <div class="ticks"><span>自动</span><span>关闭</span><span>低</span><span>中</span><span class="on">高</span><span>最高</span></div>
+          </div>
+          <div class="think-value">高</div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active"><span class="n">6</span>API 接入</div>
+          <div class="tab">订阅接入</div>
+        </div>
+
+        <div class="body-grid">
+          <aside class="side-list">
+            <div class="side-title">接入来源</div>
+            <div class="side-item active"><span class="dot on"></span>OpenRouter<small>已配置</small></div>
+            <div class="side-item"><span class="dot"></span>OpenAI 兼容</div>
+            <div class="side-item"><span class="dot"></span>Anthropic</div>
+            <div class="side-item"><span class="dot"></span>OpenCode Zen</div>
+            <div class="side-item"><span class="dot"></span>Hugging Face</div>
+            <div class="side-item"><span class="dot"></span>自定义 / 本地</div>
+            <div class="side-add">＋ 添加接入</div>
+            <div class="hint-line" style="padding:8px">API 接入：使用 Base URL 与密钥，直接走 HTTP 协议。</div>
+          </aside>
+
+          <div class="form-panel">
+            <div class="sec-head"><b>01</b><strong>连接</strong><span style="margin-left:auto" class="chip">OpenRouter</span></div>
+            <div class="grid">
+              <label class="field wide"><span>Base URL</span><div class="input"><span class="mono">https://openrouter.ai/api/v1</span></div></label>
+              <label class="field"><span>API Key</span><div class="input">••••••••••••••••<span class="suffix">已保存</span></div></label>
+              <label class="field"><span>模型发现</span><div class="inline"><div class="input" style="flex:1"><span class="mono">anthropic/claude-opus-5.5</span></div><button class="btn ghost" style="height:38px"><span class="n">7</span>获取模型</button></div></label>
+              <div class="field wide">
+                <span>能力标签（来自目录，未实测）</span>
+                <div class="seg"><span>文本</span><span>图片输入</span><span>工具调用</span><span>思考档位</span><span style="color:#87a891">上下文 200K</span></div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="sec-head"><b>02</b><strong>模型能力</strong><span class="hint-line">不同模型类型使用不同的请求与参数</span></div>
+            <div class="seg" style="margin-bottom:10px"><span class="on"><span class="n">8</span>对话 / 代码</span><span>多模态</span><span>图像生成</span><span>视频生成</span><span>其它</span></div>
+            <div class="grid">
+              <label class="field"><span>上下文容量 · tokens</span><div class="input"><span class="mono">200,000</span><span class="suffix">默认</span></div></label>
+              <label class="field"><span>最大输出 · tokens</span><div class="input"><span class="mono">32,000</span><span class="suffix">默认</span></div></label>
+            </div>
+
+            <div class="divider"></div>
+            <div class="sec-head"><b>03</b><strong>高级参数</strong><span style="margin-left:auto" class="link">展开</span></div>
+            <div class="hint-line">温度、Top P、工具暴露范围、整轮时限等沿用工程默认；需要时再展开。</div>
+          </div>
+        </div>
+
+        <div class="toast"><b>✓</b>配置已保存<span style="color:#87a891;font-size:11px">· 3 秒后自动消失</span></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div><b>1</b> 删除标题下的说明文字“为当前聊天室选择模型…”；标题区只保留标题与操作。</div>
+      <div><b>2</b> “新建会话”与“保存配置”并列放在标题右侧，不再放在表单底部。</div>
+      <div><b>3</b> 保存后只出现一次 transient toast“配置已保存”，几秒后消失；不再常驻“配置已载入…”。</div>
+      <div><b>4</b> 会话选择器下方增加“会话头像”行：品牌头像选择与上传入口，不再隐藏在旧会话生命周期区。</div>
+      <div><b>5</b> 思考程度用滑块，放在会话选择器正下方；拖动即时 PATCH，不依赖保存按钮。</div>
+      <div><b>6</b> 顶部一级分类：API 接入 / 订阅接入；两类共用同一套会话与模型选择。</div>
+      <div><b>7</b> 保留“获取模型”与目录能力标签；目录只作提示，不自动覆盖保存值。</div>
+      <div><b>8</b> 模型类型明确分为对话/多模态/图像生成/视频生成；不同类型展开不同参数区。</div>
+      <div><b>9</b> 删除“当前发送给…；…有未保存的草稿”整段说明条，改用“发送中”标记与未保存圆点。</div>
+      <div><b>10</b> 模型会话头像、名称与“发送中”状态在会话选择器一处表达，避免重复文本。</div>
+    </div>
+    <div class="foot-note">A · 文本 / 多模态 API 接入 · 规划稿</div>
+  </section>
+
+  <!-- ================= FRAME B ================= -->
+  <section class="frame" id="frame-sub">
+    <div class="frame-label">B · 设置 / 模型与会话 · 订阅接入（账号登录 + ACP）</div>
+    <div class="win">
+      <div class="win-bar"><div class="left"><span class="lamp"></span>COOLZHU CODE · 设置</div><span class="close">×</span></div>
+      <div class="win-body">
+        <header class="page-head">
+          <div><div class="eyebrow">MODEL &amp; SESSION</div><h1>模型与会话</h1></div>
+          <div class="head-actions"><button class="btn ghost">＋ 新建会话</button><button class="btn primary">保存配置</button></div>
+        </header>
+
+        <div class="session-strip">
+          <div class="session-field"><label>编辑配置的会话</label><div class="select">Devin Opus 5.5 审查 <span class="mono">claude-opus-5-5-high</span><span class="chev">▾</span></div></div>
+          <div class="session-side"><span class="pill ok">已登录</span><span class="hint-line">订阅账号 · ACP 会话</span></div>
+        </div>
+        <div class="avatar-row">
+          <div class="avatar small">D</div>
+          <span>会话头像</span><span class="who">玄衣谋士</span>
+          <span class="spacer"></span>
+          <button class="link">从品牌头像选择</button><span style="color:#557563">·</span><button class="link">上传图片</button>
+        </div>
+
+        <div class="think-row">
+          <div class="think-label">思考程度<small>订阅模型变体即时切换</small></div>
+          <div class="slider"><div class="track"><div class="fill"></div><div class="knob" style="left:55%"></div></div><div class="ticks"><span>自动</span><span>低</span><span>中</span><span class="on">高</span><span>最高</span></div></div>
+          <div class="think-value">高</div>
+        </div>
+
+        <div class="tabs"><div class="tab">API 接入</div><div class="tab active"><span class="n">1</span>订阅接入</div></div>
+
+        <div class="body-grid">
+          <aside class="side-list">
+            <div class="side-title">订阅厂商</div>
+            <div class="side-item active"><span class="dot on"></span>Devin<small>已登录</small></div>
+            <div class="side-item"><span class="dot"></span>OpenAI / ChatGPT<small>OAuth</small></div>
+            <div class="side-item"><span class="dot"></span>Anthropic / Claude<small>后续</small></div>
+            <div class="side-item"><span class="dot"></span>Google Gemini<small>后续</small></div>
+            <div class="side-item"><span class="dot"></span>其它厂商<small>后续</small></div>
+            <div class="side-add">＋ 添加厂商</div>
+            <div class="hint-line" style="padding:8px">首批 Devin + OpenAI（ChatGPT OAuth）。登录由厂商官方页面完成；本机只保留登录状态与会话，不保存明文密码。</div>
+          </aside>
+
+          <div class="form-panel">
+            <div class="account">
+              <div class="logo">D</div>
+              <div><h3><span class="n">2</span>Devin</h3><p>已登录 · devin-user@example.com · 登录状态由官方 CLI 核验</p></div>
+              <div class="inline"><button class="btn ghost">刷新状态</button><button class="btn ghost">重新登录</button></div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="sec-head"><b>01</b><strong><span class="n">3</span>账号模型目录</strong><span style="margin-left:auto" class="chip">12 个模型 · 6 个思考档位</span></div>
+            <div class="inline" style="margin-bottom:8px"><div class="input" style="flex:1"><span class="mono">搜索模型 / 家族</span></div><button class="btn ghost" style="height:38px">刷新目录</button></div>
+            <table class="model-table">
+              <thead><tr><th>模型 ID</th><th>家族</th><th>思考档位</th><th>能力</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr class="sel"><td class="mono">claude-opus-5-5-high</td><td>Opus 5.5</td><td>high</td><td>文本 / 图片</td><td><span class="chip gold">当前</span></td></tr>
+                <tr><td class="mono">swe-2-max</td><td>SWE-2</td><td>max</td><td>文本 / CU</td><td><span class="chip">可选</span></td></tr>
+                <tr><td class="mono">gpt-5.4-codex</td><td>Codex</td><td>medium</td><td>文本 / 工具</td><td><span class="chip">可选</span></td></tr>
+                <tr><td class="mono">gemini-3-pro</td><td>Gemini</td><td>high</td><td>文本 / 图片</td><td><span class="chip">可选</span></td></tr>
+              </tbody>
+            </table>
+
+            <div class="divider"></div>
+            <div class="sec-head"><b>02</b><strong><span class="n">4</span>接入方式</strong></div>
+            <div class="grid">
+              <label class="field"><span>会话通道</span><div class="selectbox">ACP · 官方 CLI 会话 <span style="margin-left:auto" class="chip gold">推荐</span></div></label>
+              <label class="field"><span>账号额度</span><div class="selectbox">由厂商账号计划决定 <span class="chip">只读</span></div></label>
+            </div>
+            <div class="note-box" style="margin-top:10px">订阅接入只负责“账号 → 可用模型 → ACP 会话”；不把账号令牌写进聊天记录，也不把订阅额度当作 HTTP API 计费。模型目录、思考档位与精确模型 ID 以登录账号实时返回为准。</div>
+          </div>
+        </div>
+        <div class="toast"><b>✓</b>配置已保存<span style="color:#87a891;font-size:11px">· 3 秒后自动消失</span></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div><b>1</b> 订阅接入与 API 接入并列，不再把 Devin/OpenCode/Hugging Face 做成插件市场里的独立卡片。</div>
+      <div><b>2</b> 厂商账号状态、登录/重新登录、刷新状态集中在一个账号卡内。</div>
+      <div><b>3</b> 登录后列出账号真实返回的模型目录；思考档位与精确模型 ID 同步，不能手填不存在的变体。</div>
+      <div><b>4</b> ACP 作为订阅模型的会话通道；与 HTTP API 接入共用聊天室发送对象。</div>
+      <div><b>5</b> OpenCode / Hugging Face 若只有 API Key，则归入“API 接入”，不冒充订阅登录。</div>
+      <div><b>6</b> 订阅额度只展示账号返回的信息，不做本地计费推算。</div>
+    </div>
+    <div class="foot-note">B · 订阅接入 · 规划稿</div>
+  </section>
+
+  <!-- ================= FRAME C ================= -->
+  <section class="frame" id="frame-gen">
+    <div class="frame-label">C · 设置 / 图像生成与视频生成（独立协议与参数）</div>
+    <div class="win">
+      <div class="win-bar"><div class="left"><span class="lamp"></span>COOLZHU CODE · 设置</div><span class="close">×</span></div>
+      <div class="win-body">
+        <header class="page-head">
+          <div><div class="eyebrow">MODEL &amp; SESSION</div><h1>模型与会话</h1></div>
+          <div class="head-actions"><button class="btn ghost">＋ 新建会话</button><button class="btn primary">保存配置</button></div>
+        </header>
+        <div class="session-strip">
+          <div class="session-field"><label>编辑配置的会话</label><div class="select">图像生成 · OpenRouter <span class="mono">openai/gpt-image-1</span><span class="chev">▾</span></div></div>
+          <div class="session-side"><span class="pill warn">生成任务独立计费</span></div>
+        </div>
+        <div class="avatar-row">
+          <div class="avatar small">画</div>
+          <span>会话头像</span><span class="who">丹青</span>
+          <span class="spacer"></span>
+          <button class="link">更换头像</button>
+        </div>
+        <div class="think-row" style="opacity:.55">
+          <div class="think-label">思考程度<small>生成模型不适用</small></div>
+          <div class="slider"><div class="track"><div class="fill" style="width:0"></div><div class="knob" style="left:0"></div></div><div class="ticks"><span>不适用</span></div></div>
+          <div class="think-value">—</div>
+        </div>
+        <div class="tabs"><div class="tab active">API 接入</div><div class="tab">订阅接入</div></div>
+        <div class="body-grid">
+          <aside class="side-list">
+            <div class="side-title">接入来源</div>
+            <div class="side-item active"><span class="dot on"></span>OpenRouter<small>已配置</small></div>
+            <div class="side-item"><span class="dot"></span>OpenAI Images</div>
+            <div class="side-item"><span class="dot"></span>Gemini / Veo</div>
+            <div class="side-item"><span class="dot"></span>自定义生成端点</div>
+            <div class="side-add">＋ 添加接入</div>
+          </aside>
+          <div class="form-panel">
+            <div class="sec-head"><b>01</b><strong>连接</strong><span class="chip">OpenRouter</span></div>
+            <div class="grid">
+              <label class="field wide"><span>Base URL</span><div class="input"><span class="mono">https://openrouter.ai/api/v1</span></div></label>
+              <label class="field"><span>API Key</span><div class="input">••••••••<span class="suffix">已保存</span></div></label>
+              <label class="field"><span>模型</span><div class="selectbox"><span class="mono">openai/gpt-image-1</span><span style="margin-left:auto" class="chip">图像生成</span></div></label>
+            </div>
+            <div class="divider"></div>
+            <div class="sec-head"><b>02</b><strong><span class="n">1</span>生成参数</strong></div>
+            <div class="seg" style="margin-bottom:10px"><span class="on">图像生成</span><span>视频生成</span></div>
+            <div class="gen-grid">
+              <div>
+                <div class="grid">
+                  <label class="field"><span>尺寸</span><div class="selectbox">1024 × 1024 <span style="margin-left:auto">▾</span></div></label>
+                  <label class="field"><span>质量</span><div class="selectbox">高 <span style="margin-left:auto">▾</span></div></label>
+                  <label class="field"><span>数量</span><div class="selectbox">1 <span style="margin-left:auto">▾</span></div></label>
+                  <label class="field"><span>输出格式</span><div class="selectbox">PNG <span style="margin-left:auto">▾</span></div></label>
+                  <label class="field wide"><span>种子（可选）</span><div class="input"><span class="mono">留空随机</span></div></label>
+                </div>
+              </div>
+              <div>
+                <label class="field"><span>参考图 / 局部编辑图</span></label>
+                <div class="dropzone">拖入图片，或点击选择（可选）</div>
+                <div class="note-box" style="margin-top:10px"><span class="n">2</span>图像生成使用独立的请求协议与返回格式；结果进入右侧资产/预览，不当作聊天文本回复。</div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="sec-head"><b>03</b><strong><span class="n">3</span>视频生成（切换后显示）</strong></div>
+            <div class="grid">
+              <label class="field"><span>时长</span><div class="selectbox">8 秒 <span style="margin-left:auto">▾</span></div></label>
+              <label class="field"><span>分辨率 / 宽高比</span><div class="selectbox">1080p · 16:9 <span style="margin-left:auto">▾</span></div></label>
+              <label class="field"><span>首帧图（可选）</span><div class="dropzone" style="height:56px">上传首帧</div></label>
+              <label class="field"><span>音频</span><div class="selectbox">关闭 <span style="margin-left:auto">▾</span></div></label>
+            </div>
+            <div class="note-box" style="margin-top:10px"><span class="n">4</span>视频生成是异步长任务：提交后进入“后台任务”，可关闭设置页；不要占用聊天轮次，也不要在聊天窗口里轮询。</div>
+          </div>
+        </div>
+        <div class="toast"><b>✓</b>配置已保存<span style="color:#87a891;font-size:11px">· 3 秒后自动消失</span></div>
+      </div>
+    </div>
+    <div class="legend">
+      <div><b>1</b> 图像/视频生成模型使用独立参数区，不与文本模型的 temperature/context 混在一起。</div>
+      <div><b>2</b> 图像结果走资产/预览链路；聊天消息只保留任务引用与结果卡片，不塞 base64。</div>
+      <div><b>3</b> 视频参数含时长、分辨率、宽高比、首帧、音频；不同厂商字段做能力映射与禁用。</div>
+      <div><b>4</b> 异步视频任务进入后台任务页，复用统一任务/轨迹/取消/额度。</div>
+      <div><b>5</b> 生成任务与聊天 token 分开统计；统计页需要区分“对话 token / 生成任务 / 费用”。</div>
+    </div>
+    <div class="foot-note">C · 图像 / 视频生成 · 规划稿</div>
+  </section>
+
+  <!-- ================= FRAME D ================= -->
+  <section class="frame" id="frame-ia">
+    <div class="frame-label">D · 扩展栏信息架构（定时 / 后台 / 轨迹 / CU / 统计 / SKILL / 插件）</div>
+    <div class="ia-grid" style="grid-template-columns:56px minmax(0,1fr) 330px;height:auto">
+      <aside class="rail">
+        <div class="ric on"><span class="glyph">◈</span>首页</div>
+        <div class="ric"><span class="glyph">▤</span>任务<span style="font-size:8px;color:#e3cb8d">合并</span></div>
+        <div class="ric"><span class="glyph">▥</span>统计</div>
+        <div class="ric"><span class="glyph">⚙</span>设置</div>
+        <div class="ric"><span class="glyph">✉</span>微信</div>
+        <div class="ric"><span class="glyph">⋯</span>更多</div>
+        <div class="ric del" title="删除终端入口"><span class="glyph">▣</span>终端<span class="del-x">×</span></div>
+        <div class="ric" style="margin-top:auto"><span class="glyph">↻</span>更新</div>
+      </aside>
+
+      <div class="card" style="padding:14px 16px">
+        <div class="inline" style="justify-content:space-between;margin-bottom:8px">
+          <div><div class="eyebrow">TASKS &amp; TRAJECTORY</div><div style="font-size:18px;font-weight:700;letter-spacing:.06em">任务与轨迹</div></div>
+          <div class="inline"><span class="chip gold">当前聊天室</span><button class="btn ghost" style="height:32px">新建定时任务</button></div>
+        </div>
+        <div class="task-tabs"><div class="task-tab on">定时任务</div><div class="task-tab">后台任务</div><div class="task-tab">轨迹</div><div class="task-tab">CU 记录</div></div>
+        <div class="storage">
+          <div class="row"><span>运行数据保留窗口</span><b style="color:#e3cb8d">12 小时</b></div>
+          <div class="bar"><i style="width:38%"></i></div>
+          <div class="row"><span>按运行时长估算</span><span>约 2.3 GB</span></div>
+          <div class="row"><span>最早 12:04 · 到期清理不归档</span><span class="link">调整</span></div>
+        </div>
+        <div class="task-list">
+          <div class="task-row"><span class="st run"></span><div><b>每日 09:00 · Goal 推进</b><small>下次 10-18 09:00 · 绑定 Goal · 最近成功</small></div><span class="time">30s 后</span></div>
+          <div class="task-row"><span class="st"></span><div><b>后台子 Agent · Devin 仓库审查</b><small>运行中 · 3 个工具步骤 · 父聊天室：主聊天室</small></div><span class="time">12:04</span></div>
+          <div class="task-row"><span class="st fail"></span><div><b>视频生成 · veo-3</b><small>失败 · 额度不足 · 已保留请求与错误</small></div><span class="time">11:52</span></div>
+        </div>
+      </div>
+
+      <aside class="detail">
+        <h3>运行详情</h3>
+        <div class="sub">一次运行 = 模型轮次 + 工具调用 + CU 记录</div>
+        <div class="inline" style="margin-bottom:8px"><span class="chip">run-8f2a</span><span class="chip">completed</span><span class="chip">12.4s</span></div>
+        <div class="trace">
+          <div class="trace-item"><b>模型请求</b><small>输入 12,316 · 输出 842 · 首 token 620ms</small></div>
+          <div class="trace-item"><b>read_file</b><small>Cargo.toml · 完成 · 18ms</small></div>
+          <div class="trace-item"><b>computer_use_perform</b><small>浏览器点击 · 完成 · 截图 1 张</small></div>
+          <div class="trace-item"><b>助手回复</b><small>完成 · 本轮 12.4s · 68 tok/s</small></div>
+        </div>
+        <div class="divider"></div>
+        <div class="mini-chat">
+          <div class="mini-toolbar"><span>搜索</span><span class="spacer"></span><span class="tok">总 token <b>18.4K</b> · 平均 <b>64 tok/s</b></span></div>
+          <div class="mini-msg">聊天室顶部工具栏：删除“思考与运行记录”，空出的位置显示当前聊天室总量与平均速率。</div>
+        </div>
+      </aside>
+    </div>
+    <div class="legend">
+      <div><b>1</b> 左栏删除“终端”入口与面板；终端不再作为扩展页。</div>
+      <div><b>2</b> 定时任务不再占一个聊天室；“定时任务、后台任务、轨迹、CU 记录”合并为同一任务页的四个标签。</div>
+      <div><b>3</b> 运行数据默认保留 12 小时，按运行时长估算占用；到期清理不归档；当前聊天室的轨迹不再塞进聊天窗口。</div>
+      <div><b>4</b> CU 运行记录与截图进入任务页详情，不在聊天消息流里重复展示。</div>
+      <div><b>5</b> 统计页按聊天室 / 会话模型 / 时段显示 token 图表；数据来自统一用量事实表。</div>
+      <div><b>6</b> SKILL 页需要目录、详情、启用/禁用与来源；内置 create-skill 与 superpowers 作为可安装项。</div>
+      <div><b>7</b> 插件市场详情必须有安装按钮、版本/兼容性/信任确认与安装后启用。</div>
+      <div><b>8</b> 聊天室顶部显示总 token 与平均速率；速率口径建议与 DSH 一致（输出 token / 解码时间）。</div>
+    </div>
+    <div class="foot-note">D · 扩展栏 IA · 规划稿</div>
+  </section>
+
+  <div style="color:#779382;font-size:11px;text-align:center;padding:10px 0 0">coolzhuagent · 2026-10-17 · 界面规划草案 v0.1 · 待审核</div>
+</div>
+</body>
+</html>

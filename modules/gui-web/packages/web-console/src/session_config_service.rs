@@ -145,6 +145,9 @@ impl<'a> SessionConfigService<'a> {
             }
             // 与统一保存沿用 store→config 顺序；响应只使用本次已发布配置。
             let published = mutate_workspace_config(|config| {
+                if payload.expected_revision.is_some_and(|revision| revision != config.configuration_revision) {
+                    return Err(api_error(StatusCode::CONFLICT, "配置已被其他窗口或任务更新，请重新载入后再保存；当前草稿未写入"));
+                }
                 // 旧容量 API 只修改容量，不能丢弃采样、协议和工具参数。
                 let settings = config
                     .session_model_limits
@@ -168,11 +171,15 @@ impl<'a> SessionConfigService<'a> {
         };
         Ok(response)
     }
-    pub(super) fn save(
-        &self,
-        session_id: String,
-        payload: SessionModelSettingsUpdateRequest,
-    ) -> ApiResult<()> {
+    pub(super) fn save(&self,session_id:String,payload:SessionModelSettingsUpdateRequest)->ApiResult<()> {
+        self.save_or_create(Some(session_id),payload).map(|_|())
+    }
+    pub(super) fn create(&self,payload:SessionModelSettingsUpdateRequest)->ApiResult<String> {
+        self.save_or_create(None,payload)
+    }
+    fn save_or_create(&self,existing_id:Option<String>,payload:SessionModelSettingsUpdateRequest)->ApiResult<String> {
+        validate_form_fields(payload.session.as_ref(),existing_id.is_none())?;
+        let result_id;
         // 与普通会话修改/删除共用存储锁；配置锁只在 mutator 内按 store→config 顺序取得。
         // 同步发布块结束后再 await，避免持有 std MutexGuard 跨异步边界。
         {
@@ -180,8 +187,11 @@ impl<'a> SessionConfigService<'a> {
                 .sessions
                 .lock()
                 .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-            let mut agent = store
-                .find_session(&session_id)
+            let new_session=if existing_id.is_none() {Some(store.prepare_new_session(payload.session.clone()
+                .ok_or_else(||api_error(StatusCode::BAD_REQUEST,"新会话缺少模型配置"))?)?)}else{None};
+            let session_id=existing_id.or_else(||new_session.as_ref().map(|s|s.id.clone())).unwrap();
+            result_id=session_id.clone();
+            let mut agent = new_session.as_ref().or_else(||store.find_session(&session_id))
                 .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "会话不存在"))?
                 .to_agent_session(store.is_active(&session_id));
             if let Some(session) = payload.session.as_ref() {
@@ -230,10 +240,13 @@ impl<'a> SessionConfigService<'a> {
                     .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
                 return Err(api_error(StatusCode::INTERNAL_SERVER_ERROR, &message));
             }
-            let result = match payload.session {
+            let result = if let Some(session)=new_session {
+                store.state.active_session_id=Some(session.id.clone());store.state.sessions.push(session);
+                store.save_with_config_operation(Some(&operation))
+            } else {match payload.session {
                 Some(session) => store.update_session_with_config_operation(&session_id, session, Some(&operation)),
                 None => store.save_with_config_operation(Some(&operation)),
-            };
+            }};
             if let Err(error) = result {
                 super::session_config_journal::verify_rollback_allowed(&store.path)
                     .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
@@ -245,6 +258,27 @@ impl<'a> SessionConfigService<'a> {
             super::session_config_journal::recover(&store.path, &path)
                 .map_err(|_| api_error(StatusCode::CONFLICT, "配置与会话已提交，但恢复日志清理未完成；请重新载入核对状态"))?;
         }
-        Ok(())
+        Ok(result_id)
+    }
+}
+
+fn validate_form_fields(session:Option<&super::UpsertSessionRequest>,creating:bool)->ApiResult<()> {
+    for (label,value) in [("会话名称",session.and_then(|s|s.name.as_deref())),("模型 ID",session.and_then(|s|s.model.as_deref()))] {
+        if value.is_some_and(|v|v.trim().is_empty()) || (creating && value.is_none()) {
+            return Err(api_error(StatusCode::BAD_REQUEST,&format!("{label}不能为空")));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)] mod form_tests {
+    use super::*;
+    #[test] fn 新建必须填写名称和模型且参数单独修改仍然可用() {
+        let session=|value|serde_json::from_value::<super::super::UpsertSessionRequest>(value).unwrap();
+        assert!(validate_form_fields(None,true).is_err());
+        assert!(validate_form_fields(Some(&session(serde_json::json!({"name":"test","model":" "}))),true).is_err());
+        assert!(validate_form_fields(Some(&session(serde_json::json!({"name":"test","model":"model"}))),true).is_ok());
+        assert!(validate_form_fields(None,false).is_ok());
+        assert!(validate_form_fields(Some(&session(serde_json::json!({"name":" "}))),false).is_err());
     }
 }

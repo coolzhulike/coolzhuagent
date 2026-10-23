@@ -279,12 +279,12 @@ impl HookRunner {
 
         match child.output_with_stdin(request.payload.as_bytes()) {
             Ok(managed) => {
-                if let Some(reason) = managed.interruption {
+                if let Some(reason) = managed.interruption() {
                     return HookCommandOutcome::Deny {
                         message: Some(format!("钩子执行已中止（{reason:?}），停止工具派发")),
                     };
                 }
-                let output = managed.output;
+                let output = managed.output();
                 let stdout = crate::managed_process::decode_console_output(&output.stdout).trim().to_string();
                 let stderr = crate::managed_process::decode_console_output(&output.stderr).trim().to_string();
                 let message = (!stdout.is_empty()).then_some(stdout);
@@ -349,8 +349,12 @@ fn format_hook_warning(command: &str, code: i32, stdout: Option<&str>, stderr: &
 fn shell_command(command: &str) -> CommandWithStdin {
     #[cfg(windows)]
     let command_builder = {
+        use std::os::windows::process::CommandExt;
         let mut command_builder = Command::new("cmd");
-        command_builder.arg("/C").arg(command);
+        // hook 是已独立授权的完整 shell 命令，不能再套 CRT 参数转义；否则
+        // 带引号的路径会被改写成反斜线+引号，cmd 执行失败后仅留下警告。
+        // /S 只剥离这层完整外引号，保留命令开头可执行路径和参数自身的引号。
+        command_builder.arg("/D").arg("/S").arg("/C").raw_arg(format!("\"{command}\""));
         CommandWithStdin::new(command_builder)
     };
 
@@ -499,6 +503,37 @@ mod tests {
                 .with_tool_requirement(HOOK_CAPABILITY_POST_TOOL_USE, PermissionMode::ReadOnly);
         }
         policy
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn quoted_hook_path_with_spaces_keeps_shell_semantics() {
+        let directory = tempfile::tempdir().unwrap();
+        let marker = directory.path().join("含 空格 & 符号.txt");
+        let authorization = PermissionPolicy::new(PermissionMode::DangerFullAccess)
+            .with_tool_requirement(HOOK_CAPABILITY_PRE_TOOL_USE, PermissionMode::DangerFullAccess);
+        for exit_code in [0, 2] {
+            let command = format!("echo quoted-{exit_code}>\"{}\" & echo hook-quoted & exit /b {exit_code}", marker.display());
+            let result = HookRunner::new(RuntimeHookConfig::new(vec![command], Vec::new()))
+                .with_authorization(authorization.clone()).run_pre_tool_use("Read", "{}");
+            assert_eq!(std::fs::read_to_string(&marker).unwrap().trim(), format!("quoted-{exit_code}"));
+            assert_eq!(result.executed_commands(), 1);
+            assert_eq!(result.is_denied(), exit_code == 2);
+            assert_eq!(result.messages(), &["hook-quoted".to_string()], "不得把命令引用失败当作警告放行");
+        }
+        // 命令本身也可从带引号的可执行路径开始；多个引用参数不能使 cmd 拆开路径。
+        let system_root = std::path::PathBuf::from(std::env::var_os("SystemRoot").unwrap());
+        let executable = directory.path().join("匹配 工具 & 1.exe");
+        std::fs::copy(system_root.join("System32/where.exe"), &executable).unwrap();
+        let command = format!("\"{}\" \"cmd.exe\"", executable.display());
+        let result = HookRunner::new(RuntimeHookConfig::new(vec![command], Vec::new()))
+            .with_authorization(authorization).run_pre_tool_use("Read", "{}");
+        assert!(!result.is_denied());
+        assert_eq!(result.executed_commands(), 1);
+        let expected = system_root.join("System32/cmd.exe").to_string_lossy().to_ascii_lowercase().replace('/', "\\");
+        assert!(result.messages().iter().flat_map(|message| message.lines())
+            .any(|line| line.trim().to_ascii_lowercase().replace('/', "\\") == expected),
+            "必须取到程序实际输出，不能把带引号的可执行路径失败当作放行：{:?}", result.messages());
     }
 
     #[cfg(windows)]

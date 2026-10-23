@@ -1,0 +1,33 @@
+{
+  "mode": "structure",
+  "structure_valid": true,
+  "implementation_complete": false,
+  "required_tasks": 13,
+  "task_status": {
+    "accepted": 7,
+    "pending": 5,
+    "in_progress": 1,
+    "deferred": 2
+  },
+  "criteria": 60,
+  "criterion_status": {
+    "passed": 37,
+    "pending": 23
+  },
+  "errors": [],
+  "baseline_source_changes_for_review": [
+    "Cargo.lock",
+    "modules/llm-adapter/packages/llm-adapter/Cargo.toml",
+    "modules/gui-web/packages/web-console/src/main.rs",
+    "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+    "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+    "modules/gui-web/packages/web-console/src/tool_invocation_identity.rs",
+    "modules/gui-web/packages/web-console/src/tool_dispatch_audit.rs",
+    "modules/gui-web/packages/web-console/src/tool_loop_coordinator.rs",
+    "modules/gui-web/packages/web-console/src/chat_tool_history.rs",
+    "modules/gui-web/packages/web-console/src/goal_command.rs",
+    "modules/gui-web/packages/web-console/src/openai_subscription.rs",
+    "modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs"
+  ],
+  "notice": "基线变化需判断相关性；本检查不证明业务行为或性能。"
+}

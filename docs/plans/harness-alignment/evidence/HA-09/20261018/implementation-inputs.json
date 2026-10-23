@@ -1,0 +1,22 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "before_sha256": "b4479939f26c83ebdbfba320a46b6282327559849c0032a8fb907520c8306970",
+    "after_sha256": "21a9c72c935cfe59450a0e9e6fe2e57c292dc64108b3027d4459d63b6a287dd3"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/goal_command.rs",
+    "before_sha256": "c475c0f21ec1630b2ee996f58690de4fd3a2690d96a2e07708e89f8afa648906",
+    "after_sha256": "abe4b1e2f23691833a94e7d41cc5032a242e347fbdf9cfc73980fcfcdb1d3cf8"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/goal_verification.rs",
+    "before_sha256": null,
+    "after_sha256": "d30382c3c98459f987f70c40ded1839734f0d318741782721860dac094dd219e"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/ha09_tests.rs",
+    "before_sha256": null,
+    "after_sha256": "d648f47333f8ff834e71367b9b0b16747af9da3dd33c1e4ecf9bd34bc1554fd0"
+  }
+]

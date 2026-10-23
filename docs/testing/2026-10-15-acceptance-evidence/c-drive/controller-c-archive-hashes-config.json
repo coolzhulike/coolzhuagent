@@ -1,0 +1,50 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\dsh-runtime-lock.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\dsh-runtime-lock.json",
+    "sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7",
+    "archive_sha256": "a64c15bd0ce8c247ddab0c361658ae78be11eb31f4ce5ba3e0602513c27238f7"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-launcher.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-launcher.json",
+    "sha256": "faad921c3e7069a066206f4dc9df07e1659c29b687d343477ae3a6e1628117b2",
+    "archive_sha256": "faad921c3e7069a066206f4dc9df07e1659c29b687d343477ae3a6e1628117b2"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-manifest-0.2.64-candidate.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-manifest-0.2.64-candidate.json",
+    "sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e",
+    "archive_sha256": "ed315514fb6d99198fc1da500a0fc604bfac7a0aba23b5221564ab1f2da54d6e"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-manifest-0.2.65-candidate.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-manifest-0.2.65-candidate.json",
+    "sha256": "d5acd871a014f50c0fd137a1f740bb34fc955d453a032b7b706900feeb7bd8d1",
+    "archive_sha256": "d5acd871a014f50c0fd137a1f740bb34fc955d453a032b7b706900feeb7bd8d1"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-manifest-0.2.66-candidate.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-manifest-0.2.66-candidate.json",
+    "sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c",
+    "archive_sha256": "a242b31f705e13ffc71ba3543da3e24d9fec32181bd895e20819d71e2e1b7b0c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-manifest-0.2.67-candidate.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-manifest-0.2.67-candidate.json",
+    "sha256": "3f67852931c779029bead34aa55f3b0f2fe61d87901010da58bf863bca9982f4",
+    "archive_sha256": "3f67852931c779029bead34aa55f3b0f2fe61d87901010da58bf863bca9982f4"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-manifest-0.2.68-candidate.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-manifest-0.2.68-candidate.json",
+    "sha256": "3f67852931c779029bead34aa55f3b0f2fe61d87901010da58bf863bca9982f4",
+    "archive_sha256": "3f67852931c779029bead34aa55f3b0f2fe61d87901010da58bf863bca9982f4"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\config\\package-manifest.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\config\\package-manifest.json",
+    "sha256": "38925095c57a170269861a75130a705a50bf4290658bdfdd87552fa24dc2cbda",
+    "archive_sha256": "38925095c57a170269861a75130a705a50bf4290658bdfdd87552fa24dc2cbda"
+  }
+]

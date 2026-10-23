@@ -410,14 +410,16 @@
       "source": "docs/testing/release-0.2.64/change-report-and-targeted-test-plan.md",
       "size": 8001,
       "sha256": "ba713ac7174bba70db964eba9333c1a4600282bbb01d9b02693dfa8f3e92db8c",
-      "purpose": "候选结果与未完成真实验收边界"
+      "purpose": "候选结果与未完成真实验收边界",
+      "removed_2026_10_17": "本目录内副本已去重删除，内容与 source 相同 SHA"
     },
     {
       "file": "work-log.md",
       "source": "docs/work-logs/2026-10-02-local-session-dsh-msi-candidate.md",
       "size": 1717,
       "sha256": "2c5756f041c9866360dbe2a4d6bf3c414f12e7335bd155cd52ab9d0e3cbfdcb2",
-      "purpose": "本轮中文工作记录"
+      "purpose": "本轮中文工作记录",
+      "removed_2026_10_17": "本目录内副本已去重删除，内容与 source 相同 SHA"
     }
   ],
   "preservation": {

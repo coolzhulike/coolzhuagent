@@ -6,7 +6,7 @@ pub(super) const MARKER: &str = "\n\n【附件文本资料】";
 const MAX_FILE: u64 = 256 * 1024;
 const MAX_TOTAL: usize = 512 * 1024;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub(super) struct TextSnapshot {
     sha256: String,
     encoding: String,

@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 
 # ============================================================================
 # 构建身份与报告治理契约测试（RD4-06 / 第五轮裁决 B-1、B-2）
@@ -17,6 +17,7 @@
 #   I10  产物清单引用报告（唯一 ID + 内容哈希），载荷清单覆盖暂存包全部文件
 #   I11  构建期间源码变化必须 fail-closed（用"构建命令改写源码"的夹具确定性复现）
 #   I12  保留规则：Protect/Verify/Prune + 归档副本兜底 + 索引损坏时拒绝清理
+#   I16  验收目录 opt-in：COOLZHU_ACCEPTANCE_TMP_ROOT 定向产物根/资源源/构建参数
 #
 # 夹具全部落在当前工作树 tmp/ 下，不触碰真实 package/ 与真实 package-reports。
 # ============================================================================
@@ -24,6 +25,16 @@
 $workspace = Split-Path -Parent $PSScriptRoot
 $workspaceFull = [System.IO.Path]::GetFullPath($workspace).TrimEnd('\', '/')
 $tmpRootFull = [System.IO.Path]::GetFullPath((Join-Path $workspaceFull 'tmp')).TrimEnd('\', '/')
+# WBS 0.1 统一临时根：显式给出 COOLZHU_ACCEPTANCE_TMP_ROOT 时，夹具与本测试全流程临时产物
+# 改落该目录（必须是当前工作树 tmp 本身或其子目录）；未设置时保持既有 <workspace>\tmp 行为。
+if (-not [string]::IsNullOrWhiteSpace($env:COOLZHU_ACCEPTANCE_TMP_ROOT)) {
+  $acceptanceTmpRoot = [System.IO.Path]::GetFullPath($env:COOLZHU_ACCEPTANCE_TMP_ROOT).TrimEnd('\', '/')
+  $workspaceTmpPrefix = $tmpRootFull + [System.IO.Path]::DirectorySeparatorChar
+  if (-not ($acceptanceTmpRoot.Equals($tmpRootFull, [System.StringComparison]::OrdinalIgnoreCase) -or $acceptanceTmpRoot.StartsWith($workspaceTmpPrefix, [System.StringComparison]::OrdinalIgnoreCase))) {
+    throw "COOLZHU_ACCEPTANCE_TMP_ROOT must stay inside the workspace tmp directory: $acceptanceTmpRoot"
+  }
+  $tmpRootFull = $acceptanceTmpRoot
+}
 $fixtureRoot = [System.IO.Path]::GetFullPath((Join-Path $tmpRootFull 'package-build-identity-contract')).TrimEnd('\', '/')
 $tmpPrefix = $tmpRootFull + [System.IO.Path]::DirectorySeparatorChar
 if (-not $fixtureRoot.StartsWith($tmpPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -78,6 +89,20 @@ function Get-SnapshotPathSet {
   $set = @{}
   foreach ($entry in @($Snapshot.entries)) { $set[[string]$entry.path] = $true }
   return $set
+}
+
+function Add-ConsolePagesFixture {
+  # 控制台页面合约夹具（最小但真实）：manifest 恰好声明一个 gui-web.console-pages 资源；
+  # 页面源文件位于声明源码快照范围内，合约源以 include_bytes! 声明 index.html，
+  # 打包后包根 console/ 下的页面必须与该源码逐字节一致，否则静态页面合约失败关闭。
+  param([Parameter(Mandatory = $true)][string]$SourceRoot)
+  Write-FixtureText -Path (Join-Path $SourceRoot 'gui-web/index.html') -Text '<html><body>fixture console</body></html>'
+  Write-FixtureText -Path (Join-Path $SourceRoot 'gui-web/src/static_resource_contract.rs') -Text ('pub static CONSOLE_PAGES: &[(&str, &[u8])] = &[' + [char]10 + '    ("index.html", include_bytes!("../index.html")),' + [char]10 + '];' + [char]10)
+  return [ordered]@{
+    id = 'gui-web.console-pages'
+    source = (Get-RelFixturePath (Join-Path $SourceRoot 'gui-web'))
+    target = 'console'
+  }
 }
 
 <#
@@ -149,6 +174,9 @@ function New-IdentityCase {
     }
   }
 
+  # ---- 控制台页面合约资源：真实成功打包必须通过静态页面合约 ----
+  $consolePagesResource = Add-ConsolePagesFixture -SourceRoot $sourceRoot
+
   $sourceRel = Get-RelFixturePath $sourceRoot
   $manifest = [ordered]@{
     package_root = (Get-RelFixturePath (Join-Path $caseRoot 'package'))
@@ -160,6 +188,7 @@ function New-IdentityCase {
         source = "$sourceRel/installer"
         target = 'docs/installer'
       }
+      $consolePagesResource
     )
     build_inputs = [ordered]@{
       files = @((Get-RelFixturePath (Join-Path $caseRoot 'toolchain-note.json')))
@@ -173,6 +202,7 @@ function New-IdentityCase {
         "$sourceRel/tauri"
         "$sourceRel/web"
         "$sourceRel/installer"
+        "$sourceRel/gui-web"
         "$sourceRel/payload"
         "$sourceRel/.coolzhu/plugins"
       )
@@ -244,11 +274,14 @@ function New-ReleasePolicyCase {
     }
   }
 
+  # 控制台页面合约资源：成功打包必须通过静态页面合约
+  $consolePagesResource = Add-ConsolePagesFixture -SourceRoot $sourceRoot
+
   $manifest = [ordered]@{
     package_root = (Get-RelFixturePath (Join-Path $caseRoot 'package'))
     backup_keep = 2
     artifacts = @($artifact, $secondArtifact)
-    resources = @()
+    resources = @($consolePagesResource)
     build_inputs = [ordered]@{ files = @((Get-RelFixturePath (Join-Path $caseRoot 'build-inputs/toolchain.json'))) }
     source_snapshot = [ordered]@{
       schema = 1
@@ -1022,11 +1055,14 @@ Write-Output '{"reason":"build-finished","success":true}'
         within_declared_output_root = $true
       })
 
+    # 控制台页面合约资源：与成功打包用例共用同一夹具（prepare 阶段不打包容积）
+    $consolePagesResource = Add-ConsolePagesFixture -SourceRoot $sourceRootLocal
+
     $manifestLocal = [ordered]@{
       package_root = (Get-RelFixturePath (Join-Path $caseRootLocal 'package'))
       backup_keep = 2
       artifacts = @($artifact)
-      resources = @()
+      resources = @($consolePagesResource)
       preparation = $preparation
       build_inputs = [ordered]@{ files = @((Get-RelFixturePath (Join-Path $caseRootLocal 'build-inputs/toolchain.json'))) }
       source_snapshot = [ordered]@{
@@ -1076,7 +1112,7 @@ Write-Output '{"reason":"build-finished","success":true}'
   $prepareCase = New-PrepareFreezeCase -Name 'prepare-freeze-basic' -WithBuildMarker
   $prepareError = Invoke-PrepareRun -Case $prepareCase
   $prepareRecord = Get-LatestPrepareRecord -Case $prepareCase
-  $prepareFreezePointer = Join-Path $workspaceFull 'tmp/package-freeze/latest-debug.json'
+  $prepareFreezePointer = Join-Path $tmpRootFull 'package-freeze/latest-debug.json'
   $preparePointerDoc = $(if (Test-Path -LiteralPath $prepareFreezePointer -PathType Leaf) { Get-Content -Raw -LiteralPath $prepareFreezePointer -Encoding UTF8 | ConvertFrom-IdentityJson } else { $null })
   $prepareFreezeDoc = $null
   if ($prepareRecord -and $prepareRecord.freeze -and $prepareRecord.freeze.path) {
@@ -1257,6 +1293,79 @@ Write-Output '{"reason":"build-finished","success":true}'
     [string]$confirmedFreezeDoc.freeze_id -ne [string]$confirmFirstRecord.freeze.freeze_id -and
     [string]$confirmedRecord.freeze.freeze_id -eq [string]$confirmedFreezeDoc.freeze_id) `
     -Detail ("确认后重新冻结：freeze_id 由 {0} 变为 {1}，冻结记录登记 changes_accepted=true 与 {2} 处变化" -f $confirmFirstRecord.freeze.freeze_id, $confirmedFreezeDoc.freeze_id, @($confirmedFreezeDoc.changed_paths_at_prepare).Count)
+  # I16 验收目录 opt-in（WBS 0.1）：仅当 COOLZHU_ACCEPTANCE_TMP_ROOT 显式指向当前工作树
+  # tmp 内目录时，cargo target 目录、产物/资源源路径改解析到验收根；
+  # 未设置 env 时一律保持默认正式打包语义；env 越界时命中产物根的路径 fail-closed。
+  $accEnvBefore = $env:COOLZHU_ACCEPTANCE_TMP_ROOT
+  try {
+    # I16a：env 未设置 ⇒ 路径与 --target-dir 参数原样透传
+    Remove-Item Env:\COOLZHU_ACCEPTANCE_TMP_ROOT -ErrorAction SilentlyContinue
+    $offPath = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'modules/gui-web/target'
+    $offArgs = @(ConvertTo-AcceptanceBuildArgs -RepoPath $workspaceFull -Arguments @('build','--target-dir','modules/gui-web/target','--offline'))
+    Assert-Case -Id 'I16a-override-disabled-passthrough' -Condition (
+      $offPath -eq 'modules/gui-web/target' -and
+      $offArgs.Count -eq 4 -and $offArgs[2] -eq 'modules/gui-web/target') `
+      -Detail ("未设置 COOLZHU_ACCEPTANCE_TMP_ROOT 时原样透传：{0}" -f $offArgs[2])
+
+    # I16b：env 指向工作树 tmp 内验收根 ⇒ 三类产物根改解析到验收根下同相对路径
+    $accRoot = Join-Path $fixtureRoot 'accept-root'
+    $env:COOLZHU_ACCEPTANCE_TMP_ROOT = $accRoot
+    $norm = { [System.IO.Path]::GetFullPath($args[0]).TrimEnd('\','/') }
+    $rModule  = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'modules/gui-web/target'
+    $rNested  = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'modules/gui-desktop/target/tauri-shell'
+    $rRootTgt = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'target/release/COOLZHU-AGENT.exe'
+    $rTmp     = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'tmp/dsh-runtime/windows-x64'
+    $rConfig  = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'config/package-manifest.json'
+    $rOutside = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'D:\elsewhere\x.bin'
+    Assert-Case -Id 'I16b-artifact-roots-redirected' -Condition (
+      (& $norm $rModule)  -eq (& $norm (Join-Path $accRoot 'modules/gui-web/target')) -and
+      (& $norm $rNested)  -eq (& $norm (Join-Path $accRoot 'modules/gui-desktop/target/tauri-shell')) -and
+      (& $norm $rRootTgt) -eq (& $norm (Join-Path $accRoot 'target/release/COOLZHU-AGENT.exe')) -and
+      (& $norm $rTmp)     -eq (& $norm (Join-Path $accRoot 'dsh-runtime/windows-x64')) -and
+      $rConfig -eq 'config/package-manifest.json' -and $rOutside -eq 'D:\elsewhere\x.bin') `
+      -Detail ("modules/*/target、顶层 target/、tmp/ 均定向至验收根 {0}；非产物路径透传" -f $accRoot)
+
+    # I16c：构建参数中的每个 --target-dir 值都按同一规则定向，其余参数原样保留
+    $conv = @(ConvertTo-AcceptanceBuildArgs -RepoPath $workspaceFull -Arguments @(
+      'test','--offline','--target-dir','modules/cli/target','-j','1','--target-dir','target'))
+    Assert-Case -Id 'I16c-target-dir-args-redirected' -Condition (
+      $conv.Count -eq 8 -and
+      $conv[0] -eq 'test' -and $conv[1] -eq '--offline' -and $conv[4] -eq '-j' -and $conv[5] -eq '1' -and
+      (& $norm $conv[3]) -eq (& $norm (Join-Path $accRoot 'modules/cli/target')) -and
+      (& $norm $conv[7]) -eq (& $norm (Join-Path $accRoot 'target'))) `
+      -Detail ("两个 --target-dir 值均定向：{0} ; {1}" -f $conv[3], $conv[7])
+
+    # I16d：env 越界（工作树 tmp 之外）⇒ 命中产物根的路径拒绝解析，非产物路径仍透传
+    $env:COOLZHU_ACCEPTANCE_TMP_ROOT = 'D:\outside-acceptance-root'
+    $rejectErr = ''
+    try { [void](Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'modules/cli/target') } catch { $rejectErr = $_.Exception.Message }
+    $stillPass = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'config/x.txt'
+    Assert-Case -Id 'I16d-outside-root-fail-closed' -Condition (
+      $rejectErr.Length -gt 0 -and $stillPass -eq 'config/x.txt') `
+      -Detail ("越界验收根被 fail-closed 拒绝：{0}" -f (($rejectErr -split "`n")[0]))
+
+    # I16e：幂等——已在验收根内的路径（绝对形式或 repo 相对 tmp/ 形式）重复解析不再双拼；
+    # 尚未在根内的 tmp/target 仍只拼一次。回归覆盖 job c977d114 的 fixture.payload 双拼失败。
+    $env:COOLZHU_ACCEPTANCE_TMP_ROOT = $accRoot
+    $inAccAbs = Join-Path $accRoot 'fixture-payload/artifact-payload.txt'
+    $inAccOnce = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path $inAccAbs
+    $inAccTwice = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path $inAccOnce
+    # 同一位置的 repo 相对写法（tmp/<验收根后缀>/...）：解析后已在验收根内，必须原样返回
+    $inAccRel = $inAccAbs.Substring($workspaceFull.Length).TrimStart('\','/').Replace('\','/')
+    $inAccRelOnce = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path $inAccRel
+    $origTmpOnce = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'tmp/orig-only/x.bin'
+    $tgtTwice = Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path (Resolve-AcceptanceOutputPath -RepoPath $workspaceFull -Path 'modules/m/target/a.dll')
+    Assert-Case -Id 'I16e-idempotent-no-double-prefix' -Condition (
+      (& $norm $inAccOnce) -eq (& $norm $inAccAbs) -and
+      (& $norm $inAccTwice) -eq (& $norm $inAccAbs) -and
+      (& $norm $inAccRelOnce) -eq (& $norm $inAccAbs) -and
+      (& $norm $origTmpOnce) -eq (& $norm (Join-Path $accRoot 'orig-only/x.bin')) -and
+      (& $norm $tgtTwice) -eq (& $norm (Join-Path $accRoot 'modules/m/target/a.dll'))) `
+      -Detail ("验收根内路径绝对/相对重复解析均不再双拼；未定向 tmp/target 仍只拼一次")
+  } finally {
+    $env:COOLZHU_ACCEPTANCE_TMP_ROOT = $accEnvBefore
+  }
+
 } finally {
   # 夹具留在 tmp/ 供人工核对；测试脚本本身不删除，避免把"测试失败现场的路径"抹掉。
 }

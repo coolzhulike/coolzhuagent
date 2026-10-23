@@ -1,0 +1,103 @@
+{
+  "at_utc": "2026-10-15T19:03:50.749464+00:00",
+  "scope": "正式D工作区安装版冷启动前后一致性备份对账；只返回表级计数",
+  "database": "D:\\tmp\\.coolzhu\\web-sessions.sqlite3",
+  "backup": {
+    "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\production-install-switch-backup-v3\\web-sessions.sqlite3",
+    "sha256": "59779e455cea6fc9bfdb00e95d79b43d37d05bd2d32af602d5cc52f04ebbe328"
+  },
+  "cold_start_receipt_sha256": "4d1c0b02728a43372e1a67473fc993fb972fb0c916970c0c1ce74c9bae6ac202",
+  "tables": [
+    {
+      "table": "chat_room_messages",
+      "before": 2336,
+      "after": 2336,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.072
+    },
+    {
+      "table": "tool_calls",
+      "before": 6060,
+      "after": 6060,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.048
+    },
+    {
+      "table": "runtime_runs",
+      "before": 828,
+      "after": 828,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.004
+    },
+    {
+      "table": "runtime_run_events",
+      "before": 9130,
+      "after": 9130,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.026
+    },
+    {
+      "table": "devin_acp_attempts",
+      "before": 1352,
+      "after": 1352,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.007
+    },
+    {
+      "table": "devin_acp_bindings",
+      "before": 9,
+      "after": 9,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.0
+    },
+    {
+      "table": "goals",
+      "before": 4,
+      "after": 4,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.001
+    },
+    {
+      "table": "goal_phases",
+      "before": 34,
+      "after": 34,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.0
+    },
+    {
+      "table": "goal_events",
+      "before": 41,
+      "after": 41,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.0
+    },
+    {
+      "table": "computer_use_runs",
+      "before": 352,
+      "after": 352,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.013
+    },
+    {
+      "table": "memory_beads",
+      "before": 158,
+      "after": 158,
+      "prior_rows_missing_or_changed": 0,
+      "new_or_changed_rows": 0,
+      "seconds": 0.002
+    }
+  ],
+  "state": "completed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-10-15T19:03:51.454747+00:00"
+}

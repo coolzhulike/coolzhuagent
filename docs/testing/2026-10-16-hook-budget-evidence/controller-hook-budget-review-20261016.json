@@ -1,0 +1,54 @@
+{
+  "state": "completed_with_remaining_gates",
+  "passed": 8,
+  "failed": 0,
+  "at_utc": "2026-10-16T18:38:21.009279+00:00",
+  "executor": "当前主会话直接执行；没有Devin派发、独立会话或监督任务。",
+  "source_unchanged": true,
+  "source": {
+    "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs": "40c3d40cf9d64f8389ee8e354db4a9e39eab63a0f6f0d65313b2bc2cc67364d4",
+    "modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc",
+    "modules/gui-web/packages/web-console/src/main.rs": "f0172524ad25d74c8fa335741ed8368bd35e2ce5b132a947a1b5a5fce42c483b",
+    "modules/core-runtime/packages/core-runtime/src/hooks.rs": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+  },
+  "receipts": {
+    "core": "controller-hook-budget-core-20261016.json",
+    "test": "controller-hook-budget-test-20261016.json",
+    "build": "controller-hook-budget-build-20261016.json"
+  },
+  "build": {
+    "exit_code": 0,
+    "profile": "debug",
+    "offline": true,
+    "crates": [
+      "coolzhu-core-runtime",
+      "coolzhu-web-console"
+    ],
+    "executable_sha256": "fbcb3009f065386eb34c6c6e3ad2b9129781fcdb8aa9bf4d9bc474885872f223"
+  },
+  "coverage": [
+    "真实Windows shell引用：中文、空格、&路径，exit0放行/exit2拒绝，带引号可执行路径及参数，核实际文件和回执",
+    "前置hook截止中止：真实进程退出，目标和后续hook均未执行",
+    "后置hook截止中止：真实进程退出，保留目标已写入效果",
+    "前置hook在途取消：同一异步reactor可响应取消，目标未执行",
+    "后置hook在途取消：进程退出，目标既成效果保留",
+    "等待future丢弃：hook进程被取消，延后观察仍无迟到写入",
+    "较长冻结父预算不能延长当前较早截止",
+    "正常正对照：真实pre/目标/post均执行并产生文件"
+  ],
+  "earlier_failures": [
+    "首个基线在会话库初始化os error5，未到hook，不作产品缺陷复现。",
+    "显式隔离基线以及首次七项矩阵未看到hook入场；首次矩阵0过7败且编译间源码改变，不能作为冻结候选验收。原始结果完整保留。",
+    "独立真实HookRunner诊断：原CRT转义下带引号路径失败，同路径不带引号成功。随后修改Windows shell命令传递并通过新增实证。",
+    "独立前导引号诊断：不加外层引号时带空格的可执行路径被cmd拆开exit1；/D /S /C外层引号对照exit0。最后补此边界，仅重验受命令传递变化影响的本轮新增用例。",
+    "最终复验首次接续时exec句柄已失效、CIM无对应运行器或cargo/rustc，日志无完成统计。保存interrupted_unknown收据，不计作测试失败或通过，随后接续同一冻结源码。"
+  ],
+  "remaining": [
+    "正式hook配置和独立授权材料来源尚未实现；当前默认零授权，不把测试override冒充正式产品配置。",
+    "所有支持入口、授权在途变化、外部HTTP/真实模型和所有后代树仍需各自证据。",
+    "生产当前仍完整0.2.135包，机器安装仍0.2.134；本轮未安装、切换、重启正式服务。",
+    "旧1492完整测试仅保留旧源码历史；本次仅8个新增受影响链检查与实际build，不外推当前源码完整回归。"
+  ],
+  "archive": "docs/testing/2026-10-16-hook-budget-evidence",
+  "cleanup": "构建缓存供后续增量复用，诊断日志/收据/小型隔离数据保留；一次性诊断可执行文件及PDB另行安全清理。"
+}

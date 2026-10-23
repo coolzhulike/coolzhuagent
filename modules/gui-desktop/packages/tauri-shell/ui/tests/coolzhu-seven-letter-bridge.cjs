@@ -58,6 +58,8 @@ async function completedOnce(h,reason) {
 async function main() {
   const sources=[manifest.background.source.src,...manifest.actor.frames.map(frame=>frame.src),...manifest.letters.map(letter=>letter.glyphSource.src)];
   for (const source of new Set(sources)) assert.ok(fs.existsSync(path.join(__dirname,"..",source)),`缺少生产素材：${source}`);
+  assert.equal(manifest.actor.frames.length,1,"静坐人物为单帧静态素材");
+  assert.ok(manifest.actor.frames.every(frame=>frame.src.includes("meditating")),"人物素材须为静坐版");
 
   const skipped=harness(); skipped.controller.start();
   skipped.documentRef.dispatchEvent({type:"keydown",key:"Escape",preventDefault(){}});
@@ -75,7 +77,14 @@ async function main() {
   await completedOnce(restore,"restored");
 
   const full=harness({assets:{}}); full.controller.start(); await Promise.resolve();
-  full.tick(100); full.tick(7900); await completedOnce(full,"completed");
+  full.tick(100);
+  full.controller.getInstance().renderAt(3000);
+  const midScene=full.controller.getInstance().getLastScene();
+  assert.equal(full.controller.getInstance().getState().phase,"logo-and-meditation");
+  assert.equal(midScene.figure,"meditation","演出人物应为静坐形态");
+  assert.equal("sealText" in midScene,false,"不得再渲染朱印");
+  assert.ok(midScene.actor && Math.abs(midScene.actor.x-840)<0.5 && Math.abs(midScene.actor.height-200)<6,"静坐人物应 x≈840 居中且可见高约 200px");
+  full.tick(7900); await completedOnce(full,"completed");
   assert.deepEqual(full.nativeReports.map(entry=>entry.report.phase),["started","assets_ready","first_frame","finished"]);
   assert.equal(full.nativeReports.at(-1).report.frameCount,2);
   assert.equal(full.storage.get("coolzhu.scroll-startup.seen.v1"),"1");

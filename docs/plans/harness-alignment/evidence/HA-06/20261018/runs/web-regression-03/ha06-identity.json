@@ -1,0 +1,10 @@
+{
+  "effects_after_distinct_request": 2,
+  "original_id": "tool-84aa1e0f08ed65c4282ef9c64b5f5c38c36c083b636b5a73148828a08f9c7b6c",
+  "original_status": "completed",
+  "same_identity_refusals": [
+    "工具调用标识已登记，原状态=completed；本次未执行，也未更改原记录",
+    "工具调用标识已登记，原状态=completed；本次未执行，也未更改原记录",
+    "工具调用标识已登记，原状态=completed；本次未执行，也未更改原记录"
+  ]
+}

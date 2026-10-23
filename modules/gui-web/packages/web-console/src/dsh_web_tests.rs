@@ -168,6 +168,74 @@ async fn dispatch(
     )
     .await
 }
+
+/// 子任务沿用真实冻结权限及正式工具派发；该关键用例不依赖 DSH 资源或远端模型。
+#[tokio::test]
+async fn frozen_child_room_revocation_blocks_next_side_effect() {
+    let _guard = config_test_guard();
+    assert!(!dev_open_tool_permissions_enabled(), "不得启用测试全开放权限替代真实授权");
+    let temporary = tempfile::tempdir().unwrap();
+    let root = std::env::var_os("CHILD_PERMISSION_KEY_ROOT").map(PathBuf::from)
+        .unwrap_or_else(|| temporary.path().to_path_buf());
+    std::fs::create_dir_all(&root).unwrap();
+    let db = root.join("child-permission.sqlite3");
+    assert!(!db.exists(), "只创建本用例的独立会话库");
+    let _scope = IsolatedScope::install(&root, db.clone());
+    let connection = open_session_connection(&db).unwrap();
+    initialize_session_schema(&connection).unwrap();
+    connection.execute("INSERT INTO sessions(id,name,provider,model,api_key_ref,created_at,updated_at) VALUES(?1,'子权限验收','Custom','local-dsh-engineering','',1,1)", params![SESSION]).unwrap();
+    connection.execute("INSERT INTO chat_rooms(id,name,created_at,updated_at) VALUES(?1,'子权限验收',1,1)", params![ROOM]).unwrap();
+    drop(connection);
+    set_chat_room_permission_profile_sqlite(&db, ROOM, ROOM_PERMISSION_WORKSPACE_WRITE).unwrap();
+    let workspace = workspace_identity(&root);
+    create_chat_runtime_run_sqlite(&db, RUN, "child-permission-claim", &workspace, Some(SESSION), ROOM, TURN).unwrap();
+    assert!(start_chat_runtime_run_sqlite(&db, RUN, "child-permission-claim").unwrap());
+    let (parent, snapshot) = frozen_parent(&db, &workspace);
+    assert_eq!(snapshot.permission, PermissionMode::WorkspaceWrite);
+    assert!(snapshot.permits_tool("write_file"));
+    let definitions = snapshot.parent_definitions.iter().filter(|tool|
+        tool.name == "read_file" || tool.name == "write_file").cloned().collect::<Vec<_>>();
+    let child = Arc::new(host_child_agent::HostChildScope {
+        parent: parent.clone(), parent_call_id: "key-child-call".into(),
+        parent_turn_id: TURN.into(), tool_session_id: SESSION.into(), usage_session_id: SESSION.into(),
+        room_id: ROOM.into(), allowed_tools: definitions.iter().map(|tool| tool.name.clone()).collect(),
+        definitions, permission: snapshot.permission, workspace_root: root.clone(), usage_db_path: db.clone(),
+        client: snapshot.parent_model.client.clone(), request: snapshot.parent_model.request.clone(),
+        cancellation: Arc::new(ChatTurnCancellation::new()),
+    });
+    assert!(!child.permits("bash"), "子任务不得额外继承任意命令权限");
+    let host = host_child_agent::HostToolScope::Child(child.clone());
+    let first = root.join("permitted.txt");
+    let success = tool_invocation_identity::scope(format!("{TURN}/child-permitted"),
+        run_model_tool_dispatch_for_session_with_identity("write_file", &json!({"path":first,"content":"已授权子任务写入"}),
+            Some(SESSION), Some("child-permitted"), Some(TURN), Some(ROOM), Some(&parent), Some(&host))).await.unwrap();
+    assert_eq!(success.status, "ok", "{}", success.notes.join("; "));
+    assert_eq!(std::fs::read_to_string(&first).unwrap(), "已授权子任务写入");
+    assert_eq!(ledger(&db, "child-permitted").1, "completed");
+    // 使用正式页面已有的“关闭本房间工具”撤权入口；房间配置不接受 read-only 值。
+    let revoke: ChatRoomDiagnosticsUpdateRequest = serde_json::from_value(json!({"llm_tools_enabled": false})).unwrap();
+    set_chat_room_diagnostics_sqlite(&db, ROOM, &revoke).unwrap();
+    assert!(child.permits("write_file"), "必须保留原子任务快照，不能重建只读快照冒充撤权");
+    let second = root.join("must-not-write.txt");
+    let denied = tool_invocation_identity::scope(format!("{TURN}/child-revoked"),
+        run_model_tool_dispatch_for_session_with_identity("write_file", &json!({"path":second,"content":"不可写入"}),
+            Some(SESSION), Some("child-revoked"), Some(TURN), Some(ROOM), Some(&parent), Some(&host))).await;
+    let rejection = match denied {
+        Err((status, Json(error))) => { assert_eq!(status, StatusCode::FORBIDDEN); error.error },
+        Ok(response) => panic!("撤权必须在工具派发前拒绝：{} {:?}", response.status, response.notes),
+    };
+    assert!(!second.exists());
+    let connection = open_session_connection(&db).unwrap();
+    let rejected_rows: i64 = connection.query_row("SELECT count(*) FROM tool_calls WHERE provider_tool_call_id='child-revoked'", [], |row|row.get(0)).unwrap();
+    assert_eq!(rejected_rows, 0);
+    let result = json!({"frozen_permission":"workspace-write","current_permission":"room-tools-revoked",
+        "parent_and_child_unchanged":true,"allowed_content":std::fs::read_to_string(first).unwrap(),
+        "denied_file_exists":second.exists(),"denied_call_rows":rejected_rows,"rejection":rejection,
+        "model_requests":0,"dev_open_permissions":false,"database":db,"root":root});
+    std::fs::write(root.join("result.json"), serde_json::to_vec_pretty(&result).unwrap()).unwrap();
+    println!("CHILD_PERMISSION_KEY {}", result);
+}
+
 fn ledger(db: &Path, provider_id: &str) -> (String, String, String, String) {
     let connection = open_session_connection(db).unwrap();
     connection.query_row("SELECT tool_call_id,status,run_id,source_request_key FROM tool_calls WHERE provider_tool_call_id=?1",
@@ -426,6 +494,43 @@ async fn official_fixed_runtime_web_dispatch_and_stale_approval() {
     )
     .unwrap();
     assert!(start_chat_runtime_run_sqlite(&db, RUN, "engineering-claim").unwrap());
+    if std::env::var_os("DSH_DISPATCH_KEY_ONLY").is_some() {
+        // 精简验收仅覆盖一个真实允许调用及撤权后的零执行，不改变旧完整矩阵。
+        set_chat_room_permission_profile_sqlite(&db, ROOM, ROOM_PERMISSION_FULL_ACCESS).unwrap();
+        let (parent, host) = frozen_parent(&db, &workspace);
+        let name = parent.dsh_bindings.keys().next().expect("固定工具已冻结").clone();
+        assert!(host.permits_tool(&name));
+        let cancellation = Arc::new(ChatTurnCancellation::new());
+        let _cancel_scope = ToolTurnCancellationScope::install(TURN, cancellation);
+        let success = dispatch(&parent, &host, &name, "key-permitted",
+            json!({"expression":"12 * (3 + 5)"})).await.unwrap();
+        assert_eq!(success.status, "ok", "{}", success.notes.join("; "));
+        assert_eq!(success.dispatch_plan.as_ref().unwrap().dry_run_input["result"]["value"], 96);
+        assert_eq!(ledger(&db, "key-permitted").1, "completed");
+        set_chat_room_permission_profile_sqlite(&db, ROOM, ROOM_PERMISSION_WORKSPACE_WRITE).unwrap();
+        assert!(host.permits_tool(&name), "必须沿用旧父轮快照，不能重建快照来冒充撤权保护");
+        let denied = dispatch(&parent, &host, &name, "key-revoked",
+            json!({"expression":"97"})).await;
+        let rejection = match denied {
+            Err((status, Json(error))) => json!({"http":status.as_u16(),"error":error.error}),
+            Ok(response) => {
+                assert_ne!(response.status, "ok", "撤权后不得执行");
+                assert!(!response.dispatch_plan.as_ref().is_some_and(|plan| plan.audit.executed == Some(true)));
+                serde_json::to_value(response).unwrap()
+            }
+        };
+        let connection = open_session_connection(&db).unwrap();
+        let completed: i64 = connection.query_row("SELECT count(*) FROM tool_calls WHERE provider_tool_call_id='key-revoked' AND status='completed'", [], |row| row.get(0)).unwrap();
+        assert_eq!(completed, 0);
+        std::fs::write(output.join("result.json"), serde_json::to_vec_pretty(&json!({
+            "evidence_kind":"真实固定SDK及产品派发的隔离关键验收，不是远端模型或正式界面验收",
+            "source_fingerprint":fingerprint,"runtime_lock_sha256":verified.runtime_lock_sha256,
+            "checks":{"explicit_enable_existing_approval":true,"actual_sdk_value":96,
+                "frozen_parent_retained":true,"revoked_room_no_execution":true,"revoked_completed_rows":completed},
+            "rejection":rejection,"model_requests":0,"production_database_touched":false
+        })).unwrap()).unwrap();
+        return;
+    }
     let (parent, host) = frozen_parent(&db, &workspace);
     let (name, binding) = parent
         .dsh_bindings

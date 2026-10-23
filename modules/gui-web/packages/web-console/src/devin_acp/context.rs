@@ -369,3 +369,115 @@ impl PreparedContext {
         .map_err(|error| error.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::devin_acp::journal;
+
+    fn persisted(id: &str, role: &str, kind: &str, content: &str, created_at: u64) -> crate::PersistedChatMessage {
+        crate::PersistedChatMessage { id: id.into(), author: "作者".into(), role: role.into(),
+            target: "聊天".into(), content: content.into(), kind: kind.into(),
+            attachments: Vec::new(), created_at }
+    }
+
+    fn store_row(connection: &rusqlite::Connection, message: &crate::PersistedChatMessage) {
+        connection.execute(
+            "INSERT INTO chat_room_messages(room_id,id,author,role,target,content,kind,attachments_json,created_at)
+             VALUES('r',?1,?2,?3,?4,?5,?6,'[]',?7)",
+            params![message.id, message.author, message.role, message.target,
+                message.content, message.kind, message.created_at as i64],
+        ).unwrap();
+    }
+
+    /// 模拟 292 轮事故面：崩溃留下的 live-*/assistant-partial 行曾持久化，新回合装配前/中
+    /// 被 finish_live_turn/sweep_orphan_room_live_messages 合法删除。修复后瞬时行不进
+    /// selected_ids，prepare 不再误报删除；unknown 旧轮列未完成，不重放旧指令、不伪造确认。
+    #[test]
+    fn swept_crash_partial_does_not_abort_prepare_or_replay_unknown_turn() {
+        let _lock = crate::tests::config_test_guard();
+        let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
+        let agent = isolated.agent("target-text");
+        let (_dir, journal, binding) = journal::tests::setup();
+        let connection = journal.connection().unwrap();
+        connection.execute_batch(
+            "CREATE TABLE chat_room_messages(room_id TEXT,id TEXT,author TEXT,role TEXT,target TEXT,content TEXT,kind TEXT,attachments_json TEXT,created_at INTEGER);
+             CREATE TABLE runtime_run_events(run_id TEXT,event_type TEXT,payload_json TEXT);",
+        ).unwrap();
+        ensure(&connection).unwrap();
+        let user_old = persisted("user-old", "user", "text", "崩溃前的旧用户请求", 1);
+        let user_lost = persisted("user-lost", "user", "text", "未知轮的用户指令", 2);
+        let mut done_scope = journal::tests::scope("done-attempt");
+        done_scope.turn_id = "done-turn".into();
+        let done = journal.claim(done_scope, &binding).unwrap();
+        journal.save_remote(&done, "remote-1").unwrap();
+        journal.transition(&done, &["prepared"], "submitted", None, true).unwrap();
+        journal.transition(&done, &["submitted"], "terminal", Some("end_turn"), true).unwrap();
+        journal.record_drained(&done).unwrap();
+        let mut lost_scope = journal::tests::scope("lost-attempt");
+        lost_scope.turn_id = "lost-turn".into();
+        let lost = journal.claim(lost_scope, &binding).unwrap();
+        journal.transition(&lost, &["prepared"], "unknown", None, false).unwrap();
+        journal.record_drained(&lost).unwrap();
+        connection.execute("INSERT INTO devin_acp_context_inputs VALUES(?1,'remote-1',?2,'sys-done')",
+            params!["done-attempt", serde_json::to_string(&vec![MessageStamp {
+                id: user_old.id.clone(), digest: stamp(&user_old, false).digest,
+                source: false, deleted: false }]).unwrap()]).unwrap();
+        connection.execute("INSERT INTO devin_acp_context_inputs VALUES(?1,'remote-1',?2,'sys-lost')",
+            params!["lost-attempt", serde_json::to_string(&vec![
+                MessageStamp { id: "live-chat-turn-lost-target-text".into(),
+                    digest: "partial-digest".into(), source: false, deleted: false },
+                MessageStamp { id: user_lost.id.clone(), digest: stamp(&user_lost, false).digest,
+                    source: true, deleted: false }]).unwrap()]).unwrap();
+        // 持久库现状：两条真实用户消息仍在，live- 部分行已被清扫（本测试不插入）。
+        store_row(&connection, &user_old);
+        store_row(&connection, &user_lost);
+        let assembly = crate::build_context_assembly(&agent, &[user_old.clone(), user_lost.clone()],
+            "本轮新请求", &[], crate::ContextBuildOptions {
+                history_token_budget: 4000, memory_token_budget: 0, max_prompt_tokens: 8000,
+                image_token_estimate: 512, max_memory_beads: 0,
+                history_floor_millis: None, chat_room_id: None });
+        assert!(!assembly.history_selection.selected_ids.iter().any(|id| id.starts_with("live-")));
+        // 生产发送锁必须先拒发：旧 unknown 轮仍在锁内。按 journal 契约走正式收尾——
+        // 宿主停止登记取消事实（stop_drained_run）→ 显式释放（rotate_idle_context）；
+        // 不改写旧 unknown、不伪造 end_turn、不直接 UPDATE 台账。
+        assert!(journal.claim(journal::tests::scope("blocked-attempt"), &binding).is_err(),
+            "未知锁未释放时新 attempt 必须被拒");
+        assert_eq!(journal.stop_drained_run(&lost.run_id).unwrap(), 1);
+        journal.rotate_idle_context(&journal::tests::scope("next-attempt"), &binding).unwrap();
+        assert_eq!(journal.status(&lost).unwrap().state, "unknown");
+        let claim = journal.claim(journal::tests::scope("next-attempt"), &binding).unwrap();
+        let prepared = prepare(&journal, &claim, &assembly, "指令").unwrap();
+        assert!(prepared.continued, "原远端绑定必须安全继续");
+        assert!(prepared.prompt.contains("lost-turn"), "未知旧轮须列入未完成回合而非被确认");
+        let stamped: HashSet<&str> = prepared.stamps.iter().map(|item| item.id.as_str()).collect();
+        assert_eq!(stamped, HashSet::from(["user-old", "user-lost"]));
+        assert!(!prepared.stamps.iter().any(|item| item.id.starts_with("live-") || item.deleted));
+        assert_eq!(prepared.delta_count, 0, "已知历史不重放；被清扫的瞬时行也不冒充新历史");
+    }
+
+    /// 保护真实历史丢失仍硬失败：非瞬时 selected id 缺库必须照旧报"已被删除"，
+    /// 不得因为放过 live- 残留而放松到掩盖用户消息丢失。
+    #[test]
+    fn missing_selected_history_still_fails_prepare() {
+        let _lock = crate::tests::config_test_guard();
+        let isolated = crate::multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");
+        let agent = isolated.agent("target-text");
+        let (_dir, journal, binding) = journal::tests::setup();
+        let connection = journal.connection().unwrap();
+        connection.execute_batch(
+            "CREATE TABLE chat_room_messages(room_id TEXT,id TEXT,author TEXT,role TEXT,target TEXT,content TEXT,kind TEXT,attachments_json TEXT,created_at INTEGER);
+             CREATE TABLE runtime_run_events(run_id TEXT,event_type TEXT,payload_json TEXT);",
+        ).unwrap();
+        let user_gone = persisted("user-gone", "user", "text", "被真实删除的用户消息", 1);
+        // 不插入 user-gone：模拟真实消息在装配后被删除。
+        let assembly = crate::build_context_assembly(&agent, &[user_gone],
+            "本轮新请求", &[], crate::ContextBuildOptions {
+                history_token_budget: 4000, memory_token_budget: 0, max_prompt_tokens: 8000,
+                image_token_estimate: 512, max_memory_beads: 0,
+                history_floor_millis: None, chat_room_id: None });
+        let claim = journal.claim(journal::tests::scope("next-attempt"), &binding).unwrap();
+        let error = prepare(&journal, &claim, &assembly, "指令").err().expect("真实缺失应失败");
+        assert!(error.contains("已被删除"), "真实缺失仍需中止：{error}");
+    }
+}

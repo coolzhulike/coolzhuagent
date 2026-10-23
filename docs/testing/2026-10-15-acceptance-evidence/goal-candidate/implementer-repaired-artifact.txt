@@ -1,0 +1,3 @@
+Goal 完整回退链验收产物。
+此文件由 implementer 的 write_file 工具执行器写入。
+验收值：42

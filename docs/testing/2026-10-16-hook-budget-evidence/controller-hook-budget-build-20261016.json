@@ -1,0 +1,37 @@
+{
+  "state": "completed",
+  "action": "build",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.EXE",
+    "build",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+    "-p",
+    "coolzhu-core-runtime"
+  ],
+  "source_before": {
+    "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs": "40c3d40cf9d64f8389ee8e354db4a9e39eab63a0f6f0d65313b2bc2cc67364d4",
+    "modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc",
+    "modules/gui-web/packages/web-console/src/main.rs": "f0172524ad25d74c8fa335741ed8368bd35e2ce5b132a947a1b5a5fce42c483b",
+    "modules/core-runtime/packages/core-runtime/src/hooks.rs": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+  },
+  "started_at_utc": "2026-10-16T18:27:46.886795+00:00",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-build-20261016.log",
+  "exit_code": 0,
+  "elapsed_seconds": 587.994,
+  "source_after": {
+    "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs": "40c3d40cf9d64f8389ee8e354db4a9e39eab63a0f6f0d65313b2bc2cc67364d4",
+    "modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc",
+    "modules/gui-web/packages/web-console/src/main.rs": "f0172524ad25d74c8fa335741ed8368bd35e2ce5b132a947a1b5a5fce42c483b",
+    "modules/core-runtime/packages/core-runtime/src/hooks.rs": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+  },
+  "source_unchanged": true,
+  "log_sha256": "02f54ca051852a9c6c4b0520cbdd9db3475e15294848cc31ddeddfdee86499b2",
+  "test_results": [],
+  "finished_at_utc": "2026-10-16T18:37:34.954737+00:00"
+}

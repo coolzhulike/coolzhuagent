@@ -1,0 +1,10 @@
+﻿{
+    "room_id":  "room-1792693754883",
+    "case":  "b07",
+    "elapsed_ms":  45715,
+    "prompt":  "mock b07: 请按计划写入两个标记文件。",
+    "side":  "baseline",
+    "first_turn_end_ms":  1792693802818,
+    "round":  1,
+    "http":  200
+}

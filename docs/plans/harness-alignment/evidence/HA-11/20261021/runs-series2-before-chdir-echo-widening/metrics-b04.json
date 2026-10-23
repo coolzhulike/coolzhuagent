@@ -1,0 +1,179 @@
+[
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 2,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 1,
+  "status": "completed",
+  "elapsed_ms": 38165,
+  "tool_calls": 15,
+  "by_tool": {
+   "bash": 2,
+   "glob_search": 1,
+   "read_file": 8,
+   "edit_file": 3,
+   "PowerShell": 1
+  },
+  "by_status": {
+   "dry-run-only": 2,
+   "ok": 13
+  },
+  "by_decision": {
+   "require-confirm": 2,
+   "allow-auto": 13
+  },
+  "require_confirm": 2,
+  "indep_exit": 0,
+  "final_lib": "pub fn mul(a: i32, b: i32) -> i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: &[f64]) -> f64 { v.iter().sum::<f64>() / v.len() as f64 } | pub fn shout(s: &str) -> String { s.to_uppercase() }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 3,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 1,
+  "status": "completed",
+  "elapsed_ms": 50933,
+  "tool_calls": 17,
+  "by_tool": {
+   "read_file": 8,
+   "bash": 2,
+   "glob_search": 1,
+   "edit_file": 3,
+   "PowerShell": 2,
+   "Config": 1
+  },
+  "by_status": {
+   "ok": 13,
+   "dry-run-only": 4
+  },
+  "by_decision": {
+   "allow-auto": 13,
+   "require-confirm": 3,
+   "require-approval": 1
+  },
+  "require_confirm": 3,
+  "indep_exit": 0,
+  "final_lib": "pub fn mul(a: i32, b: i32) -> i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: &[f64]) -> f64 {\n    if v.is_empty() {\n        return 0.0;\n    }\n    v.iter().sum::<f64>() / v.len() as f64\n} | pub fn shout(s: &str) -> String { s.to_uppercase() }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 3,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 2,
+  "status": "completed",
+  "elapsed_ms": 65985,
+  "tool_calls": 14,
+  "by_tool": {
+   "bash": 2,
+   "PowerShell": 2,
+   "read_file": 6,
+   "glob_search": 1,
+   "edit_file": 3
+  },
+  "by_status": {
+   "dry-run-only": 3,
+   "ok": 11
+  },
+  "by_decision": {
+   "require-confirm": 3,
+   "allow-auto": 11
+  },
+  "require_confirm": 3,
+  "indep_exit": 0,
+  "final_lib": "pub fn mul(a: i32, b: i32) -> i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: &[f64]) -> f64 { v.iter().sum::<f64>() / v.len() as f64 } | pub fn shout(s: &str) -> String { s.to_uppercase() }"
+ },
+ {
+  "shell_ok": 0,
+  "shell_not_ok": 3,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 2,
+  "status": "completed",
+  "elapsed_ms": 69678,
+  "tool_calls": 14,
+  "by_tool": {
+   "bash": 1,
+   "glob_search": 1,
+   "read_file": 7,
+   "edit_file": 3,
+   "PowerShell": 2
+  },
+  "by_status": {
+   "dry-run-only": 2,
+   "ok": 11,
+   "failed": 1
+  },
+  "by_decision": {
+   "require-confirm": 2,
+   "allow-auto": 12
+  },
+  "require_confirm": 2,
+  "indep_exit": 0,
+  "final_lib": "pub fn mul(a: i32, b: i32) -> i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: &[f64]) -> f64 { v.iter().sum::<f64>() / v.len() as f64 } | pub fn shout(s: &str) -> String { s.to_uppercase() }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 2,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 3,
+  "status": "completed",
+  "elapsed_ms": 45227,
+  "tool_calls": 14,
+  "by_tool": {
+   "bash": 2,
+   "glob_search": 1,
+   "read_file": 7,
+   "edit_file": 3,
+   "PowerShell": 1
+  },
+  "by_status": {
+   "dry-run-only": 2,
+   "ok": 12
+  },
+  "by_decision": {
+   "require-confirm": 2,
+   "allow-auto": 12
+  },
+  "require_confirm": 2,
+  "indep_exit": 0,
+  "final_lib": "pub fn mul(a: i32, b: i32) -> i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: &[f64]) -> f64 { v.iter().sum::<f64>() / v.len() as f64 } | pub fn shout(s: &str) -> String { s.to_uppercase() }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 1,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 3,
+  "status": "completed",
+  "elapsed_ms": 34990,
+  "tool_calls": 12,
+  "by_tool": {
+   "bash": 1,
+   "glob_search": 1,
+   "read_file": 6,
+   "edit_file": 3,
+   "PowerShell": 1
+  },
+  "by_status": {
+   "dry-run-only": 1,
+   "ok": 11
+  },
+  "by_decision": {
+   "require-confirm": 1,
+   "allow-auto": 11
+  },
+  "require_confirm": 1,
+  "indep_exit": 0,
+  "final_lib": "pub fn mul(a: i32, b: i32) -> i32 { a * b } | pub mod arith;\npub mod text;\npub mod stats; | pub fn mean(v: &[f64]) -> f64 { v.iter().sum::<f64>() / v.len() as f64 } | pub fn shout(s: &str) -> String { s.to_uppercase() }"
+ }
+]

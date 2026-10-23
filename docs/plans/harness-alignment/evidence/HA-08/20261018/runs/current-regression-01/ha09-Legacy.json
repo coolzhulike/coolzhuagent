@@ -1,0 +1,24 @@
+{
+  "evidence": {
+    "command_failures": [
+      "Command 验证 unable：旧结果没有可信执行回执"
+    ],
+    "command_verification": {
+      "contract": null,
+      "legacy_failures": [],
+      "reason": "历史结果没有结构化回执",
+      "receipts": [],
+      "state": "unable"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": null,
+    "legacy_failures": [],
+    "reason": "历史结果没有结构化回执",
+    "receipts": [],
+    "state": "unable"
+  },
+  "status": "running",
+  "verdict": "fail"
+}

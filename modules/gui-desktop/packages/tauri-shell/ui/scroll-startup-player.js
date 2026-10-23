@@ -1,4 +1,4 @@
-/* 卷轴山水启动合成：复用固定字形和Q版整人姿态，不把整图位移称为骨骼动画。 */
+/* 卷轴山水启动合成：复用固定字形与静坐人物素材，人物只做呼吸起伏，不做骨骼动画。 */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -8,28 +8,6 @@
   const clamp = value => Math.max(0, Math.min(1, value));
   const ease = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
   const between = (time, start, end) => ease((time - start) / (end - start));
-  const lerp = (left, right, progress) => left + (right - left) * progress;
-  // 四个整人姿态按鞋底锚点单帧切换；位移连续，不叠画两个头或冒充骨骼动作。
-  const poses = [
-    {time:1050, frame:0, x:294, y:699, angle:-0.04, scale:1},
-    {time:1260, frame:0, x:296, y:714, angle:-0.10, scale:0.96},
-    {time:1470, frame:1, x:330, y:665, angle:0.035, scale:1.02},
-    {time:1690, frame:1, x:371, y:641, angle:0.075, scale:1.04},
-    {time:1860, frame:2, x:406, y:656, angle:0.055, scale:1.02},
-    {time:2070, frame:2, x:427, y:708, angle:-0.05, scale:0.97},
-    {time:2310, frame:3, x:431, y:699, angle:0, scale:1},
-  ];
-  function motionAt(time) {
-    if (time <= poses[0].time) return {...poses[0]};
-    for (let index=1; index<poses.length; index++) {
-      const right=poses[index], left=poses[index-1];
-      if (time <= right.time) {
-        const progress=between(time,left.time,right.time);
-        return {x:lerp(left.x,right.x,progress),y:lerp(left.y,right.y,progress),angle:lerp(left.angle,right.angle,progress),scale:lerp(left.scale,right.scale,progress),frame:progress<0.5?left.frame:right.frame};
-      }
-    }
-    return {...poses.at(-1)};
-  }
   function createStartupPlayer(options = {}) {
     const manifest = options.manifest;
     const canvas = options.canvas;
@@ -62,7 +40,7 @@
       if (EventClass) documentRef?.dispatchEvent?.(new EventClass(manifest.completeEvent || "coolzhu-seven-letter-startup-internal",{detail:{reason,error,state:getState()}}));
       return true;
     }
-    function getState() { const sceneTime=elapsed*sceneDuration/duration; return {elapsedMs:elapsed,totalDurationMs:duration,frameCount,completed:elapsed>=duration,mode:daily?"daily":"first",phase:elapsed>=duration?"done":sceneTime<1400?"unfold":sceneTime<5700?"sword-and-logo":sceneTime<6700?"hold":"handoff"}; }
+    function getState() { const sceneTime=elapsed*sceneDuration/duration; return {elapsedMs:elapsed,totalDurationMs:duration,frameCount,completed:elapsed>=duration,mode:daily?"daily":"first",phase:elapsed>=duration?"done":sceneTime<1400?"unfold":sceneTime<5700?"logo-and-meditation":sceneTime<6700?"hold":"handoff"}; }
     function background(progress) {
       const image=assets?.[manifest.background.source.src];
       context.fillStyle="#071512"; context.fillRect(0,0,width,height);
@@ -91,11 +69,8 @@
         if (image) context.drawImage(image,rect.x,rect.y,rect.width,rect.height,x,height*0.48-glyphHeight/2,w,glyphHeight);
         x+=w+gap*fit;
       });
-      // 原字形不变，低对比剑脊和竹叶作为次层构图，避免视觉元素挤入字内。
+      // 原字形不变，低对比竹叶作为次层构图，避免视觉元素挤入字内。
       context.globalAlpha*=0.45;
-      context.strokeStyle="#C2A46D"; context.lineWidth=2;
-      context.beginPath(); context.moveTo(592,535); context.quadraticCurveTo(840,561,1102,535); context.stroke();
-      context.beginPath(); context.moveTo(1057,526); context.lineTo(1066,550); context.stroke();
       context.fillStyle="#B8D9C6";
       [[552,524,-0.55],[564,543,0.45],[1112,523,0.55]].forEach(([leafX,leafY,angle])=>{
         context.save(); context.translate(leafX,leafY); context.rotate(angle);
@@ -103,25 +78,42 @@
       });
       context.restore();
     }
-    function actor(time,alpha) {
-      const motion=motionAt(time);
-      const frame=actorFrames[motion.frame], image=assets?.[frame.src];
-      if (!image || alpha<=0) return motion;
-      const rect=frame.sourceRect, anchor=frame.anchor, scale=0.37*motion.scale;
+    function actor(time,alpha,still) {
+      const frame=actorFrames[0], image=assets?.[frame.src];
+      const rect=frame.sourceRect, anchor=frame.anchor;
+      // 呼吸：4.6 秒一循环的轻微缩放与下缘起伏；减少动态或静态调用时冻结在呼气中点。
+      const breath=still?0:Math.sin(time/4600*Math.PI*2);
+      const scale=200/rect.height*(1+0.02*breath);
+      const x=840, y=745+2.4*breath;
+      if (!image || alpha<=0) return {x,y,scale,height:rect.height*scale};
       context.save(); context.globalAlpha*=alpha;
-      context.translate(motion.x,motion.y); context.rotate(motion.angle);
+      context.translate(x,y);
       context.drawImage(image,rect.x,rect.y,rect.width,rect.height,-anchor.x*scale,-anchor.y*scale,rect.width*scale,rect.height*scale);
       context.restore();
-      return motion;
+      return {x,y,scale,height:rect.height*scale};
     }
-    function seal(alpha) {
+    function aura(time,alpha,still) {
       if (alpha<=0) return;
-      context.save(); context.globalAlpha*=alpha; context.translate(1166,552); context.rotate(-0.045);
-      context.fillStyle="#8B3026"; context.fillRect(0,0,126,144);
-      context.strokeStyle="#E5C09A"; context.lineWidth=3; context.strokeRect(7,7,112,130);
-      context.fillStyle="#FFF0D6"; context.textAlign="center"; context.textBaseline="middle";
-      context.font='700 52px "STKaiti", "KaiTi", "Microsoft YaHei", serif';
-      context.fillText("酷",63,44); context.fillText("朱",63,102); context.restore();
+      // 低对比气息光晕：跟随同一呼吸相位，克制在人物身后，不遮字标。
+      const breath=still?0:Math.sin(time/4600*Math.PI*2);
+      context.save();
+      context.globalAlpha*=alpha*(0.10+0.05*breath);
+      const gradient=context.createRadialGradient?.(840,650,8,840,650,160);
+      if (gradient) {
+        gradient.addColorStop(0,"rgba(231,214,170,0.85)");
+        gradient.addColorStop(1,"rgba(231,214,170,0)");
+        context.fillStyle=gradient;
+      } else context.fillStyle="rgba(231,214,170,0.5)";
+      context.beginPath(); context.ellipse(840,650,168,132,0,0,Math.PI*2); context.fill();
+      context.restore();
+      if (still) return;
+      // 稀疏气息微粒缓慢上浮，亮度压在不干扰字标的范围。
+      context.save(); context.globalAlpha*=alpha*0.16; context.fillStyle="#D9C896";
+      for(let index=0;index<9;index++) {
+        const px=776+((index*47)%132), py=730-((time*0.018+index*73)%170);
+        context.beginPath(); context.arc(px,py,1.7,0,Math.PI*2); context.fill();
+      }
+      context.restore();
     }
     function ambience(time,alpha) {
       if (alpha<=0) return;
@@ -146,17 +138,14 @@
       const logoAlpha=reduced?1:between(presentationTime,1800,3500);
       logo(logoAlpha); ambience(presentationTime,progress);
       let motion=null;
-      if (!reduced && presentationTime>=1400 && presentationTime<5700) {
-        // 蓄势、腾跃、出剑、回身收剑；轨迹往返连续，完整姿态只画一帧。
-        const actionProgress=clamp((presentationTime-1400)/3600);
-        const round=Math.min(1,Math.floor(actionProgress*2));
-        const roundProgress=actionProgress*2-round;
-        const actionTime=round===0?1050+roundProgress*1260:2310-roundProgress*1260;
-        motion=actor(actionTime,between(presentationTime,1400,1700)*(1-between(presentationTime,5200,5700)));
+      // 静坐人物随字标淡入，定势段保持；减少动态时若资产已在则静态呈现。
+      const figureAlpha=reduced?1:between(presentationTime,1900,2700);
+      if (figureAlpha>0) {
+        if (assets?.[actorFrames[0].src]) aura(presentationTime,figureAlpha,reduced);
+        motion=actor(presentationTime,figureAlpha,reduced);
       }
-      seal(reduced?1:between(presentationTime,5000,5700));
       context.restore();
-      lastScene={state:getState(),scrollProgress:progress,logoAlpha,actor:motion,sealText:"酷朱"};
+      lastScene={state:getState(),scrollProgress:progress,logoAlpha,actor:motion,figure:"meditation"};
       return lastScene;
     }
     function tick(timestamp) {
@@ -197,5 +186,5 @@
     }
     return Object.freeze({manifest,start,stop:finish,finish,renderAt,getState,getLastScene:()=>lastScene,isActive:()=>active,isFinished:()=>finished});
   }
-  return Object.freeze({createStartupPlayer,motionAt});
+  return Object.freeze({createStartupPlayer});
 });

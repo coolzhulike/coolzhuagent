@@ -1,0 +1,120 @@
+{
+  "at_utc": "2026-10-16T16:13:57.165525+00:00",
+  "boundary": "正式页面只读；隔离服务单独SQLite/config/port且均退出。新增Rust与前端测试，没有新增生产行为修复。生产应用默认日志位置未因夹具环境变量改变。",
+  "files": [
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-matrix-review-20261016.json",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-remaining-matrix-review-20261016.json",
+      "sha256": "5a9c26de9958dc4da9647a9a39561855b3fac209db5b543319594994ea2088da",
+      "bytes": 3016
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-http-matrix-20261016.py",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-remaining-http-matrix-20261016.py",
+      "sha256": "080b6b70ab45c20ccfd636f5ebbaebe52982724d5efb2732085c7eba0117583f",
+      "bytes": 17974
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-http-matrix-20261016.json",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-remaining-http-matrix-20261016.json",
+      "sha256": "3cc24e1baf45184de42f45b9bb44c969289a003771441b6a1c238a6e0418b547",
+      "bytes": 12653
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-http-matrix-20261016.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-remaining-http-matrix-20261016.log",
+      "sha256": "c83dde5e26885c7757c5502583dfcbcee1299fdedf760209de95bef47e93957a",
+      "bytes": 886
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-reply-reconnect-matrix-20261016.py",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-reply-reconnect-matrix-20261016.py",
+      "sha256": "dd925f465e64793001305ad8119d2f200175858180fe4bced4deb06c3a643789",
+      "bytes": 4345
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-reply-reconnect-matrix-20261016.json",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-reply-reconnect-matrix-20261016.json",
+      "sha256": "bb048882821e6bc0d84ecf5ddcc6fc9f2b9fc79745c137468ae37521eaa5b2bc",
+      "bytes": 2068
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-reply-reconnect-matrix-20261016.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-reply-reconnect-matrix-20261016.log",
+      "sha256": "b3698bc7619c4d3373317d0323c8689f09283daec51fd9fee1879fb31a177f54",
+      "bytes": 291
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-migration-retry-matrix-20261016.py",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-migration-retry-matrix-20261016.py",
+      "sha256": "ebc81fd6c1258cd64e8ac2230db7850476c1f66df6710e10be1fd442993061d4",
+      "bytes": 1139
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-migration-retry-matrix-20261016.json",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-migration-retry-matrix-20261016.json",
+      "sha256": "5818837cac7739566b78bb09ba60c3d356c53dc6b2a322ac73993394651db863",
+      "bytes": 7240
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-migration-retry-matrix-20261016.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-migration-retry-matrix-20261016.log",
+      "sha256": "07653fe54de57014f1b13613bf93f8f472a7c9cf48db4d56bfac6cd1c8cb3ae8",
+      "bytes": 523
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-reply-browser-reload-20261016.json",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-reply-browser-reload-20261016.json",
+      "sha256": "390ef430779c1724476bb2e5d285528870b845f2982e0b3e40f06d39246f768d",
+      "bytes": 1213
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-reply-frontend-matrix-20261016.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-reply-frontend-matrix-20261016.log",
+      "sha256": "57514d4c18c491f7e6b47fda4b13c5b5ebdb2271c0842d9df8343b9bd5a5ebaa",
+      "bytes": 949
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-reply-frontend-matrix-20261016-initial.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-reply-frontend-matrix-20261016-initial.log",
+      "sha256": "8dcdf683636c01e6c86b665882b9f3171c677af8f146fc57aa905b91405ca5e4",
+      "bytes": 1948
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-schema-fault-matrix-20261016.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-schema-fault-matrix-20261016.log",
+      "sha256": "365a6cebece9412940e1493e06a9fd65a44d81387d107888c3d30caddf1486d0",
+      "bytes": 23399
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-build-20261016.json",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-remaining-build-20261016.json",
+      "sha256": "780a264b556a2f1d26a9b854305dbd85e4f2df0486401ea731281e3169fe902c",
+      "bytes": 1264
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-remaining-build-20261016.log",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-remaining-build-20261016.log",
+      "sha256": "c57fa1ea2dc9dcb6ad83b6b6e1767ce365de46922b21676d6bba3511937e4ddb",
+      "bytes": 51525
+    },
+    {
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-complete-remaining-matrix-20261016.py",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\controller-complete-remaining-matrix-20261016.py",
+      "sha256": "738904f277c1d03bc21f6ff12c3501232d71057faa1978764d50cd6bdd389490",
+      "bytes": 13959
+    },
+    {
+      "source": "modules/gui-web/packages/web-console/src/schema_upgrade.rs",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\schema_upgrade.rs",
+      "sha256": "10349ccb39fb0438de82856425fc784d987ecc0456b71e0cfbe5d9248dde61ae",
+      "bytes": 14693
+    },
+    {
+      "source": "modules/gui-web/packages/web-console/tests/chat-trace-locate-sync.test.cjs",
+      "archive": "docs\\testing\\2026-10-16-reply-startup-matrix-evidence\\chat-trace-locate-sync.test.cjs",
+      "sha256": "607509817bf5e694ed116a86d6abf1acafd9b6e310f0ea26d59b2efbaebbff27",
+      "bytes": 15913
+    }
+  ]
+}

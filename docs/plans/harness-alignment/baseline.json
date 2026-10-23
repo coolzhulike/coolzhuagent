@@ -1,0 +1,201 @@
+{
+  "created_at_utc": "2026-10-18T03:04:01.918077+00:00",
+  "workspace_at_capture": "D:\\coolzhuagent",
+  "git_head": "8a13551b037f5f673188802f2c9128984245fab8",
+  "tracked_worktree_status_counts": {
+    " M": 119,
+    "D ": 50,
+    " D": 3,
+    "R ": 37
+  },
+  "meaning": "相关文件的规划时内容，不是整个工作区可恢复备份，也不是功能验收。HA-00 需保存可重现业务基线及实际模型配置。",
+  "source_files": [
+    {
+      "path": "AGENT.md",
+      "bytes": 9969,
+      "sha256": "0889f95e5c1a63873d5d22583a47b3d405b3871769017767e365be0ac3c6f9d0"
+    },
+    {
+      "path": "Cargo.toml",
+      "bytes": 3413,
+      "sha256": "9cc59f26d6ecdb7eeed06dd1ae5cfa6f9ebdbc48c8a208c50a3ecb75b3f8536d"
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 140027,
+      "sha256": "8841a12ba0ec3e1ab2250036428a20221552330f6349cde455ea102a9b3b093e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/Cargo.toml",
+      "bytes": 2496,
+      "sha256": "47b2b2b1fd32c31ba6db29fd73b635ac634367b69f3e1605f37c8d65ba20c4c7"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/Cargo.toml",
+      "bytes": 714,
+      "sha256": "8adab40fb76a63293c01fa55fcbd432e1dea7dbf9a3fe3ca0b7ae6494ba8516e"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/Cargo.toml",
+      "bytes": 518,
+      "sha256": "e4e4411daabdf5c71242cb90176e802ccd554a7ebe9aa7c3f7cdc26f42065438"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/main.rs",
+      "bytes": 3652853,
+      "sha256": "90ab33494c3923ea7bdf52b586ea97314a2805f888fdc869494a4d5872b27377"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "bytes": 55840,
+      "sha256": "4f3534e8e31b1a93f5f9c35e0e1f74c0c73c645768198366453aa27e0bcbe710"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+      "bytes": 13624,
+      "sha256": "595b40ac71cf7e0cdd86c2ce2b0bbc288bc5b7e47357205135f83afa028833b2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_invocation_identity.rs",
+      "bytes": 3648,
+      "sha256": "4ebdbabe26290128b3cadcbd94a1ec860daa9ec5e98bea54f3d05f61ecde0c39"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs",
+      "bytes": 20162,
+      "sha256": "4f88b39141858de20433fe67ad4cc9341e97fade8761f802f2f034e5976ca483"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_audit.rs",
+      "bytes": 3039,
+      "sha256": "11477b2b69b72d34f769d365968b7085539ecfb907663925007b5cf3934d0826"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dispatch_hooks.rs",
+      "bytes": 5745,
+      "sha256": "9ff94952680820a1e704c9b3e6542514a84b19a6392ddf0d05d14e48f9f3f07a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/root_execution_budget.rs",
+      "bytes": 7102,
+      "sha256": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_loop_coordinator.rs",
+      "bytes": 7661,
+      "sha256": "ea387550ec1efcc776085262575889cb66138b077e4df62e6614163f47fd6cee"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/chat_tool_history.rs",
+      "bytes": 37559,
+      "sha256": "370e27451d96d90f7208ca043e76e80a756774c43cbb51ff9a8abd9401776ba3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/goal_command.rs",
+      "bytes": 5069,
+      "sha256": "c475c0f21ec1630b2ee996f58690de4fd3a2690d96a2e07708e89f8afa648906"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/scheduled_execution.rs",
+      "bytes": 4090,
+      "sha256": "be587d00d66bbf9a610ab6655851a20e4273a4907ba9b913e4621e3e0bfc5184"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_config_service.rs",
+      "bytes": 15450,
+      "sha256": "13d2bfabac23ee61cebe5f68bd89bbbf212f7b41b8bcaa381b971b70ce01991f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_config_journal.rs",
+      "bytes": 14647,
+      "sha256": "ec8c0be42406e6bf1236f68138f957dc3675e840702ee5b2c2ddbfa0d6a8233b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/openai_subscription.rs",
+      "bytes": 23567,
+      "sha256": "393901527f9c4ee2c63309bf400f49c1d00a9f8a9295fcab294e46a0bbc3b7f2"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/conversation.rs",
+      "bytes": 66846,
+      "sha256": "b76b1b81b29bc1f33713ea01fcd8d0539d50b80364dfbdbec520b61451dca6a5"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/permissions.rs",
+      "bytes": 11255,
+      "sha256": "3785b2c94f376a85f8570f73c9755a2c6ae2727b0831e631d81d9fb0809d573f"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/permission_gate.rs",
+      "bytes": 30875,
+      "sha256": "f4c7bc7d0b24264e564c4f5104663a9012b1482d4d60c7f6d177e78cfb1f4994"
+    },
+    {
+      "path": "modules/core-runtime/packages/core-runtime/src/hooks.rs",
+      "bytes": 33835,
+      "sha256": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+      "bytes": 74771,
+      "sha256": "ce31284a00b01ea5ca3d51a5cd2387203e57a6d30f4a0166520def8078b6f78d"
+    },
+    {
+      "path": "modules/tooling/packages/dsh-plugin-host/src/host.mjs",
+      "bytes": 11291,
+      "sha256": "940e818b600e024035c5eae73a0e302882977dad073355e191efa7a1f066d96d"
+    }
+  ],
+  "changed_from_reviewed_files": [
+    {
+      "path": "modules/gui-web/packages/web-console/src/main.rs",
+      "reviewed_sha256": "817f2f574015de4ba0ba4f4c658da7582a98dab24b0175c757685de2c5526a1e",
+      "current_sha256": "90ab33494c3923ea7bdf52b586ea97314a2805f888fdc869494a4d5872b27377"
+    }
+  ],
+  "review_materials": [
+    {
+      "path": "docs/analysis/2026-10-17-gpt6-pro-harness-review-original.md",
+      "sha256": "d38cdf83d2fd749f0da21e586cca05338fb20416c58d62533c8873a81ba6b66a"
+    },
+    {
+      "path": "docs/analysis/2026-10-17-gpt6-pro-harness-review-decision.md",
+      "sha256": "7819cf72b3f61d75d03cf73d90a62884c4522ba12aaf9c4229d15ba7575d57cd"
+    },
+    {
+      "path": "docs/analysis/2026-10-17-gpt6-pro-review-session.json",
+      "sha256": "d9ae0e6552d6a336b8733dbd7d3d067875da91c9bff9bd5bf7a9fd2984b2ba7b"
+    },
+    {
+      "path": "docs/analysis/2026-10-17-three-way-harness-source-comparison.md",
+      "sha256": "129ac9baab5a3d552337a7ff5d74190be3eeb6490264c18741c372c92b08112c"
+    },
+    {
+      "path": "docs/analysis/2026-10-17-three-way-harness-source-evidence.json",
+      "sha256": "93f70e96dd7167cf0ea0957defd344e0e03cca4726f09ab6b3af98af4336384e"
+    }
+  ],
+  "review_conversation": "https://chatgpt.com/c/6ad42c0c-9908-83e9-af52-f22e34ff20fa",
+  "upstream_sources": {
+    "codex-cli": {
+      "repository": "https://github.com/openai/codex",
+      "tag": "rust-v0.163.0",
+      "commit": "83086188ae0614bd882818ff1aa23f3194962012",
+      "source_path": "C:\\Users\\zhupu\\Desktop\\codex-cli-0.163.0",
+      "archive_path": "C:\\Users\\zhupu\\Desktop\\codex-cli-0.163.0.zip",
+      "archive_sha256": "e70021802baa025b77d917f5490efb33eeaae90ee2f106325864b2fc70e21350"
+    },
+    "deepseek-harness": {
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "tag": "dsh-v0.2.1-rc.2",
+      "commit": "687f282e8625c6b8d11ff58211a90524be2e4317",
+      "source_path": "C:\\Users\\zhupu\\Desktop\\deepseek-harness-v0.2.1-rc.2",
+      "archive_path": "C:\\Users\\zhupu\\Desktop\\deepseek-harness-v0.2.1-rc.2.zip",
+      "archive_sha256": "828bbbebaf507d2b1fc335a608e1c8174e2dd5c5c80ebb64d5146ddc5ecb511f"
+    }
+  },
+  "scope_gaps": [
+    "仅核对部分当前源码片段；HA-00 的完整相关调用链和既有能力复用判断待执行。",
+    "未运行业务构建、功能测试、真实模型对照或跨模型接替演练。"
+  ]
+}

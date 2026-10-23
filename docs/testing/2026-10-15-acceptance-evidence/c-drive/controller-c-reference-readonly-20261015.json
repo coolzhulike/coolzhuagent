@@ -1,0 +1,72 @@
+{
+    "AtUtc":  "2026-10-15T19:29:44.5526372Z",
+    "Mode":  "read_only",
+    "OldRoot":  "C:\\Users\\zhupu\\Desktop\\coolzhuagent",
+    "CommandLineReferences":  [
+
+                              ],
+    "GitWorktreeReferences":  [
+                                  {
+                                      "Repository":  "D:\\coolzhuagent",
+                                      "ExitCode":  0,
+                                      "Worktrees":  [
+                                                        "D:/coolzhuagent",
+                                                        "D:/coolzhu-worktrees/brand-avatars-20261010/coolzhuagent",
+                                                        "D:/coolzhu-worktrees/browser-result-20261010/coolzhuagent",
+                                                        "D:/coolzhu-worktrees/input-recovery-20261004/coolzhuagent",
+                                                        "D:/coolzhu-worktrees/integration-32wbs-20261010/coolzhuagent",
+                                                        "D:/coolzhu-worktrees/shared-execution-20261010/coolzhuagent"
+                                                    ]
+                                  },
+                                  {
+                                      "Repository":  "D:\\old-repos\\coolzhuagent-c-desktop-20261012",
+                                      "ExitCode":  0,
+                                      "Worktrees":  [
+                                                        "D:/old-repos/coolzhuagent-c-desktop-20261012",
+                                                        "C:/Users/zhupu/.codex/worktrees/brand-avatars-20261010/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/browser-result-20261010/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/integration-32wbs-20261010/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/shared-execution-20261010/coolzhuagent"
+                                                    ]
+                                  },
+                                  {
+                                      "Repository":  "C:\\Users\\zhupu\\Desktop\\coolzhuagent",
+                                      "ExitCode":  0,
+                                      "Worktrees":  [
+                                                        "C:/Users/zhupu/Desktop/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/brand-avatars-20261010/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/browser-result-20261010/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/input-recovery-20261004/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/integration-32wbs-20261010/coolzhuagent",
+                                                        "C:/Users/zhupu/.codex/worktrees/shared-execution-20261010/coolzhuagent"
+                                                    ]
+                                  }
+                              ],
+    "CoolzhuShortcuts":  [
+                             {
+                                 "Shortcut":  "C:\\Users\\Public\\Desktop\\COOLZHU CODE Agent.lnk",
+                                 "Target":  "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+                                 "WorkingDirectory":  "C:\\Program Files\\CoolzhuAgent\\",
+                                 "RefersToOldDesktopRoot":  false
+                             },
+                             {
+                                 "Shortcut":  "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\COOLZHU CODE\\COOLZHU CODE Agent.lnk",
+                                 "Target":  "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+                                 "WorkingDirectory":  "C:\\Program Files\\CoolzhuAgent\\",
+                                 "RefersToOldDesktopRoot":  false
+                             }
+                         ],
+    "ShortcutReadErrors":  0,
+    "ShortcutJunctionsSkipped":  [
+
+                                 ],
+    "CodexSidebar":  "最近交接仍有旧C项目登记；本轮无项目删除接口，未改数据库，不能当作已移除",
+    "Limits":  [
+                   "未全量检查内核文件句柄",
+                   "未读取进程环境变量或凭据",
+                   "候选只供不再使用旧C项目后手工处理"
+               ],
+    "Deletion":  "none",
+    "ReclaimedBytes":  0
+}

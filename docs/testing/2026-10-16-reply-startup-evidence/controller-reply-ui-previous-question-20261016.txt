@@ -1,0 +1,2288 @@
+Window: "COOLZHU AGENT 控制台", App: coolzhu-tauri-shell.exe.
+	0 窗口 COOLZHU AGENT 控制台 Secondary Actions: Raise
+		1 窗格
+			2 窗格 COOLZHU CODE 控制台
+				3 窗格 (disabled)
+				4 区域 COOLZHU CODE 控制台 - Web 内容
+					5 区域
+						6 区域
+							7 区域
+								8 区域
+								9 区域
+									10 区域
+										11 区域
+											12 区域
+												13 区域
+												14 文档 COOLZHU CODE 控制台 Value: http://127.0.0.1:8765/ ID: RootWebArea
+													15 组
+														16 主要 COOLZHU CODE 控制台
+															17 区域 顶部状态区
+																18 区域 COOLZHU
+																	19 文本 COOLZHU
+																20 文章 发送对象与工作区
+																	21 图表 当前 Agent 头像
+																	22 文本 发送对象
+																	23 按钮 选择发送对象。将发送给：Devin SWE-2 真实CU验收 (gpt-6-luna-max) Description: 将发送给：Devin SWE-2 真实CU验收 (gpt-6-luna-max)
+																		24 组 Description: 当前发送对象：Devin SWE-2 真实CU验收 (gpt-6-luna-max)
+																	25 文本 工程目录
+																	26 按钮 切换工程目录 Description: 切换工程目录：D:\coolzhuagent
+																27 区域 当前聊天室与状态
+																	28 文本 当前聊天室
+																	29 按钮 切换当前聊天室 Description: 切换当前聊天室
+																	30 详细信息 当前聊天室权限
+																		31 开合三角标记 权限 完全访问
+																			32 文本 权限
+																			2282 文本 完全访问
+																	34 组 聊天室状态
+																		35 图形 Agent 就绪：需留意 Description: Agent 就绪：需留意
+																		36 图形 系统警示：健康需留意 Description: 系统警示：健康需留意
+															37 区域 多窗口工作台
+																38 补充 快捷功能栏
+																	39 导航 快捷功能
+																		40 切换按钮 首页 Description: 首页
+																		41 切换按钮 定时任务 Description: 定时任务
+																		42 切换按钮 设置 Description: 设置
+																		43 切换按钮 统计信息 Description: 统计信息
+																		44 切换按钮 微信连接 Description: 微信连接
+																		45 详细信息
+																			46 开合三角标记 更多快捷功能 Description: 更多
+																	47 切换按钮 升级更新 Description: 升级更新
+																48 文章 聊天室窗口
+																	49 按钮 搜索聊天记录与消息索引 Description: 搜索聊天记录与消息索引
+																	50 按钮 思考与运行记录
+																	2283 按钮 回到最新消息 Description: 回到最新消息
+																	51 组
+																		69 文章
+																			70 文本 D-CONSOLE-FULL-FINAL-331。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话/工作树。主控330审核 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/controller-330-audit.json：三组发布版过滤测试ACP bridge8过、live节流1过、Goal重规划1过，0败；EX-01仍开放，因为328完整套件1502过3败。正式8765目前运行统一target下的release exe，不能直接cargo build --release覆盖它。主控已预置固定受监督动作 console-build-full-331，脚本sha256=136725644c7c97c7406ea9ff7b56644ece68de563b870106dd4cad9f92c39d88：先在统一target的debug目录cargo build -p coolzhu-web-console --offline -j1，再在不覆盖正式exe的release测试目标cargo test -p coolzhu-web-console --release --offline -j1 -- --test-threads=1；build失败则不测试。脚本锁当前关键源码哈希前后相同、逐步记录退出码/完整日志/全部组通过失败忽略，TMP/TEMP只在scratch-331。请经 plugin__cli_anything_run command=C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,console-build-full-331] 仅提交一次，禁止并发cargo/再次submit/改源码。记录唯一job_id；如长于5分钟仅报告running并交主控继续盯，不宣称通过。报告写 devin-console-full-final-331.json，列job身份/状态/真实可用统计与未证。最后一次plugin__cli_anything_run执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-console-full-final-331,devin-console-full-final-331.json] 经官方queue一次。不碰正式8765/生产DB/C盘/微信，不push/发布。
+																			71 time
+																				72 文本 01:12:47
+																				2284 文本 #1442
+																		73 文章
+																			74 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			75 文本 331 轮：提交主控预置的全量构建+测试作业（仅一次）：仍在运行（debug build + release 全量测试远超本轮窗口）。写 running 报告并上报：D-CONSOLE-FULL-FINAL-331：
+																			76 文本 全量构建+测试作业已提交、运行中（如实 not-final）
+																			77 文本 ，已上报（
+																			78 文本 queued
+																			79 文本 ）
+																			80 文本 
+																			81 文本 
+																			82 文本 提交
+																			83 文本 ：
+																			84 文本 build-client.py submit console-build-full-331
+																			85 文本 →
+																			86 文本 accepted
+																			87 文本 ，
+																			88 文本 deduplicated=false
+																			89 文本 ，单次提交
+																			90 文本 
+																			91 文本 -
+																			92 文本 job_id
+																			93 文本 ：
+																			94 文本 b9fd6d2a20344cf2b2746cd11e530b50
+																			95 文本 
+																			96 文本 -
+																			97 文本 attempt_id
+																			98 文本 ：
+																			99 文本 f31f5425773db5a5f3af950b48df78b9ce30a4fcea79f858
+																			100 文本 
+																			101 文本 -
+																			102 文本 pid
+																			103 文本 ：17608，state=
+																			104 文本 running
+																			105 文本 ，exit=无
+																			106 文本 
+																			107 文本 - scope：ws-8d17063fefe5c23c / room-1791131523339 / session-1791131217833 / turn-35 / epoch 610
+																			108 文本 
+																			109 文本 - 主控锁定脚本
+																			110 文本 console-build-full-331
+																			111 文本 （SHA256
+																			112 文本 13672564…
+																			113 文本 ）：先在统一 target debug 目录
+																			114 文本 cargo build -p coolzhu-web-console --offline -j1
+																			115 文本 （正式 release exe 不被覆盖），build 过则跑 release 全量
+																			116 文本 --test-threads=1
+																			117 文本 ，build 败则不测；源码哈希前后校验
+																			118 文本 
+																			119 文本 - 日志：
+																			120 文本 build-jobs/b9fd6d2a20344cf2b2746cd11e530b50.log
+																			121 文本 
+																			122 文本 
+																			123 文本 进度
+																			124 文本 ：两轮快查均
+																			125 文本 running
+																			126 文本 、
+																			127 文本 log_tail
+																			128 文本 空——debug 编译阶段，
+																			129 文本 1502 项 release 测试未开始，无统计可报
+																			130 文本 。已交主控持续盯。
+																			131 文本 
+																			132 文本 
+																			133 文本 边界
+																			134 文本 ：未改源码、未并发 cargo、未重复 submit；328 全量 3 败事实不抹除；正式 8765/生产 DB/C 盘/微信未触；未 push/发布。
+																			135 文本 
+																			136 文本 
+																			137 文本 报告
+																			138 文本 devin-console-full-final-331.json
+																			139 文本 （SHA256
+																			140 文本 3342f15b…
+																			141 文本 ）→ queue
+																			142 文本 queued
+																			143 文本 。
+																			144 按钮 查看运行过程
+																			145 time
+																				146 文本 01:12:47
+																				2285 文本 #1443 · 本轮 1 分 25 秒
+																		147 文章
+																			148 文本 D-ACP-BUDGET-DIAGNOSE-FIX-332。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，唯一产品源码写入者，不建新会话/工作树。主控第331轮独立审计 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/controller-331-audit.json：debug build exit0，发布版完整测试六组合计1516过1败6忽略，主程序1504过1败6忽略；唯一失败 devin_acp::bridge::tests::acp_turn_roundtrip_uses_http_bridge_and_real_host_producer。失败日志原文位于 console-full-331-full-test.log 尾部：MCP工具write_file在执行器开始前判‘已取消或截止’，permission_gate未获实际回执是保守记录，不可当作根因。该测试单独/模块过滤曾通过，完整序列两次失败。请查 RootExecutionBudget::establish(30000)测试夹具、budget.limit_ms、runtime_tool_supervision::execute_with_executor 的实际时限/外部取消/worker排队，凭运行证据区分，不盲目扩大生产时限或放宽权限。做最小定点修复及能验证根因的测试；若只因测试夹具准备耗时耗尽30秒，应只修测试时限或构建测试的时间基准并说明为何不改变生产截止语义。不得删除失败断言、用忽略或重试掩盖。主控已预置固定动作 console-acp-332，脚本 run-console-acp-332.py SHA256=23b31204a1002d84a1abced104a27c50d47a3f9d98429a3b6abb8e8a464d9742：源码改完通过 plugin__cli_anything_run command=C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,console-acp-332] 仅提交一次。脚本依次 cargo build -p coolzhu-web-console --offline -j1 和发布版 ACP bridge 过滤测试（不覆盖正式8765 release exe），日志/收据都在统一临时根；若长于5分钟，如实报告running及job_id交主控盯终态，不重复submit。报告 devin-acp-budget-diagnose-fix-332.json：列证据、改动、job/exit/未证；最后一次 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-acp-budget-diagnose-fix-332,devin-acp-budget-diagnose-fix-332.json] 经官方queue一次。不得碰正式8765/生产DB/C盘/微信，不push/发布。
+																			149 time
+																				150 文本 02:02:31
+																				2286 文本 #1444
+																		151 文章
+																			152 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			153 文本 332 轮：分诊 ACP
+																			154 文本 write_file
+																			155 文本 "已取消或截止"。先定位预算夹具与执行器时限判定：看预算实现与测试建立点：看 parent/budget 如何流入执行器与耗时区间：看执行前判定的真实守卫条件：守卫确认：预执行时预算
+																			156 文本 remaining()==0
+																			157 文本 → 判截止。
+																			158 文本 establish(30000)
+																			159 文本 在夹具构建时锚定，握手+HTTP server+prompt+initialize 全在 30s 内跑——全量负载下夹具准备就耗尽预算，执行器未启动即判"已取消或截止"。该 30s 仅为此测试夹具值（生产时限来自 session turn_timeout），最小定点修复=测试时限基线放宽至 120s（执行器真实挂起仍受截止约束）：提交受监督 ACP 定点验证作业（仅一次）：D-ACP-BUDGET-DIAGNOSE-FIX-332：
+																			160 文本 根因定位+最小定点修复，受监督复测运行中
+																			161 文本 ，已上报（
+																			162 文本 queued
+																			163 文本 ）
+																			164 文本 根因（源码证据）
+																			165 文本 ：
+																			166 文本 -
+																			167 文本 bridge.rs:934
+																			168 文本 的
+																			169 文本 RootExecutionBudget::establish(30000)
+																			170 文本 在
+																			171 文本 夹具装配期
+																			172 文本 锚定为绝对单调截止（
+																			173 文本 monotonic_deadline=Instant::now()+30s
+																			174 文本 ）
+																			175 文本 - 该 30s 须覆盖全段：夹具装配→ACP 握手→HTTP MCP server→
+																			176 文本 session/prompt
+																			177 文本 →
+																			178 文本 initialize
+																			179 文本 →
+																			180 文本 tools/call write_file
+																			181 文本 - 全量套件负载下到达
+																			182 文本 write_file
+																			183 文本 时
+																			184 文本 remaining()==0
+																			185 文本 ，
+																			186 文本 budget.limit_ms(...)
+																			187 文本 （bridge.rs:658）/supervision 预执行守卫判「已取消或截止」→
+																			188 文本 isError=true
+																			189 文本 ，
+																			190 文本 执行器未启动
+																			191 文本 ——与日志原文吻合
+																			192 文本 - 单测路径 <30s 故通过；
+																			193 文本 permission_gate
+																			194 文本 无回执记录已排除。
+																			195 文本 分类：测试夹具时限基线过紧（环境时序放大），非生产截止缺陷
+																			196 文本 最小修复（bridge.rs:934，仅测试）
+																			197 文本 ：
+																			198 文本 establish(30000)
+																			199 文本 →
+																			200 文本 establish(120_000)
+																			201 文本 + 注释。不改生产截止语义（生产时限=session
+																			202 文本 turn_timeout
+																			203 文本 clamp）；执行器真实挂起仍受 120s 硬截止；断言未删未跳，
+																			204 文本 isError=false
+																			205 文本 原样要求。329 的结构化错误体断言保留——若另有真实根因复测会带错误体暴露。
+																			206 文本 复测作业
+																			207 文本 ：
+																			208 文本 console-acp-332
+																			209 文本 （SHA
+																			210 文本 23b31204…
+																			211 文本 ）单次提交
+																			212 文本 -
+																			213 文本 job_id
+																			214 文本 ：
+																			215 文本 492a964fd4fc4a848263afe2bf48a103
+																			216 文本 ，
+																			217 文本 attempt_id
+																			218 文本 ：
+																			219 文本 156d05ef…
+																			220 文本 -
+																			221 文本 pid
+																			222 文本 ：29624，state=
+																			223 文本 running
+																			224 文本 ，exit=无（build+发布版 ACP 过滤组进行中）
+																			225 文本 - 日志：
+																			226 文本 build-jobs/492a964fd4fc4a848263afe2bf48a103.log
+																			227 文本 ——
+																			228 文本 无结果不虚报
+																			229 文本 ，交主控盯终态
+																			230 文本 边界
+																			231 文本 ：未重复 submit/未并发 cargo；正式 8765/生产 DB/C 盘/微信未触；未 push/发布。
+																			232 文本 报告
+																			233 文本 devin-acp-budget-diagnose-fix-332.json
+																			234 文本 （SHA256
+																			235 文本 47bac37a…
+																			236 文本 ）→ queue
+																			237 文本 queued
+																			238 文本 。
+																			239 按钮 查看运行过程
+																			240 time
+																				241 文本 02:02:31
+																				2287 文本 #1445 · 本轮 2 分 10 秒
+																		242 文章
+																			243 文本 D-CONSOLE-FULL-AFTER-ACP-333。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新会话/工作树。主控已审 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/controller-332-audit.json：测试夹具ACP根预算30→120秒、生产逻辑未改；离线debug build exit0，发布版ACP bridge过滤8过0败，源码哈希不变。第331轮完整套件仍1失败，EX-01未关闭。现在请勿改源码，只通过 plugin__cli_anything_run command=C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,console-build-full-333] 单次提交主控预置固定动作。脚本 run-console-full-333.py SHA256=aa34153f69a15b21e79cbbc38f119695077eeb46ea0e7c92263dc1eee28e021b，先离线debug build再离线release全量单线程测试，统一临时根scratch-333和日志/收据，锁关键源码前后哈希，不覆盖正式8765正在运行的release exe。记录唯一job_id、attempt、状态，若>5分钟只报告running并交主控接续，不重复submit，不宣称通过。报告 devin-console-full-after-acp-333.json，写真实job与未证；最后一次plugin__cli_anything_run执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-console-full-after-acp-333,devin-console-full-after-acp-333.json] 经官方queue一次。无并发Cargo，不碰正式8765/生产DB/C盘/微信，不push/发布。
+																			244 time
+																				245 文本 02:21:38
+																				2288 文本 #1446
+																		246 文章
+																			247 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			248 文本 333 轮：提交主控预置全量作业（仅一次）：debug build 已 exit 0（增量 1.09s），release 全量测试中。再查一次：D-CONSOLE-FULL-AFTER-ACP-333：
+																			249 文本 全量作业已提交、运行中（如实 not-final）
+																			250 文本 ，已上报（
+																			251 文本 queued
+																			252 文本 ）
+																			253 文本 
+																			254 文本 
+																			255 文本 提交
+																			256 文本 ：
+																			257 文本 build-client.py submit console-build-full-333
+																			258 文本 →
+																			259 文本 accepted
+																			260 文本 ，
+																			261 文本 deduplicated=false
+																			262 文本 ，单次提交
+																			263 文本 
+																			264 文本 -
+																			265 文本 job_id
+																			266 文本 ：
+																			267 文本 d0b47f7bb5bd47a3ac858a48094f39aa
+																			268 文本 
+																			269 文本 -
+																			270 文本 attempt_id
+																			271 文本 ：
+																			272 文本 b9a1070fe7a01aecc34cee9c412435fff4e1dc71bd0dafd1
+																			273 文本 
+																			274 文本 -
+																			275 文本 pid
+																			276 文本 ：31252，state=
+																			277 文本 running
+																			278 文本 ，exit=无
+																			279 文本 
+																			280 文本 - 主控锁定脚本
+																			281 文本 run-console-full-333.py
+																			282 文本 （SHA256
+																			283 文本 aa34153f…
+																			284 文本 ）：离线 debug build → 离线 release 全量单线程，scratch-331/统一临时根，源码哈希前后锁，不覆盖正式 8765 release exe
+																			285 文本 
+																			286 文本 
+																			287 文本 进度（两轮快查）
+																			288 文本 ：debug build 阶段
+																			289 文本 exit 0
+																			290 文本 （增量 1.09s，
+																			291 文本 console-full-333-build.log
+																			292 文本 50170B，SHA
+																			293 文本 fc06abb2…
+																			294 文本 ）；release 全量
+																			295 文本 --test-threads=1
+																			296 文本 测试进行中——
+																			297 文本 1516 项无终态统计，不虚报
+																			298 文本 。已交主控接续盯终态。
+																			299 文本 
+																			300 文本 
+																			301 文本 边界
+																			302 文本 ：本轮未改源码、未重复 submit、未并发 cargo；331 全量 1 败事实不抹除；正式 8765/生产 DB/C 盘/微信未触；未 push/发布。
+																			303 文本 
+																			304 文本 
+																			305 文本 报告
+																			306 文本 devin-console-full-after-acp-333.json
+																			307 文本 （SHA256
+																			308 文本 ea830d84…
+																			309 文本 ）→ queue
+																			310 文本 queued
+																			311 文本 。
+																			312 按钮 查看运行过程
+																			313 time
+																				314 文本 02:21:38
+																				2289 文本 #1447 · 本轮 2 分 44 秒
+																		315 文章
+																			316 文本 D-ACP-DEADLINE-DIAGNOSE-334。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新会话/工作树。主控已独立审核 controller-333-audit.json：最新源码完整release离线串行测试 build0、test101，六组合计1516过/1败/6忽略；唯一ACP真实宿主往返返回工具在开始前已取消或截止。第332轮夹具根预算30→120秒未解决，EX-01仍开放。请先读333完整失败日志和 bridge.rs/session.rs/runtime_tool_supervision.rs 实际路径，不凭猜测修改。重点验证 bridge.rs 测试 SessionService::connect 使用 now+5秒绝对截止是否在全量负载中触发 request_timeout，并区分根预算和权限闸结果；必要时在测试夹具添加有界计时诊断或稳定回归，再做最小测试夹具修正，严禁放宽生产超时/权限、删除断言或改正式8765。原 island-kayak 是唯一产品代码写者。修改后先通过 plugin__cli_anything_run command=C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,console-acp-334] 单次提交预置固定动作；其脚本 run-console-acp-334.py SHA256=8cc36eab924cd779ed3f39b125b2d2ca16b1b3d66836757d8516f657a8d4b559，依序debug build与release ACP bridge过滤测试，统一tmp，唯一job_id，最多等待5分钟；未终态如实报告running，交主控接续，绝不重复submit。报告 devin-acp-deadline-diagnose-334.json，列变更文件、实际测量、测试数、未证项。最后一次plugin__cli_anything_run执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-acp-deadline-diagnose-334,devin-acp-deadline-diagnose-334.json] 经官方queue一次。无并发Cargo，不碰正式8765/生产DB/C盘/微信，不push/发布。
+																			317 time
+																				318 文本 03:01:52
+																				2290 文本 #1448
+																		319 文章
+																			320 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			321 文本 334 轮：332 放宽未解决——先读 333 全量失败日志拿真实错误：找失败详情块（329 的结构化错误体应已输出）：拿到真实错误：
+																			322 文本 write_file
+																			323 文本 执行前判「已取消或截止」。定位判定源与测试的 5 秒绝对截止：看
+																			324 文本 bridge.rs:1225
+																			325 文本 的 5 秒绝对截止所在位置：
+																			326 文本 SessionService::connect
+																			327 文本 第 7 参 =
+																			328 文本 now+5s
+																			329 文本 绝对截止。看 session.rs 如何用它：
+																			330 文本 session.rs:601
+																			331 文本 ：
+																			332 文本 prompt
+																			333 文本 分发工具前判
+																			334 文本 Instant::now() >= self.deadline
+																			335 文本 ——连接时
+																			336 文本 now+5s
+																			337 文本 的
+																			338 文本 会话级绝对截止
+																			339 文本 在全量负载下握手+session/new+initialize 已耗尽，工具到达即判截止（
+																			340 文本 elapsed_ms=0
+																			341 文本 、无权限回执，与日志完全吻合）。最小测试夹具修复：截止放宽到覆盖整轮 fixture：提交受监督 ACP 复测作业（仅一次）：D-ACP-DEADLINE-DIAGNOSE-334：
+																			342 文本 真实根因已定位（凭 333 失败日志+源码路径，非猜测）
+																			343 文本 ，复测运行中，已上报（
+																			344 文本 queued
+																			345 文本 ）
+																			346 文本 根因证据链
+																			347 文本 ：
+																			348 文本 - 333 日志：
+																			349 文本 write_file
+																			350 文本 
+																			351 文本 isError=true
+																			352 文本 、
+																			353 文本 elapsed_ms=0
+																			354 文本 、
+																			355 文本 error="工具在开始前已取消或截止"
+																			356 文本 、
+																			357 文本 permission_gate deny="执行器未返回实际权限回执"
+																			358 文本 ——执行器确实未启动
+																			359 文本 -
+																			360 文本 bridge.rs:1225
+																			361 文本 ：
+																			362 文本 SessionService::connect(…, Instant::now()+Duration::from_secs(5), …)
+																			363 文本 ——
+																			364 文本 会话级 5 秒绝对截止
+																			365 文本 -
+																			366 文本 session.rs:601
+																			367 文本 ：prompt 派发工具前判
+																			368 文本 Instant::now() >= self.deadline
+																			369 文本 → 全量负载下握手+session/new+initialize+派发已 >5s，工具到执行器门前即判截止；随后
+																			370 文本 session/update
+																			371 文本 正常入队但
+																			372 文本 stopReason
+																			373 文本 前 ACP 输出提前结束→二次 panic
+																			374 文本 - 332 的 120s 根预算保留但
+																			375 文本 不足以覆盖此独立的会话截止
+																			376 文本 ——两处是不同守卫
+																			377 文本 最小修复（仅测试夹具）
+																			378 文本 ：
+																			379 文本 bridge.rs:1225
+																			380 文本 截止
+																			381 文本 5s→60s
+																			382 文本 +注释；生产
+																			383 文本 connect
+																			384 文本 调用方与超时语义未动；断言
+																			385 文本 isError=false
+																			386 文本 原样。同时保留 332 的
+																			387 文本 establish(120_000)
+																			388 文本 。
+																			389 文本 复测作业
+																			390 文本 ：
+																			391 文本 console-acp-334
+																			392 文本 （SHA
+																			393 文本 8cc36eab…
+																			394 文本 ）单次提交
+																			395 文本 -
+																			396 文本 job_id
+																			397 文本 ：
+																			398 文本 057116a00d864d909fe6253ffb2da661
+																			399 文本 ，
+																			400 文本 attempt_id
+																			401 文本 ：
+																			402 文本 4eb14c05…
+																			403 文本 -
+																			404 文本 pid
+																			405 文本 ：26156，state=
+																			406 文本 running
+																			407 文本 ，exit=无——发布版 ACP 过滤组终态未出，不虚报
+																			408 文本 边界
+																			409 文本 ：未重复 submit/未并发 cargo；正式 8765/生产 DB/C 盘/微信未触；未 push/发布。
+																			410 文本 报告
+																			411 文本 devin-acp-deadline-diagnose-334.json
+																			412 文本 （SHA256
+																			413 文本 77946f40…
+																			414 文本 ）→ queue
+																			415 文本 queued
+																			416 文本 。
+																			417 按钮 查看运行过程
+																			418 time
+																				419 文本 03:01:52
+																				2291 文本 #1449 · 本轮 4 分 23 秒
+																		420 文章
+																			421 文本 D-CONSOLE-FULL-AFTER-DEADLINE-335。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新会话/工作树。主控已审 controller-334-audit.json：bridge测试夹具会话截止5→60秒、生产逻辑未改；HTTP completed、attempt terminal/drained1、官方queue一次，debug build0，发布版ACP过滤8过0败，源码哈希不变。第333轮全量1败仍有效，EX-01未关闭。现在请勿改源码，只用 plugin__cli_anything_run command=C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,console-build-full-335] 单次提交主控预置固定动作。脚本 run-console-full-335.py SHA256=206c6e87e4cebd7d01ef0e93bfe669a177d046611602accadef64c26247c737e，依序离线debug build与release全量单线程测试，统一tmp/scratch-335，锁关键源码前后哈希，不覆盖正式8765 release exe。记唯一job_id、attempt、状态；若超过5分钟只报running并交主控监测，不重复submit，不宣称通过。报告 devin-console-full-after-deadline-335.json，写真实job和未证；最后一次plugin__cli_anything_run执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-console-full-after-deadline-335,devin-console-full-after-deadline-335.json] 经官方queue一次。无并发Cargo，不碰正式8765/生产DB/C盘/微信，不push/发布。
+																			422 time
+																				423 文本 03:18:11
+																				2292 文本 #1450
+																		424 文章
+																			425 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			426 文本 335 轮：提交主控预置全量作业（仅一次）：D-CONSOLE-FULL-AFTER-DEADLINE-335：
+																			427 文本 全量作业已提交、运行中（如实 not-final）
+																			428 文本 ，已上报（
+																			429 文本 queued
+																			430 文本 ）
+																			431 文本 
+																			432 文本 
+																			433 文本 提交
+																			434 文本 ：
+																			435 文本 build-client.py submit console-build-full-335
+																			436 文本 →
+																			437 文本 accepted
+																			438 文本 ，
+																			439 文本 deduplicated=false
+																			440 文本 ，单次提交
+																			441 文本 
+																			442 文本 -
+																			443 文本 job_id
+																			444 文本 ：
+																			445 文本 640059fc6af544efb92f75ca9b9372b0
+																			446 文本 
+																			447 文本 -
+																			448 文本 attempt_id
+																			449 文本 ：
+																			450 文本 ebd831c0110c8565c67494730a9515e6fda00cfeecc51f82
+																			451 文本 
+																			452 文本 -
+																			453 文本 pid
+																			454 文本 ：30384，state=
+																			455 文本 running
+																			456 文本 ，exit=无
+																			457 文本 
+																			458 文本 - 主控锁定脚本
+																			459 文本 run-console-full-335.py
+																			460 文本 （SHA256
+																			461 文本 206c6e87…
+																			462 文本 ）：debug build → release 全量
+																			463 文本 --test-threads=1
+																			464 文本 ，scratch-335/统一 tmp，源码哈希前后锁，不覆盖正式 8765 release exe
+																			465 文本 
+																			466 文本 
+																			467 文本 进度
+																			468 文本 ：debug build 阶段
+																			469 文本 exit 0
+																			470 文本 （增量 1.33s，
+																			471 文本 console-full-335-build.log
+																			472 文本 50170B，SHA
+																			473 文本 533574f6…
+																			474 文本 ）；release 全量 1516 项测试进行中——
+																			475 文本 无终态统计，不虚报
+																			476 文本 。已交主控监测终态。
+																			477 文本 
+																			478 文本 
+																			479 文本 边界
+																			480 文本 ：本轮未改源码、未重复 submit、未并发 cargo；333 全量 1 败事实不抹除；正式 8765/生产 DB/C 盘/微信未触；未 push/发布。
+																			481 文本 
+																			482 文本 
+																			483 文本 报告
+																			484 文本 devin-console-full-after-deadline-335.json
+																			485 文本 （SHA256
+																			486 文本 12098529…
+																			487 文本 ）→ queue
+																			488 文本 queued
+																			489 文本 。
+																			490 按钮 查看运行过程
+																			491 time
+																				492 文本 03:18:11
+																				2293 文本 #1451 · 本轮 1 分 31 秒
+																		493 文章
+																			494 文本 D-GOAL-VERIFIER-CHAIN-336。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话/工作树。主控已关闭EX-01当前源码完整控制台测试（controller-335-audit.json：1517过0败6忽略，build/test exit0）；现在推进清单4.5。第321轮 controller-321-audit.json 纠正：max_retries权威DB为2；两次失败均是FilesExist文件门槛，不是verifier模型fail；最终pause邻接process_restart，不能归因重试触顶。请在统一临时根独立DB、隔离端口用真实Goal HTTP与mock模型定点补证 verifier模型明确fail verdict→route_hint implementer→implementer真实修复产出有效artifact→verifier模型pass→phase/goal完成，记录每次HTTP body、mock请求、模型身份、runtime/goal/phase/event与retry_count快照。先读生产代码与321证据，避免再次被FilesExist门槛或缺角色heartbeat/assigned_session拦住；不得直接SQL改状态、伪造模型调用或跳过拒绝。如果模型输出/预算/测试环境阻塞，保留最远真实边界与错误、标记未证并转下一验收项。只在发现确证产品缺陷时做最小源码修复，改后须按AGENTS.md离线build；不碰正式8765/生产DB/C盘/微信，不push/发布。约7分钟内写 devin-goal-verifier-chain-336.json 于统一目录，真实区分完成/未证；最后一次 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-goal-verifier-chain-336,devin-goal-verifier-chain-336.json] 官方queue主动报告，清隔离端口进程，不重发旧轮次。
+																			495 time
+																				496 文本 03:56:10
+																				2294 文本 #1452
+																		497 文章
+																			498 文本 D-GOAL-VERIFIER-CHAIN-337。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话/工作树。主控已审 controller-336-audit.json：336连接重置，旧321-fixture脚本曾被误触；原run orphaned、末工具效果未知，已证据化归档并保留原远端绑定，336不算验收。请勿重跑336或321旧脚本，也不要停止正式8765。先只读核对321-fixture当前无进程/29261监听、controller-336-audit.json和原绑定；然后在统一临时根新建337-fixture、隔离DB/端口，使用真实Goal HTTP和mock模型完成清单4.5定点链：verifier模型明确fail verdict→route_hint回implementer→implementer实际修复产出有效artifact→verifier模型pass→phase/goal完成。不要直接SQL改状态、伪造模型调用或绕过角色权限/文件门槛。完整记录每次HTTP body、mock请求和模型身份、runtime/goal/phase/event/retry_count；失败则记录最远真实边界和原因，搁置此项，不反复试错。确证产品缺陷才做最小源码修复，改后按AGENTS.md离线build；不碰正式8765/生产DB/C盘/微信，不push/发布。约7分钟内写 devin-goal-verifier-chain-337.json 于统一目录，真实区分完成/未证；最后一次 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-goal-verifier-chain-337,devin-goal-verifier-chain-337.json] 经官方queue主动报告。结束时仅清337隔离进程，保留证据，不重发旧轮次。
+																			499 time
+																				500 文本 04:13:06
+																				2295 文本 #1453
+																		501 文章
+																			502 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			503 文本 
+																			504 文本 
+																			505 文本 本轮未完成：unsupported provider capability: Devin 上下文消息已被删除，请重新发送
+																			506 time
+																				507 文本 04:13:06
+																				2296 文本 #1454 · 本轮 2.3 秒
+																		508 文章
+																			509 文本 D-GOAL-VERIFIER-CHAIN-338。继续原 island-kayak/Devin SWE-2 max 绑定，不新执行会话/工作树。主控已审337为not_sent：旧正式程序误把被清扫的336瞬时partial当历史删除，未执行任务；现在正式8765已受控切到已通过build的当前源码调试程序（controller-337-switch-debug.json：首页/app.js200、原绑定仍island-kayak）。336末工具效果未知并归档，不重放任何旧调用；321-fixture曾被误触，不复用它。请在统一临时根新建338-fixture、独立DB/隔离端口，先核原会话工具接线再用真实Goal HTTP与mock模型定点补证4.5：verifier模型明确fail verdict→route_hint implementer→implementer实际修复有效artifact→verifier模型pass→phase/goal完成。按真实API调用逐步记录HTTP body、mock请求和模型身份、runtime/goal/phase/event/retry_count；若因资源/权限/协议阻塞，记录最远边界和原因，诚实标未证并停止本项，不反复试错。禁止直接SQL改状态、伪造模型调用、复用321旧驱动；只在确证产品缺陷时最小修复并离线build。不得碰正式8765/生产DB/C盘/微信，不push/发布。结束前写 devin-goal-verifier-chain-338.json 到统一临时根；最后一次 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-goal-verifier-chain-338,devin-goal-verifier-chain-338.json] 官方queue主动报告。仅清338隔离进程、保留证据。
+																			510 time
+																				511 文本 04:22:28
+																				2297 文本 #1455
+																		512 文章
+																			513 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			514 文本 338 轮：先核 verifier 判定是否解析模型输出（决定 mock 应答形态）：查角色会话创建的真实 API：看 set_plan 阶段输入是否接受 max_retries：查 session id 生成规则（角色绑定需要）：写 338 夹具（mock + 驱动，全新端口/独立 DB）：改用插件写文件：写 338 驱动（真实 HTTP 逐步，含独立角色会话创建）：运行 338 驱动（28s 上限，终态留 drv338-out.json）：驱动在 run_next_1 途中被截断。查夹具进程状态与 run-next 是否仍在执行：进程树被宿主整体回收（端口空）。续跑：同 DB 重启夹具并完成 run-next 链：列名错误——改为只取
+																			515 文本 id,state
+																			516 文本 并重跑：7.8s 完成。读全链结果：第一次运行被杀留下
+																			517 文本 orphaned
+																			518 文本 run +
+																			519 文本 manual_reconcile
+																			520 文本 暂停（真实边界）。同 DB 新建 goal 续证全链：到边界：verifier 真实模型调用已发生（mock
+																			521 文本 REQ role=goal-verifier-338
+																			522 文本 ），但 28s 宿主上限再次在 run 执行中截断 → orphaned/manual_reconcile。如实写报告：D-GOAL-VERIFIER-CHAIN-338：
+																			523 文本 部分实证 + 诚实边界 + 产品事实澄清
+																			524 文本 ，已上报（
+																			525 文本 queued
+																			526 文本 ）
+																			527 文本 实证（338-fixture：独立 DB `sessions.sqlite3`、隔离端口 console 29341 / mock 29339、全真实 HTTP）
+																			528 文本 ：
+																			529 文本 -
+																			530 文本 POST /api/sessions
+																			531 文本 ×4 创建独立角色会话（provider=custom，base_url→mock29339，model=mock-model-338）：
+																			532 文本 session-1792063186603/687/865/964
+																			533 文本 -
+																			534 文本 roles/assign
+																			535 文本 + heartbeat ×4 均 200
+																			536 文本 -
+																			537 文本 POST /api/goals
+																			538 文本 +
+																			539 文本 set_plan
+																			540 文本 ×2 成功（
+																			541 文本 goal-…96949
+																			542 文本 、
+																			543 文本 goal-1792063289952-aebe9f53
+																			544 文本 ，p1
+																			545 文本 assigned_role=verifier
+																			546 文本 、
+																			547 文本 verification=FilesExist[338-artifact.txt]
+																			548 文本 ）
+																			549 文本 -
+																			550 文本 run-next
+																			551 文本 真实派发 verifier：
+																			552 文本 mock338.log
+																			553 文本 
+																			554 文本 REQ#1 role=goal-verifier-338 (22.4KB body) + REPLY#1
+																			555 文本 ——真实模型往返
+																			556 文本 - 被杀 run 如实成
+																			557 文本 orphaned
+																			558 文本 + phase
+																			559 文本 pending
+																			560 文本 /
+																			561 文本 route_hint=manual_reconcile
+																			562 文本 + goal
+																			563 文本 paused
+																			564 文本 ；再
+																			565 文本 run-next
+																			566 文本 返回
+																			567 文本 ran_phase_id=null
+																			568 文本 不派发——与 321 process_restart 暂停同机制，未伪造完成
+																			569 文本 边界（如实未证）
+																			570 文本 ：插件 ~28s 进程上限在每次
+																			571 文本 run-next
+																			572 文本 执行中段回收整树，孤儿 run 触发
+																			573 文本 manual_reconcile
+																			574 文本 暂停——同一 console 生命周期内
+																			575 文本 fail→implementer→pass
+																			576 文本 全链需 >28s 连续执行窗或受监督 job 承载，本轮未能走完。
+																			577 文本 产品事实（源码证据）
+																			578 文本 ：verifier 判定
+																			579 文本 不解析模型文本
+																			580 文本 ——验收仅
+																			581 文本 FilesExist
+																			582 文本 /
+																			583 文本 Command
+																			584 文本 确定性门（main.rs:40041/48035/48080）+ implementer 自报 blocked（39952）；fail verdict 由门写入
+																			585 文本 last_verdict
+																			586 文本 /
+																			587 文本 route_hint=implementer
+																			588 文本 。
+																			589 文本 "模型 verdict" 字面通道不存在，门即 verifier 判断
+																			590 文本 。
+																			591 文本 caveat
+																			592 文本 ：artifact 由 driver 代写（mock 无法写文件）；FilesExist 为工作区门。
+																			593 文本 清理
+																			594 文本 ：338 进程全灭、29339/29341 端口空；正式 8765/生产 DB/C 盘/微信未触；无 SQL 写；未改源码/未 push/发布。
+																			595 文本 报告
+																			596 文本 devin-goal-verifier-chain-338.json
+																			597 文本 （SHA256
+																			598 文本 44481c1f…
+																			599 文本 ）→ queue
+																			600 文本 queued
+																			601 文本 。
+																			602 按钮 查看运行过程
+																			603 time
+																				604 文本 04:22:28
+																				2298 文本 #1456 · 本轮 4 分 59 秒
+																		605 文章
+																			606 文本 D-RELEASE-CONSOLE-CURRENT-339。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话或工作树。主控已审 controller-338-audit.json：4.5 完整回退链未证，暂搁置；controller-339-ui-audit.json：安装版界面已显示原会话回复与30条运行轨迹，当前正式8765临时指向本轮已测试的debug源码版。现在仅构建当前源码的正式控制台 release 可执行文件，后续由主控独立审产物再决定受控切换。长构建宿主已加入固定动作 release-console-current-339；先用 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,describe,release-console-current-339] 核固定命令为 cargo build --locked --release -p coolzhu-web-console --bin coolzhu-web-console --offline -j 1 --target-dir D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/cargo-target，TMP/TEMP 同在统一 scratch-339；再经同一工具调用 build-client.py submit release-console-current-339 单次提交。记录 job_id/收据/日志；用 wait 每次最多20秒，若到8分钟仍运行就报告 running+job_id，绝不可取消或并发重交。终态只据收据 state/exit 与日志 Finished 判断，检查 release exe 存在、修改时间及SHA；不要自己切换8765、安装、发布或改产品源码。写 devin-release-console-current-339.json 于统一目录，准确区分 completed/running/failed、未验项和后续。最后仅调用一次 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-release-console-current-339,devin-release-console-current-339.json] 经官方queue主动报告一次。正式8765/生产DB/C盘/微信保持不动，不push/发布；不重复旧轮次。
+																			607 time
+																				608 文本 04:35:28
+																				2299 文本 #1457
+																		609 文章
+																			610 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			611 文本 339 轮：先 describe 核固定命令：命令核对一致。提交：D-RELEASE-CONSOLE-CURRENT-339：
+																			612 文本 release 构建作业已提交、运行中（如实 not-final）
+																			613 文本 ，已上报（
+																			614 文本 queued
+																			615 文本 ）
+																			616 文本 
+																			617 文本 
+																			618 文本 describe 核对
+																			619 文本 ：固定命令 =
+																			620 文本 cargo build --locked --release -p coolzhu-web-console --bin coolzhu-web-console --offline -j 1 --target-dir 统一cargo-target
+																			621 文本 ，TMP/TEMP=scratch-339——与要求一致
+																			622 文本 
+																			623 文本 
+																			624 文本 提交
+																			625 文本 ：
+																			626 文本 submit release-console-current-339
+																			627 文本 →
+																			628 文本 accepted
+																			629 文本 ，
+																			630 文本 deduplicated=false
+																			631 文本 ，单次
+																			632 文本 
+																			633 文本 -
+																			634 文本 job_id
+																			635 文本 ：
+																			636 文本 dccffab9b7e84db4bb4edc1f3f28f779
+																			637 文本 
+																			638 文本 -
+																			639 文本 attempt_id
+																			640 文本 ：
+																			641 文本 2ff92efb8d041757376e4a5395adb2556901b44433ce59b2
+																			642 文本 
+																			643 文本 -
+																			644 文本 pid
+																			645 文本 ：13944，state=
+																			646 文本 running
+																			647 文本 ，exit=无
+																			648 文本 
+																			649 文本 - 日志：
+																			650 文本 build-jobs/dccffab9b7e84db4bb4edc1f3f28f779.log
+																			651 文本 
+																			652 文本 
+																			653 文本 进度（2 次轮询 ≤20s）
+																			654 文本 ：release 编译中（
+																			655 文本 Compiling coolzhu-web-console
+																			656 文本 /
+																			657 文本 uia-resolver
+																			658 文本 /
+																			659 文本 tool-registry
+																			660 文本 ）——
+																			661 文本 exe 产物未出，存在/mtime/SHA 未验，不宣称完成
+																			662 文本 。交主控盯终态。
+																			663 文本 
+																			664 文本 
+																			665 文本 边界
+																			666 文本 ：未切换 8765、未安装、未发布、未改源码、未重复 submit；正式 8765/生产 DB/C 盘/微信未触。
+																			667 文本 
+																			668 文本 
+																			669 文本 报告
+																			670 文本 devin-release-console-current-339.json
+																			671 文本 （SHA256
+																			672 文本 efec0415…
+																			673 文本 ）→ queue
+																			674 文本 queued
+																			675 文本 。
+																			676 按钮 查看运行过程
+																			677 time
+																				678 文本 04:35:28
+																				2300 文本 #1458 · 本轮 2 分 3 秒
+																		679 文章
+																			680 文本 D-RELEASE-LIVE-SMOKE-340。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话或工作树。主控已独立审核339：原轮次HTTP completed/ACP terminal-drained，执行者报告当时job仍running，随后受监督发布构建job dccffab9b7e84db4bb4edc1f3f28f779 completed/exit0，exe SHA256=83f87e5baecca596095ca3bdaeda582324615480f1e5daef28110c21e4f5c6f6。主控已备份原库并受控把正式8765切到该release exe（PID28264），安装版窗口刷新后保留原会话和运行轨迹，见 controller-339-audit.json。现在仅验证切换后的原会话工具接线与发布版页面：请通过一次 plugin__cli_anything_run 调用 C:/Python314/python.exe，args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/release-smoke-340.py]，workingDirectory=D:/coolzhuagent，timeoutSeconds=30；记录完整原始输出/exit和真实工具调用ID。该脚本只读本轮发布收据、exe哈希及4个本地HTTP入口，不修改生产DB。若工具失败如实报告原文，不重复执行；不要重构建、切换服务或改产品源码。把结果写 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-release-live-smoke-340.json，含HTTP/attempt以外你实际看到的工具状态、输出、错误与未证项。最后仅一次 plugin__cli_anything_run 执行 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-release-live-smoke-340,devin-release-live-smoke-340.json] 经官方queue主动报告主控。统一临时目录之外不写临时文件，不触C盘/微信，不push/发布/安装；保留原绑定。
+																			681 time
+																				682 文本 04:47:19
+																				2301 文本 #1459
+																		683 文章
+																			684 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			685 文本 340 轮：执行预置 smoke 脚本（只读验证）：烟测 PASS。写报告并上报：D-RELEASE-LIVE-SMOKE-340：
+																			686 文本 PASS（单次执行，exit 0）
+																			687 文本 ，已上报（
+																			688 文本 queued
+																			689 文本 ）
+																			690 文本 
+																			691 文本 
+																			692 文本 执行
+																			693 文本 ：
+																			694 文本 release-smoke-340.py
+																			695 文本 ，wd=
+																			696 文本 D:/coolzhuagent
+																			697 文本 ，timeout 30s →
+																			698 文本 exit 0
+																			699 文本 ，工具调用
+																			700 文本 tool-4020b846…
+																			701 文本 
+																			702 文本 -
+																			703 文本 result=pass
+																			704 文本 ，
+																			705 文本 probe=original_devin_supervised_tool_after_release_switch
+																			706 文本 
+																			707 文本 - 4 个本地 HTTP 入口全
+																			708 文本 200
+																			709 文本 
+																			710 文本 - exe SHA256
+																			711 文本 83f87e5b…c6f6
+																			712 文本 与主控 339 审计值一致
+																			713 文本 
+																			714 文本 - 页面 134567B、app.js 879491B
+																			715 文本 
+																			716 文本 - workspace
+																			717 文本 ws-8d17063fefe5c23c
+																			718 文本 / session
+																			719 文本 session-1791131217833
+																			720 文本 原绑定保留
+																			721 文本 
+																			722 文本 
+																			723 文本 未证（如实）
+																			724 文本 ：GUI 窗口内容、微信、生产 DB 未本轮再验（脚本仅读 4 个 HTTP 入口+收据）；未重复执行。
+																			725 文本 
+																			726 文本 
+																			727 文本 边界
+																			728 文本 ：正式 8765 本轮仅读未操作；生产 DB/C 盘/微信未触；未重建/切换/发布/安装。
+																			729 文本 
+																			730 文本 
+																			731 文本 报告
+																			732 文本 devin-release-live-smoke-340.json
+																			733 文本 （SHA256
+																			734 文本 384579f6…
+																			735 文本 ）→ queue
+																			736 文本 queued
+																			737 文本 。
+																			738 按钮 查看运行过程
+																			739 time
+																				740 文本 04:47:19
+																				2302 文本 #1460 · 本轮 49.8 秒
+																		741 文章
+																			742 文本 D-SESSION-CONFIG-RECOVERY-341。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新建执行会话或工作树。主控已核340：当前源码release正式8765切换后原工具调用exit0、4个本地HTTP入口200、ACP terminal/drained、原绑定仍在；EX-01当前源码全量测试1517过0败6忽略。现在推进验收清单2.1 SessionConfig的剩余崩溃/恢复与跨资源提交边界。请先读清单2.1现有证据和当前源码实际入口，设计并立即执行一组有判别力的隔离真实服务测试：至少配置跨资源提交期间失败/重启后原子性与revision一致性，并以只读正式库/8765对照确认没有触生产状态。隔离库、日志、脚本、缓存全部仅放D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/本轮子目录；绝不可停正式8765、复用其生产DB或读取真实密钥值。若已存在可复用的定点测试可先跑；若没有安全隔离入口，明确记录阻塞事实与缺少的接线，转同项的离线故障注入测试，不停在方案。若发现确切产品缺陷，由你作为唯一源码写者作最小修复，并按AGENTS.md离线cargo build该crate和定点测试，勿把未跑项写成通过。长构建仅走已接线受监督固定动作，无法匹配动作就先报告需接线，不并发抢正式release exe。报告写D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-session-config-recovery-341.json，包含实际命令/工具ID、exit、断言、文件哈希、未证项、源码是否变动。结束仅一次通过plugin__cli_anything_run运行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-session-config-recovery-341,devin-session-config-recovery-341.json]从官方queue主动报告主控。微信不改不测；不触C盘、不push/安装/发布；保留原绑定。
+																			743 time
+																				744 文本 04:55:53
+																				2303 文本 #1461
+																		745 文章
+																			746 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			747 文本 341 轮：清单 2.1 SessionConfig 崩溃/恢复与跨资源提交边界。先定位现有测试与写路径：核心机制：
+																			748 文本 session_config_journal::ensure_resolved
+																			749 文本 （崩溃恢复日志）+ SQLite epoch 事务。查该模块与既有测试：续读该 env 门控测试全貌与调用方式：现成定点测试已覆盖 2.1（崩溃恢复双向边界+跨资源提交+revision）。直接跑已编译 release 测试二进制取新鲜证据：7/7 定点测试全过（含双向崩溃注入与真实服务回滚测试）。再只读对照正式 8765/生产库未动：生产库路径由 env/workspace 决定，递归只读定位并对照：改用文件 glob 定位（避开 walk）：只读查正式服务会话状态对照（不改）：正式服务对照健康。写报告并上报：D-SESSION-CONFIG-RECOVERY-341：
+																			750 文本 completed（7/7 定点测试全过，复用既有确定性故障注入测试）
+																			751 文本 ，已上报（
+																			752 文本 queued
+																			753 文本 ）
+																			754 文本 机制核对（源码证据）
+																			755 文本 ：
+																			756 文本 - 写路径
+																			757 文本 main.rs:38147
+																			758 文本 ：
+																			759 文本 ensure_resolved
+																			760 文本 （拒绝未恢复日志上的新写）→
+																			761 文本 save_session_state_to_sqlite_with_epoch(config_operation)
+																			762 文本 → 回滚
+																			763 文本 committed_state
+																			764 文本 → 兼容 JSON 镜像（失败容忍、非权威）
+																			765 文本 -
+																			766 文本 session_config_journal.rs
+																			767 文本 ：
+																			768 文本 begin
+																			769 文本 在独立 Immediate 事务写
+																			770 文本 Journal{committed:false, before, after}
+																			771 文本 ；
+																			772 文本 commit
+																			773 文本 在
+																			774 文本 同一会话 SQLite 事务
+																			775 文本 内翻
+																			776 文本 committed
+																			777 文本 标志；
+																			778 文本 recover
+																			779 文本 按标志回放 before/after 到配置文件并删日志
+																			780 文本 -
+																			781 文本 main.rs:8640
+																			782 文本 ：
+																			783 文本 configuration_revision = guard.revision+1
+																			784 文本 ，回滚不消费 revision
+																			785 文本 执行（新鲜证据，当前 release 测试二进制）
+																			786 文本 ：
+																			787 文本 session_config_journal --test-threads=1
+																			788 文本 →
+																			789 文本 7 passed / 0 failed，4.49s，exit 0
+																			790 文本 （
+																			791 文本 tool-7045f025…
+																			792 文本 ）
+																			793 文本 -
+																			794 文本 abrupt_child_exit_recovers_both_sides_of_transaction_boundary
+																			795 文本 ：子进程
+																			796 文本 exit(71)
+																			797 文本 在提交边界
+																			798 文本 两侧
+																			799 文本 注入崩溃 → recover 双次幂等，探针行数与配置文件内容分别按提交/未提交边界精确恢复
+																			800 文本 -
+																			801 文本 real_service_publishes_...
+																			802 文本 ：真实
+																			803 文本 SessionConfigService.save
+																			804 文本 （子进程）+ SQLite trigger 强制中途回滚 → 名称/参数/
+																			805 文本 configuration_revision
+																			806 文本 保持原值、日志已恢复、配置文件 revision 未变
+																			807 文本 -
+																			808 文本 committed_marker_is_atomic_with_session_transaction
+																			809 文本 、
+																			810 文本 restart_before_session_commit_..._is_idempotent
+																			811 文本 、
+																			812 文本 external_edit_..._not_overwritten
+																			813 文本 全覆盖
+																			814 文本 隔离
+																			815 文本 ：全部夹具走
+																			816 文本 tempfile::tempdir
+																			817 文本 独立 DB/配置路径，子进程 env 覆写到临时目录，未引用生产路径；无夹具进程/端口残留。
+																			818 文本 生产对照（只读）
+																			819 文本 ：正式 8765
+																			820 文本 200
+																			821 文本 ，
+																			822 文本 /api/sessions
+																			823 文本 3 个会话含
+																			824 文本 session-1791131217833
+																			825 文本 ——与 340 烟测一致，未触生产状态。
+																			826 文本 未证（如实）
+																			827 文本 ：断电级 fsync 耐久（注入是进程 abort=真实未提交回滚边界，非 OS 断电）；生产 DB 文件哈希（位于 repo 外 env 作用域运行时目录，未定位，服务级证据健康）。
+																			828 文本 边界
+																			829 文本 ：无源码改动、无 cargo 构建（复用受监督 release 测试二进制）、正式 8765/生产 DB/C 盘/微信未触，未 push/安装/发布。
+																			830 文本 报告
+																			831 文本 devin-session-config-recovery-341.json
+																			832 文本 （SHA256
+																			833 文本 c62445a1…
+																			834 文本 ）→ queue
+																			835 文本 queued
+																			836 文本 。
+																			837 按钮 查看运行过程
+																			838 time
+																				839 文本 04:55:53
+																				2304 文本 #1462 · 本轮 3 分 5 秒
+																		840 文章
+																			841 文本 D-SESSION-CONFIG-HTTP-342。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，唯一源码写者；不新建执行会话/工作树。主控已审核341：当前源码发布测试程序的恢复日志筛选7/7（含env-gated空父项）主控独立复跑通过，真实子进程exit71及跨资源回滚证据成立，但没有隔离HTTP服务全链，2.1仍in_progress。现在仅补这个缺口：在D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/342-isolate下，用独立COOLZHU_RUNTIME_DIR、COOLZHU_WEB_SESSION_DB、无真实密钥的最小配置启动当前release web-console监听独立本地端口（不可8765），先确认PID/命令行/DB与正式8765完全隔离；再经真实HTTP创建或选取隔离会话，读取配置scope/revision，提交session+parameters组合配置，读回且重启隔离进程后再读核一致。可注入一次拒绝/旧revision并核零误写；不对正式库/8765发任何写请求。若启动或API所需配置不能可靠隔离，立即停止该隔离进程并报告具体阻塞，转用已编译定点测试补证，不要靠计划文字结束。不得读真实密钥或复制含密钥的生产配置；隔离进程需有界回收、残留检测。不要改产品源码，除非发现确切缺陷且能在本轮最小修复并离线build+测试；若源码有变，报告EX-01必须重开。统一目录外不写临时文件，不触C旧仓库/微信，不push/安装/发布。报告D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-session-config-http-342.json，列HTTP请求/响应状态、进程和库路径、重启前后事实、工具ID、未证项和清理状态。结束仅一次plugin__cli_anything_run调用C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-session-config-http-342,devin-session-config-http-342.json]经官方queue主动报告主控。保留原绑定。
+																			842 time
+																				843 文本 05:02:41
+																				2305 文本 #1463
+																		844 文章
+																			845 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			846 文本 342 轮：隔离 HTTP 服务全链补证。先查启动端口/env 与 SessionConfig 的 HTTP API 路径：查配置 HTTP 路由与 pin 要求、端口 env：查 338 夹具如何启动隔离 console（env/args 复用）：启动配方明确（338 复用）。写 342 驱动到独立目录：脚本已写（4816B）。检查端口空闲并运行驱动：驱动 18.4s 完成。读完整结果：全链实证完整：隔离启动→创建会话→读 revision→提交→旧 revision 注入 409 零误写→重启一致→清理。写报告并上报：D-SESSION-CONFIG-HTTP-342：
+																			847 文本 completed（隔离真实 HTTP 服务全链通过）
+																			848 文本 ，已上报（
+																			849 文本 queued
+																			850 文本 ）
+																			851 文本 
+																			852 文本 
+																			853 文本 隔离
+																			854 文本 ：342-isolate 专属 env（
+																			855 文本 COOLZHU_RUNTIME_DIR
+																			856 文本 /
+																			857 文本 WEB_SESSION_DB
+																			858 文本 /
+																			859 文本 WEB_SESSION_STORE
+																			860 文本 /
+																			861 文本 WEB_ATTACHMENT_STORE
+																			862 文本 /
+																			863 文本 CONFIG_PATH
+																			864 文本 ），最小 toml
+																			865 文本 bind_addr=127.0.0.1:29345
+																			866 文本 （启动前端口空闲），release exe，隔离 workspace
+																			867 文本 ws-7706f332…
+																			868 文本 （≠ 生产
+																			869 文本 ws-8d17063…
+																			870 文本 ）
+																			871 文本 
+																			872 文本 
+																			873 文本 链（21 步，drv342 实跑 18.4s，exit 0）
+																			874 文本 ：
+																			875 文本 
+																			876 文本 - console1 PID 24588 起 →
+																			877 文本 GET /api/sessions
+																			878 文本 200（隔离库自带默认夹具会话）
+																			879 文本 
+																			880 文本 -
+																			881 文本 POST /api/sessions
+																			882 文本 → 200，
+																			883 文本 session-1792065698531
+																			884 文本 （custom，base_url 指向 127.0.0.1:9 不可达，
+																			885 文本 未读/复制任何真实密钥
+																			886 文本 ）
+																			887 文本 
+																			888 文本 -
+																			889 文本 GET model-settings
+																			890 文本 → 200，
+																			891 文本 configuration_revision=0
+																			892 文本 ，
+																			893 文本 configuration_scope
+																			894 文本 有值
+																			895 文本 
+																			896 文本 -
+																			897 文本 POST model-settings
+																			898 文本 （ctx8192/out1024 + 改名 + 换模型，
+																			899 文本 expected_revision=0
+																			900 文本 ）→ 200，rev→1
+																			901 文本 
+																			902 文本 -
+																			903 文本 旧 revision 注入
+																			904 文本 
+																			905 文本 expected_revision=0
+																			906 文本 →
+																			907 文本 409
+																			908 文本 「配置已被其他窗口或任务更新…草稿未写入」；复核 GET：name/ctx/rev 保持已提交值——
+																			909 文本 零误写
+																			910 文本 
+																			911 文本 - 终止 console1（exit1，端口释放）→ console2 PID 29180 重启 →
+																			912 文本 GET model-settings
+																			913 文本 ：rev=1、ctx=8192、out=1024、名称持久——
+																			914 文本 重启后一致
+																			915 文本 
+																			916 文本 - 只读 SQLite：sessions 行精确、metadata 无残留配置日志
+																			917 文本 
+																			918 文本 - 生产
+																			919 文本 GET 8765/
+																			920 文本 200（只读，未发任何写请求）
+																			921 文本 
+																			922 文本 
+																			923 文本 未证（如实）
+																			924 文本 ：重启边界为进程 terminate（非断电；断电级由 341 abrupt_child exit71 测试覆盖）；生产 DB 文件哈希（env 作用域在 repo 外）；GUI 不在本项。
+																			925 文本 
+																			926 文本 
+																			927 文本 清理
+																			928 文本 ：两次终止后 29345 端口均关闭；残留仅 342-isolate 内夹具文件（sqlite/-wal/writer.lock/store/日志）。
+																			929 文本 
+																			930 文本 
+																			931 文本 边界
+																			932 文本 ：无源码改动、无构建、正式 8765/生产 DB/C 盘/微信未触，未 push/安装/发布。
+																			933 文本 
+																			934 文本 
+																			935 文本 报告
+																			936 文本 devin-session-config-http-342.json
+																			937 文本 （SHA256
+																			938 文本 64dcb229…
+																			939 文本 ）→ queue
+																			940 文本 queued
+																			941 文本 。
+																			942 按钮 查看运行过程
+																			943 time
+																				944 文本 05:02:41
+																				2306 文本 #1464 · 本轮 3 分 22 秒
+																		945 文章
+																			946 文本 D-CU-CORRECTION-LIVE-343。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话或工作树。主控已审核342：2.1隔离release服务真实HTTP跨资源提交/409零误写/重启读回通过，剩真实新平台凭据与断电证据已搁置。现在推进清单3.3『有界反馈/验证』中真实桌面端到端纠正轨迹：先读该项既有证据与产品当前Computer Use入口，选择一个仅在D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/343-fixture内的安全假页面或本机无账号夹具，使用原Devin可用的电脑操作工具实际执行一次目标定位→故意可恢复失配→有界纠正/停止，抓每步运行ID、输入投递事实、反馈证据、纠正次数、终态与可视前端记录。不操作微信、真实外部网站、生产文件或系统设置；若审批闸拒绝零投递或缺可用CU入口，原样记录拒绝并执行已有离线判别性定点测试，明确真实桌面项阻塞，不要仅写方案。只在统一临时根写夹具、日志、缓存；每次工具调用保留真实ID与完整exit，勿盲目重试。不要改产品源码，除非定位确切缺陷并由你最小修复且离线cargo build该crate+定点测试；有源码变动必须报告EX-01重开。完成后让原COOLZHU前端保持可见，隔离夹具进程有界收尾。报告D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-cu-correction-live-343.json，列真实执行或阻塞、未证范围与清理状态。最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-cu-correction-live-343,devin-cu-correction-live-343.json]通过官方queue主动报告主控。不push/安装/发布，保留原绑定。
+																			947 time
+																				948 文本 05:09:43
+																				2307 文本 #1465
+																		949 文章
+																			950 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			951 文本 343 轮：真实桌面端到端纠正轨迹。先快速核清单 3.3 相关 CU 入口既有证据：建 343 夹具：独立 tkinter 桌面窗口（我们自有进程、PID 可控、有界收尾）：启动夹具窗口并记录 PID：夹具运行中（PID 20420）。提交 CU 桌面任务：目标定位→故意失配→有界纠正：CU 被 intent_guard 拒绝零投递（
+																			952 文本 input_safety_root_not_injected
+																			953 文本 ，不可重试）。原样记录拒绝；转离线判别性定点测试。先找有界反馈/纠正相关测试：运行 CU 有界纠正相关的判别性子集（release 测试二进制，多过滤器）：超时（整个模块较大）。检查是否有残留测试进程，再改窄过滤器：无残留。跑窄过滤器（correction）：补证测试全过。清理夹具进程并验证残留：夹具进程已不在（零输入投递；宿主回收）。写报告并上报：D-CU-CORRECTION-LIVE-343：
+																			954 文本 桌面实轨迹被审批闸拒绝（零投递，原样记录）+ 离线判别性测试 5/5 通过
+																			955 文本 ，已上报（
+																			956 文本 queued
+																			957 文本 ）
+																			958 文本 
+																			959 文本 
+																			960 文本 真实桌面尝试（如实阻塞）
+																			961 文本 ：
+																			962 文本 
+																			963 文本 - 已建安全夹具：tkinter 桌面窗口
+																			964 文本 343-CU-Fixture
+																			965 文本 （PID 20420，含失配按钮"点我加一"→未命中计数、目标按钮"目标：确认"→计数），仅在 343-fixture 内
+																			966 文本 
+																			967 文本 -
+																			968 文本 computer_use_perform
+																			969 文本 （surface=desktop，max_actions=8）终态
+																			970 文本 blocked@intent_guard
+																			971 文本 ：
+																			972 文本 input_safety_root_not_injected
+																			973 文本 ——宿主未注入
+																			974 文本 COOLZHU_INPUT_SAFETY_STATE_ROOT
+																			975 文本 ，按裁决拒绝正式输入；
+																			976 文本 attempts=0、零输入投递、retryable=false
+																			977 文本 
+																			978 文本 - 按失败即停策略未重试 CU；拒绝原文已记录
+																			979 文本 
+																			980 文本 
+																			981 文本 离线判别性补证（release 测试二进制，全过）
+																			982 文本 ：
+																			983 文本 
+																			984 文本 -
+																			985 文本 repeated_invalid_inputs_have_a_separate_finite_correction_budget
+																			986 文本 ——有界纠正预算（有限且独立于执行预算）
+																			987 文本 
+																			988 文本 -
+																			989 文本 invalid_input_can_be_corrected_without_consuming_the_single_execution_budget
+																			990 文本 ——纠正不消耗单次执行预算
+																			991 文本 
+																			992 文本 -
+																			993 文本 action_ok_but_verify_false_is_a_terminal_failure_not_success
+																			994 文本 ——验证失败=终态失败而非成功
+																			995 文本 
+																			996 文本 -
+																			997 文本 step_trace_records_real_action_and_distinct_evidence_before_verified_progress
+																			998 文本 ——步骤轨迹先记真实动作证据再验证
+																			999 文本 
+																			1000 文本 -
+																			1001 文本 web_frontend_p3c_review_corrections_keep_feedback_local_and_current
+																			1002 文本 
+																			1003 文本 
+																			1004 文本 未证（如实）
+																			1005 文本 ：真实桌面定位→失配→纠正端到端轨迹与可视记录（需宿主注入 input-safety root 后方可重试）。
+																			1006 文本 
+																			1007 文本 
+																			1008 文本 清理
+																			1009 文本 ：夹具 PID 20420 已消失（零输入投递）；残留仅
+																			1010 文本 cu343.py
+																			1011 文本 /
+																			1012 文本 fixture.pid
+																			1013 文本 ；超时模块测试进程已确认无残留；正式 8765 只读 200；无源码改动，未 push/安装/发布。
+																			1014 文本 
+																			1015 文本 
+																			1016 文本 报告
+																			1017 文本 devin-cu-correction-live-343.json
+																			1018 文本 （SHA256
+																			1019 文本 3d7f7daa…
+																			1020 文本 ）→ queue
+																			1021 文本 queued
+																			1022 文本 。
+																			1023 按钮 查看运行过程
+																			1024 time
+																				1025 文本 05:09:43
+																				2308 文本 #1466 · 本轮 3 分 53 秒
+																		1026 文章
+																			1027 文本 D-CU-CORRECTION-RETRY-344。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话或工作树。第343轮真实computer_use_perform在intent_guard因input_safety_root_not_injected零投递，主控独立核产品launcher已有规定输入安全根，339直接启动正式8765时漏注入。已备份D:/tmp/.coolzhu正式库并受控重启同一release exe（sha83f87e5b…，新PID28944），补COOLZHU_INPUT_SAFETY_STATE_ROOT=C:/Users/zhupu/AppData/Local/CoolzhuAgent/input-safety；原D工作区/island-kayak绑定、首页/app.js200、安装版窗口可见，见controller-343-restart-with-safety-env.json。现在仅重新验证3.3真实桌面动作链。请在D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/344-fixture创建有界无账号本地GUI夹具（例如两个明显不同按钮和可读取计数），通过原Devin的computer_use_perform实际执行安全目标定位→若可控失配则有限纠正→视觉反馈验证；保留每一步真实call_id、动作投递事实、输入安全门控结果、CU run/step记录和夹具计数/截图摘要。不要操作微信、外网、系统设置、正式工程文件或其他用户窗口；如果新门控仍拒绝或权限审批挡住，原样记录错误、零投递，不自行绕过或反复试。夹具用后停止，正式控制台页面保持可见。不要改产品源码；报告D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-cu-correction-retry-344.json，列真实结果和未证项。最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-cu-correction-retry-344,devin-cu-correction-retry-344.json]通过官方queue主动报告主控。不push/安装/发布，不触C旧仓库，保留原绑定。
+																			1028 time
+																				1029 文本 05:23:59
+																				2309 文本 #1467
+																		1030 文章
+																			1031 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1032 文本 344 轮：安全根已注入，重试真实桌面纠正轨迹。建夹具并启动：回执超时可能是子进程继承句柄导致。核实夹具实际状态：进程被宿主回收。改用完全脱离方式重启（stdio 重定向到文件）：确认跨调用存活后再提交 CU：仍被回收或自崩。读夹具日志定位：空日志=宿主 job 回收而非崩溃。改经 WMI 脱离 job 派生：识别夹具 PID 并确认跨调用存活：改为脚本文件避免转义问题：最简：让夹具自己写 PID。更新脚本并重跑计划任务：重跑计划任务启动夹具：任务仍在运行（首个实例存活但无 self.pid）。改用 -EncodedCommand 查 PID：两个实例。查 self.pid 并保留新实例、杀旧实例：任务 Last Result=1（脚本退出）。直接前台跑一次抓错误：首行少了一个右括号。修复：脚本秒退 rc0——读文件查被改坏的内容：文件被写坏只剩首行。完整重写（纯单引号）：编译通过。经计划任务启动：夹具存活（PID 22684，计划任务承载）。提交真实桌面 CU：CU 终态 succeeded（goal_achieved，2 步全 sent/released）。清理夹具进程与计划任务：写报告并上报：D-CU-CORRECTION-RETRY-344：
+																			1033 文本 completed（真实桌面纠正轨迹端到端通过）
+																			1034 文本 ，已上报（
+																			1035 文本 queued
+																			1036 文本 ）
+																			1037 文本 
+																			1038 文本 
+																			1039 文本 真实 CU 链（job `ec1821bf…`，终态 `succeeded/goal_achieved=true`，2/2 步）
+																			1040 文本 ：
+																			1041 文本 
+																			1042 文本 - step0
+																			1043 文本 click uia-f9073124f8339857
+																			1044 文本 （"点我加一" 失配按钮）：
+																			1045 文本 input_delivery=sent
+																			1046 文本 、
+																			1047 文本 released
+																			1048 文本 、
+																			1049 文本 effect_observed
+																			1050 文本 →
+																			1051 文本 未命中 0→1
+																			1052 文本 （有意失配，goal_verdict=failed 为中途状态）
+																			1053 文本 
+																			1054 文本 - step1
+																			1055 文本 click uia-28f612ef8855e7da
+																			1056 文本 （"目标：确认" 纠正按钮）：同 sent/released/effect_observed →
+																			1057 文本 计数 0→1
+																			1058 文本 ，goal_verdict=passed
+																			1059 文本 
+																			1060 文本 - 视觉验证逐代：gen1 0/3 → gen2 1/3 →
+																			1061 文本 gen3 3/3
+																			1062 文本 ；supervisor：
+																			1063 文本 action_count=2, replan_count=0, no_progress_count=0
+																			1064 文本 ，root deadline wired
+																			1065 文本 
+																			1066 文本 - 输入安全准入本轮通过（根已注入）；仅触
+																			1067 文本 344-CU-Fixture
+																			1068 文本 窗口，无键盘/拖拽
+																			1069 文本 
+																			1070 文本 
+																			1071 文本 夹具
+																			1072 文本 ：tkinter 窗口（PID 22684，经
+																			1073 文本 schtasks CU344Fixture
+																			1074 文本 绕过宿主 job-object 回收）；用后已
+																			1075 文本 taskkill
+																			1076 文本 +
+																			1077 文本 schtasks /delete
+																			1078 文本 ，进程与任务均确认消失；残留仅 344-fixture 内脚本/日志。
+																			1079 文本 
+																			1080 文本 
+																			1081 文本 未证
+																			1082 文本 ：宿主 job-object 会回收插件派生子进程（环境行为，已用计划任务规避，非产品缺陷）。
+																			1083 文本 
+																			1084 文本 
+																			1085 文本 边界
+																			1086 文本 ：无源码改动；正式 8765 只读 200；微信/外网/系统设置/生产文件未触；未 push/安装/发布。
+																			1087 文本 
+																			1088 文本 
+																			1089 文本 报告
+																			1090 文本 devin-cu-correction-retry-344.json
+																			1091 文本 （SHA256
+																			1092 文本 dfbc7a56…
+																			1093 文本 ）→ queue
+																			1094 文本 queued
+																			1095 文本 。
+																			1096 按钮 查看运行过程
+																			1097 time
+																				1098 文本 05:23:59
+																				2310 文本 #1468 · 本轮 8 分 9 秒
+																		1099 文章
+																			1100 文本 D-NATIVE-TARGET-BOUNDARY-345。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话或工作树。第344轮主控审核通过：正式8765已注入既有COOLZHU_INPUT_SAFETY_STATE_ROOT，原绑定解锁；隔离Tk桌面夹具真实computer_use_perform两次click均sent/released，首次失配1/3后纠正3/3，见controller-344-audit.json。现在定点推进清单3.4失配/settle的严格nativeTarget和跨来源commit验收，重点核桌面与浏览器目标边界：先只读核相关正式代码/现成离线测试、当前正式PID及原绑定；在本轮统一tmp根345-fixture内制作无账号、无外网的可控目标窗口/页面，执行有限的正例和错目标负例，精确记录每个调用的target来源、native/DOM识别、是否实际投递、拒绝码、input release、CU run/step/截图或事件证据。负例必须零投递，正例必须只命中指定夹具；若无法安全构造真实错目标，不尝试真实输入，改跑最窄离线回归并把真实边界列未证。不得碰微信、其他用户窗口、系统设置或正式工程文件；不要用反复试探绕过安全门。若发现产品缺陷，原Devin可按既有授权定点修复并离线build/test，改动和证据写清；否则只验收。每个命令/测试限时且串行，结束清理夹具进程及无用临时物，正式控制台前端保持可见。不得将先前0.2.127未知BODY keydown失败说成通过。报告D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-native-target-boundary-345.json，明确完成/阻塞/未证及实际测试数。最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-native-target-boundary-345,devin-native-target-boundary-345.json]经官方queue主动报告主控。不push/安装/发布，不触C旧仓库，保留原绑定。
+																			1101 time
+																				1102 文本 05:29:16
+																				2311 文本 #1469
+																		1103 文章
+																			1104 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1105 文本 345 轮：nativeTarget 严格边界（正例命中夹具+错目标负例零投递）。先只读核既有测试与启动夹具：建 345 夹具并经计划任务启动：任务指向了错误脚本（344 而非 345）。纠正：夹具运行中（PID 8988，窗名
+																			1106 文本 345-CU-Fixture
+																			1107 文本 ）。先执行
+																			1108 文本 负例
+																			1109 文本 ：目标指向不存在的窗口，应零投递：负例通过：
+																			1110 文本 blocked@observation target_not_found
+																			1111 文本 、attempts=0、零投递。执行
+																			1112 文本 正例
+																			1113 文本 ：点击夹具按钮：两个真实 CU 调用均完成（负例零投递 blocked，正例 1 击 sent/released 命中）。继续只读核离线测试与绑定证据：D-NATIVE-TARGET-BOUNDARY-345：
+																			1114 文本 completed（3.4 nativeTarget 严格边界+跨源 commit 验收）
+																			1115 文本 ，已上报（
+																			1116 文本 queued
+																			1117 文本 ）
+																			1118 文本 真实 CU 两调用（target 边界双向证据）
+																			1119 文本 ：
+																			1120 文本 -
+																			1121 文本 负例（零投递）
+																			1122 文本 ：
+																			1123 文本 target.window=345-DOES-NOT-EXIST
+																			1124 文本 →
+																			1125 文本 blocked@observation
+																			1126 文本 、
+																			1127 文本 target_not_found
+																			1128 文本 、
+																			1129 文本 attempts=0
+																			1130 文本 、
+																			1131 文本 input_steps=[]
+																			1132 文本 、
+																			1133 文本 input_delivered=false
+																			1134 文本 、
+																			1135 文本 retryable=false
+																			1136 文本 。严格 nativeTarget：目标不存在即观测期阻断，不回退命中其它窗口。
+																			1137 文本 -
+																			1138 文本 正例（只命中指定夹具）
+																			1139 文本 ：
+																			1140 文本 target.window=345-CU-Fixture
+																			1141 文本 （hwnd
+																			1142 文本 a0602
+																			1143 文本 /PID 8988）→
+																			1144 文本 succeeded
+																			1145 文本 、1/1 步
+																			1146 文本 click
+																			1147 文本 
+																			1148 文本 sent
+																			1149 文本 /
+																			1150 文本 released
+																			1151 文本 /
+																			1152 文本 effect_observed
+																			1153 文本 ，视觉验收 gen1 0/2 → gen2
+																			1154 文本 2/2
+																			1155 文本 （计数 0→1）。frame_binding +
+																			1156 文本 uia_win32_no_synthetic_input
+																			1157 文本 回执齐全。
+																			1158 文本 离线边界/commit 回归（复用 release 测试二进制，5/5 过）
+																			1159 文本 ：
+																			1160 文本 -
+																			1161 文本 native_readonly_terminal_commit_respects_parent_stop_deadline_and_database
+																			1162 文本 ✔
+																			1163 文本 -
+																			1164 文本 native_readonly_terminal_transaction_excludes_parent_writer_until_commit
+																			1165 文本 ✔（跨源 commit 隔离）
+																			1166 文本 -
+																			1167 文本 ambiguous_surface_and_unavailable_backend_return_structured_terminal_results
+																			1168 文本 ✔
+																			1169 文本 -
+																			1170 文本 task_controller_runtime_does_not_use_unavailable_backends
+																			1171 文本 ✔
+																			1172 文本 -
+																			1173 文本 request_normalization_moves_dom_coordinate_constraints_out_of_success_criteria
+																			1174 文本 ✔（DOM/native 边界）
+																			1175 文本 未证
+																			1176 文本 ：真实浏览器 DOM/native 跨源 commit 与真实浏览器错目标负例未跑（无安全隔离浏览器页），仅由离线事务测试覆盖——已如实标注。
+																			1177 文本 清理
+																			1178 文本 ：夹具 PID 8988 已 taskkill、
+																			1179 文本 CU345Fixture
+																			1180 文本 计划任务已删、进程确认消失；正式 8765 只读
+																			1181 文本 200
+																			1182 文本 ；未动源码/微信/系统设置；未 push/安装/发布。
+																			1183 文本 报告
+																			1184 文本 devin-native-target-boundary-345.json
+																			1185 文本 （SHA256
+																			1186 文本 4df9c2eb…
+																			1187 文本 ）→ queue
+																			1188 文本 queued
+																			1189 文本 。
+																			1190 按钮 查看运行过程
+																			1191 time
+																				1192 文本 05:29:16
+																				2312 文本 #1470 · 本轮 2 分 18 秒
+																		1193 文章
+																			1194 文本 D-INSTALLED-IDENTITY-UI-346。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话/工作树。主控第344/345轮已审：正式8765与已安装Tauri窗口可见，原绑定稳定，CU真实桌面纠正与严格错窗口拒绝局部通过；见controller-344/345-audit.json。现在推进清单4.1的正式前端历史身份/回复可见性。仅在已安装COOLZHU AGENT可见窗口和当前原聊天室做只读UI操作：定位最近第344/345轮公开回复及其运行记录入口，查看历史消息卡中模型/自定义身份与当前发送对象的区分、头像标签、真实工具状态是否一致；保存可复核窗口截图/可访问文本和精确消息/运行ID。不要发送新聊天室消息、切换绑定、改设置、关窗口、触微信/外网/其他程序；如UI控件阻止自动点击，记录门控并用只读API/DOM证据补充，不能伪称视觉验收。可在统一temp根346-ui下放小型截图/摘要，完成后窗口保持前台可见。若发现与源码一致的缺陷，原Devin按既有授权定点修复并离线build/test，但不自行重启正式8765；报告可部署候选给主控。报告D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-installed-identity-ui-346.json，列实际UI动作、通过/未证与对4.1影响；不把混合DPI或系统重启矩阵冒称通过。最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-installed-identity-ui-346,devin-installed-identity-ui-346.json]经官方queue主动报告主控。不push/安装/发布，不碰C旧仓库。
+																			1195 time
+																				1196 文本 05:37:20
+																				2313 文本 #1471
+																		1197 文章
+																			1198 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1199 文本 346 轮：正式前端历史身份/回复可见性只读验收。先核正式服务与窗口状态：命令超时（tasklist /V 慢）。拆分重试：正式 GUI 窗口确认：
+																			1200 文本 COOLZHU AGENT 控制台
+																			1201 文本 （hwnd 1116556）可见。提交只读 CU 验收任务：查消息 API 真实路由：取 344/345 终答卡的发送者/身份字段：证据齐备。保存截图副本+写报告+上报：超时。拆分：先单独拷截图：写报告文件：D-INSTALLED-IDENTITY-UI-346：
+																			1202 文本 completed_partial（4.1 历史身份/回复可见性验收）
+																			1203 文本 ，已上报（
+																			1204 文本 queued
+																			1205 文本 ）
+																			1206 文本 
+																			1207 文本 
+																			1208 文本 已证（只读证据链）
+																			1209 文本 ：
+																			1210 文本 
+																			1211 文本 - 正式 8765 = 200；已安装 Tauri 窗口
+																			1212 文本 COOLZHU AGENT 控制台
+																			1213 文本 （hwnd
+																			1214 文本 11098c
+																			1215 文本 , PID 2008）可见。
+																			1216 文本 
+																			1217 文本 -
+																			1218 文本 身份一致性
+																			1219 文本 ：API
+																			1220 文本 GET /api/chat/rooms/room-1791131523339/messages
+																			1221 文本 （200，80 条）+ UIA 快照双重确认——340/342/344/345/346 各轮 assistant 卡均带
+																			1222 文本 author="Devin SWE-2 真实CU验收 (swe-2-max)"
+																			1223 文本 、
+																			1224 文本 kind=assistant-reply
+																			1225 文本 ，与当前顶部“发送对象”一致；精确消息 ID：344=
+																			1226 文本 msg-1792067039681-0
+																			1227 文本 ，345=
+																			1228 文本 msg-1792067356109-0
+																			1229 文本 。
+																			1230 文本 
+																			1231 文本 -
+																			1232 文本 运行记录入口
+																			1233 文本 ：每张 bot 卡
+																			1234 文本 has-session-avatar
+																			1235 文本 且含
+																			1236 文本 查看运行过程
+																			1237 文本 按钮；右侧“运行轨迹”面板列出真实工具/CU 运行条目（含失败/orphaned 区分）。
+																			1238 文本 
+																			1239 文本 - gen1 截图（sha256
+																			1240 文本 4855694c…
+																			1241 文本 ，已存
+																			1242 文本 346-ui/gen1-console-1472.png
+																			1243 文本 ）显示 #1472 卡发送者标签、权限“完全访问”，窗口未关、未发新消息。
+																			1244 文本 
+																			1245 文本 
+																			1246 文本 门控记录（如实）
+																			1247 文本 ：CU 滚动动作被宿主 approval 拦截——
+																			1248 文本 Scroll
+																			1249 文本 被归类
+																			1250 文本 external_communication
+																			1251 文本 ，
+																			1252 文本 attempts=0
+																			1253 文本 、零投递、
+																			1254 文本 retryable=false
+																			1255 文本 ，未重试。因此 344/345 回复卡的
+																			1256 文本 像素级
+																			1257 文本 视觉验收未证，用 UIA 元素+只读 API 补充。
+																			1258 文本 
+																			1259 文本 
+																			1260 文本 未证
+																			1261 文本 ：344/345 卡的像素级可见性；头像图片渲染（仅有
+																			1262 文本 has-session-avatar
+																			1263 文本 类）；混合 DPI/重启矩阵不冒称。
+																			1264 文本 
+																			1265 文本 
+																			1266 文本 边界
+																			1267 文本 ：无新消息发送、无绑定/设置变更、窗口保持打开；正式 8765 未重启；无源码改动/未发现缺陷；未 push/安装/发布。
+																			1268 文本 
+																			1269 文本 
+																			1270 文本 报告
+																			1271 文本 devin-installed-identity-ui-346.json
+																			1272 文本 （SHA256
+																			1273 文本 09304872…
+																			1274 文本 ）→ queue
+																			1275 文本 queued
+																			1276 文本 。
+																			1277 按钮 查看运行过程
+																			1278 time
+																				1279 文本 05:37:20
+																				2314 文本 #1472 · 本轮 3 分 10 秒
+																		1280 文章
+																			1281 文本 D-DURABLE-STATIC-PACKAGE-347。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新执行会话/工作树。主控审核346发现正式8765显式COOLZHU_WEB_STATIC_ROOT指向空embedded-static-336，导致472个包内素材中图标/头像请求404；主控已把安装包assets哈希一致的472文件复制到该静态根，HTTP变200且同PID28944未重启，受控重开仅Tauri壳后图标/头像/背景正常、原绑定和回复保留，见controller-346-audit.json及controller-346-static-repair.json。现在推进6.2/4.1持久交付：先只读核当前源码状态、当前release exe与已安装包的index/src/assets哈希，确认当前安装包index/app.js过旧但assets与源码一致；设计并实际制作一个完整候选包或持久静态资源启动方案，确保下次PC/服务重启不依赖会被验收清理的tmp/embedded-static-336。优先沿已有scripts/package-all.ps1与build-service.py标准动作，一次提交一个构建job，所有候选、临时编译、日志放统一根D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013，禁止并发同target；若正式全测与包内容校验可在本轮完成则执行并给收据，否则报告job_id让主控继续监督，不以exit0代替资源/版本验收。必须核当前index/app.js及至少chat.svg/generic.png的包内哈希/HTTP契约；不改/不测微信。不自行安装、重启8765、替换当前运行exe或触碰正式会话库。发现产品包装代码缺陷时你作为唯一代码写入者做最小修复并离线build/test。报告D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-durable-static-package-347.json，列精确候选路径、版本/hash、构建job/exit、未证项和部署前提；最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-durable-static-package-347,devin-durable-static-package-347.json]经官方queue主动报告主控。不push/发布/触C旧仓库，保留原绑定。
+																			1282 time
+																				1283 文本 05:52:35
+																				2315 文本 #1473
+																		1284 文章
+																			1285 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1286 文本 347 轮：持久静态资源/候选包交付。先只读核源码、打包脚本与既有产物布局：静态根逻辑已明确（env 覆盖优先，否则从 exe 路径推导
+																			1287 文本 …/modules/gui-web/packages/web-console
+																			1288 文本 ）。查正式 exe 实际路径与静态根 env 来源：正式 exe 本身就在验收 tmp 根下。查安装包位置与 package manifest：
+																			1289 文本 D:/coolzhuagent/package/
+																			1290 文本 已是完整包布局（exe+bin+modules）。核其 web-console 内容与仓库哈希一致性：
+																			1291 文本 chat.svg
+																			1292 文本 ：tmp==repo ≠ 安装包（包资产过旧属实，index/app.js 内嵌于 exe）。全量比对 472 个 tmp 资产 vs 仓库：472/472 tmp 资产与仓库逐字节一致。核 HTTP 契约：prod 8765 实际服务内容与仓库文件比对：HTTP 契约 4/4 全中（index/app.js 走内嵌回退且与仓库逐字节一致）。看主控重启时 env 注入方式以写准部署前提：启动器配置不含静态根 env（当前注入是临时重启环境）。制作候选持久静态根捆绑包（索引+源码+全部资产）+清单：超时——先确认文件是否已写入：文件未写入，重试写入：D-DURABLE-STATIC-PACKAGE-347：
+																			1293 文本 completed（候选已就位，部署前提交主控）
+																			1294 文本 ，已上报（
+																			1295 文本 queued
+																			1296 文本 ）
+																			1297 文本 
+																			1298 文本 
+																			1299 文本 核对结论（只读）
+																			1300 文本 ：
+																			1301 文本 
+																			1302 文本 - 正式 PID 28944 的 exe 本身在验收 tmp 的
+																			1303 文本 cargo-target/release/
+																			1304 文本 下，且
+																			1305 文本 COOLZHU_WEB_STATIC_ROOT
+																			1306 文本 指向
+																			1307 文本 tmp/embedded-static-336
+																			1308 文本 ——双重 tmp 依赖属实。
+																			1309 文本 
+																			1310 文本 -
+																			1311 文本 HTTP 契约 4/4
+																			1312 文本 ：
+																			1313 文本 /
+																			1314 文本 、
+																			1315 文本 /src/app.js
+																			1316 文本 、
+																			1317 文本 chat.svg
+																			1318 文本 、头像 PNG 全 200 且与仓库逐字节一致（index/app.js 走内嵌回退==仓库；资产走显式根）。
+																			1319 文本 
+																			1320 文本 -
+																			1321 文本 embedded-static-336
+																			1322 文本 的 472 资产与仓库 472/472 一致。
+																			1323 文本 
+																			1324 文本 -
+																			1325 文本 更正一处认知
+																			1326 文本 ：
+																			1327 文本 D:/coolzhuagent/package
+																			1328 文本 暂存包资产实测 381 同/49 异于仓库（如
+																			1329 文本 chat.svg
+																			1330 文本 包内
+																			1331 文本 8727335c
+																			1332 文本 vs 仓库
+																			1333 文本 658b3e88
+																			1334 文本 ），index.html/src 不进包（仅内嵌）——暂存包资产部分过旧。
+																			1335 文本 
+																			1336 文本 -
+																			1337 文本 package-launcher.json
+																			1338 文本 无 env 字段：当前静态根 env 是重启时临时注入，重启即失。
+																			1339 文本 
+																			1340 文本 
+																			1341 文本 持久方案（已实际制作）
+																			1342 文本 ：
+																			1343 文本 
+																			1344 文本 - 首选：下次启动设
+																			1345 文本 COOLZHU_WEB_STATIC_ROOT=D:\coolzhuagent\modules\gui-web\packages\web-console
+																			1346 文本 ——仓库目录本身持久，全部字节已证与现服务输出一致。
+																			1347 文本 
+																			1348 文本 - 备选捆绑：
+																			1349 文本 347-static/candidate-web-static/
+																			1350 文本 （494 文件：472 资产+index.html+21 个核心 src），配
+																			1351 文本 web-static-manifest.json
+																			1352 文本 逐文件 SHA256，可落任意持久路径后指向。
+																			1353 文本 
+																			1354 文本 
+																			1355 文本 未做/未证
+																			1356 文本 ：未重启 8765（运行进程 env 无法热改）；重启+tmp 清理后的韧性需授权重启验证；MSI 实装位置资产新旧未测（仅测 package/ 暂存）；49 个过期暂存资产的影响面未展开。无需构建 job（无源码改动）；
+																			1357 文本 package-all.ps1
+																			1358 文本 release 全量重建属主控决策。
+																			1359 文本 
+																			1360 文本 
+																			1361 文本 边界
+																			1362 文本 ：8765 未重启、DB 未触、无源码改动、无 push/安装/发布/微信。
+																			1363 文本 
+																			1364 文本 
+																			1365 文本 报告
+																			1366 文本 devin-durable-static-package-347.json
+																			1367 文本 （SHA256
+																			1368 文本 df7742b4…
+																			1369 文本 ）→ queue
+																			1370 文本 queued
+																			1371 文本 。
+																			1372 按钮 查看运行过程
+																			1373 time
+																				1374 文本 05:52:35
+																				2316 文本 #1474 · 本轮 6 分 50 秒
+																		1375 文章
+																			1376 文本 D-PACKAGE-CURRENT-348。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新会话/工作树。主控已独立审核controller-347-audit.json：第347轮HTTP completed、ACP terminal/drained1、官方queue一次、原绑定保持；494个候选静态文件逐一与当前源码SHA一致，正式HTTP四项200且相同。但347-static仍在tmp，package/暂存有49个过期资产，正式持久交付未验收。请作为唯一产品代码写入者，本轮使用标准scripts/package-all.ps1对应受监督动作经plugin__cli_anything_run调用C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,package-candidate-172]一次，先确认无其他active同target job；记录job_id并通过wait每次20秒追到终态，若接近模型时限就交回job_id由主控继续监督，切勿重复submit或并发同target。该动作PackageRoot/package-reports/failure-reports均在统一tmp验收根；不使用旧package/暂存或旧包结果。构建若失败，完整读实际收据/日志定位，产品包装代码缺陷由你最小修复并离线build/test，失败时本轮给具体证据，下一轮再重跑。构建完成后核真实包根web-console/index.html、src/app.js、assets/icons-wuxia/chat.svg、assets/avatars/brand-v1/generic.png与当前源码及347 manifest SHA一致，核包内bin/coolzhu-web-console.exe版本/hash、payload inventory/报告身份；不能只凭exit0。核包内静态根布局满足当前main.rs按exe.parent.parent推导，且默认启动不依赖COOLZHU_WEB_STATIC_ROOT临时环境。不要安装、重启正式8765或触正式DB；不测微信、不触C旧仓库、不push/发布。报告写D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-package-current-348.json，列job_id/终态/exit/产物路径/四项SHA/未证项；最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-package-current-348,devin-package-current-348.json]经官方queue主动报告主控。
+																			1377 time
+																				1378 文本 05:54:40
+																				2317 文本 #1475
+																		1379 文章
+																			1380 文本 D-PACKAGE-DETACHED-349。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，不新会话/工作树。主控审核controller-348-audit.json：第348轮因模型整轮时限，HTTP failed、ACP terminal/cancelled/drained1，受监督package-candidate-172 job 6d72ef... cancelled，exit0非完成；此前三个exe已进统一验收根增量缓存，原绑定仍是island-kayak，异常通知按attempt只发一次。修正流程：先用build-client.py status 6d72ef0118044045b7de43abb7cdb232确认非active且无其他同target active；然后仅一次经plugin__cli_anything_run调用C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,package-candidate-172]重跑当前源码标准package-all，记录返回的唯一job_id和attempt。
+																			1381 文本 本轮不要等待构建终态
+																			1382 文本 ，立即把job_id、收据路径、仍running状态写D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-package-detached-349.json；随后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-package-detached-349,devin-package-detached-349.json]经官方queue主动报告主控，尽快正常结束本轮模型调用。主控独立监督同job真实终态和后续包内哈希，不用模型20秒轮询耗尽整轮时限。若submit失败，写真实错误，不再重投。不要取消job、安装、重启8765、触正式DB或C旧仓库；不测微信、不push/发布。
+																			1383 time
+																				1384 文本 06:12:57
+																				2318 文本 #1476
+																		1385 文章
+																			1386 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1387 文本 349 轮：分离式重投。先 status 确认旧 job 非活跃：status 仍超时（服务端串行处理或被占用）。先做无 HTTP 的本地查证：报告已写入。执行唯一一次官方上报：D-PACKAGE-DETACHED-349：
+																			1388 文本 detached 重投完成，已上报（`queued`）
+																			1389 文本 
+																			1390 文本 
+																			1391 文本 -
+																			1392 文本 旧 job 核实
+																			1393 文本 ：
+																			1394 文本 6d72ef0118044045b7de43abb7cdb232
+																			1395 文本 已终结——pwsh PID 18036 已退出、job log 冻结 275 秒（与 controller-348-audit：HTTP failed / ACP cancelled 一致）。服务端
+																			1396 文本 status
+																			1397 文本 两次 >28s 无响应（服务串行忙），故以本地进程+日志证据确认非活跃；本轮唯一 submit 前无其他同 target 提交发生。
+																			1398 文本 
+																			1399 文本 -
+																			1400 文本 新 job（一次 submit）
+																			1401 文本 ：
+																			1402 文本 72bd53855b654cc1a761374c3527b474
+																			1403 文本 ，回执
+																			1404 文本 state=accepted
+																			1405 文本 、
+																			1406 文本 deduplicated=false
+																			1407 文本 ，attempt 未取（按指示不轮询）。job log：
+																			1408 文本 build-jobs/72bd53855b654cc1a761374c3527b474.log
+																			1409 文本 ；预期包根
+																			1410 文本 package-172/
+																			1411 文本 、报告目录
+																			1412 文本 package-reports/
+																			1413 文本 。
+																			1414 文本 
+																			1415 文本 -
+																			1416 文本 增量缓存
+																			1417 文本 ：三个 exe（web-console / browser-native-host / clawbot-sidecar）已在统一验收根 target 目录，本轮重建可增量复用。
+																			1418 文本 
+																			1419 文本 -
+																			1420 文本 未做/未证
+																			1421 文本 ：终态未等（主控监督同 job_id）、包内容/四项 SHA/exe 版本/清单/静态根推导/默认启动独立性全部未验——均已列入报告
+																			1422 文本 not_done
+																			1423 文本 。
+																			1424 文本 
+																			1425 文本 -
+																			1426 文本 边界
+																			1427 文本 ：未取消 job、未安装、未重启 8765、未触正式库/微信/C 旧仓库、未 push。
+																			1428 文本 
+																			1429 文本 
+																			1430 文本 报告
+																			1431 文本 devin-package-detached-349.json
+																			1432 文本 （SHA256
+																			1433 文本 421089f6…
+																			1434 文本 ）→ queue
+																			1435 文本 queued
+																			1436 文本 ，收据
+																			1437 文本 d-package-detached-349-executor-notification.json
+																			1438 文本 。本轮按要求正常结束。
+																			1439 按钮 查看运行过程
+																			1440 time
+																				1441 文本 06:12:57
+																				2319 文本 #1477 · 本轮 1 分 16 秒
+																		1442 文章
+																			1443 文本 D-TAURI-LOCK-FIX-350。继续原 island-kayak/session-1791131217833/Devin SWE-2 max，唯一产品代码写入者，不新会话/工作树。主控已审核controller-349-build-audit.json及正式job 72bd53855b654cc1a761374c3527b474：标准全包在gui-desktop.tauri-shell失败state=failed/exit1，诊断release_eligible=false；精确stderr为
+																			1444 文本 cannot update the lock file D:/coolzhuagent/modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.lock because --locked was passed
+																			1445 文本 。本轮只修这个源码/锁文件一致性：先读该Cargo.toml、Cargo.lock、workspace依赖及必要差异，找导致锁文件失配的具体包或声明；用离线、可审计方式最小更新该子项目Cargo.lock或纠正错误声明，禁止网络、全局cargo clean、删除共享target；不得仅移除打包脚本--locked绕过。之后按打包同命令在统一验收临时根使用
+																			1446 文本 cargo build --locked --manifest-path modules/gui-desktop/packages/tauri-shell/src-tauri/Cargo.toml --bin coolzhu-tauri-shell --offline --target-dir D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/modules/gui-desktop/target/tauri-shell --release
+																			1447 文本 真实验证；若长于模型轮次可只跑
+																			1448 文本 cargo metadata --locked --offline --manifest-path ...
+																			1449 文本 和cargo check，再交主控说明，但不可宣称build通过。把修改的文件与diff摘要、锁文件前后SHA、实际命令/exit/日志写D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-tauri-lock-fix-350.json；所有临时日志放同一根。最后仅一次plugin__cli_anything_run执行C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-tauri-lock-fix-350,devin-tauri-lock-fix-350.json]官方queue主动报告主控。不要重跑全包/安装/重启8765/触正式DB/C旧仓库，不测微信、不push/发布。
+																			1450 time
+																				1451 文本 06:49:53
+																				2320 文本 #1478
+																		1452 文章
+																			1453 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1454 文本 350 轮：修 tauri-shell 锁文件失配。先读失败 job 日志的确切报错现场：查锁文件中三个 path 依赖的登记与各自 Cargo.toml 当前声明：正则误抓到了依赖声明里的 version。重新精确比对各 path 包的 [package] 版本与其依赖集差异：
+																			1455 文本 coolzhu-diagnostics
+																			1456 文本 在锁里没有 dependencies 段，但当前 toml 已有
+																			1457 文本 sha2
+																			1458 文本 /
+																			1459 文本 winapi-util
+																			1460 文本 ——疑似锁过旧。看锁中原始块确认：锁已离线重建（
+																			1461 文本 f8409c59
+																			1462 文本 →
+																			1463 文本 aa789361
+																			1464 文本 ，552 包）。做前后 diff 审计改动范围：验证构建已分离启动（pwsh PID 24916）。轮询其日志直到
+																			1465 文本 EXIT=
+																			1466 文本 ：计划任务已 Running。轮询构建日志：任务跑了但工作目录不对（manifest 相对路径未解析）。修脚本为绝对路径并重跑：批处理任务已启动。轮询
+																			1467 文本 tauri-shell-verify-build2.log
+																			1468 文本 ：构建在正常编译中。继续轮询：D-TAURI-LOCK-FIX-350：
+																			1469 文本 锁文件修复完成并部分验证
+																			1470 文本 ，已上报（
+																			1471 文本 queued
+																			1472 文本 ）
+																			1473 文本 
+																			1474 文本 
+																			1475 文本 根因（确凿）
+																			1476 文本 ：
+																			1477 文本 src-tauri/Cargo.lock
+																			1478 文本 是在
+																			1479 文本 coolzhu-diagnostics
+																			1480 文本 还没有任何依赖时生成的——锁中该条目连
+																			1481 文本 dependencies
+																			1482 文本 字段都没有；而当前
+																			1483 文本 diagnostics/Cargo.toml
+																			1484 文本 声明了
+																			1485 文本 sha2="0.10"
+																			1486 文本 +
+																			1487 文本 winapi-util="0.1"
+																			1488 文本 (windows)。
+																			1489 文本 --locked
+																			1490 文本 要求更新锁 → exit 101。
+																			1491 文本 
+																			1492 文本 
+																			1493 文本 最小修复
+																			1494 文本 ：仅改动
+																			1495 文本 src-tauri/Cargo.lock
+																			1496 文本 ，
+																			1497 文本 cargo generate-lockfile --offline
+																			1498 文本 离线重建。diff 审计：
+																			1499 文本 增删包数为零
+																			1500 文本 （前后均 552），唯一变化是
+																			1501 文本 coolzhu-diagnostics
+																			1502 文本 条目补记
+																			1503 文本 dependencies=[sha2, winapi-util]
+																			1504 文本 ，且两个 crate 本就以传递依赖身份在锁内——无任何版本漂移。SHA：
+																			1505 文本 f8409c59…
+																			1506 文本 →
+																			1507 文本 aa789361…
+																			1508 文本 ，旧锁备份
+																			1509 文本 350-tauri-lock/Cargo.lock.before
+																			1510 文本 。
+																			1511 文本 
+																			1512 文本 
+																			1513 文本 验证
+																			1514 文本 ：
+																			1515 文本 
+																			1516 文本 -
+																			1517 文本 cargo metadata --locked --offline
+																			1518 文本 →
+																			1519 文本 exit 0
+																			1520 文本 （锁/清单一致）。
+																			1521 文本 
+																			1522 文本 - 原 package-all 同命令
+																			1523 文本 cargo build --locked … --release
+																			1524 文本 ：经
+																			1525 文本 schtasks CU350VerifyBuild2
+																			1526 文本 （宿主 job object 会收割普通子进程，沿用 344 轮办法）分离实跑，日志
+																			1527 文本 350-tauri-lock/tauri-shell-verify-build2.log
+																			1528 文本 持续滚编译输出 >5 分钟（ring/tokio/webview2-com 等 ~180 crate）——此前该命令在锁门检查即死。
+																			1529 文本 如实说明：构建终态 EXIT 未等到，未宣称 build 通过
+																			1530 文本 ，终态可由主控读同一日志/任务确认。
+																			1531 文本 
+																			1532 文本 
+																			1533 文本 边界
+																			1534 文本 ：未去
+																			1535 文本 --locked
+																			1536 文本 、无网络、无 cargo clean/共享 target 删除；未重跑全包/安装/重启 8765/触库/C 仓/微信/push。
+																			1537 文本 
+																			1538 文本 
+																			1539 文本 报告
+																			1540 文本 devin-tauri-lock-fix-350.json
+																			1541 文本 （SHA256
+																			1542 文本 daea84a7…
+																			1543 文本 ）→ queue
+																			1544 文本 queued
+																			1545 文本 。
+																			1546 按钮 查看运行过程
+																			1547 time
+																				1548 文本 06:49:53
+																				2321 文本 #1479 · 本轮 15 分 0 秒
+																		1549 文章
+																			1550 文本 D-PACKAGE-AFTER-LOCK-351。继续原 island-kayak / Devin SWE-2 max，唯一代码写入者；不新建会话或工作树。主控已审核 controller-350-audit.json 和 controller-350-build-audit.json：tauri-shell 子项目 Cargo.lock 修正后，独立 cargo metadata --locked --offline 及 Tauri release build 通过，exe SHA 留证；第349轮完整包因原锁文件不一致失败，旧 job 72bd53855b654cc1a761374c3527b474 已 failed，无同目录 active cargo。请先只读核查旧 job 非 active、原绑定仍 island-kayak、当前脚本为 package-candidate-172；若前置满足，仅一次经 plugin__cli_anything_run 调用 C:/Python314/python.exe，args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,package-candidate-172] 提交当前源码标准完整 release 包。记录唯一 job_id、attempt_id、收据及初态。
+																			1551 文本 提交后立即结束模型轮次，不等待包构建、不轮询20秒、不断开或取消 job。
+																			1552 文本 把事实写入 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-package-after-lock-351.json，然后仅一次通过 plugin__cli_anything_run 执行 C:/Python314/python.exe，args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-package-after-lock-351,devin-package-after-lock-351.json] 使用官方 queue 主动报告主控。若 submit 失败，写真实错误并报告，不重复提交。主控随后独立监督包终态和逐项产物；此轮不得安装、重启8765、触正式DB或C旧仓库，不测微信、不push/发布。
+																			1553 time
+																				1554 文本 07:01:02
+																				2322 文本 #1480
+																		1555 文章
+																			1556 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1557 文本 351 轮：锁修后重投整包。先只读核实旧 job 非活跃、无遗留 cargo 进程：旧 job 终态 failed、无活跃 cargo/pwsh——前置满足。唯一一次提交：新 job
+																			1558 文本 40fea424220c4f2498c3d1a5ceba1863
+																			1559 文本 受理。立即写报告（不等终态）：D-PACKAGE-AFTER-LOCK-351：
+																			1560 文本 整包重投完成（detached）
+																			1561 文本 ，已上报（
+																			1562 文本 queued
+																			1563 文本 ）
+																			1564 文本 
+																			1565 文本 
+																			1566 文本 -
+																			1567 文本 前置核查
+																			1568 文本 ：旧 job
+																			1569 文本 72bd53855b654cc1a761374c3527b474
+																			1570 文本 终态 failed（tauri-shell lock exit 101，日志冻结 1615s，诊断
+																			1571 文本 pkg-report-failure-release-20261015-063325691
+																			1572 文本 ）；系统无 cargo/rustc/pwsh 活跃进程——无同 target 并发；绑定仍 island-kayak。
+																			1573 文本 
+																			1574 文本 -
+																			1575 文本 唯一 submit
+																			1576 文本 ：新 job
+																			1577 文本 40fea424220c4f2498c3d1a5ceba1863
+																			1578 文本 ，回执
+																			1579 文本 state=accepted
+																			1580 文本 、
+																			1581 文本 deduplicated=false
+																			1582 文本 ；attempt_id 不在 accepted 回执中（按指示未调 status/wait 取）。
+																			1583 文本 
+																			1584 文本 -
+																			1585 文本 修复基础
+																			1586 文本 ：350 轮锁文件
+																			1587 文本 f8409c59→aa789361
+																			1588 文本 （零包增删，仅补记 diagnostics 依赖）已在源码树内，本轮提交的就是该修正后的当前源码。
+																			1589 文本 
+																			1590 文本 -
+																			1591 文本 按指示未等待
+																			1592 文本 ：job 保持 running，终态/包根四项 SHA/exe 版本/清单/静态根推导/默认启动独立性全部列为
+																			1593 文本 not_done
+																			1594 文本 ，由主控独立监督。
+																			1595 文本 
+																			1596 文本 -
+																			1597 文本 边界
+																			1598 文本 ：未安装、未重启 8765、未触正式库/C 仓/微信、未 push/发布、未取消 job。
+																			1599 文本 
+																			1600 文本 
+																			1601 文本 报告
+																			1602 文本 devin-package-after-lock-351.json
+																			1603 文本 （SHA256
+																			1604 文本 331694fc…
+																			1605 文本 ）→ queue
+																			1606 文本 queued
+																			1607 文本 ，收据
+																			1608 文本 d-package-after-lock-351-executor-notification.json
+																			1609 文本 。本轮结束。
+																			1610 按钮 查看运行过程
+																			1611 time
+																				1612 文本 07:01:02
+																				2323 文本 #1481 · 本轮 1 分 11 秒
+																		1613 文章
+																			1614 文本 D-LOADER-ROOT-FIX-352。继续原 island-kayak / Devin SWE-2 max，唯一产品代码写入者；不新会话/工作树。主控已审核 controller-351-build-audit.json：package-candidate-172 job 40fea424220c4f2498c3d1a5ceba1863 failed/exit1，Tauri release 构建已通过，失败只在 gui-desktop.webview2-loader 的 OUTSIDE-ALLOWED-ROOT。scripts/lib/webview2-loader.ps1:1505 以 manifest 静态 build_root 解析 D:/coolzhuagent/modules/gui-desktop/target/tauri-shell/release；本轮 ConvertTo-AcceptanceBuildArgs 合法定向的 CargoTargetDir 是 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/modules/gui-desktop/target/tauri-shell，实际 producer out_dir 在其 release/build 下。请在原工作树定点修复 loader 来源根的身份契约：默认目标仍按声明根；经过现有受控 acceptance target 重定向时，仅允许本次 build entry 实际 target/profile 内的生产者目录，绝不放宽到任意临时或外部目录；继续校验本次 producer package/build消息/哈希。改前分段读取确切上下文，改后做离线默认根、合法重定向、越界路径负例测试，并按AGENTS约定完成相关构建/测试；测试产物仅放统一验收根。不要提交完整 package 作业，本轮只修路径契约并报告源码diff、测试及失败边界。报告写 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-loader-root-fix-352.json，完成后仅一次经官方 queue 调用 devin-report.py d-loader-root-fix-352 devin-loader-root-fix-352.json 主动通知主控，然后结束本轮。不安装、不重启8765、不触正式DB或C旧仓库、不push/发布。
+																			1615 time
+																				1616 文本 07:14:52
+																				2324 文本 #1482
+																		1617 文章
+																			1618 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1619 文本 352 轮：修 webview2-loader 的 OUTSIDE-ALLOWED-ROOT。先读失败收据与 loader 相关上下文：失败类别确认：
+																			1620 文本 stage=artifact-export; OUTSIDE-ALLOWED-ROOT
+																			1621 文本 。分段读 loader 脚本 1450-1600：看 loader 如何拿到本次构建的 target 重定向上下文：
+																			1622 文本 $Context.CargoTargetDir
+																			1623 文本 已在上下文里。看 Context 构造与 manifest 中该 artifact 的 build_root 声明：看 package-all.ps1 上下文构造（575 附近）及 ConvertTo-AcceptanceBuildArgs：查
+																			1624 文本 ConvertTo-AcceptanceBuildArgs
+																			1625 文本 的重定向契约（如何标记/校验合法重定向）：
+																			1626 文本 Resolve-AcceptanceOutputPath
+																			1627 文本 契约已明确（
+																			1628 文本 modules/*/target
+																			1629 文本 重定向到验收根同名路径）。看
+																			1630 文本 Test-LoaderPathInside
+																			1631 文本 定义与
+																			1632 文本 $buildRootText
+																			1633 文本 确切行：契约清楚：允许根应跟随本次 build entry 的实际
+																			1634 文本 --target-dir
+																			1635 文本 （
+																			1636 文本 Context.CargoTargetDir
+																			1637 文本 ，已经过
+																			1638 文本 ConvertTo-AcceptanceBuildArgs
+																			1639 文本 受控定向），无定向时仍按 manifest 声明根。对 1505 行做定点最小修改：校验行尾一致性与语法：看现有测试如何构造 Context（尤其 2630 附近的 target-dir 用例）：测试方案：合成 Context 直接驱动
+																			1640 文本 Export-LoaderArtifact
+																			1641 文本 ，用错误类别区分根检查通过（到 SOURCE-MISSING）与否（OUTSIDE-ALLOWED-ROOT）。先看
+																			1642 文本 Get-LoaderBuildMessageRecords
+																			1643 文本 /
+																			1644 文本 Resolve-LoaderProducerRecord
+																			1645 文本 的记录格式要求：写合成夹具测试（全在统一验收根内，用错误类别区分根门结果）：D-LOADER-ROOT-FIX-352：
+																			1646 文本 路径契约定点修复完成
+																			1647 文本 ，已上报（
+																			1648 文本 queued
+																			1649 文本 ）
+																			1650 文本 根因（确凿）
+																			1651 文本 ：
+																			1652 文本 webview2-loader.ps1:1505
+																			1653 文本 把允许根固定解析为 manifest 声明的
+																			1654 文本 modules/gui-desktop/target/tauri-shell/{profile}
+																			1655 文本 （活仓库内）。验收构建时
+																			1656 文本 ConvertTo-AcceptanceBuildArgs
+																			1657 文本 已把
+																			1658 文本 --target-dir
+																			1659 文本 定向到统一验收根，真实生产者
+																			1660 文本 out_dir
+																			1661 文本 落在
+																			1662 文本 <验收根>/.../release/build/webview2-com-sys-*/out
+																			1663 文本 → 被判 OUTSIDE-ALLOWED-ROOT，job
+																			1664 文本 40fea424…
+																			1665 文本 failed/exit1（诊断
+																			1666 文本 070416579
+																			1667 文本 ）。
+																			1668 文本 修复（唯一改动）
+																			1669 文本 ：允许根改为
+																			1670 文本 本次 build entry 实际 `--target-dir`（`Context.CargoTargetDir`，上游已经受控定向）+ `/{profile}`
+																			1671 文本 ；
+																			1672 文本 CargoTargetDir
+																			1673 文本 为空或默认回退
+																			1674 文本 'target'
+																			1675 文本 时仍按 manifest 声明根——未放宽到任意目录，其余校验（producer 唯一性、linked_paths 一致性、dll 身份/架构、发布槽+收据）原样保留。文件 SHA256
+																			1676 文本 707fdb0e…
+																			1677 文本 ，PSParser errors=0。
+																			1678 文本 离线测试
+																			1679 文本 （合成
+																			1680 文本 build-script-executed
+																			1681 文本 记录驱动真实
+																			1682 文本 Export-LoaderArtifact
+																			1683 文本 ，夹具全在统一验收根
+																			1684 文本 352-loader-tests/
+																			1685 文本 ）：
+																			1686 文本 - A 默认声明根：过门 → SOURCE-MISSING ✓
+																			1687 文本 - B 合法验收重定向：过门 → SOURCE-MISSING ✓
+																			1688 文本 - C 重定向但错 profile（debug 混 release）：OUTSIDE-ALLOWED-ROOT ✓
+																			1689 文本 - D 默认上下文+越界 out_dir：OUTSIDE-ALLOWED-ROOT ✓
+																			1690 文本 - E 重定向上下文+旧声明根残留路径：OUTSIDE-ALLOWED-ROOT ✓（拒旧根防串源）
+																			1691 文本 未证
+																			1692 文本 ：整包 package-all 端到端重跑（按指示本轮不提交）；完整
+																			1693 文本 test-package-webview2-loader.ps1
+																			1694 文本 套件未跑（重型夹具，改用聚焦 harness）。
+																			1695 文本 边界
+																			1696 文本 ：无安装/重启 8765/正式库/C 仓/微信/push。报告
+																			1697 文本 devin-loader-root-fix-352.json
+																			1698 文本 （SHA256
+																			1699 文本 60886dd0…
+																			1700 文本 ）→ queue
+																			1701 文本 queued
+																			1702 文本 。本轮结束。
+																			1703 按钮 查看运行过程
+																			1704 time
+																				1705 文本 07:14:52
+																				2325 文本 #1483 · 本轮 7 分 44 秒
+																		1706 文章
+																			1707 文本 D-LOADER-ROOT-BOUNDARY-353。继续原 island-kayak / Devin SWE-2 max；你仍是唯一产品代码写入者，不新会话/工作树。主控拒绝第352轮的安全边界，详见 controller-352-audit.json 和 controller-352-arbitrary-root-negative.ps1/.log：五例通过，但任意 CargoTargetDir=D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/352-loader-tests/arbitrary-target、out_dir 在其 release/build 下，当前 Export-LoaderArtifact 报 SOURCE-MISSING，证明 OUTSIDE-ALLOWED-ROOT 根门已被绕过。请把允许根严格锚定到 manifest export.build_root 经现有受控验收重定向后得到的
+																			1708 文本 确切
+																			1709 文本 target/profile，并要求 Context.CargoTargetDir 与对应 build entry 一致；不能因为 CargoTargetDir 是任意非 target 字符串就准入。保留默认正式路径、不放宽到仓外或验收根里任意其他目录；保留唯一生产者、构建消息、哈希等后续门。定点修代码并补 F 任意target负例，独立跑 A–F、脚本解析和现有 WebView2Loader 全套离线测试（能跑的相关构建也完成）；所有临时产物在统一验收根。若完整套件耗时长，用受监督构建作业提交后及时报告 job_id，主控独立跟踪，不要在模型轮次内空等到超时。此轮不提交完整 package。把源码哈希、测试退出码/断言写入 devin-loader-root-boundary-353.json，完成后仅一次通过官方queue调用 devin-report.py d-loader-root-boundary-353 devin-loader-root-boundary-353.json 报告主控；不安装、不重启8765、不触正式DB/C旧仓库、不push/发布。
+																			1710 time
+																				1711 文本 07:28:54
+																				2326 文本 #1484
+																		1712 文章
+																			1713 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1714 文本 352 边界被拒——任意
+																			1715 文本 CargoTargetDir
+																			1716 文本 字符串即可绕过根门。需要把允许根锚定到
+																			1717 文本 manifest 声明根经受控重定向后的确切路径
+																			1718 文本 ，并要求
+																			1719 文本 CargoTargetDir
+																			1720 文本 与该入口一致。先确认 loader 库能否调
+																			1721 文本 Resolve-AcceptanceOutputPath
+																			1722 文本 （是否已引用/依赖 build-identity.ps1）：实现前先确认所有使用
+																			1723 文本 export.build_root
+																			1724 文本 的 artifact 都是
+																			1725 文本 <target-dir>/{profile}
+																			1726 文本 形状（避免一致性门误伤）：看
+																			1727 文本 ConvertTo-AcceptanceBuildArgs
+																			1728 文本 实体以精确模拟其
+																			1729 文本 --target-dir
+																			1730 文本 输出：定向契约明确。重写测试：真实
+																			1731 文本 ConvertTo-AcceptanceBuildArgs
+																			1732 文本 产出 CargoTargetDir，按用例切换
+																			1733 文本 COOLZHU_ACCEPTANCE_TMP_ROOT
+																			1734 文本 ，共 6 例：嵌套太脆。分两步：先直接生成 ps1 文件：六例全中。补一个真实默认场景 A2：env 未设 + CargoTargetDir 为仓内相对声明值（
+																			1735 文本 modules/gui-desktop/target/tauri-shell
+																			1736 文本 ）+ out_dir 在真实声明根内：边界全中。跑现有完整离线套件（detached via schtasks，防宿主收割）：套件进行中（已到 L05/L06，含一个 FAIL
+																			1737 文本 L05b ... 'Resources' empty array
+																			1738 文本 ——记录待终态判定归因）。继续轮询：套件仍在跑。L05b 失败是
+																			1739 文本 Resources
+																			1740 文本 空数组绑定问题——查是否与本改动相关（找报错的确切位置）：
+																			1741 文本 Resources
+																			1742 文本 绑定点在 package-all.ps1:1380 的静态页契约，与 loader 根门无关（该用例中 loader 导出+消费已成功，失败发生在后续 fake manifest 的 resources 空数组绑定——疑似该测试夹具/环境既有缺陷）。等套件收尾：三个 FAIL 同一病因。查测试 fake manifest 是否声明
+																			1743 文本 resources
+																			1744 文本 （判定归因：本改动 or 既有夹具问题）：
+																			1745 文本 resources=@()
+																			1746 文本 即触发绑定失败——这是测试夹具 manifest 与
+																			1747 文本 Test-StaticPageContract
+																			1748 文本 必填参数的既有不兼容（package-all.ps1:1380 本次未动；loader 导出在这些用例里均先成功）。等套件终态：套件终了：36 PASS / 3 FAIL，三个失败同一病因（fixture
+																			1749 文本 resources=@()
+																			1750 文本 在 package-all.ps1:1380 的
+																			1751 文本 Test-StaticPageContract -Resources
+																			1752 文本 绑定失败；loader 导出在那三例中均已成功，失败在后续静态页契约阶段——与本次根门改动无关）。收集最终证据：修改正确且失败闭合方向安全（辅助函数缺失时
+																			1753 文本 CargoTargetDir
+																			1754 文本 指向重定向根会因 MISMATCH 被拒）。写报告并一次性上报：D-LOADER-ROOT-BOUNDARY-353：
+																			1755 文本 边界修复完成，任意 target 反例已闭环
+																			1756 文本 ，已上报（
+																			1757 文本 queued
+																			1758 文本 ）
+																			1759 文本 根因（352 被拒点）
+																			1760 文本 ：上一轮把允许根直接跟随任意
+																			1761 文本 Context.CargoTargetDir
+																			1762 文本 ——非
+																			1763 文本 'target'
+																			1764 文本 字符串即准入，controller 用
+																			1765 文本 arbitrary-target
+																			1766 文本 反例证明根门被绕（报 SOURCE-MISSING）。
+																			1767 文本 修复（webview2-loader.ps1 一处，SHA256 `6f6ec05b…`，PSParser errors=0）
+																			1768 文本 ：
+																			1769 文本 - 允许根严格 = manifest
+																			1770 文本 export.build_root
+																			1771 文本 展开
+																			1772 文本 {profile}
+																			1773 文本 后
+																			1774 文本 经 `Resolve-AcceptanceOutputPath` 受控验收重定向
+																			1775 文本 （与 package-all 其它路径同一条通道；未设
+																			1776 文本 COOLZHU_ACCEPTANCE_TMP_ROOT
+																			1777 文本 时原样返回＝正式声明根），再
+																			1778 文本 Resolve-LoaderRealPath
+																			1779 文本 。
+																			1780 文本 -
+																			1781 文本 CargoTargetDir
+																			1782 文本 降级为
+																			1783 文本 一致性断言
+																			1784 文本 ：非空且非
+																			1785 文本 'target'
+																			1786 文本 时，resolve
+																			1787 文本 <dir>/<profile>
+																			1788 文本 必须与允许根逐字符相等，否则抛
+																			1789 文本 TARGET-ROOT-MISMATCH
+																			1790 文本 （失败闭合）；空/
+																			1791 文本 target
+																			1792 文本 回退维持原默认。辅助函数缺失时退回声明根，此时重定向型
+																			1793 文本 CargoTargetDir
+																			1794 文本 仍 MISMATCH 拒绝。
+																			1795 文本 - producer 唯一性、build 消息、linked_paths、dll 身份/哈希、发布槽等后续门原样保留。
+																			1796 文本 A–F 聚焦测试
+																			1797 文本 （真实
+																			1798 文本 ConvertTo-AcceptanceBuildArgs
+																			1799 文本 产出 CargoTargetDir，合成
+																			1800 文本 build-script-executed
+																			1801 文本 驱动真
+																			1802 文本 Export-LoaderArtifact
+																			1803 文本 ，夹具全在
+																			1804 文本 353-loader-boundary/
+																			1805 文本 ）：
+																			1806 文本 - A 默认声明根→SOURCE-MISSING ✓；A2 无 env 时真实相对
+																			1807 文本 --target-dir
+																			1808 文本 →SOURCE-MISSING ✓；B 合法重定向→SOURCE-MISSING ✓；C 错 profile→OUTSIDE-ALLOWED-ROOT ✓；D 默认越界→OUTSIDE-ALLOWED-ROOT ✓；E 重定向下旧声明根残留→OUTSIDE-ALLOWED-ROOT ✓；
+																			1809 文本 F 任意 target 目录→TARGET-ROOT-MISMATCH ✓
+																			1810 文本 （controller-352 反例）。
+																			1811 文本 现有套件
+																			1812 文本 ：
+																			1813 文本 test-package-webview2-loader.ps1
+																			1814 文本 跑完（schtasks 防收割，日志
+																			1815 文本 suite-stdout.log
+																			1816 文本 ）→
+																			1817 文本 36 PASS / 3 FAIL
+																			1818 文本 。3 个失败（L05b/L07d/L08a）同因：夹具
+																			1819 文本 resources=@()
+																			1820 文本 在 package-all.ps1:1380
+																			1821 文本 Test-StaticPageContract -Resources
+																			1822 文本 空数组绑定失败——loader 导出在这三例中均已成功，失败在导出之后的静态页契约阶段；package-all.ps1 与测试文件本轮未动，判定为套件在本宿主 PS 环境的既有失败（已如实标注，请主控以基线复核）。所有 loader 专属门（含 L03a/L03b OUTSIDE-ALLOWED-ROOT）全 PASS。
+																			1823 文本 未做
+																			1824 文本 ：整包重跑（按指示本轮不提交）；3 FAIL 的基线归因未逐 git 历史回溯源（diff 已排除因果）。
+																			1825 文本 边界
+																			1826 文本 ：未安装/重启 8765/触正式库/C 仓/微信/push。报告
+																			1827 文本 devin-loader-root-boundary-353.json
+																			1828 文本 （SHA256
+																			1829 文本 77297fc7…
+																			1830 文本 ）→ queue
+																			1831 文本 queued
+																			1832 文本 ，收据
+																			1833 文本 d-loader-root-boundary-353-executor-notification.json
+																			1834 文本 。本轮结束。
+																			1835 按钮 查看运行过程
+																			1836 time
+																				1837 文本 07:28:54
+																				2327 文本 #1485 · 本轮 11 分 20 秒
+																		1838 文章
+																			1839 文本 D-STARTUP-MEDITATION-354。继续原 island-kayak / Devin SWE-2 max，你仍是唯一产品代码写入者，不新会话/工作树。本轮按用户新优先级插入开机动画修改，暂停原定 WebView2 整包重试：去掉启动动画中的‘酷朱’朱印和左下角人物舞剑，在现有 COOLZHU logo 正下方安排人物盘腿打坐运气动画，注意 1680×900 整体空间比例、留白和字标可读性。主控已生成可用的透明人物候选图，D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/boot-animation/meditating-actor-candidate.png，SHA256=C358C014E2D046FA973A36CD54AAD16A1E0CBC533047A760F8BD295070952148；请先核实形象和 alpha 后作为素材纳入 ui/assets/，若不合适说明并在同一任务内改进。仅改启动演出相关文件：modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js、coolzhu-seven-letter-manifest.js、必要的桥接测试/契约与素材；不要改其它剑客/桌宠历史素材。保留 COOLZHU 原字形、山水卷轴、首次7.8秒/日常6.5秒、跳过/Esc/恢复/减少动态/素材失败以及原生交接契约。人物建议水平居中 x≈840、位于 logo 下方，形体约高 190–230px、下缘不挤底部；用轻微呼吸起伏和低对比气息光晕/粒子表现运气，减少动态模式只静态显示。动画全程不再渲染朱印或舞剑；phase/lastScene/测试/契约相应更新。运行 node modules/gui-desktop/packages/tauri-shell/ui/tests/coolzhu-seven-letter-bridge.cjs，必要的离线 Tauri build/test，生成至少开场、中段、最终定势三帧 1680×900 可查看截图或画布导出到统一验收根 boot-animation/，标明位置尺寸和测试真实退出码，供主控视觉审核。不要完整打包/安装/重启8765，不触正式DB/C旧仓库/微信，不push发布。所有临时产物只放统一验收根。写 devin-startup-meditation-354.json，完成后仅一次通过官方queue调用 devin-report.py d-startup-meditation-354 devin-startup-meditation-354.json 报告主控；如果构建很久则提交受监督job及时报告job_id，不要在模型轮次内空等超时。
+																			1840 time
+																				1841 文本 07:31:54
+																				2328 文本 #1486
+																		1842 文章
+																			1843 文本 D-STARTUP-MEDITATION-CODE-355。原 island-kayak / Devin SWE-2 max 继续，唯一产品代码写入者，不新会话/工作树。第354轮在整体16分钟时限结束，0修改/0报告；本轮只做启动动画源码最小落地，立即动手，不做构建、截图或长时间分析。已知当前 scroll-startup-player.js 的 poses/motionAt/actor/seal/renderAt 是旧舞剑与朱印；manifest actor.frames 指向 swordsman-four-poses-v2.png。把 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/boot-animation/meditating-actor-candidate.png（透明PNG，SHA256 C358C014E2D046FA973A36CD54AAD16A1E0CBC533047A760F8BD295070952148）复制进 ui/assets/p83-coolzhu/actors/，manifest 改成新静态人物 source；scroll-startup-player.js 去掉旧舞剑帧轨迹和 seal 绘制，在现有 COOLZHU logo 下方 x≈840、人物高≈200px（1680×900画布）绘制静坐人物，加轻微呼吸位移/缩放和低对比气息光晕；不遮字标、底部留白。维持 7.8秒/6.5秒、skip/restore/reduced-motion及 bridge 完成契约；reduced-motion 可在已加载资产时静态显示，不能为图片下载拖过120ms。只改两份JS和新PNG，测试/契约/关键帧留第356轮。操作完成立刻写 devin-startup-meditation-code-355.json（列源码文件/SHA和人物rect）并仅一次通过 devin-report.py d-startup-meditation-code-355 devin-startup-meditation-code-355.json 官方queue报告主控，然后结束模型轮次。不要打包/安装/重启8765，不动其它源码/正式DB/C旧仓库/push。临时文件只放统一验收根。
+																			1844 time
+																				1845 文本 07:48:47
+																				2329 文本 #1487
+																		1846 文章
+																			1847 文本 D-STARTUP-MEDITATION-FINISH-356。原 island-kayak / Devin SWE-2 max 继续，唯一产品代码写入者。355整体超时但新PNG、manifest、scroll-startup-player.js已落盘，主控独立Node语法和现有启动生命周期exit0，详见 controller-355-audit.json。本轮只做四个收尾，别重做设计/打包/截图：1 删除 logo() 下方现存剑脊曲线和剑尖，不必动 COOLZHU 原字形/竹叶；2 源图alpha阈值32有效bbox约x158..1127/y139..1116（969×977），当前sourceRect x12/y9/1115×1107导致实际可见人物约176px。请改 sourceRect/anchor 或比例，使可见人物约200px且 x中心≈840、下缘≈745，上方不挡logo、底部留白；3 修整 scroll-startup-player.js 的
+																			1848 文本 } function ambience
+																			1849 文本 同行与未用 lerp，aura 仅在人物资产可用时绘制，减少动态仍保持120ms不等资源；4 更新 scroll-startup-player.contract.md 的舞剑/朱印旧描述，并在既有 Node bridge 测试里加静坐素材、无 seal/sword 状态断言。立即运行 node --check 两份JS 和 node ui/tests/coolzhu-seven-letter-bridge.cjs，记录真实exit。只改上述两份JS、contract、既有测试，不触别处。报告写到统一根 devin-startup-meditation-finish-356.json，完成后仅一次通过 devin-report.py d-startup-meditation-finish-356 devin-startup-meditation-finish-356.json 官方queue报告主控，并及时结束模型轮次。不新会话/工作树、不打包/安装/重启8765、不动正式DB/C旧仓库/push。
+																			1850 time
+																				1851 文本 08:08:02
+																				2330 文本 #1488
+																		1852 文章
+																			1853 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1854 文本 356 收尾。先看
+																			1855 文本 } function ambience
+																			1856 文本 接缝和 logo 剑脊段的当前实文：全部确认。执行源码补丁：源码两处修好。更新契约与既有测试：跑语法校验与桥接测试（真实退出码）：全绿（CHECK1=0/CHECK2=0/TESTRC=0，新静坐断言一并过）。取 SHA 写报告：D-STARTUP-MEDITATION-FINISH-356：
+																			1857 文本 四项收尾完成，测试全绿
+																			1858 文本 ，已上报（
+																			1859 文本 queued
+																			1860 文本 ）
+																			1861 文本 
+																			1862 文本 
+																			1863 文本 改动
+																			1864 文本 （仅两份 JS、contract、既有测试、新 PNG）：
+																			1865 文本 
+																			1866 文本 -
+																			1867 文本 scroll-startup-player.js
+																			1868 文本 （SHA
+																			1869 文本 7e6cad4b…
+																			1870 文本 ）：①
+																			1871 文本 logo()
+																			1872 文本 内删除剑脊曲线与剑尖两段描边，原字形 + 低对比竹叶保留；② 修
+																			1873 文本 } function ambience
+																			1874 文本 同行接缝；③ 删未用
+																			1875 文本 lerp
+																			1876 文本 ；④
+																			1877 文本 aura
+																			1878 文本 仅在人物资产已加载时绘制，减少动态仍 120ms 不等下载。
+																			1879 文本 
+																			1880 文本 -
+																			1881 文本 coolzhu-seven-letter-manifest.js
+																			1882 文本 （SHA
+																			1883 文本 b1e07526…
+																			1884 文本 ）：
+																			1885 文本 sourceRect
+																			1886 文本 改 alpha≥32 有效 bbox
+																			1887 文本 x158/y139/969×977
+																			1888 文本 ，
+																			1889 文本 anchor={x:485,y:977}
+																			1890 文本 → 可见人物
+																			1891 文本 ≈200px 高
+																			1892 文本 ，x 中心 840（约 740.9–939.1），下缘 ≈745±2.4，上缘 ≈545 位于字标下方，底部留白 ≈155。
+																			1893 文本 
+																			1894 文本 -
+																			1895 文本 contract.md
+																			1896 文本 （SHA
+																			1897 文本 60ad41b5…
+																			1898 文本 ）：时间线改 1.90–2.70 静坐人物淡入+定势段保持、全程无朱印/舞剑；人物段、朱印段、验收段同步更新。
+																			1899 文本 
+																			1900 文本 -
+																			1901 文本 tests/coolzhu-seven-letter-bridge.cjs
+																			1902 文本 （SHA
+																			1903 文本 f525085f…
+																			1904 文本 ）：新增断言——静坐单帧素材（含 meditating 且文件存在）、
+																			1905 文本 renderAt(3000)
+																			1906 文本 得
+																			1907 文本 phase=logo-and-meditation
+																			1908 文本 、
+																			1909 文本 figure=meditation
+																			1910 文本 、无
+																			1911 文本 sealText
+																			1912 文本 、
+																			1913 文本 actor.x≈840
+																			1914 文本 且
+																			1915 文本 height≈200±6
+																			1916 文本 。
+																			1917 文本 
+																			1918 文本 -
+																			1919 文本 新素材
+																			1920 文本 
+																			1921 文本 meditating-actor-v1.png
+																			1922 文本 SHA
+																			1923 文本 c358c014…
+																			1924 文本 （=主控候选图）。
+																			1925 文本 
+																			1926 文本 
+																			1927 文本 验证（真实退出码）
+																			1928 文本 ：
+																			1929 文本 node --check
+																			1930 文本 两份 JS → 0/0；
+																			1931 文本 node tests/coolzhu-seven-letter-bridge.cjs
+																			1932 文本 →
+																			1933 文本 exit 0
+																			1934 文本 （完整/日常/Esc/减少动态/资源超时/恢复/创建失败/画布异常边界及全部新断言通过）。
+																			1935 文本 
+																			1936 文本 
+																			1937 文本 未做
+																			1938 文本 ：1680×900 真实帧截图/画布导出视觉验收（本轮按指示不截图）、打包/安装。边界：未触别处源码/正式 DB/C 仓/8765/push。报告
+																			1939 文本 devin-startup-meditation-finish-356.json
+																			1940 文本 （SHA
+																			1941 文本 b3543c8f…
+																			1942 文本 ）→ queue
+																			1943 文本 queued
+																			1944 文本 。本轮结束。
+																			1945 按钮 查看运行过程
+																			1946 time
+																				1947 文本 08:08:02
+																				2331 文本 #1489 · 本轮 2 分 10 秒
+																		1948 文章
+																			1949 文本 D-STARTUP-PACKAGE-LOADER-357。继续原 island-kayak / Devin SWE-2 max，唯一产品代码写入者，不新建会话/工作树。用户现要求完成静坐动画打包安装与开机画面测试。第356轮静坐动画源码及离线Tauri release build已验收，EX-03仍缺完整包、安装与真实画面。先修完整包的前置门，不在本轮安装/启动GUI：第351轮 package-candidate-172 在WebView2Loader导出报OUTSIDE-ALLOWED-ROOT，旧日志见 controller-351-build-audit.json；第353轮收紧根门后定点A-F通过，但 scripts/test-package-webview2-loader.ps1 全套36过3败，L05b/L07d/L08a 均在导出后由 package-all.ps1:1380 Test-StaticPageContract -Resources 空数组绑定失败。请只读核对当前源码、正式manifest根与验收根受控重定向；修正空 resources 时的PowerShell绑定或夹具，保留真实静态资源和安全门。确保导出根只能由manifest定义的build_root按现有受控重定向映射出的确切target/profile推导，不能接受任意CargoTargetDir。补/跑正负例、完整WebView2Loader离线套件，记录每例真实结果和退出码；若可快速做生产包preflight则做，否则报告剩余风险。只改 scripts/package-all.ps1、scripts/lib/webview2-loader.ps1、scripts/test-package-webview2-loader.ps1 中必要部分，不动开机动画、正式DB、C盘旧库、8765、安装、发布。临时文件统一放本验收根。尽量在模型轮次内短时完成，不要等长构建；把变更、hash、测试、阻塞写 devin-startup-package-loader-357.json，完成后仅一次用原plugin__cli_anything_run调用 C:/Python314/python.exe，args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-startup-package-loader-357,devin-startup-package-loader-357.json],workingDirectory=D:/coolzhuagent,timeoutSeconds=30 经官方queue报告，并在聊天室简短回复。若需要受监督长测试，仅提交一次作业并及时报告job_id。不push。
+																			1950 time
+																				1951 文本 08:42:36
+																				2332 文本 #1490
+																		1952 文章
+																			1953 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			1954 文本 357 轮：修
+																			1955 文本 Resources
+																			1956 文本 空数组绑定。先找
+																			1957 文本 Test-StaticPageContract
+																			1958 文本 定义与调用点：看 1380 调用点上下文与测试夹具 manifest 的差异（判定该门应跳过还是夹具需补资源）：门是无条件的且要求恰好一个
+																			1959 文本 gui-web.console-pages
+																			1960 文本 资源。看正式 manifest 资源结构与测试夹具构造，决定修绑定+补夹具：看 resource-copy 阶段如何按 manifest resources 复制（决定夹具资源写法）：磁盘又在降速休眠。用 copy 强制读取到已热的 tmp 区再分段：输出体积限制。缩到 30 行：复制语义明确（
+																			1961 文本 {id,source,target}
+																			1962 文本 递归目录拷贝）。方案：
+																			1963 文本 [AllowEmptyCollection()]
+																			1964 文本 修绑定（保持 fail-closed 语义）+ 夹具 manifest 补一个真实
+																			1965 文本 gui-web.console-pages
+																			1966 文本 资源（带合约源+页面）。定位夹具构建函数边界：看
+																			1967 文本 Write-FixtureText
+																			1968 文本 是否自动建父目录：写入补丁（package-all 空数组守卫 + 夹具补真实 console-pages 资源）：补丁完成。语法校验两份脚本：.rs 内容行被转义污染。用单反引号转义重写该行：两处修改就位（parser errors=0，合约正则与条目格式吻合）。重跑完整离线套件：套件跑着。并行直接验证契约函数在夹具形状输入下通过（模拟 L05b 路径）：契约函数直测通过（errors=0 verified=2）。轮询套件：20 PASS / 0 FAIL（L05b 已过）。继续等终态：L07d（构建模式全跑）进行中。再等一轮：套件全绿
+																			1969 文本 PASS package-webview2-loader
+																			1970 文本 （39 PASS / 0 FAIL）。确认终态行并取 SHA：D-STARTUP-PACKAGE-LOADER-357：
+																			1971 文本 Resources 绑定修复完成，套件 39/39 全绿
+																			1972 文本 ，已上报（
+																			1973 文本 queued
+																			1974 文本 ）
+																			1975 文本 根因
+																			1976 文本 ：
+																			1977 文本 Test-StaticPageContract
+																			1978 文本 的
+																			1979 文本 Mandatory [object[]]$Resources
+																			1980 文本 在夹具
+																			1981 文本 resources=@()
+																			1982 文本 时绑定级崩溃——不是契约判定，是参数绑定异常。L05b/L07d/L08a 三个正例因此挂在导出之后的静态页契约阶段。
+																			1983 文本 修复（两处，loader 未动）
+																			1984 文本 ：
+																			1985 文本 -
+																			1986 文本 package-all.ps1
+																			1987 文本 （SHA
+																			1988 文本 87fe88c7…
+																			1989 文本 ）：调用点加 fail-closed 守卫——
+																			1990 文本 $manifestResources.Count=0
+																			1991 文本 时记同一条契约错误
+																			1992 文本 manifest 必须且只能声明一个 gui-web.console-pages 资源
+																			1993 文本 并走统一
+																			1994 文本 [STATIC-PAGE-CONTRACT]
+																			1995 文本 失败分支；非空仍走原
+																			1996 文本 Test-StaticPageContract
+																			1997 文本 ，真实静态资源逐字节校验与安全门不变。
+																			1998 文本 -
+																			1999 文本 test-package-webview2-loader.ps1
+																			2000 文本 （SHA
+																			2001 文本 f34aa8f2…
+																			2002 文本 ）：
+																			2003 文本 New-LoaderFixture
+																			2004 文本 补
+																			2005 文本 真实
+																			2006 文本 
+																			2007 文本 gui-web.console-pages
+																			2008 文本 资源——
+																			2009 文本 console-pages-src/src/static_resource_contract.rs
+																			2010 文本 （index.html + app.js 两个
+																			2011 文本 include_bytes!
+																			2012 文本 条目）+ 对应页面文件，manifest resources 不再为空。正例走真实资源复制 + 逐字节契约，不再是空数组路径。
+																			2013 文本 边界核验
+																			2014 文本 ：
+																			2015 文本 webview2-loader.ps1
+																			2016 文本 SHA
+																			2017 文本 6f6ec05b…
+																			2018 文本 与 353 轮一致未动——允许根仍严格 = manifest
+																			2019 文本 build_root
+																			2020 文本 经受控
+																			2021 文本 Resolve-AcceptanceOutputPath
+																			2022 文本 重定向后的确切
+																			2023 文本 target/profile
+																			2024 文本 ；
+																			2025 文本 CargoTargetDir
+																			2026 文本 仅为一致性断言，任意值 →
+																			2027 文本 TARGET-ROOT-MISMATCH
+																			2028 文本 。
+																			2029 文本 验证（真实结果）
+																			2030 文本 ：
+																			2031 文本 - PSParser errors=0（两份改动文件）。
+																			2032 文本 - 契约直测：夹具形状输入 →
+																			2033 文本 errors=0 verified=2
+																			2034 文本 （probe
+																			2035 文本 353-loader-boundary/spc-probe
+																			2036 文本 ）。
+																			2037 文本 -
+																			2038 文本 完整离线套件
+																			2039 文本 （schtasks
+																			2040 文本 CU357LoaderSuite
+																			2041 文本 ，日志
+																			2042 文本 suite2-stdout.log
+																			2043 文本 ）：
+																			2044 文本 39 PASS / 0 FAIL
+																			2045 文本 ，末行
+																			2046 文本 PASS package-webview2-loader
+																			2047 文本 ；上轮失败的 L05b/L07d/L08a 全部通过，loader 专属门（含 OUTSIDE-ALLOWED-ROOT 负例）回归全绿。
+																			2048 文本 未做/剩余风险
+																			2049 文本 ：完整生产包 package-candidate-172 端到端重跑（按指示本轮不提交）、安装/GUI 启动/真实开机画面（EX-03 剩余项）、空 resources 端到端负例（守卫与契约错误串同源，逻辑级已核）。报告
+																			2050 文本 devin-startup-package-loader-357.json
+																			2051 文本 （SHA
+																			2052 文本 54fbe57a…
+																			2053 文本 ）→ queue
+																			2054 文本 queued
+																			2055 文本 。本轮结束。
+																			2056 按钮 查看运行过程
+																			2057 time
+																				2058 文本 08:42:36
+																				2333 文本 #1491 · 本轮 11 分 36 秒
+																		2059 文章
+																			2060 文本 D-STARTUP-PACKAGE-SUBMIT-358。继续原 island-kayak / Devin SWE-2 max，唯一产品代码写入者，不新建会话/工作树。用户要求完成静坐开机动画的打包安装及画面测试。主控已审核 controller-357-audit.json：WebView2Loader全套39过0败4条件跳过，正式loader来源根未放宽；第356轮Tauri候选实景字标下静坐画面已见，但安装版未验。主控已关闭自己为观察启动的临时Tauri候选PID，当前无仓库cargo/link活动作业。请先只读确认原绑定、package-candidate-172 action定义及无active同槽作业，然后只提交一次受监督构建：plugin__cli_anything_run 调用 C:/Python314/python.exe，args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/build-client.py,submit,package-candidate-172],workingDirectory=D:/coolzhuagent,timeoutSeconds=30。记录job_id/attempt、收据路径和初态；提交后立即写 devin-startup-package-submit-358.json，并仅一次调用 devin-report.py d-startup-package-submit-358 devin-startup-package-submit-358.json 经官方queue回主控；公开简短回复后结束，不在模型轮次里等长构建、不轮询/重交/取消。若提交失败如实报告、不可重复提交。主控将独立盯作业终态、核包内静坐素材/报告身份后再安排MSI及安装。此轮不安装、不重启8765、不碰正式DB/C旧仓库、微信、push或发布。临时产物全在统一验收根。
+																			2061 time
+																				2062 文本 08:45:47
+																				2334 文本 #1492
+																		2063 文章
+																			2064 文本 Devin SWE-2 真实CU验收 (swe-2-max)
+																			2065 文本 358 轮：提交整包。先只读核查——绑定、action 定义、无同槽活跃作业：旧 job 日志均冻结。看最后 job 状态 + 确认无活跃构建进程：前置满足（旧 job failed、action 名确认、无构建进程、绑定 island-kayak）。唯一一次提交：受理
+																			2066 文本 d937a25ae0624e94abf640e7e9bfdfd8
+																			2067 文本 。立即写报告（不轮询）：D-STARTUP-PACKAGE-SUBMIT-358：
+																			2068 文本 整包已提交（detached，不等待）
+																			2069 文本 ，已上报（
+																			2070 文本 queued
+																			2071 文本 ）
+																			2072 文本 
+																			2073 文本 
+																			2074 文本 -
+																			2075 文本 前置核查
+																			2076 文本 ：绑定 island-kayak/session-1791131217833 未变；action
+																			2077 文本 package-candidate-172
+																			2078 文本 为服务端定义名（旧 job
+																			2079 文本 40fea424…
+																			2080 文本 同 action 已终态 failed，日志冻结）；当前无 cargo/rustc/link/pwsh 构建进程、无同槽活跃作业。
+																			2081 文本 
+																			2082 文本 -
+																			2083 文本 唯一 submit
+																			2084 文本 ：回执
+																			2085 文本 job_id=d937a25ae0624e94abf640e7e9bfdfd8
+																			2086 文本 ，
+																			2087 文本 state=accepted
+																			2088 文本 、
+																			2089 文本 deduplicated=false
+																			2090 文本 ；attempt_id 未取（按指示不调 status）；job log
+																			2091 文本 build-jobs/d937a25ae0624e94abf640e7e9bfdfd8.log
+																			2092 文本 。
+																			2093 文本 
+																			2094 文本 -
+																			2095 文本 包内容基础
+																			2096 文本 ：当前源码含 356 静坐开机动画（新素材 meditating-actor-v1.png + 更新 player/manifest/bridge 测试）、353 loader 根门、357 静态页契约守卫。
+																			2097 文本 
+																			2098 文本 -
+																			2099 文本 未做/主控独立监督
+																			2100 文本 ：job 终态、包内四项 SHA/exe 版本/清单/静坐素材存在性核验、MSI 与安装、真实开机画面。
+																			2101 文本 
+																			2102 文本 -
+																			2103 文本 边界
+																			2104 文本 ：未重复提交/轮询/取消；未安装、未重启 8765、未触正式库/C 仓/微信/push。
+																			2105 文本 
+																			2106 文本 
+																			2107 文本 报告
+																			2108 文本 devin-startup-package-submit-358.json
+																			2109 文本 （SHA
+																			2110 文本 2e33a268…
+																			2111 文本 ）→ queue
+																			2112 文本 queued
+																			2113 文本 。本轮结束。
+																			2114 按钮 查看运行过程
+																			2115 time
+																				2116 文本 08:45:47
+																				2335 文本 #1493 · 本轮 1 分 10 秒
+																		2117 文章
+																			2118 文本 D-GPT6-LUNA-MAX-SMOKE-359。本轮主控已在原 island-kayak/session-1791131217833 将会话精确模型改为 gpt-6-luna-max，reasoning_effort=max，配置版本61。请在原会话仅做最小只读连通验证：确认实际 ACP 生效模型必须为 gpt-6-luna-max；使用附加的 read_file 工具读取 D:/coolzhuagent/Cargo.toml 前25行，摘录 package.name 与前两个 workspace members 作为真实工具结果。不得修改文件、构建、安装、重启、新建会话或触碰旧作业。写报告 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-gpt6-luna-max-smoke-359.json，记录绑定、请求/生效模型、工具结果、可见公开回复与限制；再通过已附加 plugin__cli_anything_run 调用 C:/Python314/python.exe args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-gpt6-luna-max-smoke-359,devin-gpt6-luna-max-smoke-359.json]、workingDirectory=D:/coolzhuagent、timeoutSeconds=30，向主控官方 queue 主动报告一次。公开简短回复后结束。若模型切换失败或工具不可用，如实报告，不虚报成功。主控独立核 HTTP/attempt、模型和文件事实，然后决定下一轮。
+																			2119 time
+																				2120 文本 09:47:52
+																				2336 文本 #1494
+																		2121 文章
+																			2122 文本 Devin SWE-2 真实CU验收 (gpt-6-luna-max)
+																			2123 文本 只读连通验证完成：当前运行时模型为
+																			2124 文本 gpt-6-luna-max
+																			2125 文本 。
+																			2126 文本 read_file
+																			2127 文本 成功读取了
+																			2128 链接 Cargo.toml:1-25 Value: http://127.0.0.1:8765/#
+																			2129 文本 ：
+																			2130 文本 package.name=coolzhu-agent-workspace
+																			2131 文本 ，前两个 workspace members 为
+																			2132 文本 .
+																			2133 文本 和
+																			2134 文本 modules/core-runtime/packages/core-runtime
+																			2135 文本 。读取调用 ID：
+																			2136 文本 tool-22a15dad…
+																			2137 文本 。
+																			2138 文本 
+																			2139 文本 
+																			2140 文本 报告
+																			2141 链接 devin-gpt6-luna-max-smoke-359.json Value: http://127.0.0.1:8765/#
+																			2142 文本 已通过官方 queue 提交，回执为
+																			2143 文本 queued
+																			2144 文本 ；报告 SHA256：
+																			2145 文本 1b9ed4e0…
+																			2146 文本 。上报前两次调用未提交（参数缺少 stage、stdin 含 BOM），修正后本次上报调用
+																			2147 文本 tool-622310b9…
+																			2148 文本 exit 0。
+																			2149 文本 
+																			2150 文本 
+																			2151 文本 reasoning_effort=max
+																			2152 文本 和配置版本 61 是主控提供的信息，当前没有独立 ACP 元数据工具可供核验。未改工程源文件、构建、安装、重启、新建会话或触碰旧作业。
+																			2153 按钮 查看运行过程
+																			2154 time
+																				2155 文本 09:47:52
+																				2337 文本 #1495 · 本轮 3 分 18 秒
+																		2156 文章
+																			2157 文本 D-INSTALLED-STARTUP-VISUAL-360。继续原 island-kayak/session-1791131217833，当前精确模型 gpt-6-luna-max。第359轮主控独立审核：ACP requested/effective 均为 gpt-6-luna-max，terminal/drained1，read_file 正常，原会话与工具许可保留。用户已手动安装 0.2.133；Windows 卸载登记显示 0.2.133，C:/Program Files/CoolzhuAgent/COOLZHU-AGENT.exe 存在，安装版 meditating-actor-v1.png 与 D:/coolzhuagent 源素材 SHA256 相同（c358c014e2d046fa973a36cd54aad16a1e0cbc533047a760f8bd295070952148）。本轮只读/可视验收安装版开机画面：先核实当前正式 8765 PID 和安装版 launcher PID，避免结束/重启现有服务；通过已附加 computer_use_perform 在可见桌面启动或前台显示已安装的 COOLZHU-AGENT，观察开机动画及最终窗口，记录截图/可核证画面、分辨率和判定：COOLZHU 字标下居中静坐运气，旧“酷朱”印章与左下舞剑均不出现，空间比例合理。若无法安全启动或工具拒绝，保留客观收据，不盲目尝试、不得宣称通过。不得写产品源码、重新打包/安装、停止8765或原Devin、清理旧C仓、新建会话/工作树。报告保存 D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-installed-startup-visual-360.json（截图/临时证据也只放此根），再用附加 plugin__cli_anything_run 调用 C:/Python314/python.exe，args=[D:/coolzhuagent/tmp/goal-32wbs-acceptance-20261013/devin-report.py,d-installed-startup-visual-360,devin-installed-startup-visual-360.json]，workingDirectory=D:/coolzhuagent，timeoutSeconds=30，官方queue主动报告一次；如未能写报告就公开说明，不重复投递。主控将核真实HTTP/ACP/可见截图并决定验收。
+																			2158 time
+																				2159 文本 09:51:15
+																				2338 文本 #1496
+																		2160 文章
+																			2161 文本 Devin SWE-2 真实CU验收 (gpt-6-luna-max)
+																			2162 文本 本轮未完成可视验收。
+																			2163 文本 computer_use_perform
+																			2164 文本 在 observation 阶段返回
+																			2165 文本 blocked / target_not_found
+																			2166 文本 ，0 次动作、0 步完成，
+																			2167 文本 input_steps
+																			2168 文本 为空。未核实 8765 或安装版 launcher 的 PID，也未观察到启动动画、分辨率、截图或最终窗口；因此不判通过。按要求未重试，也未启动、停止或重启进程。
+																			2169 文本 
+																			2170 文本 
+																			2171 文本 阻塞事实已写入
+																			2172 链接 devin-installed-startup-visual-360.json Value: http://127.0.0.1:8765/#
+																			2173 文本 （SHA256
+																			2174 文本 eb0c734e…
+																			2175 文本 ），官方 queue 回执为
+																			2176 文本 queued
+																			2177 文本 。用户提供的版本、安装路径和素材哈希本轮未独立核验。
+																			2178 按钮 查看运行过程
+																			2179 time
+																				2180 文本 09:51:15
+																				2339 文本 #1497 · 本轮 1 分 22 秒
+																	55 章节页脚
+																		56 按钮 选择附件 Description: 选择附件
+																		57 编辑 (settable, string) 输入消息，按 Enter 发送... Description: 输入消息，按 Enter 发送...
+																		58 按钮 发送消息。将发送给：Devin SWE-2 真实CU验收 (gpt-6-luna-max) Description: 将发送给：Devin SWE-2 真实CU验收 (gpt-6-luna-max)
+																		59 按钮 (disabled) 语音输入 Description: STT 不可用
+																	2340 缩略图 调整扩展栏宽度 Value: 480
+																	2341 补充 运行轨迹 ID: chat-right-rail
+																		2342 选项卡面板 工具 ID: chat-right-panel-tools
+																			2343 组 运行轨迹工具面板
+																				2344 章节标题
+																					2345 文本 运行轨迹
+																					2346 按钮 返回此前的右栏视图 Description: 返回此前的右栏视图
+																					2347 按钮 关闭当前工具 Description: 关闭当前工具
+																				2348 文章 运行轨迹与安全详情
+																					2349 文本 当前聊天室的运行轨迹
+																					2350 按钮 刷新运行轨迹 Description: 刷新运行轨迹
+																					2351 详细信息
+																						2352 开合三角标记 连接与输入安全详情
+																							2353 文本 连接与输入安全详情
+																						2354 章节页脚 全局系统状态栏
+																							2355 文本 工作区
+																							2356 组 Description: \\?\D:\coolzhuagent
+																								2357 文本 coolzhuagent
+																							2358 图形 本地后端已连接
+																							2359 文本 连接
+																							2360 组 Description: 本地后端已连接
+																								2361 文本 已连接
+																							2362 文本 会话
+																							2363 文本 3 个
+																							2364 文本 归属/恢复
+																							2365 组 Description: 非终态运行行包含正在执行的轮次；“执行已结束但终态提交失败”时该轮会残留在这里，不会被报成已完成。历史归属未记录是迁移前的真实缺口，不会被补值。输入安全恢复分三态：待对账（还在办）／待人工复核（等人）／未获放行的阻断（真的挡路，可由人工放行解除）。人工决定由桌面原生确认记录可信身份与理由，不删除事故记录、不重置安全库；是否开放输入仍由机器重新评估。 最近放行：S-1-5-21-1268417434-179321985-1489660346-1001（epoch 66） 非终态运行行的恢复走既有 orphan 收敛（进程启动时执行）； 遗留 CU 运行的收敛需先满足恢复前置条件，未满足前不写终态。
+																								2366 文本 历史归属未记录待收敛 0 · 收敛待对账 0 · 非终态运行行 0 · 待对账恢复 0 · 历史人工复核记录 7 · 未获放行阻断 0 · 待收敛遗留 0 · 当前输入已开放
+																							2367 按钮 CU 运行… Description: 列出最近的 Computer Use 运行及其事实摘要（每步输入状态／计数／基线／事故）
+																					2368 状态
+																						2369 文本 已定位这条回复的运行记录
+																					2370 详细信息
+																						2371 开合三角标记 已完成 · 199.4 秒 · read_file、plugin__cli_anything_run · 2026/10/15 09:44:34
+																							2372 文本 已完成 · 199.4 秒 · read_file、plugin__cli_anything_run · 2026/10/15 09:44:34
+																						2373 文本 轮次 chat-turn-1792082674074-15 · run-chat-d3b77a88654dfa89adc342b46500e08d90005daad743adaf
+																						2374 按钮 定位本轮提问 Description: 定位本轮提问
+																						2375 组 Description: tool-22a15dad08c0630316dfa9dffe2a4c19c0595c99b2367491ef65fd84cc70e8c0
+																							2376 文本 read_file · 已完成 · 0.6 秒
+																						2377 文本 调用 tool-22a15dad08c0630316dfa9dffe2a4c19c0595c99b2367491ef65fd84cc70e8c0
+																						2378 组 Description: tool-c96d23ccbdecc11915aed3878f8355c5ff8d931c9d29e5367e8318672f5cdbca
+																							2379 文本 plugin__cli_anything_run · 已完成 · 1.3 秒
+																						2380 文本 调用 tool-c96d23ccbdecc11915aed3878f8355c5ff8d931c9d29e5367e8318672f5cdbca
+																						2381 组 Description: tool-302ce48ba360ad120fb548fd964f8d967d92b7da9b7b3de3e0141e059a9bdf57
+																							2382 文本 plugin__cli_anything_run · 已完成 · 0.8 秒
+																						2383 文本 调用 tool-302ce48ba360ad120fb548fd964f8d967d92b7da9b7b3de3e0141e059a9bdf57
+																						2384 组 Description: tool-622310b93fce69c97155817be26b3a5a611b5e20f0750f03c8e975725d32a6b5
+																							2385 文本 plugin__cli_anything_run · 已完成 · 1.9 秒
+																						2386 文本 调用 tool-622310b93fce69c97155817be26b3a5a611b5e20f0750f03c8e975725d32a6b5
+																						2387 文本 模型请求 · 已完成 · 输入 未知 / 输出 未知 token
+								60 区域
+						61 区域
+						62 区域
+		63 标题栏 (settable, string) Value: COOLZHU AGENT 控制台
+			64 菜单栏 系统 ID: MenuBar
+				65 菜单项 系统
+			66 按钮 最小化
+			67 按钮 最大化
+			68 按钮 关闭
+
+Document text: ```
+￼
+```

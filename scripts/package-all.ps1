@@ -5,6 +5,9 @@ param(
   [switch]$SkipBuild,
   [string]$PackageRoot,
   [string]$ReportPath,
+  # 许可证原文须与本次实际构建回执及载荷匹配。
+  [string]$LicenseBundlePath,
+  [string]$LicensePython = 'python',
   # 失败诊断落点（默认 <报告目录>/failures/package-report-failure-<config>-<stamp>.json）。
   # 失败运行**不写**成功报告、**不更新** latest 指针，只写这份诊断；因此
   # "拒绝发布"与"输出失败诊断"两件事可以同时成立（第六轮裁决 §三）。
@@ -41,6 +44,8 @@ $repoPrefix = $repoPath + [System.IO.Path]::DirectorySeparatorChar
 . (Join-Path $repo 'scripts/lib/cargo-build-evidence.ps1')
 . (Join-Path $repo 'scripts/lib/managed-build-capture.ps1')
 . (Join-Path $repo 'scripts/lib/build-capture-bootstrap.ps1')
+# 控制台静态页面契约（include 过滤 + embedded 页面载荷一致性校验）。
+. (Join-Path $repo 'scripts/lib/static-page-contract.ps1')
 
 # ---------------------------------------------------------------------------
 # 本次运行 ID 与阶段追踪。
@@ -166,7 +171,7 @@ if (
 
 # 递归删除只允许命中专用 package/ 或 tmp/ staging，避免参数错误清空源码目录。
 $defaultPackageRoot = Join-Path $repoPath 'package'
-$tmpRoot = Join-Path $repoPath 'tmp'
+$tmpRoot = Get-IdentityTmpRoot -RepoPath $repoPath
 $tmpPrefix = $tmpRoot.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
 $isDefaultPackageRoot = $resolvedPackagePath.Equals(
   [System.IO.Path]::GetFullPath($defaultPackageRoot).TrimEnd('\', '/'),
@@ -230,7 +235,7 @@ foreach ($runtimeResource in @($manifestData.resources | Where-Object { [string]
     throw 'DSH运行资源必须使用固定核验契约且不可声明为optional'
   }
   Set-PackageStage -Stage 'dsh-runtime-preflight' -Detail '固定Node/SDK完整文件集合'
-  $runtimeReceipt = Invoke-DshRuntimeVerification -Repo $repoPath -Root (Join-Path $repoPath ([string]$runtimeResource.source))
+  $runtimeReceipt = Invoke-DshRuntimeVerification -Repo $repoPath -Root (Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path ([string]$runtimeResource.source))
   Add-PackageStageRecord -Stage 'dsh-runtime-preflight' -Outcome 'completed' -Detail ('files={0}; bytes={1}; lock_sha256={2}' -f $runtimeReceipt.file_count, $runtimeReceipt.total_bytes, $runtimeReceipt.lock_sha256) | Out-Null
 }
 
@@ -240,8 +245,8 @@ foreach ($runtimeResource in @($manifestData.resources | Where-Object { [string]
 $resolvedPackageRoot = $null
 $backupKeep = if ($manifestData.backup_keep) { [int]$manifestData.backup_keep } else { 10 }
 $binRoot = $null
-$backupRoot = Join-Path $repo 'tmp\package-backups'
-$logRoot = Join-Path $repo 'tmp/logs'
+$backupRoot = Join-Path $tmpRoot 'package-backups'
+$logRoot = Join-Path $tmpRoot 'logs'
 New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 if (-not $Prepare) {
   if (Test-Path -LiteralPath $resolvedPackagePath) {
@@ -271,7 +276,7 @@ $script:exportSummaries = [System.Collections.Generic.List[object]]::new()
 # PKG-L07c 固定代次语义：本次运行**自己的**消费 staging（派生输出位置）。
 # 每个 export artifact 的产物先复制到这里并复核内容身份，之后打包只从这里取源；
 # 报告也只从本次固定消费收据生成，不重新读取共享输出槽位的"最新收据"。
-$script:consumerStagingRoot = Join-Path $repoPath ('tmp/package-consume/' + $script:packageRunId)
+$script:consumerStagingRoot = Join-Path $tmpRoot ('package-consume/' + $script:packageRunId)
 $script:exportConsumptions = @{}
 $releaseVersion = [string]$env:COOLZHU_RELEASE_VERSION
 
@@ -375,6 +380,8 @@ function Invoke-ArtifactBuild {
   if ($Artifact.build.args) {
     $args = @($Artifact.build.args | ForEach-Object { Expand-PackageToken ([string]$_) })
   }
+  # 显式 opt-in 时把 cargo --target-dir 定向到验收根；默认（未设置 env）原样透传。
+  $args = @(ConvertTo-AcceptanceBuildArgs -RepoPath $repoPath -Arguments $args)
   if ($Configuration -eq 'release' -and $Artifact.build.append_release_arg -ne $false) {
     if (-not ($args -contains '--release')) {
       $args += '--release'
@@ -402,7 +409,7 @@ function Invoke-ArtifactBuild {
       Write-Host "capture build messages: $stdoutPath"
       if (-not $script:buildCaptureBootstrap) {
         $script:buildCaptureBootstrap = New-BuildCaptureBootstrap -RepoPath $repoPath `
-          -TargetDirectory (Join-Path $repoPath 'tmp/cargo-target-build-capture') `
+          -TargetDirectory (Join-Path $tmpRoot 'cargo-target-build-capture') `
           -EvidenceDirectory (Join-Path $logRoot ('capture-bootstrap-' + $script:packageRunId))
         $bootstrap = $script:buildCaptureBootstrap
         $script:artifactBuildInputs['package.build-capture'] = [pscustomobject]@{
@@ -528,6 +535,8 @@ function New-LoaderExportContext {
   if ($buildEntryArtifact.build -and $buildEntryArtifact.build.args) {
     $entryArgs = @($buildEntryArtifact.build.args | ForEach-Object { Expand-PackageToken ([string]$_) })
   }
+  # 与真实构建同一条定向规则，保证导出/消费定位的 target 目录就是本次构建写入的目录。
+  $entryArgs = @(ConvertTo-AcceptanceBuildArgs -RepoPath $repoPath -Arguments $entryArgs)
   $cargoTargetDir = $null
   for ($index = 0; $index -lt $entryArgs.Count; $index++) {
     if ($entryArgs[$index] -eq '--target-dir' -and ($index + 1) -lt $entryArgs.Count) {
@@ -559,7 +568,7 @@ function New-LoaderExportContext {
     ArtifactId = $artifactId
     Profile = $Configuration
     RepoPath = $repoPath
-    StablePath = Resolve-RepoPath ([string]$Artifact.source)
+    StablePath = Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path (Resolve-RepoPath ([string]$Artifact.source))
     ReceiptPath = Resolve-RepoPath ([string]$Export.receipt)
     BuildEntryArtifact = $buildEntryId
     BuildEntryManifest = $buildEntryManifest
@@ -702,7 +711,7 @@ function New-LoaderExportSummary {
 function Resolve-ArtifactSource {
   param([object]$Artifact)
 
-  $requestedSource = Resolve-RepoPath ([string]$Artifact.source)
+  $requestedSource = Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path (Resolve-RepoPath ([string]$Artifact.source))
   if (-not $Artifact.export) {
     return $requestedSource
   }
@@ -887,7 +896,7 @@ function Assert-PackageChildPath {
 function Copy-PackageResource {
   param([object]$Resource)
   Set-PackageStage -Stage 'resource-copy' -Detail ([string]$Resource.id)
-  $source = Resolve-RepoPath ([string]$Resource.source)
+  $source = Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path (Resolve-RepoPath ([string]$Resource.source))
   $target = Resolve-PackagePath ([string]$Resource.target)
   [void](ConvertTo-RepoRelativePath $source)
   [void](ConvertTo-PackageRelativePath $target)
@@ -905,15 +914,20 @@ function Copy-PackageResource {
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
   Assert-PackageChildPath -Path $target
   if ((Get-Item -LiteralPath $source).PSIsContainer) {
-    if (Test-Path -LiteralPath $target) {
+    # include 过滤的资源只合并不清空目标目录（其目标可能是其它资源的父级，
+    # 例如 web-console 根目录同时也是 tools/assets/models 资源的父级）；
+    # 无 include 的资源维持整目录替换语义。
+    $includePatterns = @($Resource.include | ForEach-Object { [string]$_ })
+    if ((Test-Path -LiteralPath $target) -and ($includePatterns.Count -eq 0)) {
       Remove-Item -LiteralPath $target -Recurse -Force
     }
     New-Item -ItemType Directory -Force -Path $target | Out-Null
+
     $resolvedSourceRoot = (Resolve-Path -LiteralPath $source).Path.TrimEnd('\', '/')
     $resolvedSourcePrefix = $resolvedSourceRoot + [System.IO.Path]::DirectorySeparatorChar
     Get-ChildItem -LiteralPath $resolvedSourceRoot -File -Recurse -Force | ForEach-Object {
       $relativePath = $_.FullName.Substring($resolvedSourcePrefix.Length)
-      if ($relativePath -notmatch $packageResourceExcludedPathPattern) {
+      if (Test-PackageResourceIncluded -RelativePath $relativePath -IncludePatterns $includePatterns -ExcludePattern $packageResourceExcludedPathPattern) {
         $destination = Join-Path $target $relativePath
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath $_.FullName -Destination $destination -Force
@@ -1360,6 +1374,26 @@ foreach ($resource in @($manifestData.resources)) {
 Add-PackageStageRecord -Stage 'resource-copy' -Outcome 'completed' -Detail ('resources copied: {0}' -f @($manifestData.resources).Count) | Out-Null
 
 # ---------------------------------------------------------------------------
+# 控制台静态页面契约：release 后端以 include_bytes! 内嵌页面字节执行\"拒绝混版\"
+# 预检（static_resource_contract.rs）。manifest 漏收页面文件会让 MSI 覆盖安装保留
+# 旧静态文件、新后端拒载控制台。这里以合约源文件为权威清单，逐文件校验包根页面
+# 字节与本次构建输入一致；不一致即拒绝发布，不改变\"拒绝混版\"原则也不绕过校验。
+# ---------------------------------------------------------------------------
+Set-PackageStage -Stage 'static-page-contract' -Detail $null
+$manifestResources = @($manifestData.resources)
+  # 空 resources 是绑定级失败而不是契约证据；fail-closed 记同一条契约错误再走统一失败分支。
+  $staticPageContract = if ($manifestResources.Count -eq 0) {
+    [ordered]@{ errors = @('manifest 必须且只能声明一个 gui-web.console-pages 资源'); verified = 0 }
+  } else {
+    Test-StaticPageContract -Resources $manifestResources -RepoPath $repoPath -PackageRoot $resolvedPackageRoot
+  }
+if (@($staticPageContract.errors).Count -gt 0) {
+  Add-PackageStageRecord -Stage 'static-page-contract' -Outcome 'failed' -Detail (@($staticPageContract.errors) -join '; ') | Out-Null
+  throw ("[STATIC-PAGE-CONTRACT] profile={0}`ndetail: 控制台页面载荷与构建输入不一致（{1} 条）：{2}`nnext: 补齐 gui-web.console-pages 资源（index.html + 合约 src 页面）并重打包；不要向新后端交付旧静态文件" -f $Configuration, @($staticPageContract.errors).Count, (@($staticPageContract.errors) -join '; '))
+}
+Add-PackageStageRecord -Stage 'static-page-contract' -Outcome 'completed' -Detail ('内嵌页面文件与构建输入逐字节一致：{0}' -f [int]$staticPageContract.verified) | Out-Null
+
+# ---------------------------------------------------------------------------
 # 构建后复核：与构建前的冻结快照**逐文件**比较（含新增/删除）。
 # 这不是"首尾各哈希一次"：构建后再做一次两遍静默枚举，任何并发编辑都会以
 # added/removed/modified 的具体路径在这里 fail-closed，而不是被当成一致。
@@ -1542,6 +1576,153 @@ function Resolve-ExternalBuildInputVerification {
   return [pscustomobject]$result
 }
 
+# 本轮重跑导出物的来源核验（裁决第 9 条对 export 产物的补强）：
+# 导出产物（如 gui-desktop.webview2-loader）没有 build 声明、稳定导出槽位也在
+# 声明源码快照范围之外；但当生产者构建脚本在本次调用内真实重跑时，
+# “本次生产记录 + 字节链一致 + 构建输入身份 + 外部锁来源核验”构成完整证据链。
+# 任一环节缺失/不符：verified=$false + reason（fail-closed，不写通过结论）。
+function Resolve-ThisRunExportProvenance {
+  param(
+    [Parameter(Mandatory = $true)][object]$ArtifactRecord,
+    [AllowNull()][object]$ExportSummary,
+    [Parameter(Mandatory = $true)][object]$Entry,
+    [Parameter(Mandatory = $true)][string]$RunId,
+    [object]$ManifestData,
+    [Parameter(Mandatory = $true)][string]$WorkspacePath,
+    [Parameter(Mandatory = $true)][object[]]$Results,
+    [Parameter(Mandatory = $true)][string]$Profile
+  )
+  $result = [ordered]@{
+    verified = $false
+    reason = $null
+    evidence = $null
+    external_input = $null
+  }
+  if (-not $ExportSummary) {
+    $result.reason = 'export-summary-missing：本次运行没有该产物的导出摘要'
+    return [pscustomobject]$result
+  }
+  $consumption = $ExportSummary.consumption
+  if (-not $consumption) {
+    $result.reason = 'consumption-missing：导出摘要没有本次固定消费记录'
+    return [pscustomobject]$result
+  }
+  # 1) 本次真实生产者构建记录：生产/消费双方都必须属于本次运行。
+  if ([string]$ExportSummary.producer_run_id -ne $RunId) {
+    $result.reason = ('producer-run-mismatch：producer_run_id={0} 不是本次运行 {1}' -f [string]$ExportSummary.producer_run_id, $RunId)
+    return [pscustomobject]$result
+  }
+  if ([string]$consumption.consumer_run_id -ne $RunId) {
+    $result.reason = ('consumer-run-mismatch：consumer_run_id={0} 不是本次运行 {1}' -f [string]$consumption.consumer_run_id, $RunId)
+    return [pscustomobject]$result
+  }
+  if (-not $consumption.consumption_verified -or -not $consumption.consumed_content_matches_generation) {
+    $result.reason = 'consumption-not-verified：固定消费记录未通过 pointer+generation-record+declared-receipt 三方核对'
+    return [pscustomobject]$result
+  }
+  if ([string]::IsNullOrWhiteSpace([string]$ExportSummary.generation)) {
+    $result.reason = 'generation-missing：导出摘要没有明确代次'
+    return [pscustomobject]$result
+  }
+  # 2) 字节链一致：本次消费的字节 = 代次登记产物 = 稳定导出 = 包内实际复制来源。
+  $expectedSha = ([string]$Entry.source_sha256).Trim().ToLowerInvariant()
+  foreach ($pair in @(
+      @('stable_export_sha256', [string]$ExportSummary.stable_export_sha256),
+      @('artifact_digest', [string]$ExportSummary.artifact_digest),
+      @('consumption.staged_sha256', [string]$consumption.staged_sha256))) {
+    if ([string]::IsNullOrWhiteSpace($pair[1]) -or $pair[1].Trim().ToLowerInvariant() -ne $expectedSha) {
+      $result.reason = ('byte-identity-mismatch:{0}：导出收据与本次消费的字节哈希不一致' -f $pair[0])
+      return [pscustomobject]$result
+    }
+  }
+  # 3) 构建入口与本轮构建输入的关联。注意：receipt 的 build_input_digest 是**构建入口子集**
+  #    摘要（artifact 声明 + 入口源码/配置 + manifest/lockfile + target/profile/cargo dir/version），
+  #    不能与全量构建输入摘要强行等同；关联靠下面三条直接证据（内部一致 + 本轮构建 + 当前树逐字一致）。
+  $identity = $ExportSummary.build_identity
+  $exportBid = $(if ($identity) { [string]$identity.build_input_digest } else { $null })
+  $consumeBid = [string]$ExportSummary.build_input_digest
+  if ([string]::IsNullOrWhiteSpace($exportBid) -or $exportBid.Trim().ToLowerInvariant() -ne ([string]$consumeBid).Trim().ToLowerInvariant()) {
+    $result.reason = 'build-input-identity-mismatch：导出与消费的 build_input_digest 不一致/缺失，无法证明构建入口关联当前构建输入'
+    return [pscustomobject]$result
+  }
+  # 3a) 构建入口 artifact 在本轮确实完成：manifest 有 build 声明且本轮产生结果。
+  $buildEntryId = [string]$ArtifactRecord.export.build_entry_artifact
+  if ([string]::IsNullOrWhiteSpace($buildEntryId)) {
+    $result.reason = 'build-entry-missing：export 声明没有 build_entry_artifact'
+    return [pscustomobject]$result
+  }
+  $buildEntryResult = @($Results | Where-Object { [string]$_.id -eq $buildEntryId })[0]
+  $buildEntryRecord = @($ManifestData.artifacts | Where-Object { [string]$_.id -eq $buildEntryId })[0]
+  if (-not $buildEntryResult -or -not $buildEntryRecord -or -not $buildEntryRecord.build) {
+    $result.reason = ('build-entry-not-built-this-run：构建入口 {0} 没有 build 声明或本轮没有产出结果' -f $buildEntryId)
+    return [pscustomobject]$result
+  }
+  # 3b) receipt 声明的入口源码/配置身份 = 当前已验证树：按声明 spec 重算 source_identity 逐字一致。
+  if ([string]::IsNullOrWhiteSpace([string]$identity.source_identity_sha256) -or -not $identity.source_identity_file_count -or [int]$identity.source_identity_file_count -le 0) {
+    $result.reason = 'source-identity-missing：导出摘要没有构建入口的源码/配置文件身份'
+    return [pscustomobject]$result
+  }
+  try {
+    $currentIdentity = Get-LoaderSourceIdentity -RepoPath $WorkspacePath -Spec $ArtifactRecord.export.source_identity -Profile $Profile
+  } catch {
+    $result.reason = ('source-identity-recompute-failed：当前树重算失败（{0}）' -f (($_.Exception.Message -split "`n")[0]))
+    return [pscustomobject]$result
+  }
+  if ([string]$currentIdentity.tree_sha256 -ne ([string]$identity.source_identity_sha256).Trim().ToLowerInvariant() `
+      -or [int]$currentIdentity.file_count -ne [int]$identity.source_identity_file_count) {
+    $result.reason = ('source-identity-mismatch-current-tree：receipt {0}/{1} != current {2}/{3}（入口源码与本轮快照不符）' -f [string]$identity.source_identity_sha256, [string]$identity.source_identity_file_count, [string]$currentIdentity.tree_sha256, [string]$currentIdentity.file_count)
+    return [pscustomobject]$result
+  }
+  # 3c) receipt 声明的 manifest/lockfile 哈希 = 当前文件：两者是声明构建输入，
+  #     构建前后稳定由 build_input_stability 门单独裁决；此处核 receipt 与当前树一致。
+  foreach ($probe in @(
+      @('build_entry_manifest', [string]$ArtifactRecord.export.build_entry_manifest, [string]$identity.build_entry_manifest_sha256),
+      @('lockfile', [string]$ArtifactRecord.export.lockfile, [string]$identity.lockfile_sha256))) {
+    $probePath = [System.IO.Path]::GetFullPath((Join-Path $WorkspacePath ($probe[1].Replace('/', '\\'))))
+    $probeIdentity = Get-LoaderFileIdentity $probePath
+    if (-not $probeIdentity -or [string]::IsNullOrWhiteSpace($probe[2]) `
+        -or $probeIdentity.sha256.Trim().ToLowerInvariant() -ne $probe[2].Trim().ToLowerInvariant()) {
+      $result.reason = ('build-entry-file-hash-mismatch:{0}：receipt 声明的哈希与当前文件不符' -f $probe[0])
+      return [pscustomobject]$result
+    }
+  }
+  # 4) 外部锁来源：生产者 crate 必须命中 manifest external_build_inputs 且与 Cargo.lock 逐字比对通过。
+  $externalInput = Resolve-ExternalBuildInputVerification `
+    -PackageId ([string]$ExportSummary.producer_package_id) `
+    -ManifestData $ManifestData `
+    -WorkspacePath $WorkspacePath
+  if (-not $externalInput.verified) {
+    $result.reason = ('external-input-verification-failed：{0}' -f [string]$externalInput.reason)
+    return [pscustomobject]$result
+  }
+  $result.external_input = [ordered]@{
+    id = $externalInput.id
+    crate = $externalInput.crate
+    version = $externalInput.version
+    checksum = $externalInput.checksum
+    registry_source = $externalInput.registry_source
+    checksum_authority = $externalInput.checksum_authority
+    verified_from = 'manifest-declared-checksum-equals-cargo-lock-checksum'
+  }
+  $result.evidence = [ordered]@{
+    generation = [string]$ExportSummary.generation
+    slot_key = [string]$ExportSummary.slot_key
+    producer_run_id = [string]$ExportSummary.producer_run_id
+    artifact_digest = [string]$ExportSummary.artifact_digest
+    receipt_digest = [string]$ExportSummary.receipt_digest
+    build_input_digest = $exportBid
+    source_identity_sha256 = [string]$identity.source_identity_sha256
+    source_identity_file_count = [int]$identity.source_identity_file_count
+    build_entry_artifact = [string]$ArtifactRecord.export.build_entry_artifact
+    build_entry_source_identity_recomputed = [string]$currentIdentity.tree_sha256
+    build_entry_file_count = [int]$currentIdentity.file_count
+    build_entry_manifest_lockfile_verified = $true
+    verification = 'producer-rerun-in-this-run + consumed-bytes==generation==stable-export + entry-scoped-build-input-identity + build-entry-built-this-run + source-identity-recomputed + manifest/lockfile-verified + external-lock-verified'
+  }
+  $result.verified = $true
+  return [pscustomobject]$result
+}
+
 $artifactProvenance = [System.Collections.Generic.List[object]]::new()
 $externalInputsVerified = [System.Collections.Generic.List[object]]::new()
 $provenanceUnconfirmed = [System.Collections.Generic.List[string]]::new()
@@ -1620,6 +1801,27 @@ foreach ($result in @($results)) {
     } else {
       if ($entry.source_in_declared_snapshot_scope) {
         $entry.confirmation = 'declared-source-file-covered-by-verified-snapshot'
+      } elseif ($isExport -and $entry.producer_build_script_rerun -eq $true) {
+        # 本轮真实重跑的导出物：无 build 声明且来源在声明快照外，但导出/消费
+        # 证据链都在本次运行内（生产者重跑 + 字节一致 + 构建输入身份 + 外部锁核验）⇒ 可确认。
+        $exportInput = Resolve-ThisRunExportProvenance `
+          -ArtifactRecord $artifactRecord `
+          -ExportSummary $exportSummary `
+          -Entry $entry `
+          -RunId $script:packageRunId `
+          -ManifestData $manifestData `
+          -WorkspacePath $repo `
+          -Results $results `
+          -Profile $Configuration
+        if ($exportInput.verified) {
+          $entry.confirmation = 'declared-export-verified-this-run'
+          $entry.external_input_verified = $true
+          $entry.export_provenance = $exportInput.evidence
+          $entry.external_input = $exportInput.external_input
+          $externalInputsVerified.Add([pscustomobject]$exportInput.external_input) | Out-Null
+        } else {
+          $entry.confirmation_reason = ('本轮重跑导出物证据链未完整核验（{0}）⇒ 无法确认它对应本次快照' -f [string]$exportInput.reason)
+        }
       } else {
         $entry.confirmation_reason = ('该产物没有 build 声明，且其来源不落在声明源码快照范围内（classified={0}）⇒ 无法确认它对应本次快照' -f $entry.source_classification)
       }
@@ -1754,8 +1956,6 @@ Add-PackageStageRecord -Stage 'artifact-provenance' -Outcome $(if ($releaseEligi
 # 清单载体自身排除在 payload_digest 之外：否则形成自引用固定点。
 # ---------------------------------------------------------------------------
 $payloadInventoryRelative = $script:PayloadInventoryCarrierName
-$payload = Get-PayloadInventory -Root $resolvedPackageRoot -RepoPath $repoPath -ExcludeRelativePaths @($payloadInventoryRelative)
-Write-Host ("payload identity: files={0} bytes={1} digest={2}" -f $payload.file_count, $payload.total_bytes, $payload.digest)
 
 # 报告落点与报告 ID 先定：产物清单要引用报告 ID 与内容哈希。
 $reportStamp = Get-Date -Format 'yyyyMMdd-HHmmssfff'
@@ -1796,6 +1996,27 @@ $cargoBuildEvidence = @(
       -RecordPath $buildInput.raw_record_path -ExpectedSha256 $buildInput.raw_record_sha256
   }
 )
+# 许可证先入包再冻结载荷摘要，不能在签收后追加未登记文件。
+$licenseCoverage = [ordered]@{ status = 'not-staged'; note = '未提供完整许可证包，不能据此声称交付许可已验收' }
+if ($LicenseBundlePath) {
+  if ($SkipBuild -or $cargoBuildEvidence.Count -eq 0) { throw '许可证入包必须绑定本次实际成功构建，禁止SkipBuild' }
+  $captureListPath = Join-Path $reportParent "$($script:packageRunId)-license-captures.json"
+  [IO.File]::WriteAllText($captureListPath, (ConvertTo-Json -InputObject @($cargoBuildEvidence) -Depth 8), [Text.UTF8Encoding]::new($false))
+  $licenseOutput = Join-Path $resolvedPackageRoot 'third-party-licenses'
+  & $LicensePython (Join-Path $repoPath 'scripts/stage-verified-license-bundle.py') `
+    --root $repoPath --bundle $LicenseBundlePath --payload $resolvedPackageRoot `
+    --captures $captureListPath --output $licenseOutput
+  if ($LASTEXITCODE -ne 0) { throw '许可证与本次实际构建/载荷不匹配，拒绝生成成功包报告' }
+  $coveragePath = Join-Path $licenseOutput 'current-build-coverage.json'
+  $licenseCoverage = [ordered]@{
+    status = 'verified'
+    path = 'third-party-licenses/current-build-coverage.json'
+    sha256 = Get-OptionalHash $coveragePath
+    source_bundle_sha256 = Get-OptionalHash (Join-Path $LicenseBundlePath 'components.json')
+  }
+}
+$payload = Get-PayloadInventory -Root $resolvedPackageRoot -RepoPath $repoPath -ExcludeRelativePaths @($payloadInventoryRelative)
+Write-Host ("payload identity: files={0} bytes={1} digest={2}" -f $payload.file_count, $payload.total_bytes, $payload.digest)
 $report = [ordered]@{
   generated_at = (Get-Date).ToUniversalTime().ToString('o')
   # 本次运行 ID：失败诊断与成功报告共用同一概念，便于把"同一次运行的成功/失败"对上。
@@ -1917,6 +2138,7 @@ $report = [ordered]@{
   # 导出物登记：谁产出、产出到哪、内容身份、复用性质 + 固定代次语义 + 精确消费关联
   # （PKG-L07c 补强授权项；字段见 scripts/package-all.ps1 的 New-LoaderExportSummary）。
   exported_artifacts = @($script:exportSummaries)
+  third_party_licenses = $licenseCoverage
   cargo_build_evidence = [ordered]@{
     status = $(if ($SkipBuild) { 'not-collected-no-build' } elseif ($cargoBuildEvidence.Count -eq 0) { 'not-collected' } else { 'collected' })
     entries = $cargoBuildEvidence
@@ -2239,13 +2461,13 @@ return [pscustomobject]$pointer
     $revocationEntries = [System.Collections.Generic.List[object]]::new()
     if ($manifestData -and ($observedSourceChanges -or $observedBuildInputChanges)) {
       foreach ($artifact in @($manifestData.artifacts)) {
-        $sourcePath = Resolve-RepoPath ([string]$artifact.source)
+        $sourcePath = Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path (Resolve-RepoPath ([string]$artifact.source))
         $sourceSha = $null
         if (Test-Path -LiteralPath $sourcePath -PathType Leaf) { $sourceSha = Get-OptionalHash $sourcePath }
         $stableSha = $null
         $receiptPath = $null
         if ($artifact.export) {
-          $stablePath = Resolve-RepoPath ([string]$artifact.source)
+          $stablePath = Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path (Resolve-RepoPath ([string]$artifact.source))
           if (Test-Path -LiteralPath $stablePath -PathType Leaf) { $stableSha = Get-OptionalHash $stablePath }
           $receiptPath = ConvertTo-RepoRelativePath (Resolve-RepoPath ([string]$artifact.export.receipt))
         }

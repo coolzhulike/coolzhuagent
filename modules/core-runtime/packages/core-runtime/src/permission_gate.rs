@@ -804,4 +804,80 @@ mod tests {
         assert_eq!(report.decision, PermissionDecision::AllowAuto);
         assert_eq!(report.protected_match, None);
     }
+
+    // D-PERMISSION-FULLACCESS-281 负例矩阵（隔离单元测试，不启用真实 FullAccess）。
+
+    #[test]
+    fn full_access_unknown_tool_still_denied() {
+        let inv = invoke("undeclared_dynamic_tool_x");
+        let report = evaluate_permission(
+            &inv,
+            PermissionMode::Unspecified,
+            &[],
+            Path::new("/home/u/ws"),
+            &default_protected_rules(),
+            &SessionGrantView::default(),
+            PermissionProfile::FullAccess,
+        );
+        assert_eq!(report.decision, PermissionDecision::Deny);
+        assert!(report.reason.contains("no declared minimum-permission"));
+    }
+
+    #[test]
+    fn full_access_known_danger_tool_allow_auto_baseline() {
+        let inv = invoke("bash");
+        let report = evaluate_permission(
+            &inv,
+            PermissionMode::DangerFullAccess,
+            &[],
+            Path::new("/home/u/ws"),
+            &default_protected_rules(),
+            &SessionGrantView::default(),
+            PermissionProfile::FullAccess,
+        );
+        assert_eq!(report.decision, PermissionDecision::AllowAuto);
+        assert_eq!(report.reason, "full-access-profile");
+    }
+
+    #[test]
+    fn subtask_held_outside_approval_cannot_escalate() {
+        // 父级可以处于 FullAccess；携带自身冻结权限档的子任务上下文
+        // 不能继承或升权（profile 每次调用按值传入）。
+        let inv = invoke("bash");
+        let report = evaluate_permission(
+            &inv,
+            PermissionMode::DangerFullAccess,
+            &[],
+            Path::new("/home/u/ws"),
+            &default_protected_rules(),
+            &SessionGrantView::default(),
+            PermissionProfile::OutsideApproval,
+        );
+        assert_eq!(report.decision, PermissionDecision::RequireConfirm);
+    }
+
+    #[test]
+    fn revoked_full_access_blocks_follow_up_call() {
+        let inv = invoke("bash");
+        let before = evaluate_permission(
+            &inv,
+            PermissionMode::DangerFullAccess,
+            &[],
+            Path::new("/home/u/ws"),
+            &default_protected_rules(),
+            &SessionGrantView::default(),
+            PermissionProfile::FullAccess,
+        );
+        assert_eq!(before.decision, PermissionDecision::AllowAuto);
+        let after = evaluate_permission(
+            &inv,
+            PermissionMode::DangerFullAccess,
+            &[],
+            Path::new("/home/u/ws"),
+            &default_protected_rules(),
+            &SessionGrantView::default(),
+            PermissionProfile::OutsideApproval,
+        );
+        assert_eq!(after.decision, PermissionDecision::RequireConfirm);
+    }
 }

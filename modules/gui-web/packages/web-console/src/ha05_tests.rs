@@ -1,0 +1,159 @@
+//! HA-05真实共享循环；本地provider只控制响应，工具仍经过宿主执行。
+use super::*;
+use std::sync::atomic::Ordering;
+
+fn save(name: &str, value: JsonValue) {
+    if let Ok(dir)=std::env::var("COOLZHU_HARNESS_EVIDENCE_DIR") {
+        std::fs::write(Path::new(&dir).join(format!("ha05-{name}.json")),serde_json::to_vec_pretty(&value).unwrap()).unwrap();
+    }
+}
+fn prepare(room: &str, tools: &[&str]) {
+    let mut config=workspace_config().lock().unwrap();
+    config.model.enable_real_llm=true;config.model.enable_llm_tools=true;config.model.llm_tool_exposure=Some("all".into());
+    config.tool.execution.max_feedback_rounds=8;
+    config.session_model_limits.entry("target-text".into()).or_default().tool_allowlist=Some(tools.iter().map(|name|name.to_string()).collect());
+    drop(config);
+    let mut store=session_store().lock().unwrap();
+    store.state.chat_rooms.push(PersistedChatRoom{id:room.into(),name:room.into(),created_at:1,updated_at:1,messages:vec![]});
+    store.state.active_chat_room_id=Some(room.into());store.save().unwrap();drop(store);
+    set_chat_room_permission_profile_sqlite(&default_session_sqlite_path(),room,ROOM_PERMISSION_FULL_ACCESS).unwrap();
+}
+async fn send(room: &str) -> JsonValue {
+    let Json(response)=Box::pin(api_chat_send(Json(serde_json::from_value(json!({"target_agent_ids":["target-text"],
+        "session_id":"target-text","chat_room_id":room,"text":format!("场景 {room}：执行指定工具，按实际结果继续直到明确完成或阻断。")})).unwrap()))).await.unwrap();
+    serde_json::to_value(response).unwrap()
+}
+fn completion(request: &JsonValue, call: Option<(&str,JsonValue)>) -> Json<JsonValue> {
+    let tool=call.is_some();
+    let message=match call {
+        Some((name,input))=>json!({"role":"assistant","content":null,"tool_calls":[{"id":"reused-provider-id","type":"function","function":{"name":name,"arguments":input.to_string()}}]}),
+        None=>json!({"role":"assistant","content":"HA05_CONFIRMED_COMPLETE"}),
+    };
+    Json(json!({"id":"ha05-response","object":"chat.completion","model":request["model"],
+        "choices":[{"index":0,"message":message,"finish_reason":if tool {"tool_calls"} else {"stop"}}],"usage":{"prompt_tokens":10,"completion_tokens":3}}))
+}
+
+#[derive(Clone,Copy,Debug)]
+enum Scenario { RunningThenDone, PermanentFailure, ExternalRecovery }
+async fn loop_case(scenario: Scenario) {
+    let room=format!("ha05-loop-{scenario:?}");
+    let captures=Arc::new(Mutex::new(Vec::<JsonValue>::new()));let seen=captures.clone();
+    let router=Router::new().route("/v1/chat/completions",post(move |Json(request):Json<JsonValue>| {
+        let seen=seen.clone();async move {
+            let index={let mut calls=seen.lock().unwrap();calls.push(request.clone());calls.len()-1};
+            let workspace=active_workspace_path();
+            std::fs::write(workspace.join("failure.txt"),format!("error_code=PERMANENT_FIXTURE timestamp={index}")).unwrap();
+            if matches!(scenario,Scenario::RunningThenDone) {
+                std::fs::write(workspace.join("job-status.json"),if index<2 {r#"{"status":"running","version":1}"#} else {r#"{"status":"completed","version":2}"#}).unwrap();
+            }
+            if matches!(scenario,Scenario::ExternalRecovery) && index==2 {std::fs::write(workspace.join("ready.txt"),"external version 2").unwrap();}
+            if index>=3 && !matches!(scenario,Scenario::PermanentFailure) {return completion(&request,None);}
+            assert!(index<9,"有限失败未停止，不能无限请求");
+            let call=if matches!(scenario,Scenario::RunningThenDone) {
+                ("read_file",json!({"path":workspace.join("job-status.json").display().to_string()}))
+            } else {
+                let command=if matches!(scenario,Scenario::ExternalRecovery) {"if exist ready.txt (echo recovered & exit /b 0) else (type failure.txt 1>&2 & exit /b 7)"}
+                    else {"type failure.txt 1>&2 & exit /b 7"};
+                ("bash",json!({"command":command,"cwd":workspace.display().to_string(),"timeout":10}))
+            };
+            completion(&request,Some(call))
+        }
+    }));
+    let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();let url=format!("http://{}",listener.local_addr().unwrap());
+    let server=tokio::spawn(async move {axum::serve(listener,router).await.unwrap();});
+    let _isolated=multimodal_input::tests::IsolatedState::install(&url);prepare(&room,&["read_file","bash"]);
+    let before=HARNESS_L1_TRIGGERS.load(Ordering::Relaxed);
+    let output=tokio::time::timeout(Duration::from_secs(30),send(&room)).await.unwrap();
+    let triggers=HARNESS_L1_TRIGGERS.load(Ordering::Relaxed)-before;
+    let requests=captures.lock().unwrap().clone();
+    let db=open_session_connection(&default_session_sqlite_path()).unwrap();
+    let tools:i64=db.query_row("SELECT count(*) FROM tool_calls",[],|row|row.get(0)).unwrap();
+    let statuses:Vec<String>=db.prepare("SELECT status FROM tool_calls ORDER BY created_at_unix_ms").unwrap().query_map([],|row|row.get(0)).unwrap().collect::<Result<_,_>>().unwrap();
+    let humans:i64=db.query_row("SELECT count(*) FROM chat_room_messages WHERE role='user' AND room_id=?1",[&room],|row|row.get(0)).unwrap();
+    let receipts=requests.iter().flat_map(|request|request["messages"].as_array().unwrap().iter()
+        .filter(|message|message["role"]=="tool").filter_map(|message|message["content"].as_str().map(str::to_owned))).collect::<Vec<_>>();
+    save(&format!("{scenario:?}"),json!({"requests":requests,"host_response":output,"host_tool_receipts":receipts,"model_request_count":requests.len(),"tool_dispatch_count":tools,"tool_statuses":statuses,"human_input_count":humans,"l1_triggers":triggers}));
+    assert_eq!(tools,3);assert_eq!(humans,1);
+    assert!(!serde_json::to_string(&requests).unwrap().contains("This is not making progress"));
+    if matches!(scenario,Scenario::PermanentFailure) {
+        assert_eq!(requests.len(),3,"停止后不再调用模型生成恢复文本");assert_eq!(triggers,1);
+        assert_eq!(statuses,vec!["failed";3]);
+        assert!(output.to_string().contains("tool_repeat_failure_limit"));
+        assert!(receipts.iter().any(|r|r.contains("timestamp=0")) && receipts.iter().any(|r|r.contains("timestamp=1")));
+    } else {
+        assert_eq!(requests.len(),4);assert_eq!(triggers,0);assert!(output.to_string().contains("HA05_CONFIRMED_COMPLETE"));
+        if matches!(scenario,Scenario::RunningThenDone) {assert!(receipts.iter().any(|r|r.contains("running")));assert!(receipts.iter().any(|r|r.contains("completed")));}
+        else {assert!(receipts.iter().any(|r|r.contains("recovered")));assert_eq!(statuses,vec!["failed","failed","completed"]);}
+    }
+    server.abort();
+}
+#[tokio::test]
+async fn same_parameters_allow_running_to_completed_and_external_recovery() {
+    let _guard=tests::config_test_guard();loop_case(Scenario::RunningThenDone).await;loop_case(Scenario::ExternalRecovery).await;
+}
+#[tokio::test]
+async fn timestamp_only_failure_changes_cannot_reset_the_retry_limit() {
+    let _guard=tests::config_test_guard();loop_case(Scenario::PermanentFailure).await;
+}
+
+#[derive(Clone,Copy,Debug)]
+enum WaitEnd { Complete, Cancel, Deadline }
+async fn wait_case(end: WaitEnd) {
+    let room=format!("ha05-wait-{end:?}");
+    let calls=Arc::new(Mutex::new(Vec::<JsonValue>::new()));let arrived=Arc::new(tokio::sync::Notify::new());let release=Arc::new(tokio::sync::Notify::new());
+    let (seen,arrival,gate)=(calls.clone(),arrived.clone(),release.clone());
+    let router=Router::new().route("/v1/chat/completions",post(move |Json(request):Json<JsonValue>| {
+        let (seen,arrival,gate)=(seen.clone(),arrival.clone(),gate.clone());async move {
+            let index={let mut calls=seen.lock().unwrap();calls.push(request.clone());calls.len()-1};
+            if index==0 {return completion(&request,Some(("Agent",json!({"description":"HA05 长等待","prompt":"等待受控结果","subagent_type":"general-purpose","allowed_tools":[]}))));}
+            if index==1 {arrival.notify_one();gate.notified().await;}
+            completion(&request,None)
+        }
+    }));
+    let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();let url=format!("http://{}",listener.local_addr().unwrap());
+    let server=tokio::spawn(async move {axum::serve(listener,router).await.unwrap();});
+    let _isolated=multimodal_input::tests::IsolatedState::install(&url);prepare(&room,&["Agent"]);
+    let budget=root_execution_budget::RootExecutionBudget::establish(if matches!(end,WaitEnd::Deadline) {8_000} else {30_000});
+    let deadline=budget.deadline_unix_ms();let events=Arc::new(Mutex::new(Vec::<String>::new()));
+    let control=async {
+        tokio::time::timeout(Duration::from_secs(10),arrived.notified()).await.expect("真实子请求必须进入等待屏障");
+        events.lock().unwrap().push("child_request_waiting".into());
+        assert_eq!(calls.lock().unwrap().len(),2,"等待中只有根请求和一个子请求");
+        match end {
+            WaitEnd::Complete=>{events.lock().unwrap().push("release_child".into());release.notify_one();},
+            WaitEnd::Cancel=>{
+                let cancellation=chat_turn_registry().lock().unwrap().values().find(|entry|entry.chat_room_id==room && !entry.status.is_terminal()).expect("活跃根轮次").cancellation.clone();
+                events.lock().unwrap().push("cancel_committed".into());cancellation.request();
+            },
+            WaitEnd::Deadline=>{events.lock().unwrap().push(format!("await_frozen_deadline:{deadline}"));},
+        }
+    };
+    let (output,())=tokio::time::timeout(Duration::from_secs(35),async {tokio::join!(root_execution_budget::scope(budget,send(&room)),control)}).await.unwrap();
+    events.lock().unwrap().push("root_wait_ended".into());
+    let db=open_session_connection(&default_session_sqlite_path()).unwrap();
+    let spec:String=db.query_row("SELECT spec_json FROM execution_index WHERE id LIKE 'child-execution:%'",[],|row|row.get(0)).unwrap();
+    let spec:JsonValue=serde_json::from_str(&spec).unwrap();
+    let tools:i64=db.query_row("SELECT count(*) FROM tool_calls",[],|row|row.get(0)).unwrap();
+    let requests=calls.lock().unwrap().clone();
+    let mut state:String=db.query_row("SELECT state FROM execution_index WHERE id LIKE 'child-execution:%'",[],|row|row.get(0)).unwrap();
+    // 根等待结束后，JoinSet中的取消清理仍需一次调度；只读等待原身份收尾，不重放。
+    if !matches!(end,WaitEnd::Complete) {
+        state=tokio::time::timeout(Duration::from_secs(3),async {
+            loop {
+                let current:String=db.query_row("SELECT state FROM execution_index WHERE id LIKE 'child-execution:%'",[],|row|row.get(0)).unwrap();
+                if !matches!(current.as_str(),"running"|"cancel_requested") {break current;}
+                tokio::task::yield_now().await;
+            }
+        }).await.expect("原子执行必须保留停止/未知终态");
+    }
+    save(&format!("wait-{end:?}"),json!({"requests":requests,"host_response":output,"child_spec":spec,"child_state":state,"root_deadline_ms":deadline,"tool_dispatch_count":tools,"events":events.lock().unwrap().clone()}));
+    assert_eq!(spec["deadline_ms"].as_u64(),Some(deadline));assert_eq!(tools,1);
+    if matches!(end,WaitEnd::Complete) {assert_eq!(requests.len(),3);assert_eq!(state,"completed");assert!(output.to_string().contains("HA05_CONFIRMED_COMPLETE"));}
+    else {assert_eq!(requests.len(),2,"停止后不能启动反馈请求或新工具");assert_ne!(state,"completed");assert!(!output.to_string().contains("HA05_CONFIRMED_COMPLETE"));}
+    release.notify_waiters();server.abort();
+}
+#[tokio::test]
+async fn host_waits_once_and_cancel_or_deadline_stops_followup_without_new_budget() {
+    let _guard=tests::config_test_guard();
+    for end in [WaitEnd::Complete,WaitEnd::Cancel,WaitEnd::Deadline] {wait_case(end).await;}
+}

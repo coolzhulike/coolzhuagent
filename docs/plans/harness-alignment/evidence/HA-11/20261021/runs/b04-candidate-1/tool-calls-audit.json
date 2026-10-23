@@ -1,0 +1,111 @@
+{
+ "run_id": "run-chat-f188c8e2e47cd89ad315e1625d65820eef2afe030bb84ee5",
+ "tool_executions": 15,
+ "rows": [
+  {
+   "tool_call_id": "tool-88ea7bec6c410631dddbda1b4ebf167ea0741dd1f25378ea057eeeff775debc0",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792687073101,
+   "updated_ms": 1792687075941
+  },
+  {
+   "tool_call_id": "tool-4f3126f77d202d7b228fd6f73599c43196fe7666b855fbca0b675b296836b2d3",
+   "tool_name": "glob_search",
+   "status": "completed",
+   "created_ms": 1792687082020,
+   "updated_ms": 1792687083474
+  },
+  {
+   "tool_call_id": "tool-fd6c10e773390a7b78dc7e404c2e5b94f623e57eb7e25b318cfe796eb6277c3d",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687086931,
+   "updated_ms": 1792687087768
+  },
+  {
+   "tool_call_id": "tool-a8a8dba34d8772153dd837b8883b288dafac3e0a3af42450b29e30bc80199adf",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687091955,
+   "updated_ms": 1792687092671
+  },
+  {
+   "tool_call_id": "tool-76c331ab98733bfeb7a4935a3dd13c0c58cbede077a5c86f3536ce87f7e5cf8f",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687097284,
+   "updated_ms": 1792687098784
+  },
+  {
+   "tool_call_id": "tool-76f89ea1f6ece37c7e1288689269a7ad8f136e1bb6db9d29b72f076ffaeb63a9",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687107216,
+   "updated_ms": 1792687109148
+  },
+  {
+   "tool_call_id": "tool-80b8855f40df19a5d3fa4de265634152c820652cf26a2d85ab7df69cc5b8b99b",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687120551,
+   "updated_ms": 1792687122577
+  },
+  {
+   "tool_call_id": "tool-8fee255cc9d2f2f1d7b411398513bc77f1a56d7893fe389a457a224d1c66eac1",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687127418,
+   "updated_ms": 1792687128296
+  },
+  {
+   "tool_call_id": "tool-94c32de031e286c08a596a1f885df284e87ea14eca5f6ad947117b3f9dc6524a",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687134179,
+   "updated_ms": 1792687135908
+  },
+  {
+   "tool_call_id": "tool-06d4bd1fc900f739c06cb04d05def934425904b966d9fedd93143a2f85be11af",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687142559,
+   "updated_ms": 1792687144147
+  },
+  {
+   "tool_call_id": "tool-8709d80508fa32dda4d11c8ab38e430817d645f1dd1ac32c946254f24fa1dec7",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687151651,
+   "updated_ms": 1792687153658
+  },
+  {
+   "tool_call_id": "tool-066bc48c7875bf2cdf60aa70eee2cb5fcc3d743613c367a1b6581493a30e7532",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687162142,
+   "updated_ms": 1792687163781
+  },
+  {
+   "tool_call_id": "tool-55d5505b7f2550933bc2923c8ba7fad84702b536e55679915dac259afbe08e29",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687172048,
+   "updated_ms": 1792687173523
+  },
+  {
+   "tool_call_id": "tool-7ee0ea4e228fad8e43695a80b554a5f902b292ee1a857a7a9621f00364c83917",
+   "tool_name": "PowerShell",
+   "status": "failed",
+   "created_ms": 1792687180606,
+   "updated_ms": 1792687192362
+  },
+  {
+   "tool_call_id": "tool-2ffdd519382593d618c1280f58223bb3ffb7f71cb090d03e7f833e99eaa65a30",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792687202416,
+   "updated_ms": 1792687204144
+  }
+ ]
+}

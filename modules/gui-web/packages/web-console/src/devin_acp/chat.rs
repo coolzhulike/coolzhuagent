@@ -16,8 +16,9 @@ use std::{
 };
 use tokio::sync::mpsc;
 
-pub(super) const CLI_VERSION: &str = "devin 3000.10.48 (fcf7ba39)";
-const CLI_SHA256: &str = "d8877ebf699499b1d0957a9fdd99cb596013fc3bfeb782b756496bbcf527bb1b";
+// 3000.10.67 已核签名、文件哈希、ACP 握手和原会话恢复；升级只迁移闲置绑定。
+pub(super) const CLI_VERSION: &str = "devin 3000.10.67 (0b186d6e)";
+const CLI_SHA256: &str = "8bb4e4288ec399fe9d9c5b9c1cf4df06a7ec71d1780ef65077a085613cfa4be1";
 
 pub(super) fn error(message: impl Into<String>) -> api::ApiError {
     api::ApiError::UnsupportedCapability {
@@ -55,12 +56,14 @@ pub(crate) fn reasoning_resolution(model: &str, requested: &str) -> crate::Reaso
 pub(crate) enum ModelStream {
     Http(api::MessageStream),
     Devin(TextStream),
+    OpenAi(crate::openai_subscription::TextStream),
 }
 impl ModelStream {
     pub(crate) async fn next_event(&mut self) -> Result<Option<api::StreamEvent>, api::ApiError> {
         match self {
             Self::Http(stream) => stream.next_event().await,
             Self::Devin(stream) => stream.next().await,
+            Self::OpenAi(stream) => stream.next().await,
         }
     }
     pub(crate) fn protocol_completed(&self) -> bool {
@@ -70,6 +73,7 @@ impl ModelStream {
                     == Some(api::TerminationFact::ProtocolCompletion)
             }
             Self::Devin(stream) => stream.completed,
+            Self::OpenAi(stream) => stream.completed,
         }
     }
 }
@@ -388,7 +392,7 @@ pub(crate) async fn start(
         remote_session_id: None,
         cwd: cwd.to_string_lossy().into(),
         cli_identity: CLI_VERSION.into(),
-        // 同一上下文和精确模型保持远端会话；重置/切换模型时明确换域，不重复注入历史。
+        // 显式重置切换上下文；只换模型保留会话，由 ACP 精确配置回执确认生效。
         context_digest: format!("host-incremental-v3:{reset:?}:{}", agent.model),
     };
     journal
@@ -409,7 +413,9 @@ pub(crate) async fn start(
         .map_or(Duration::from_secs(900), |budget| budget.remaining());
     let deadline = tokio::time::Instant::now() + remaining;
     let model = agent.model.clone();
-    let (tx, events) = mpsc::channel(256);
+    // 有界队列 + try_send 的 fail-closed 判定不变；容量余量只吸收消费端 live 投影的
+    // 短暂调度抖动，不放宽“满/关闭即报错”的门禁。
+    let (tx, events) = mpsc::channel(2048);
     let token = cancellation.clone();
     let review_parent = if review {
         let mut frozen = parent.clone();
@@ -557,6 +563,69 @@ async fn execute(
     outcome
 }
 
+/// HTTP、ACP 与 OpenAI 订阅共用消费：公开文本增量写房间 live，思考增量只进 reasoning_text。
+/// 正常终态必须由协议完成帧证明；缺完成回执或空回复一律失败，不重发本轮。
+async fn consume_model_stream(
+    stream: &mut ModelStream,
+    response: &mut crate::AgentModelResponse,
+    agent: &AgentSessionDto,
+    turn: &str,
+    room: Option<&str>,
+) -> Result<(), api::ApiError> {
+    // live 投影限频：每个增量都同步克隆全文并双锁落库会让消费端持续落后于生产端，
+    // 有界队列被短暂积压误判为“队列超限”。仅在投影窗口内写；正常终态在下方
+    // 强制补写最新全文，节流不丢尾、思考段仍不入 live 行。
+    const LIVE_FLUSH_INTERVAL: Duration = Duration::from_millis(800);
+    let live_room = room.filter(|_| !turn.is_empty());
+    let live_message_id = format!("live-{turn}-{}", agent.id);
+    let mut last_live_flush = std::time::Instant::now()
+        .checked_sub(LIVE_FLUSH_INTERVAL)
+        .unwrap_or_else(std::time::Instant::now);
+    while let Some(event) = stream.next_event().await? {
+        if let api::StreamEvent::ContentBlockDelta(event) = event {
+            match event.delta {
+                api::ContentBlockDelta::TextDelta { text } => {
+                    response.answer_text.push_str(&text);
+                    if let Some(room) = live_room {
+                        if last_live_flush.elapsed() >= LIVE_FLUSH_INTERVAL {
+                            crate::upsert_room_live_message(turn, room, crate::ChatMessageDto {
+                                id: live_message_id.clone(),
+                                author: agent.display_name.clone(),
+                                role: "assistant".to_string(),
+                                target: "聊天".to_string(),
+                                content: response.answer_text.clone(),
+                                kind: "assistant-partial".to_string(),
+                                attachments: Vec::new(),
+                            }, false);
+                            last_live_flush = std::time::Instant::now();
+                        }
+                    }
+                }
+                api::ContentBlockDelta::ThinkingDelta { thinking } => {
+                    response.reasoning_text.push_str(&thinking)
+                }
+                _ => {}
+            }
+        }
+    }
+    if !stream.protocol_completed() || response.answer_text.trim().is_empty() {
+        return Err(error("会话未返回完整可见回复。"));
+    }
+    // 正常终态强制刷新：节流窗口内暂存的最新全文必须落盘（force 绕过内部频率上限）。
+    if let Some(room) = live_room {
+        crate::upsert_room_live_message(turn, room, crate::ChatMessageDto {
+            id: live_message_id,
+            author: agent.display_name.clone(),
+            role: "assistant".to_string(),
+            target: "聊天".to_string(),
+            content: response.answer_text.clone(),
+            kind: "assistant-partial".to_string(),
+            attachments: Vec::new(),
+        }, true);
+    }
+    Ok(())
+}
+
 pub(crate) async fn response(
     agent: &AgentSessionDto,
     prompt: &str,
@@ -583,7 +652,7 @@ pub(crate) async fn response(
         context_usage: None,
     };
     let outcome = async {
-        let (mut stream, _) = crate::stream_agent_model(
+        let (mut stream, _, _) = crate::stream_agent_model(
             agent,
             prompt,
             image_urls,
@@ -595,23 +664,7 @@ pub(crate) async fn response(
             parent,
         )
         .await?;
-        while let Some(event) = stream.next_event().await? {
-            if let api::StreamEvent::ContentBlockDelta(event) = event {
-                match event.delta {
-                    api::ContentBlockDelta::TextDelta { text } => {
-                        response.answer_text.push_str(&text)
-                    }
-                    api::ContentBlockDelta::ThinkingDelta { thinking } => {
-                        response.reasoning_text.push_str(&thinking)
-                    }
-                    _ => {}
-                }
-            }
-        }
-        if !stream.protocol_completed() || response.answer_text.trim().is_empty() {
-            return Err(error("Devin 未返回完整可见回复。"));
-        }
-        Ok::<_, api::ApiError>(())
+        consume_model_stream(&mut stream, &mut response, agent, &turn, room).await
     }
     .await;
     match outcome {
@@ -948,5 +1001,292 @@ mod tests {
                 .unwrap()
                 .contains(&json!(tool)));
         }
+    }
+}
+
+#[cfg(test)]
+mod acp_nonstream_visibility_048 {
+    //! ACP 非流式真实消费路径：Delta→房间 live→独立读取→Finished→清理。
+    //! 覆盖边界：不经 HTTP 页面/DOM；取消协议路径与 CommitPending 见交付报告。
+    use super::*;
+
+    /// 与 SessionStoreTestGuard 同型：整店 mem::replace+Drop 还原；串行锁用共享 config_test_guard。
+    struct Env048 {
+        previous: Option<crate::SessionStore>,
+        _temp: tempfile::TempDir,
+    }
+    impl Env048 {
+        fn install(room: &str) -> (Self, PathBuf) {
+            let temp = tempfile::tempdir().expect("acp048 tempdir");
+            let db = temp.path().join("session.sqlite3");
+            {
+                let connection = crate::open_session_connection(&db).unwrap();
+                crate::initialize_session_schema(&connection).unwrap();
+            }
+            let state = crate::PersistedSessionState {
+                sessions: vec![],
+                active_session_id: None,
+                active_vision_session_id: None,
+                chat_rooms: vec![crate::PersistedChatRoom {
+                    id: room.into(),
+                    name: "fixture".into(),
+                    created_at: 1,
+                    updated_at: 1,
+                    messages: vec![],
+                }],
+                active_chat_room_id: None,
+            };
+            let store = crate::SessionStore {
+                history_edits: Vec::new(),
+                writer: None,
+                committed_state: None,
+                path: db.clone(),
+                legacy_json_path: temp.path().join("session.json"),
+                capacity: crate::SessionStoreCapacity::default(),
+                state,
+            };
+            let previous = std::mem::replace(
+                &mut *crate::session_store().lock().expect("session store"),
+                store,
+            );
+            (Self { previous: Some(previous), _temp: temp }, db)
+        }
+    }
+    impl Drop for Env048 {
+        fn drop(&mut self) {
+            // live 授权兜底移除：被测的 finish_live_turn 已先跑；防 panic 残留，不冒充被测清理。
+            if let Ok(mut live) = crate::live_progress_state().lock() {
+                live.turns.remove("turn-048");
+            }
+            if let Some(previous) = self.previous.take() {
+                let _ = std::mem::replace(
+                    &mut *crate::session_store().lock().expect("session store"),
+                    previous,
+                );
+            }
+        }
+    }
+
+    fn agent048() -> AgentSessionDto {
+        AgentSessionDto {
+            id: "agent-048".into(),
+            name: "fixture".into(),
+            display_name: "fixture-agent".into(),
+            avatar: None,
+            model: "swe-2".into(),
+            model_type: "text".into(),
+            provider: "devin".into(),
+            base_url: None,
+            endpoint: None,
+            reasoning_effort: "auto".into(),
+            api_key_status: "none".into(),
+            selectable: false,
+            enabled: true,
+            system: false,
+            default_timeout_ms: 0,
+            memory_beads: vec![],
+        }
+    }
+
+    fn response048() -> crate::AgentModelResponse {
+        crate::AgentModelResponse {
+            execution_failed: true,
+            answer_text: String::new(),
+            reasoning_text: String::new(),
+            tool_requests: vec![],
+            tool_write_executed: false,
+            model_tool_calls_executed: true,
+            turn_id: "turn-048".into(),
+            used_real_model: false,
+            diagnostic_note: None,
+            context_footer: None,
+            context_usage: None,
+        }
+    }
+
+    fn delta(delta: api::ContentBlockDelta) -> Item {
+        Item::Delta(api::StreamEvent::ContentBlockDelta(
+            api::ContentBlockDeltaEvent { index: 0, delta },
+        ))
+    }
+
+    fn live_content(db: &Path, message_id: &str) -> Option<String> {
+        crate::open_session_connection(db)
+            .ok()?
+            .query_row(
+                "SELECT content FROM chat_room_messages WHERE id=?1",
+                [message_id],
+                |row| row.get(0),
+            )
+            .ok()
+    }
+
+    /// 观察驱动门控：轮询真实持久行直到内容达标或 5 秒超时失败。
+    async fn wait_live(db: &Path, message_id: &str, expected: &str) {
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        loop {
+            if live_content(db, message_id).as_deref() == Some(expected) {
+                return;
+            }
+            assert!(std::time::Instant::now() < deadline, "live 行未观察到 {expected}");
+            tokio::time::sleep(Duration::from_millis(5)).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn acp_nonstream_delta_live_growth_and_cleanup() {
+        let _guard = crate::tests::config_test_guard();
+        let (env048, db) = Env048::install("room-048");
+        let cancellation = Arc::new(ChatTurnCancellation::new());
+        crate::mark_live_turn_active("turn-048", "room-048", cancellation.clone());
+        let (tx, rx) = mpsc::channel(16);
+        let mut stream = ModelStream::Devin(TextStream {
+            events: rx,
+            cancellation,
+            completed: false,
+            ended: false,
+        });
+        let agent = agent048();
+        let consumer = tokio::spawn(async move {
+            let mut response = response048();
+            let result =
+                consume_model_stream(&mut stream, &mut response, &agent, "turn-048", Some("room-048"))
+                    .await;
+            (result, response)
+        });
+        let live_id = "live-turn-048-agent-048";
+        tx.try_send(delta(api::ContentBlockDelta::ThinkingDelta {
+            thinking: "REASONING-SENTINEL-048".into(),
+        }))
+        .unwrap();
+        tx.try_send(delta(api::ContentBlockDelta::TextDelta {
+            text: "公开段一".into(),
+        }))
+        .unwrap();
+        wait_live(&db, live_id, "公开段一").await;
+        // 文本行 800ms 硬频率上限是真实产品行为；越过窗口后第二段才能落盘（pending 不会自动补写）。
+        tokio::time::sleep(Duration::from_millis(850)).await;
+        tx.try_send(delta(api::ContentBlockDelta::TextDelta {
+            text: "公开段二".into(),
+        }))
+        .unwrap();
+        wait_live(&db, live_id, "公开段一公开段二").await;
+        tx.try_send(Item::Finished).unwrap();
+        let (result, response) = consumer.await.unwrap();
+        result.unwrap();
+        assert_eq!(response.answer_text, "公开段一公开段二");
+        assert_eq!(response.reasoning_text, "REASONING-SENTINEL-048");
+        assert!(!live_content(&db, live_id)
+            .unwrap_or_default()
+            .contains("REASONING-SENTINEL-048"));
+        // 真实生命周期清理：调用方终态清理函数，不是测试手工删行。
+        crate::finish_live_turn("turn-048", "room-048");
+        assert!(live_content(&db, live_id).is_none());
+        drop(env048);
+    }
+
+    #[tokio::test]
+    async fn acp_high_frequency_stream_completes_without_queue_loss() {
+        // 回归（169 失败现场）：超过旧 256 上限的高频增量在小队列上全部按序到达，
+        // 最终文本逐字一致；live 节流只影响投影频率，不影响答案完整性；
+        // 思考与公开回复分离；正常终态强制刷新把最新全文落盘。
+        let _guard = crate::tests::config_test_guard();
+        let (env048, db) = Env048::install("room-048");
+        let cancellation = Arc::new(ChatTurnCancellation::new());
+        crate::mark_live_turn_active("turn-048", "room-048", cancellation.clone());
+        let (tx, rx) = mpsc::channel(8);
+        let mut stream = ModelStream::Devin(TextStream {
+            events: rx,
+            cancellation,
+            completed: false,
+            ended: false,
+        });
+        let agent = agent048();
+        let consumer = tokio::spawn(async move {
+            let mut response = response048();
+            let result =
+                consume_model_stream(&mut stream, &mut response, &agent, "turn-048", Some("room-048"))
+                    .await;
+            (result, response)
+        });
+        const DELTAS: usize = 600;
+        let mut expected = String::new();
+        for index in 0..DELTAS {
+            let piece = format!("d{index:04}-");
+            expected.push_str(&piece);
+            tx.send(delta(api::ContentBlockDelta::TextDelta { text: piece }))
+                .await
+                .unwrap();
+        }
+        tx.send(delta(api::ContentBlockDelta::ThinkingDelta {
+            thinking: "REASONING-SENTINEL-170".into(),
+        }))
+        .await
+        .unwrap();
+        tx.send(Item::Finished).await.unwrap();
+        let (result, response) = consumer.await.unwrap();
+        result.unwrap();
+        assert_eq!(response.answer_text, expected);
+        assert_eq!(response.reasoning_text, "REASONING-SENTINEL-170");
+        // 正常终态强制刷新：live 行必须已含最终完整公开文本且不含思考段。
+        wait_live(&db, "live-turn-048-agent-048", &expected).await;
+        crate::finish_live_turn("turn-048", "room-048");
+        assert!(live_content(&db, "live-turn-048-agent-048").is_none());
+        drop(env048);
+    }
+
+    #[test]
+    fn publish_full_queue_fails_closed_without_swallowing() {
+        // 有界队列满不得吞消息或伪完成：生产端 try_send 失败必须如实报错。
+        let token = ChatTurnCancellation::new();
+        let (tx, _rx) = mpsc::channel(1);
+        let event = |text: &str| Event {
+            scope: super::super::journal::tests::scope("queue-full"),
+            sequence: 1,
+            replay: false,
+            update: Update::Text { text: text.into(), thought: false, message_id: None },
+        };
+        assert!(publish_to_consumer(event("一"), &tx, false, &token).is_ok());
+        let error = publish_to_consumer(event("二"), &tx, false, &token).unwrap_err();
+        assert!(error.to_string().contains("队列超限"), "{error}");
+    }
+
+    #[tokio::test]
+    async fn acp_nonstream_failed_frame_errors() {
+        let _guard = crate::tests::config_test_guard();
+        let (tx, rx) = mpsc::channel(4);
+        let cancellation = Arc::new(ChatTurnCancellation::new());
+        let mut stream = ModelStream::Devin(TextStream {
+            events: rx,
+            cancellation,
+            completed: false,
+            ended: false,
+        });
+        let mut response = response048();
+        let agent = agent048();
+        tx.try_send(Item::Failed("acp-failed".into())).unwrap();
+        let result =
+            consume_model_stream(&mut stream, &mut response, &agent, "turn-048", None).await;
+        assert!(result.is_err());
+        assert_eq!(response.answer_text, "");
+    }
+
+    #[tokio::test]
+    async fn acp_nonstream_close_without_completion_errors() {
+        let _guard = crate::tests::config_test_guard();
+        let (tx, rx) = mpsc::channel(4);
+        drop(tx);
+        let cancellation = Arc::new(ChatTurnCancellation::new());
+        let mut stream = ModelStream::Devin(TextStream {
+            events: rx,
+            cancellation,
+            completed: false,
+            ended: false,
+        });
+        let mut response = response048();
+        let agent = agent048();
+        let result =
+            consume_model_stream(&mut stream, &mut response, &agent, "turn-048", None).await;
+        assert!(result.is_err());
     }
 }

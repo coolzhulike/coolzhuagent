@@ -1,0 +1,21 @@
+{
+  "evidence": {
+    "command_verification": {
+      "contract": null,
+      "legacy_failures": null,
+      "reason": "当前合同未要求 Command；其他验收仍需独立判断",
+      "receipts": [],
+      "state": "not_required"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": null,
+    "legacy_failures": null,
+    "reason": "当前合同未要求 Command；其他验收仍需独立判断",
+    "receipts": [],
+    "state": "not_required"
+  },
+  "status": "completed",
+  "verdict": "pass"
+}

@@ -1,0 +1,158 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\Cargo.toml",
+    "sha256": "e4e4411daabdf5c71242cb90176e802ccd554a7ebe9aa7c3f7cdc26f42065438",
+    "archive_sha256": "e4e4411daabdf5c71242cb90176e802ccd554a7ebe9aa7c3f7cdc26f42065438"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\client.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\client.rs",
+    "sha256": "10ff5b505c243164a225c708eee07c7e0c41113477cadfac323101500434cbc9",
+    "archive_sha256": "10ff5b505c243164a225c708eee07c7e0c41113477cadfac323101500434cbc9"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\config.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\config.rs",
+    "sha256": "102edc90fa0591b41d0baa2070bcc70afc8a0153236959739699d30c9c353557",
+    "archive_sha256": "102edc90fa0591b41d0baa2070bcc70afc8a0153236959739699d30c9c353557"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\embeddings.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\embeddings.rs",
+    "sha256": "4806079c70ccf91e86c2da3be21594041d74d0850353a10da9bd9a4cc750b4cb",
+    "archive_sha256": "4806079c70ccf91e86c2da3be21594041d74d0850353a10da9bd9a4cc750b4cb"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\error.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\error.rs",
+    "sha256": "a7d582143ce9084aabd521831ec61993fd8ff0923005c29845ba7b6e128776dc",
+    "archive_sha256": "a7d582143ce9084aabd521831ec61993fd8ff0923005c29845ba7b6e128776dc"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\inflight.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\inflight.rs",
+    "sha256": "1e9b31abb8bccf65cfde0c0560ad8b1e26d36be4ed1a8fd656f2ded3f0a0c9be",
+    "archive_sha256": "1e9b31abb8bccf65cfde0c0560ad8b1e26d36be4ed1a8fd656f2ded3f0a0c9be"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\lib.rs",
+    "sha256": "f440eaa28bca4f570d662a26470fa771307d924a48e52a220454b5eb1beaf989",
+    "archive_sha256": "f440eaa28bca4f570d662a26470fa771307d924a48e52a220454b5eb1beaf989"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\message_id.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\message_id.rs",
+    "sha256": "a8fc5c36a03d4ed4041fbf82c7df83e5f2f547b7a14a0702fa5207871d111f16",
+    "archive_sha256": "a8fc5c36a03d4ed4041fbf82c7df83e5f2f547b7a14a0702fa5207871d111f16"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\model_info.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\model_info.rs",
+    "sha256": "f3e0b9d7c2e8ad4b87ee774ec207768c71675fbc47430748658a2972f1936ed3",
+    "archive_sha256": "f3e0b9d7c2e8ad4b87ee774ec207768c71675fbc47430748658a2972f1936ed3"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\reasoning.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\reasoning.rs",
+    "sha256": "39d51085c83fa7e10dd6fdc3c0f51b4b870a9d2755da530eefbde0456f42ca1b",
+    "archive_sha256": "39d51085c83fa7e10dd6fdc3c0f51b4b870a9d2755da530eefbde0456f42ca1b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\registry.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\registry.rs",
+    "sha256": "4560a771ad496fb2ad111125f6f75629f7bb6b7ce37847e6b9c69bf4e165a6c8",
+    "archive_sha256": "4560a771ad496fb2ad111125f6f75629f7bb6b7ce37847e6b9c69bf4e165a6c8"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\request_observer.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\request_observer.rs",
+    "sha256": "3e9e1a0eeca2ce286553b9178b19b6de225b84feff815b7023959ac1db9676a7",
+    "archive_sha256": "3e9e1a0eeca2ce286553b9178b19b6de225b84feff815b7023959ac1db9676a7"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\request_parameters.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\request_parameters.rs",
+    "sha256": "9cc27ce4e95e377f90bc318a8e50415dd206eef1ed282588d45b9f04fdda7cba",
+    "archive_sha256": "9cc27ce4e95e377f90bc318a8e50415dd206eef1ed282588d45b9f04fdda7cba"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\resolver.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\resolver.rs",
+    "sha256": "3f6a92566399b97cea7880f16cbf690c283f5a62f460d84fa5b5e6237d0684b0",
+    "archive_sha256": "3f6a92566399b97cea7880f16cbf690c283f5a62f460d84fa5b5e6237d0684b0"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\response_format.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\response_format.rs",
+    "sha256": "61d001df6d0164880e60a2572eab2de1d1c18a03717e1418c84613531f72f416",
+    "archive_sha256": "61d001df6d0164880e60a2572eab2de1d1c18a03717e1418c84613531f72f416"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\sse.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\sse.rs",
+    "sha256": "2e68894279e2aae42b0df58bd75a16ade4a75a2cd669840af91ef720eda380f2",
+    "archive_sha256": "2e68894279e2aae42b0df58bd75a16ade4a75a2cd669840af91ef720eda380f2"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\test_env.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\test_env.rs",
+    "sha256": "8f493670bee907358143dd0c5618822f135f1da943ef655406ee0873e5aaa373",
+    "archive_sha256": "8f493670bee907358143dd0c5618822f135f1da943ef655406ee0873e5aaa373"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\types.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\types.rs",
+    "sha256": "5fd32b9e0fabbc02f2610cc3e2db91f7c0d8160f4a53bfe75008e94776817fb5",
+    "archive_sha256": "5fd32b9e0fabbc02f2610cc3e2db91f7c0d8160f4a53bfe75008e94776817fb5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\providers\\claw_provider.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\providers\\claw_provider.rs",
+    "sha256": "eacc88ba7aba9d5b334e852702477abf3fd4187b35689ff86f67feeb6b9b4620",
+    "archive_sha256": "eacc88ba7aba9d5b334e852702477abf3fd4187b35689ff86f67feeb6b9b4620"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\providers\\mod.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\providers\\mod.rs",
+    "sha256": "fe064d7101c6e2e96d6daa4206cb313ad5dfbdc6ff6f65c19dd1f2acf2c5f74b",
+    "archive_sha256": "fe064d7101c6e2e96d6daa4206cb313ad5dfbdc6ff6f65c19dd1f2acf2c5f74b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\src\\providers\\openai_compat.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\src\\providers\\openai_compat.rs",
+    "sha256": "78505e0bfd99b7a94a2e5438a31da7645923ad35a7a78ff3462ccb98e949a79b",
+    "archive_sha256": "78505e0bfd99b7a94a2e5438a31da7645923ad35a7a78ff3462ccb98e949a79b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\alibaba_bailian_integration.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\alibaba_bailian_integration.rs",
+    "sha256": "e97badaa05f75f8a48e978f0900df74f97bf42edcefcbde5180ec1f2d76b426e",
+    "archive_sha256": "e97badaa05f75f8a48e978f0900df74f97bf42edcefcbde5180ec1f2d76b426e"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\client_integration.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\client_integration.rs",
+    "sha256": "863e0dae02aa63699d6d261f9b66f612ba9939b89898c5e133dfdde67d7420d5",
+    "archive_sha256": "863e0dae02aa63699d6d261f9b66f612ba9939b89898c5e133dfdde67d7420d5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\inflight_drain_integration.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\inflight_drain_integration.rs",
+    "sha256": "d3b1d8e3c5cb3a270ebdecdc31cae42109fa143ecbf8f2b5188208af42df5dbc",
+    "archive_sha256": "d3b1d8e3c5cb3a270ebdecdc31cae42109fa143ecbf8f2b5188208af42df5dbc"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\openai_compat_integration.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\openai_compat_integration.rs",
+    "sha256": "4d1eaf7a5e27ba9aef39646c3a1de57eff183afef7919f9b3cf2a4818a11283f",
+    "archive_sha256": "4d1eaf7a5e27ba9aef39646c3a1de57eff183afef7919f9b3cf2a4818a11283f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\provider_client_integration.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\llm-adapter\\packages\\llm-adapter\\tests\\provider_client_integration.rs",
+    "sha256": "e2bf5d970ac557ad57fac3d88b79296b4ceb0ecdbcabfdce33a0efcad4dfc4c1",
+    "archive_sha256": "e2bf5d970ac557ad57fac3d88b79296b4ceb0ecdbcabfdce33a0efcad4dfc4c1"
+  }
+]

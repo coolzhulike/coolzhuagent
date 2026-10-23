@@ -1,0 +1,68 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\build.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\build.rs",
+    "sha256": "859c4a5e61f3f3595b191f68984ec18c5f937a26c9c5faa1e175cebd4150bbce",
+    "archive_sha256": "859c4a5e61f3f3595b191f68984ec18c5f937a26c9c5faa1e175cebd4150bbce"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\Cargo.toml",
+    "sha256": "c35ae33e0335818998b41368760f79757ab34b104f8e66ad7204cb45a44f9642",
+    "archive_sha256": "c35ae33e0335818998b41368760f79757ab34b104f8e66ad7204cb45a44f9642"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\app.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\app.rs",
+    "sha256": "46b4feb908b425797c36d0e15a52b0c04860ffe8fb16e20b1b42f3be2f3ba0e5",
+    "archive_sha256": "46b4feb908b425797c36d0e15a52b0c04860ffe8fb16e20b1b42f3be2f3ba0e5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\args.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\args.rs",
+    "sha256": "a178773c58613094d7c813f9511eaea843096529eb4a56c4df394d18c3f9712b",
+    "archive_sha256": "a178773c58613094d7c813f9511eaea843096529eb4a56c4df394d18c3f9712b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\init.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\init.rs",
+    "sha256": "04f46c2d3895364da58ccfa7b355e29413bcd2b5ebd20af096b2e4770500aa38",
+    "archive_sha256": "04f46c2d3895364da58ccfa7b355e29413bcd2b5ebd20af096b2e4770500aa38"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\input.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\input.rs",
+    "sha256": "c3e605f78dad6901243b89d274cab32848a03225355f7461ec434afe5efddda5",
+    "archive_sha256": "c3e605f78dad6901243b89d274cab32848a03225355f7461ec434afe5efddda5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\main.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\main.rs",
+    "sha256": "099a8cbedd2bc96245e8b7d055cce1d52a81b5ba38fdbb970df48e579b0ea601",
+    "archive_sha256": "099a8cbedd2bc96245e8b7d055cce1d52a81b5ba38fdbb970df48e579b0ea601"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\render.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\render.rs",
+    "sha256": "c61232bfac0b605ed7665182704db68d2c3d51fd24e4798dd8d3ef5329322a24",
+    "archive_sha256": "c61232bfac0b605ed7665182704db68d2c3d51fd24e4798dd8d3ef5329322a24"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\shared_chat.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\shared_chat.rs",
+    "sha256": "adb2b388d499ba775e392373e59fcc72d82e5680787563dfb2e1d0ab4bc14ecd",
+    "archive_sha256": "adb2b388d499ba775e392373e59fcc72d82e5680787563dfb2e1d0ab4bc14ecd"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\shared_chat_binding.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\shared_chat_binding.rs",
+    "sha256": "b4f8afb55786b2ab9a7482347e8cc4aea9e5575dbf2cd1b42e19af6855efbaec",
+    "archive_sha256": "b4f8afb55786b2ab9a7482347e8cc4aea9e5575dbf2cd1b42e19af6855efbaec"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\cli\\packages\\command-line\\src\\stream_facts.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\cli\\packages\\command-line\\src\\stream_facts.rs",
+    "sha256": "2e1cb925678be7695fa176979c6677cce86dcbbd8f841d652366a6dd9682f68d",
+    "archive_sha256": "2e1cb925678be7695fa176979c6677cce86dcbbd8f841d652366a6dd9682f68d"
+  }
+]

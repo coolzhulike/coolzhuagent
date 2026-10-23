@@ -1,0 +1,1073 @@
+{
+  "created_at_utc": "2026-10-18T01:56:05.458795+00:00",
+  "research_method": "Static inspection of pinned official source archives and current local worktree; selected test definitions read, no tests or model calls executed.",
+  "upstream_sources": {
+    "codex-cli": {
+      "repository": "https://github.com/openai/codex",
+      "tag": "rust-v0.163.0",
+      "release_published_at": "2026-10-15T21:30:38Z",
+      "prerelease": false,
+      "commit": "83086188ae0614bd882818ff1aa23f3194962012",
+      "git_tree_sha": "e91f335e7a03e1d14fa1e5fc7fc7620cdfc60842",
+      "source_path": "C:\\Users\\zhupu\\Desktop\\codex-cli-0.163.0",
+      "archive_path": "C:\\Users\\zhupu\\Desktop\\codex-cli-0.163.0.zip",
+      "download_url": "https://codeload.github.com/openai/codex/zip/83086188ae0614bd882818ff1aa23f3194962012",
+      "archive_sha256": "e70021802baa025b77d917f5490efb33eeaae90ee2f106325864b2fc70e21350",
+      "archive_bytes": 23196229,
+      "expected_blob_count": 9176,
+      "byte_exact_verified_blob_count": 9176,
+      "eol_normalized_matches": [],
+      "missing_files": [],
+      "mismatched_files": [],
+      "extra_files": [],
+      "tree_truncated": false,
+      "format": "GitHub commit source archive; no .git history; no dependency installation",
+      "verified_at_utc": "2026-10-18T01:43:35.314826+00:00"
+    },
+    "deepseek-harness": {
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "tag": "dsh-v0.2.1-rc.2",
+      "commit": "687f282e8625c6b8d11ff58211a90524be2e4317",
+      "source_path": "C:\\Users\\zhupu\\Desktop\\deepseek-harness-v0.2.1-rc.2",
+      "archive_path": "C:\\Users\\zhupu\\Desktop\\deepseek-harness-v0.2.1-rc.2.zip",
+      "download_url": "https://codeload.github.com/deepseek-ai/deepseek-harness/zip/687f282e8625c6b8d11ff58211a90524be2e4317",
+      "archive_sha256": "828bbbebaf507d2b1fc335a608e1c8174e2dd5c5c80ebb64d5146ddc5ecb511f",
+      "archive_bytes": 46562322,
+      "git_tree_sha": "687f282e8625c6b8d11ff58211a90524be2e4317",
+      "tree_truncated": false,
+      "expected_blob_count": 16297,
+      "verified_blob_count": 16297,
+      "missing_files": [],
+      "mismatched_files": [],
+      "extra_files": [],
+      "verified_at_utc": "2026-10-18T01:11:44.427277+00:00",
+      "format": "GitHub commit source archive; no .git history; no dependency installation",
+      "byte_exact_verified_blob_count": 16294,
+      "eol_normalized_matches": [
+        {
+          "path": "apps/desktop/cli/dsh.cmd",
+          "reason": ".gitattributes declares *.cmd text eol=crlf; replacing CRLF with LF matches the official Git blob SHA-1"
+        },
+        {
+          "path": "apps/desktop/scripts/node-bin/node.cmd",
+          "reason": ".gitattributes declares *.cmd text eol=crlf; replacing CRLF with LF matches the official Git blob SHA-1"
+        },
+        {
+          "path": "apps/desktop/scripts/windows-sign.cmd",
+          "reason": ".gitattributes declares *.cmd text eol=crlf; replacing CRLF with LF matches the official Git blob SHA-1"
+        }
+      ],
+      "verification_status": "complete: all 16297 source files accounted for; 16294 byte-exact and 3 declared EOL conversions"
+    }
+  },
+  "codex_release_selection": "Latest stable rust-v0.163.0 selected; rust-v0.164.0-alpha.3 observed but not analyzed.",
+  "coolzhu_head": "8a13551b037f5f673188802f2c9128984245fab8",
+  "coolzhu_worktree": "Includes pre-existing user changes; source hashes, not HEAD alone, identify the inspected content.",
+  "changed_since_previous_dsh_report": [
+    "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs"
+  ],
+  "report": "D:/coolzhuagent/docs/analysis/2026-10-17-three-way-harness-source-comparison.md",
+  "report_sha256": "129ac9baab5a3d552337a7ff5d74190be3eeb6490264c18741c372c92b08112c",
+  "files": [
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/collaboration-mode-templates/templates/default.md",
+      "sha256": "1042cc643eb0147ca1039b19287c7462ceb297502f7f310d9664ac323a12feca",
+      "bytes": 1288,
+      "lines": 19,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/collaboration-mode-templates/templates/plan.md",
+      "sha256": "d6d46c2d460a9d91ada2167605a8dfc56efde6b2ab61e101444c736c6fd6960a",
+      "bytes": 9184,
+      "lines": 128,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/agents_md.rs",
+      "sha256": "97427a870741b904a3f3c143f5990eaaa65b5bfa99ddac1808b2980052b5fc78",
+      "bytes": 20104,
+      "lines": 562,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/agents_md_manager.rs",
+      "sha256": "816949372f864caa06d6d560c8ee8a14244533a3ad77bd9826783fecb6a44bfe",
+      "bytes": 8551,
+      "lines": 204,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/compaction_summary.rs",
+      "sha256": "f41b7f9529c70cb414227dff5e376385daa8d3ff4e85d00bd8a64c37e8dc9ff0",
+      "bytes": 802,
+      "lines": 37,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/memory.rs",
+      "sha256": "954a2723b8c9231ce59192063b3f4eaee081abfe4c1a16836e6b5b27e0c18c52",
+      "bytes": 1294,
+      "lines": 40,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/world_state/agents_md.rs",
+      "sha256": "32168af201a4605f2916dbbe2a3c394dc8cb6fb2fb5e76036b699d740ab178a3",
+      "bytes": 2987,
+      "lines": 85,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/world_state/mod.rs",
+      "sha256": "296d38eadb5fe6b256e95c0f4259c1dacfb91732eee80e1ad4d36ee365cbab4c",
+      "bytes": 22474,
+      "lines": 650,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/mod.rs",
+      "sha256": "d9399180169ea30f01efc07279cd071bd14f4600129364020edf7e90df300be9",
+      "bytes": 221720,
+      "lines": 5482,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_activation_tests.rs",
+      "sha256": "858e4ffc3187b3d4328f9eebbddf1cfe1f70dc4d21610c07b1db3b203be5d4b2",
+      "bytes": 52957,
+      "lines": 1476,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_context.rs",
+      "sha256": "29936c7ab8041f9a04e5b81d6672f960a57ff9b8617b12af5eb09e2418cd2169",
+      "bytes": 4193,
+      "lines": 91,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_settings.rs",
+      "sha256": "90bcaecf14cb2b4794321feb11d367cd55fdf74437a692c1a2ed556079764673",
+      "bytes": 13393,
+      "lines": 343,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/turn.rs",
+      "sha256": "394b2246903a312c0cd76c370d06afe7f0673dddde792105a9779a7657dc9e70",
+      "bytes": 132898,
+      "lines": 3330,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/approvals.rs",
+      "sha256": "49f1d8320d042af0b5fe45f51b9400320a829277b4b47cba990cbc98a017164b",
+      "bytes": 29924,
+      "lines": 820,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/code_mode/execute_handler.rs",
+      "sha256": "00d43f416e9bece1f2e6aa616a8f67fe9b7b103688a51c2e3cb25bcb5ded6188",
+      "bytes": 9639,
+      "lines": 261,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/handlers/multi_agents/wait.rs",
+      "sha256": "51f07a8ce45180d5e7efc8b92a924969d9948350c7780326b70ab3f81b191221",
+      "bytes": 12209,
+      "lines": 341,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/handlers/tool_search.rs",
+      "sha256": "a2c7df97e4381cd66456cb9fea5efabe21cb1b591df33141ebc55e89736837bf",
+      "bytes": 24294,
+      "lines": 620,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/orchestrator.rs",
+      "sha256": "2867fc8655b0a1c59e61f9b99c1e316c1759316a353d7bea0e5d84e8faa7a629",
+      "bytes": 27682,
+      "lines": 626,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/parallel.rs",
+      "sha256": "be06530c709b09c414df6ec4c8c6f26f117c319d144c8d52289327b3c71a6bb6",
+      "bytes": 36269,
+      "lines": 883,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/parallel_observation_tests.rs",
+      "sha256": "0840ef6f78282acbe1b95fb420d0004779157467946849cfbfbdae8ccd6cdf32",
+      "bytes": 1421,
+      "lines": 46,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/sandboxing.rs",
+      "sha256": "1ab6c27e34a93fe3857281e11e388eb3ae4b786819fbe15883ad7e1fb8b5473f",
+      "bytes": 20432,
+      "lines": 578,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/sandboxing_tests.rs",
+      "sha256": "c17c1cb0de4c8c3d499beaee5281bbdf7aebe73249df5bccc27bce71101457cf",
+      "bytes": 16885,
+      "lines": 471,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/ext/goal/src/runtime.rs",
+      "sha256": "9fd31e79fd06f68e192b799631cfd544b8e685dd7aa4b98b96a02da9e8ff9ea8",
+      "bytes": 24731,
+      "lines": 695,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/ext/goal/src/spec.rs",
+      "sha256": "db48400d291ecb642b0d1189c73eea81a412f4b13bc9f7d917dc0dbd3f7828ea",
+      "bytes": 4836,
+      "lines": 94,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/ext/goal/src/tool.rs",
+      "sha256": "a8326dd629406c35b87d96feeb5ef2229203e43e813371d928d90f12420ace51",
+      "bytes": 18870,
+      "lines": 538,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "sha256": "5317e79cb2f5a72044b15ef9c506e9906c295f5a4e43cc1f1f05b87455824542",
+      "bytes": 73871,
+      "lines": 2145,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/model-provider-info/src/lib.rs",
+      "sha256": "93ce6cd0a65477dff89545b8b48853455da0654c4bcc5a1092596d88d9dfe25c",
+      "bytes": 31484,
+      "lines": 784,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/models-manager/src/collaboration_mode_presets.rs",
+      "sha256": "8c19c20ab5c306be375dbe124856b1731ba1e162321b182b63ffaa40166a922e",
+      "bytes": 1052,
+      "lines": 28,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/prompts/src/model_instructions.rs",
+      "sha256": "e53d3d2b7196b5520ebfa0d9a010b07c6e5925c1d0ef2619d4b1ad5498e2b78f",
+      "bytes": 798,
+      "lines": 21,
+      "repository": "codex-cli"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/core-runtime/packages/core-runtime/src/conversation.rs",
+      "sha256": "b76b1b81b29bc1f33713ea01fcd8d0539d50b80364dfbdbec520b61451dca6a5",
+      "bytes": 66846,
+      "lines": 1621,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/core-runtime/packages/core-runtime/src/prompt.rs",
+      "sha256": "530294a4d7f4858741f9203545b4e3acb50c7c999ffbe399dc9d7a6abe46f71e",
+      "bytes": 41472,
+      "lines": 1121,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs",
+      "sha256": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc",
+      "bytes": 9052,
+      "lines": 153,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/goal_phase_stage.rs",
+      "sha256": "c44e80810fe9c1a0759bb75f14a176c0e13e03de4750569335503bed72a27cff",
+      "bytes": 3345,
+      "lines": 75,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "sha256": "4f3534e8e31b1a93f5f9c35e0e1f74c0c73c645768198366453aa27e0bcbe710",
+      "bytes": 55840,
+      "lines": 916,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "817f2f574015de4ba0ba4f4c658da7582a98dab24b0175c757685de2c5526a1e",
+      "bytes": 3652419,
+      "lines": 91668,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+      "sha256": "595b40ac71cf7e0cdd86c2ce2b0bbc288bc5b7e47357205135f83afa028833b2",
+      "bytes": 13624,
+      "lines": 228,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+      "sha256": "ce31284a00b01ea5ca3d51a5cd2387203e57a6d30f4a0166520def8078b6f78d",
+      "bytes": 74771,
+      "lines": 2081,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/llm-adapter/packages/llm-adapter/src/reasoning.rs",
+      "sha256": "39d51085c83fa7e10dd6fdc3c0f51b4b870a9d2755da530eefbde0456f42ca1b",
+      "bytes": 47813,
+      "lines": 1199,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "D:/coolzhuagent/modules/tooling/packages/dsh-plugin-host/src/host.mjs",
+      "sha256": "940e818b600e024035c5eae73a0e302882977dad073355e191efa7a1f066d96d",
+      "bytes": 11291,
+      "lines": 219,
+      "repository": "coolzhuagent"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/bundle/base/cordis.patch.yml",
+      "sha256": "a2cc57868a4d016609801e28781262515483dde29b41c2742d9a3b27a6f52f77",
+      "bytes": 20932,
+      "lines": 529,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/src/index.ts",
+      "sha256": "175b773cd5b6fb8ac2af28857026fdaea9172495d1c7e32657aea9a9d34de5ab",
+      "bytes": 16524,
+      "lines": 379,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/src/render.ts",
+      "sha256": "98499e3e1b846dab4ca7158ad262e8067102464d51933948057918b944262cd3",
+      "bytes": 18623,
+      "lines": 434,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/tests/agent-instructions.spec.ts",
+      "sha256": "385d79590d6fc905402218742e35d99a6da037d3caeed0f396cb0a95b66bb069",
+      "bytes": 250225,
+      "lines": 5923,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/agent.ts",
+      "sha256": "4add12f5c22bb1b8cf1dbc239c9b09fa3351feff2c936cb2b8900036468bd01b",
+      "bytes": 28972,
+      "lines": 705,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/runtime-context.ts",
+      "sha256": "4944ee5cbbc24f21c27f1f0be54af7601da280b7fd2354e48fcc0ef6beeea839",
+      "bytes": 7184,
+      "lines": 164,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/tool-calls.ts",
+      "sha256": "5c7e8d8ff0028b436efdd13e5dffa4801d2311c211c3af039e7dab705f87b303",
+      "bytes": 11591,
+      "lines": 290,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/tests/request-freeze.spec.ts",
+      "sha256": "10ea8af56a19c6b15cd47f2d117eb37f8d70c75b43782a578c9c69dc01d1217c",
+      "bytes": 11095,
+      "lines": 232,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/tests/system-prompt-projection.spec.ts",
+      "sha256": "ffed420cd6ca8b45c17ce8831ecd750976b0b8a676b87178da9c8df0332383e5",
+      "bytes": 11495,
+      "lines": 222,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/system-prompt/src/index.ts",
+      "sha256": "9e254cddc9ef00072f9205950405ba8650bc43c8809fba6162da93253efc7f71",
+      "bytes": 29609,
+      "lines": 691,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/tools/src/index.ts",
+      "sha256": "398bcdeb221e450d088510830b77d99a513e65ab31e40ade71688a19cdf5e6aa",
+      "bytes": 91160,
+      "lines": 1993,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/fs/fs-observation-policy/tests/policy.spec.ts",
+      "sha256": "ba8bc452b2b7861e9c9528431c41a265b5d46bb716dbf10a7517d24e6f990440",
+      "bytes": 10698,
+      "lines": 239,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/goal/tool-goal/src/authority.ts",
+      "sha256": "c95bc97b84751a2320d456f5e3455912d14d4731944a0afa06bb63a538d39695",
+      "bytes": 5108,
+      "lines": 118,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/goal/tool-goal/src/index.ts",
+      "sha256": "f031e40594f72792a75f9a7c9ffdd1cf21d84493cd131023a879c07ef3b942b7",
+      "bytes": 13610,
+      "lines": 343,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/llm/llm-pi-ai/src/models.ts",
+      "sha256": "5371f5f8e82cc7c70943bb09e0aba1d261df2a76408e45d56651705382b908b9",
+      "bytes": 3694,
+      "lines": 92,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/llm/llm-retry/src/index.ts",
+      "sha256": "d33553781ed2118aab3b249c159fae550d359627565e4714c9ea599e474b8093",
+      "bytes": 9263,
+      "lines": 259,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/llm/llm/src/retry-policy.ts",
+      "sha256": "eee2423a0152096026446dd651f29678e0c504f0349a91758720f01f74efa871",
+      "bytes": 7612,
+      "lines": 195,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/preset/persona/src/index.ts",
+      "sha256": "16dc065551de44f581868b029ef1883aca8b990aa724283466f26edfb736db76",
+      "bytes": 3093,
+      "lines": 75,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/ptc-runtime/ptc-runtime-node/src/policy-processes.ts",
+      "sha256": "3f323a64ba7b859f0979267f1ee3fba500f723f0ba772db4af49f61c74dd1936",
+      "bytes": 3185,
+      "lines": 79,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/ptc-runtime/ptc-runtime-node/tests/persistent.spec.ts",
+      "sha256": "d54c309b9053b0935b2b599260bcdcb3016d3c1a360a28bef0a2e53e5d772dab",
+      "bytes": 17846,
+      "lines": 315,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/subagent/subagent/src/manager.ts",
+      "sha256": "87298342da27dd567897bd23145fdec7d841e1f26a4e6b5dfa9a48b0b477d03e",
+      "bytes": 61771,
+      "lines": 1493,
+      "repository": "deepseek-harness"
+    },
+    {
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/subagent/tool-subagent/src/index.ts",
+      "sha256": "11d0011edc86fb51e219a612e53c7bbc11b4adea3832cf02d3ffc9393db04095",
+      "bytes": 25058,
+      "lines": 505,
+      "repository": "deepseek-harness"
+    }
+  ],
+  "references": [
+    {
+      "id": "cx-agent-wait",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/handlers/multi_agents/wait.rs",
+      "line": 322,
+      "anchor_text": "async fn wait_for_final_status("
+    },
+    {
+      "id": "cx-agents-cache",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/agents_md_manager.rs",
+      "line": 89,
+      "anchor_text": "            let refresh_repository = state.cache.selections.as_ref() != Some(&selections)"
+    },
+    {
+      "id": "cx-agents-diff",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/world_state/agents_md.rs",
+      "line": 44,
+      "anchor_text": "    fn render_diff("
+    },
+    {
+      "id": "cx-agents-discovery",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/agents_md.rs",
+      "line": 58,
+      "anchor_text": "pub(crate) async fn load_project_instructions("
+    },
+    {
+      "id": "cx-approval-cache",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/sandboxing.rs",
+      "line": 72,
+      "anchor_text": "pub(crate) async fn with_cached_approval<K, F, Fut>("
+    },
+    {
+      "id": "cx-approval-gate",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/orchestrator.rs",
+      "line": 166,
+      "anchor_text": "        let requirement = tool.exec_approval_requirement(req).unwrap_or_else(|| {"
+    },
+    {
+      "id": "cx-approval-keys",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/approvals.rs",
+      "line": 220,
+      "anchor_text": "    pub(crate) fn cache_keys(&self) -> Vec<ApprovalCacheKey> {"
+    },
+    {
+      "id": "cx-code-flags",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "line": 1160,
+      "anchor_text": "        id: Feature::CodeMode,"
+    },
+    {
+      "id": "cx-code-mode",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/code_mode/execute_handler.rs",
+      "line": 64,
+      "anchor_text": "        let mut enabled_tools = Vec::with_capacity(self.nested_tool_specs.len());"
+    },
+    {
+      "id": "cx-compact-flags",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "line": 2058,
+      "anchor_text": "        id: Feature::AsyncCompaction,"
+    },
+    {
+      "id": "cx-default",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/collaboration-mode-templates/templates/default.md",
+      "line": 11,
+      "anchor_text": "In Default mode, strongly prefer making reasonable assumptions and executing the user's request rather than stopping to ask questions."
+    },
+    {
+      "id": "cx-effort",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_settings.rs",
+      "line": 85,
+      "anchor_text": "    pub(crate) fn effective_reasoning_effort(&self) -> Option<ReasoningEffort> {"
+    },
+    {
+      "id": "cx-goal-runtime",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/ext/goal/src/runtime.rs",
+      "line": 436,
+      "anchor_text": "    pub(crate) async fn continue_if_idle(&self) -> Result<(), String> {"
+    },
+    {
+      "id": "cx-goal-spec",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/ext/goal/src/spec.rs",
+      "line": 46,
+      "anchor_text": "            r#\"Create a goal only when explicitly requested by the user or system/developer instructions; do not infer goals from ordinary tasks."
+    },
+    {
+      "id": "cx-goal-update",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/ext/goal/src/tool.rs",
+      "line": 247,
+      "anchor_text": "    async fn handle_update("
+    },
+    {
+      "id": "cx-guardian-flag",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "line": 1830,
+      "anchor_text": "        id: Feature::GuardianApproval,"
+    },
+    {
+      "id": "cx-incremental-flags",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "line": 1590,
+      "anchor_text": "        id: Feature::IncrementalTools,"
+    },
+    {
+      "id": "cx-memory",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/memory.rs",
+      "line": 14,
+      "anchor_text": "impl ContextualUserFragment for MemoryContextFragment {"
+    },
+    {
+      "id": "cx-model-prompt",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/prompts/src/model_instructions.rs",
+      "line": 8,
+      "anchor_text": "pub fn render_model_instructions(model_info: &ModelInfo) -> String {"
+    },
+    {
+      "id": "cx-multi-flags",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "line": 1470,
+      "anchor_text": "        id: Feature::Collab,"
+    },
+    {
+      "id": "cx-parallel",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/parallel.rs",
+      "line": 141,
+      "anchor_text": "        let supports_parallel = router.tool_supports_parallel(&call);"
+    },
+    {
+      "id": "cx-plan",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/collaboration-mode-templates/templates/plan.md",
+      "line": 7,
+      "anchor_text": "You are in **Plan Mode** until a developer message explicitly ends it."
+    },
+    {
+      "id": "cx-presets",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/models-manager/src/collaboration_mode_presets.rs",
+      "line": 6,
+      "anchor_text": "pub fn builtin_collaboration_mode_presets() -> Vec<CollaborationModeMask> {"
+    },
+    {
+      "id": "cx-retries",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/model-provider-info/src/lib.rs",
+      "line": 66,
+      "anchor_text": "const DEFAULT_STREAM_IDLE_TIMEOUT_MS: u64 = 300_000;"
+    },
+    {
+      "id": "cx-step",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_context.rs",
+      "line": 23,
+      "anchor_text": "/// Request-scoped state that may change between model sampling requests."
+    },
+    {
+      "id": "cx-stop",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/turn.rs",
+      "line": 718,
+      "anchor_text": "                if !needs_follow_up {"
+    },
+    {
+      "id": "cx-strict-grant",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/mod.rs",
+      "line": 3353,
+      "anchor_text": "        if response.strict_auto_review && matches!(response.scope, PermissionGrantScope::Session) {"
+    },
+    {
+      "id": "cx-summary",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/compaction_summary.rs",
+      "line": 17,
+      "anchor_text": "impl ContextualUserFragment for CompactionSummary {"
+    },
+    {
+      "id": "cx-test-refresh",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_activation_tests.rs",
+      "line": 104,
+      "anchor_text": "async fn instruction_refresh_serializes_reads_and_releases_on_cancellation() {"
+    },
+    {
+      "id": "cx-test-sandbox",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/sandboxing_tests.rs",
+      "line": 190,
+      "anchor_text": "fn deny_read_preserves_the_sandbox_for_explicit_escalation_and_blocks_policy_bypass() {"
+    },
+    {
+      "id": "cx-test-step",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/session/step_activation_tests.rs",
+      "line": 508,
+      "anchor_text": "async fn submitted_sparse_updates_preserve_captured_steps_and_ordering() {"
+    },
+    {
+      "id": "cx-test-timing",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/parallel_observation_tests.rs",
+      "line": 20,
+      "anchor_text": "fn cancelled_dispatch_reports_zero_handler_work_even_without_tracing() {"
+    },
+    {
+      "id": "cx-toolsearch",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/tools/handlers/tool_search.rs",
+      "line": 209,
+      "anchor_text": "impl ToolSearchHandler {"
+    },
+    {
+      "id": "cx-toolsearch-flags",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/features/src/lib.rs",
+      "line": 260,
+      "anchor_text": "    /// Removed compatibility flag retained as a no-op now that tool_search is always enabled."
+    },
+    {
+      "id": "cx-world-state",
+      "path": "C:/Users/zhupu/Desktop/codex-cli-0.163.0/codex-rs/core/src/context/world_state/mod.rs",
+      "line": 321,
+      "anchor_text": "pub(crate) trait WorldStateSection: Send + Sync + 'static {"
+    },
+    {
+      "id": "cz-assembly",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28587,
+      "anchor_text": "fn build_context_assembly_with_roster("
+    },
+    {
+      "id": "cz-child",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "line": 55,
+      "anchor_text": "pub(super) struct HostModelSnapshot {"
+    },
+    {
+      "id": "cz-child-run",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "line": 298,
+      "anchor_text": "            crate::execution_service::TurnRunner::run(&self.snapshot.usage_db_path, spec,"
+    },
+    {
+      "id": "cz-context-snapshot",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28841,
+      "anchor_text": "    let tool_catalog_revision = context_tool_catalog_revision();"
+    },
+    {
+      "id": "cz-core-dispatch",
+      "path": "D:/coolzhuagent/modules/core-runtime/packages/core-runtime/src/conversation.rs",
+      "line": 323,
+      "anchor_text": "            if pending_tool_uses.is_empty() {"
+    },
+    {
+      "id": "cz-cu-guide",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28347,
+      "anchor_text": "fn agent_tool_usage_instruction() -> String {"
+    },
+    {
+      "id": "cz-dispatch",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+      "line": 27,
+      "anchor_text": "    pub(super) async fn dispatch(request: DispatchRequest<'_>) -> ApiResult<ToolDispatchResponse> {"
+    },
+    {
+      "id": "cz-dsh-host",
+      "path": "D:/coolzhuagent/modules/tooling/packages/dsh-plugin-host/src/host.mjs",
+      "line": 143,
+      "anchor_text": "    const required = requiredServices(module);"
+    },
+    {
+      "id": "cz-effort",
+      "path": "D:/coolzhuagent/modules/llm-adapter/packages/llm-adapter/src/reasoning.rs",
+      "line": 686,
+      "anchor_text": "pub fn resolve_reasoning("
+    },
+    {
+      "id": "cz-effort-default",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 51002,
+      "anchor_text": "fn default_reasoning_effort() -> String {"
+    },
+    {
+      "id": "cz-final-request",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 33532,
+      "anchor_text": "    messages: Vec<InputMessage>,"
+    },
+    {
+      "id": "cz-goal-prompt",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 46973,
+      "anchor_text": "    format!("
+    },
+    {
+      "id": "cz-goal-stage",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/goal_phase_stage.rs",
+      "line": 15,
+      "anchor_text": "    pub(super) fn resolve(original_role: &str, route: Option<&str>, failures: u32, failed: bool) -> Self {"
+    },
+    {
+      "id": "cz-goal-verify",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 40105,
+      "anchor_text": "        let missing_artifacts = goal_phase_missing_files(phase);"
+    },
+    {
+      "id": "cz-hook-tests",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs",
+      "line": 97,
+      "anchor_text": "    fn dispatch_hook_budget_pre_deadline_stops_target_and_following_hook() { interrupted_hook_case(false, false, false); }"
+    },
+    {
+      "id": "cz-inline-guide",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28321,
+      "anchor_text": "const AGENT_GUIDE_INLINE: &str = \"Tool & working guide (follow on every task):\\n\\"
+    },
+    {
+      "id": "cz-instruction-discovery",
+      "path": "D:/coolzhuagent/modules/core-runtime/packages/core-runtime/src/prompt.rs",
+      "line": 242,
+      "anchor_text": "fn discover_instruction_files(cwd: &Path) -> std::io::Result<Vec<ContextFile>> {"
+    },
+    {
+      "id": "cz-loop-cap",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28182,
+      "anchor_text": "        let round_cap_truncated = !tool_requests.is_empty() && round >= max_tool_feedback_rounds;"
+    },
+    {
+      "id": "cz-parallel",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 27687,
+      "anchor_text": "async fn dispatch_model_tool_calls_parallel("
+    },
+    {
+      "id": "cz-prompt-builder",
+      "path": "D:/coolzhuagent/modules/core-runtime/packages/core-runtime/src/prompt.rs",
+      "line": 156,
+      "anchor_text": "    pub fn build(&self) -> Vec<String> {"
+    },
+    {
+      "id": "cz-recovery",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 35578,
+      "anchor_text": "async fn call_agent_model_text_recovery("
+    },
+    {
+      "id": "cz-recovery-branch",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28019,
+      "anchor_text": "        let recovery_reason = if model_text_requires_tool_recovery(&answer_text(&response.content), prompt) {"
+    },
+    {
+      "id": "cz-repeat",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28095,
+      "anchor_text": "            // L1 监管：检测连续重复的相同工具调用（空转/卡死），注入纠偏提示。条件化天然——"
+    },
+    {
+      "id": "cz-summary",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28770,
+      "anchor_text": "    // dropped_history 是新→旧顺序，摘要时转回时间正序并注入 system_prompt（计入 system_tokens）。"
+    },
+    {
+      "id": "cz-system-memory",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 28300,
+      "anchor_text": "fn build_agent_system_prompt_with_beads("
+    },
+    {
+      "id": "cz-tool-intent",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 32851,
+      "anchor_text": "    let latest_user_text = messages.iter().rev().filter(|message| message.role == \"user\")"
+    },
+    {
+      "id": "cz-tool-select",
+      "path": "D:/coolzhuagent/modules/gui-web/packages/web-console/src/main.rs",
+      "line": 33632,
+      "anchor_text": "    tools_enabled: bool,"
+    },
+    {
+      "id": "cz-wire",
+      "path": "D:/coolzhuagent/modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+      "line": 1050,
+      "anchor_text": "    if let Some(system) = request.system.as_ref().filter(|value| !value.is_empty()) {"
+    },
+    {
+      "id": "dsh-build",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/agent.ts",
+      "line": 616,
+      "anchor_text": "  private buildRequest("
+    },
+    {
+      "id": "dsh-children",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/subagent/subagent/src/manager.ts",
+      "line": 252,
+      "anchor_text": "  async waitForChildren(parent: Agent): Promise<boolean> {"
+    },
+    {
+      "id": "dsh-concurrency",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/tools/src/index.ts",
+      "line": 1311,
+      "anchor_text": "  executionMode(exec: ToolExecutionInput): ToolExecutionMode {"
+    },
+    {
+      "id": "dsh-goal-authority",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/goal/tool-goal/src/authority.ts",
+      "line": 49,
+      "anchor_text": "  const agent = exec.agent"
+    },
+    {
+      "id": "dsh-goal-block",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/goal/tool-goal/src/index.ts",
+      "line": 305,
+      "anchor_text": "      if (args.action === 'blocked' && authority.kind === 'goal-round'"
+    },
+    {
+      "id": "dsh-goal-update",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/goal/tool-goal/src/index.ts",
+      "line": 270,
+      "anchor_text": "      if (args.action === 'pause' || args.action === 'resume') {"
+    },
+    {
+      "id": "dsh-human-source",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/goal/tool-goal/src/authority.ts",
+      "line": 83,
+      "anchor_text": "    event.type === 'user/message' && event.data.source.kind === 'user')"
+    },
+    {
+      "id": "dsh-instruction-prestep",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/src/index.ts",
+      "line": 330,
+      "anchor_text": "    stepTouches.delete(session)"
+    },
+    {
+      "id": "dsh-instruction-render",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/src/render.ts",
+      "line": 16,
+      "anchor_text": "const SYSTEM_REMINDER_OPEN = '<system-reminder>'"
+    },
+    {
+      "id": "dsh-instruction-touch",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/src/index.ts",
+      "line": 76,
+      "anchor_text": "const FILE_TOUCH_TOOL_NAMES = new Set(['read', 'write', 'edit'])"
+    },
+    {
+      "id": "dsh-model-capability",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/llm/llm-pi-ai/src/models.ts",
+      "line": 75,
+      "anchor_text": "export function conversationUpdates(model: Model<Api>): Pick<LlmResolvedModelInfo, 'systemPromptUpdate' | 'toolUpdate'> {"
+    },
+    {
+      "id": "dsh-persona",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/preset/persona/src/index.ts",
+      "line": 60,
+      "anchor_text": " * @param config - the prefix, suffix, and complete-prompt policy."
+    },
+    {
+      "id": "dsh-plan-policy",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/bundle/base/cordis.patch.yml",
+      "line": 332,
+      "anchor_text": "    - id: plan-mode"
+    },
+    {
+      "id": "dsh-prepare",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/agent.ts",
+      "line": 564,
+      "anchor_text": "  private async prepareRequest("
+    },
+    {
+      "id": "dsh-prompt-assemble",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/system-prompt/src/index.ts",
+      "line": 614,
+      "anchor_text": "  async assemble(context: AssembleContext = {}): Promise<PromptAssembly> {"
+    },
+    {
+      "id": "dsh-prompt-project",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/runtime-context.ts",
+      "line": 88,
+      "anchor_text": "  project(rendered: string, input: SystemPromptDecisionInput): SystemPromptCommit[] {"
+    },
+    {
+      "id": "dsh-ptc-policy",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/ptc-runtime/ptc-runtime-node/src/policy-processes.ts",
+      "line": 21,
+      "anchor_text": "   * @param ctx - Node provider lifecycle and Session services."
+    },
+    {
+      "id": "dsh-refresh",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/system-prompt/src/index.ts",
+      "line": 582,
+      "anchor_text": "  refreshContext(assembly: PromptAssembly, context: AssembleContext = {}): PromptAssembly {"
+    },
+    {
+      "id": "dsh-retry",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/llm/llm-retry/src/index.ts",
+      "line": 194,
+      "anchor_text": "  async function recover("
+    },
+    {
+      "id": "dsh-retry-policy",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/llm/llm/src/retry-policy.ts",
+      "line": 14,
+      "anchor_text": "const DEFAULT_MAX_RETRIES = 5"
+    },
+    {
+      "id": "dsh-spawn",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/subagent/tool-subagent/src/index.ts",
+      "line": 337,
+      "anchor_text": "          return { kind: 'activation' as const, subagentId: started.childId }"
+    },
+    {
+      "id": "dsh-step",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/agent.ts",
+      "line": 400,
+      "anchor_text": "  private async step(decision: Extract<PreparedStep, { kind: 'enter' }>): Promise<StepEndReason | null> {"
+    },
+    {
+      "id": "dsh-step-end",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/agent.ts",
+      "line": 547,
+      "anchor_text": "        if (finish.kind === 'max-tokens') return { kind: 'max-tokens' }"
+    },
+    {
+      "id": "dsh-tool-batch",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/src/tool-calls.ts",
+      "line": 60,
+      "anchor_text": "export async function executeToolCalls("
+    },
+    {
+      "id": "dsh-tool-gate",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/tools/src/index.ts",
+      "line": 1501,
+      "anchor_text": "  private async prepareExecution<T>("
+    },
+    {
+      "id": "dsh-tool-schema",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/tools/src/index.ts",
+      "line": 1280,
+      "anchor_text": "          throw new Error(`tool \"${definition.name}\" output schema must be lossless JSON before SDK projection`)"
+    },
+    {
+      "id": "test-clear",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/tests/system-prompt-projection.spec.ts",
+      "line": 203,
+      "anchor_text": "  it('empties all active nodes when clearing an in-history prompt', async () => {"
+    },
+    {
+      "id": "test-file-policy",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/fs/fs-observation-policy/tests/policy.spec.ts",
+      "line": 116,
+      "anchor_text": "  it('a read observation authorizes an in-place write at that version', async () => {"
+    },
+    {
+      "id": "test-freeze",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/core/agent-loop/tests/request-freeze.spec.ts",
+      "line": 46,
+      "anchor_text": "  it('adopts restored identities, freezes nested messages at dispatch, and leaves event wrappers mutable', async () => {"
+    },
+    {
+      "id": "test-instruction-compact",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/context/agent-instructions/tests/agent-instructions.spec.ts",
+      "line": 4764,
+      "anchor_text": "  it('re-arms a nested instruction after compaction removes its context message from the surface', async () => {"
+    },
+    {
+      "id": "test-ptc",
+      "path": "C:/Users/zhupu/Desktop/deepseek-harness-v0.2.1-rc.2/packages/ptc-runtime/ptc-runtime-node/tests/persistent.spec.ts",
+      "line": 180,
+      "anchor_text": "  it('cancels active execution, awaits process exit, and clears all variables', async () => {"
+    }
+  ],
+  "web_sources": [
+    "https://github.com/openai/codex/releases/tag/rust-v0.163.0",
+    "https://github.com/openai/codex/releases/tag/rust-v0.164.0-alpha.3",
+    "https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-rc.2",
+    "https://learn.chatgpt.com/docs/sandboxing/auto-review",
+    "https://learn.chatgpt.com/docs/agent-approvals-security"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "state": "completed",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.EXE",
+    "build",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target"
+  ],
+  "source_before": {
+    "modules/gui-web/packages/web-console/src/input_safety_store.rs": "92c539146f91218736b2a63892e9f68872ff1125429e034e3807e66f0df75e80",
+    "modules/gui-web/packages/web-console/src/input_lease_process_acceptance_tests.rs": "2913e766d6d4ffe1075a4c4ef443803fc1611066bd5b478b9ed906abb30df53c",
+    "modules/gui-web/packages/web-console/src/dsh_web_tests.rs": "cea1343002187ded9af2fb5253bc6f564d3860d7d537237d0749a032769e49f5"
+  },
+  "startedAtUtc": "2026-10-16T19:56:43.801686+00:00",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-key-batch-build-20261016.log",
+  "exit_code": 0,
+  "source_after": {
+    "modules/gui-web/packages/web-console/src/input_safety_store.rs": "92c539146f91218736b2a63892e9f68872ff1125429e034e3807e66f0df75e80",
+    "modules/gui-web/packages/web-console/src/input_lease_process_acceptance_tests.rs": "2913e766d6d4ffe1075a4c4ef443803fc1611066bd5b478b9ed906abb30df53c",
+    "modules/gui-web/packages/web-console/src/dsh_web_tests.rs": "cea1343002187ded9af2fb5253bc6f564d3860d7d537237d0749a032769e49f5"
+  },
+  "source_unchanged": true,
+  "elapsedSeconds": 436.01,
+  "log_sha256": "2103356bd774835e324c8aae8de3da95698cb6f43233a68869b542c9eab458d6",
+  "finishedAtUtc": "2026-10-16T20:03:59.985715+00:00"
+}

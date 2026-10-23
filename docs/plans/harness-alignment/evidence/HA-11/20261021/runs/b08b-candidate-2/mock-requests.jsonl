@@ -1,0 +1,11 @@
+{"ts": 1792765306.3180654, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765331.6033185, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765336.1358922, "seq": 2, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765350.6533046, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765364.7738667, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765375.903424, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765378.3262663, "seq": 2, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765393.2513342, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765411.4592865, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765422.9998183, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b08"}
+{"ts": 1792765426.0690498, "seq": 2, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "respond", "mode": "b08"}

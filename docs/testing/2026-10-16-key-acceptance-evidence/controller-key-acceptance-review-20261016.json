@@ -1,0 +1,752 @@
+{
+  "at_utc": "2026-10-16T18:48:56.532244+00:00",
+  "mode": "key_functional",
+  "action": "仅复用实际证据重新判定并收窄计划，本脚本不执行产品测试/安装/模型调用",
+  "prior_strict_counts": {
+    "blocked": 16,
+    "in_progress": 9,
+    "pending_evidence": 7,
+    "waived": 1,
+    "accepted": 2
+  },
+  "counts": {
+    "accepted": 13,
+    "pending_evidence": 16,
+    "blocked": 5
+  },
+  "items": [
+    {
+      "id": "0.1",
+      "status": "accepted",
+      "criterion": "能追溯本次候选源码、完整载荷和实际运行程序身份。",
+      "conclusion": "134/135完整出包身份和1222个载荷核验已有证据；MSI覆盖与CI分别归6.2/0.3，不再重复阻断身份项。",
+      "next": "已关关键功能，不重跑。",
+      "receipts": [
+        "controller-release135-20261016.json",
+        "controller-package135-live-20261016.json"
+      ],
+      "deferred": "只证明已核候选；不把后续dirty源码、尚未打包的hook修复或远端CI算进旧包。"
+    },
+    {
+      "id": "0.2",
+      "status": "pending_evidence",
+      "criterion": "长工具输出可以按result_id连续续读，读取完整内容且不重复执行命令。",
+      "conclusion": "82KB输出旧轮被约30秒宿主时限中断，没有result_id、实际读取0字节；连续分页仍缺关键证明。",
+      "next": "用当前支持执行链生成一次有首尾哨兵的长输出，连续读到尾并核总量/哈希；失败仅修续读或时限接线。",
+      "receipts": [
+        "controller-159-audit.json"
+      ],
+      "deferred": "取消重跑长程原Devin的前置条件；不做不同模型/所有输出大小穷举。"
+    },
+    {
+      "id": "0.3",
+      "status": "blocked",
+      "criterion": "最终交付源码有对应CI结果，失败不显示为通过。",
+      "conclusion": "已有远端绿灯对应旧提交；最终本地未提交修改没有对应CI，不能沿用旧绿灯。",
+      "next": "到最终交付时，按届时有效发布授权提交最终变更并取得该版本CI；当前不擅自push，也不重复本地编译冒充CI。",
+      "receipts": [
+        "wbs-0-3-ci-current-head-audit.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "1.1",
+      "status": "accepted",
+      "criterion": "真实执行的输入、工具、回复归属同一轮；失败/未知不冒充成功。",
+      "conclusion": "正式成功/失败链、公开回复与工具记录，及恢复后unknown保留均已有证据。",
+      "next": "已关关键功能，不重跑。",
+      "receipts": [
+        "controller-283-installed-ui-audit.json",
+        "controller-289-dom-audit.json",
+        "controller-runtime-history-20261016.json",
+        "controller-recovery-contract-matrix-20261016.json"
+      ],
+      "deferred": "恢复矩阵为人工索引隔离HTTP；未外推全部模型和全部入口。当前已观察绑定为buttercup-pink，不再误称island-kayak。"
+    },
+    {
+      "id": "1.2",
+      "status": "accepted",
+      "criterion": "输入回执区分未投递、已投递和已释放；执行失败不能抹掉已发生输入。",
+      "conclusion": "原生生命周期49项与实机344/345正负例可复用：未命中0输入，实际点击有投递/释放事实，验证失败不篡改输入事实。",
+      "next": "已关当前关键链，不重跑。",
+      "receipts": [
+        "controller-300-audit.json",
+        "controller-344-audit.json",
+        "controller-345-audit.json"
+      ],
+      "deferred": "多来源真实丢/迟回执组合留作加强；相关负向库测试有效，不宣称已完成实机丢包注入。"
+    },
+    {
+      "id": "1.3",
+      "status": "pending_evidence",
+      "criterion": "输入租约的第二持有者被拒绝，异常持有者退出后安全接管且unknown不擦除。",
+      "conclusion": "会话数据库单写者已验证，输入broker/lease尚缺同一输入安全库的真实双进程接管；二者不能混为一项证据。",
+      "next": "复用input_safety_store测试，只补一个双进程租约竞争→持有者退出→接管的闭环，核旧unknown记录不变。",
+      "receipts": [
+        "controller-183-audit.json",
+        "controller-184-audit.json",
+        "controller-writer-live-matrix-20261016.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "1.4",
+      "status": "pending_evidence",
+      "criterion": "已支持执行入口继承最小权限，撤权后旧子任务不能继续借旧授权执行。",
+      "conclusion": "普通工具允许/拒绝/FullAccess撤销/自然过期已过；DSH或子任务冻结授权关键链仍有ignored而未实际执行。",
+      "next": "只补一个已支持子任务入口：父授权冻结→撤权→下一有副作用工具被拒，核零副作用；不再跑普通读取和TTL矩阵。",
+      "receipts": [
+        "controller-311-audit.json",
+        "controller-318-audit.json",
+        "controller-permission-expiry-matrix-20261016.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "1.5",
+      "status": "accepted",
+      "criterion": "聊天/Goal在途取消停止后续动作；受控工具超时回收且迟到结果不变成成功。",
+      "conclusion": "聊天与Goal真实HTTP在途取消已过；hook根预算、前后取消、回收与迟到零写入新增8项和实际构建通过。",
+      "next": "关键链通过；hook新源码随下一批正式交付，不为本项单独打包。",
+      "receipts": [
+        "controller-312-audit.json",
+        "controller-313-audit.json",
+        "controller-hook-budget-review-20261016.json"
+      ],
+      "deferred": "hook新增修复尚未部署；外部Provider和所有工具后代组合留后续，授权在途变化仍由1.4跟进。"
+    },
+    {
+      "id": "2.1",
+      "status": "accepted",
+      "criterion": "配置提交有版本冲突保护，重启后会话、模型与参数一致。",
+      "conclusion": "完整服务HTTP提交revision0→1、旧revision拒绝和重启读回已过；提交前后中断恢复也有证据。",
+      "next": "已关当前关键配置，不重跑。",
+      "receipts": [
+        "controller-341-audit.json",
+        "controller-342-audit.json"
+      ],
+      "deferred": "新平台真实凭据接入和物理断电不是本次配置保存的前置；未对未连接平台宣称可用。"
+    },
+    {
+      "id": "2.2",
+      "status": "accepted",
+      "criterion": "历史可恢复；已知用量归属正确，未知用量显示未知而非0。",
+      "conclusion": "11历史表逐行对账、实际模型协议用量41/7/13/2与insights一致、unknown为null；迟到归属隔离HTTP有证据。",
+      "next": "已关关键历史/计量，不重跑。",
+      "receipts": [
+        "controller-installed-133-history-review.json",
+        "controller-315-audit.json",
+        "controller-320-audit.json",
+        "controller-remaining-matrix-review-20261016.json"
+      ],
+      "deferred": "真实外部账单及真实多后代并发全链未验；不将mock数值说成提供商实际计费。"
+    },
+    {
+      "id": "2.3",
+      "status": "pending_evidence",
+      "criterion": "一次工具只派发一次，权限闸有效；声明支持的hook有可用配置和独立授权入口。",
+      "conclusion": "普通派发及hook取消/预算已测；默认生产HookRunner仍缺配置和独立授权材料来源，测试override不等于用户可用。",
+      "next": "补最小正式hook配置与独立授权接线，再用一个前置hook→目标→后置hook闭环及未授权拒绝验收；不重跑8项预算用例。",
+      "receipts": [
+        "controller-245-audit.json",
+        "controller-hook-budget-review-20261016.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "2.4",
+      "status": "pending_evidence",
+      "criterion": "单写者和epoch拒绝旧写入；同轮通知崩溃恢复后只投递一次。",
+      "conclusion": "135/134同库竞争和epoch八项已过；通知outbox的崩溃窗口与已出现的UI积压尚未形成最后闭环。",
+      "next": "仅用隔离接收端核一条通知落盘→发送中断→恢复去重，保留同轮唯一送达证据；不向主会话反复发测试消息。",
+      "receipts": [
+        "controller-writer-live-matrix-20261016.json",
+        "controller-246-audit.json",
+        "controller-294-audit.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "2.5",
+      "status": "pending_evidence",
+      "criterion": "已支持共享运行入口创建、取消、恢复使用同一执行身份，不自动重放未知副作用。",
+      "conclusion": "execution_service局部17项及索引unknown恢复已过；真实运行worker到恢复的共享入口闭环仍缺。",
+      "next": "选一个已支持的隔离共享入口运行→取消/重启→查询，核同ID和无自动重放；不启Devin接力或另建执行会话。",
+      "receipts": [
+        "controller-299-audit.json",
+        "controller-recovery-contract-matrix-20261016.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "3.1",
+      "status": "blocked",
+      "criterion": "多屏/混合DPI下截图坐标与实际目标一致。",
+      "conclusion": "当前证据只含单显示器，缺真实多屏、混合DPI和负坐标硬件条件。",
+      "next": "有相应显示环境后合并3.1/6.3做一次截图→定位→输入；当前不再反复测试单屏。",
+      "receipts": [
+        "controller-236-audit.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "3.2",
+      "status": "pending_evidence",
+      "criterion": "声明支持的原生UIA语义动作能操作实际控件，缺目标时不误操作。",
+      "conclusion": "旧输入安全根漏接线已修；现有桌面点击/目标正负证据不充分证明UIA pattern动作本身。",
+      "next": "只补一个实际UIA控件的Invoke或Value动作及缺目标拒绝，核控件值/效果；取消完整Windows控件能力表穷举。",
+      "receipts": [
+        "controller-279-audit.json",
+        "controller-344-audit.json",
+        "controller-345-audit.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "3.3",
+      "status": "accepted",
+      "criterion": "动作验证失败可有界纠正，达到上限停止，不以点击已发送判成功。",
+      "conclusion": "真实桌面首次验证失败→第二次纠正3/3通过，次数上限和验证失败终态9项已有回归证据。",
+      "next": "已关关键纠正功能，不重跑。",
+      "receipts": [
+        "controller-316-audit.json",
+        "controller-344-audit.json"
+      ],
+      "deferred": "复杂分页/并发子目标重规划和自然导航误判泛化不在本次关项范围；未宣称所有任务均能自动纠正。"
+    },
+    {
+      "id": "3.4",
+      "status": "pending_evidence",
+      "criterion": "目标或页面失配时不投递输入，过期目标不能借用新页面。",
+      "conclusion": "原生目标正负例通过；旧WebView未知BODY收到keydown的反例只有假DOM修复证据，缺真实负例复验。",
+      "next": "只复验原BODY keydown负例及一个明确目标正例；失败定位实际页面提交/目标判定，不穷举所有HRESULT。",
+      "receipts": [
+        "controller-317-audit.json",
+        "controller-345-audit.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "4.1",
+      "status": "accepted",
+      "criterion": "正式控制台能显示会话/公开回复/头像/运行面板，重开后历史保留。",
+      "conclusion": "安装入口和完整发布包正式页面均已有可见证据，图标/头像资源及冷启动历史保留已核。",
+      "next": "已关当前单屏关键界面，不重跑。",
+      "receipts": [
+        "controller-283-installed-ui-audit.json",
+        "controller-installed-133-http-files.json",
+        "controller-installed-133-cold-start-d-workspace.json",
+        "controller-reply-ui-20261016.json"
+      ],
+      "deferred": "混合DPI并到3.1/6.3；全部自定义身份组合移加强。C安装134与正式D135差异明确保留。"
+    },
+    {
+      "id": "4.2",
+      "status": "accepted",
+      "criterion": "每条公开回复能定位自身唯一运行及原提问；搜索可定位，未知统计不伪填。",
+      "conclusion": "正式135可见两条回复各自run和原提问4项、HTTP6项、新页/重载2项通过；FTS及并发/隔离补证可复用。",
+      "next": "已关逐回复定位，不重跑；MSI覆盖归6.2。",
+      "receipts": [
+        "controller-300-installed-search-audit.json",
+        "controller-reply-ui-20261016.json",
+        "controller-reply-formal135-20261016.json",
+        "controller-reply-browser-reload-20261016.json",
+        "controller-remaining-matrix-review-20261016.json"
+      ],
+      "deferred": "正式生产库没有真实后代对象，真实后代树UI/外部模型时序留后续，不称已实测。"
+    },
+    {
+      "id": "4.3",
+      "status": "pending_evidence",
+      "criterion": "长文件/附件可完整读取；清理不会删除仍被会话或任务引用的内容。",
+      "conclusion": "spill读回和18项引用检查已过，但GC只有dry-run/deleted=0，Goal/导出/待发送/文本引用保护不完整。",
+      "next": "与0.2共用长内容读回证据；补最小有效引用保护后在隔离目录只删一份无引用对象、保留一份有引用对象。",
+      "receipts": [
+        "controller-252-audit.json",
+        "controller-253-audit.json"
+      ],
+      "deferred": "微信不改不测；任何尚未识别的引用类别采取保守保留，不据此开启全目录GC。"
+    },
+    {
+      "id": "4.4",
+      "status": "pending_evidence",
+      "criterion": "记忆/SKILL能实际召回供模型使用；清理不破坏仍在使用的资料。",
+      "conclusion": "memory36/images9局部测试通过，实际模型召回/使用闭环未证；共享附件GC缺口归4.3修一次。",
+      "next": "选一个无敏感信息的记忆样例，保存后由产品会话召回并核引用/实际读取；必要时只用Devin SWE-2作测试对象。",
+      "receipts": [
+        "controller-251-audit.json",
+        "controller-253-audit.json"
+      ],
+      "deferred": "多模态压缩/全排序矩阵后续加强；不重复4.3引用保护测试，不把外部材料当系统指令。"
+    },
+    {
+      "id": "4.5",
+      "status": "pending_evidence",
+      "criterion": "Goal失败回退后能修复并复验成功；已支持调度任务重启后不会丢失或重发。",
+      "conclusion": "安装134实际工具执行的失败→修复→复验闭环已过；durable调度任务的恢复仍缺一条运行证据。",
+      "next": "复用Goal修复证据，只补隔离一次性job落盘→重启→执行一次→终态；不创建主会话监督定时任务。",
+      "receipts": [
+        "controller-goal-release-134-installed.json",
+        "controller-313-audit.json",
+        "controller-299-audit.json"
+      ],
+      "deferred": "模型决策使用受控协议夹具，真实HTTP/工具/确定性门控有效；外部模型自主规划与并行DAG复杂矩阵后续加强。"
+    },
+    {
+      "id": "5.1",
+      "status": "accepted",
+      "criterion": "本机凭据加密保存可读回，坏密文被拒绝，诊断不泄漏秘密。",
+      "conclusion": "本机DPAPI、旧明文迁移、损坏拒绝和诊断脱敏13项通过，均用假凭据且未读取真实密钥。",
+      "next": "已关本机关键凭据存储，不重跑。",
+      "receipts": [
+        "controller-234-audit.json"
+      ],
+      "deferred": "换设备需重新认证，不能搬用DPAPI密文；跨设备恢复与全来源迁移组合留专项。"
+    },
+    {
+      "id": "5.2",
+      "status": "pending_evidence",
+      "criterion": "执行进程受生命周期约束，并有实际可证的OS权限隔离边界。",
+      "conclusion": "Job杀子树和socket不继承已有证据；受限令牌/低完整性/AppContainer隔离没有实证，独立进程不等于沙箱。",
+      "next": "先定位实际启用的隔离机制；若不存在则记实现缺口并修，若存在只做一次受限资源访问拒绝和正常工作区正例。",
+      "receipts": [
+        "controller-235-audit.json"
+      ],
+      "deferred": "取消全逃逸手法穷举，但不能删掉OS边界本身的验收标准。"
+    },
+    {
+      "id": "5.3",
+      "status": "accepted",
+      "criterion": "既定stdio MCP能连接、调用和关闭，命名冲突/权限有保护。",
+      "conclusion": "官方Everything Server真实stdio互通及既有生命周期/权限证据已通过，保持原已验收结论。",
+      "next": "已关，不重跑。",
+      "receipts": [
+        "controller-173-audit.json",
+        "controller-198-audit.json"
+      ],
+      "deferred": "只含stdio；延期transport/OAuth不列入本次计划，不冒充已交付。"
+    },
+    {
+      "id": "5.4",
+      "status": "pending_evidence",
+      "criterion": "代码导航能返回实际位置，终端能启动/输出/结束。",
+      "conclusion": "PTY已有退出/Unicode证据；正式LSP导航502没有复验关闭，隔离unlinked-file空结果不能证明成功。",
+      "next": "只用当前仓库一个真实Rust符号走正式导航取文件行号；失败定位LSP项目初始化/路由，已有终端测试不重跑。",
+      "receipts": [
+        "controller-202-audit.json",
+        "controller-203-audit.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "5.5",
+      "status": "pending_evidence",
+      "criterion": "适用语音连接器能接收真实音频，停止后不再产生旧轮输出。",
+      "conclusion": "只有start/stop/status协议成功和session ID隔离，尚无真实音频处理证据；这属于未补关键测试，不冒称已证环境不可用。",
+      "next": "先核可用语音后端，选一段本地无敏感测试音频做开始→处理→停止；若缺模型/设备再记录确切条件并转其他项。",
+      "receipts": [
+        "controller-325-audit.json"
+      ],
+      "deferred": "微信按既有要求不改不测；不做所有连接器组合穷举。"
+    },
+    {
+      "id": "6.1",
+      "status": "pending_evidence",
+      "criterion": "日志有总量上限、不写穿目录、可脱敏导出，旧进程退出不会永久耗尽额度。",
+      "conclusion": "跨进程总额和硬链接拒绝已过；配额成员清单仍可无限追加，旧属主退出后可能长期占额，另缺完整脱敏导出。",
+      "next": "只修成员清单上限和安全回收，共用一条双进程退出/接管用例，再核一个含假密钥的导出脱敏结果。",
+      "receipts": [
+        "controller-327-audit.json"
+      ],
+      "deferred": "保留已通过预算/硬链接例，不重复全量诊断测试；符号链接环境限制单列。"
+    },
+    {
+      "id": "6.2",
+      "status": "blocked",
+      "criterion": "默认启动不超时，升级保留原数据并实际替换机器安装版本。",
+      "conclusion": "启动120秒期限、正式135新进程12.837秒和迁移恢复已过；机器MSI覆盖被1730/1603管理员权限拦下，C仍134。",
+      "next": "操作系统安装权限条件具备时做一次最终包覆盖→确认注册版本/实际路径→原历史保留；不反复同权限重试，也不要求用户现在审批。",
+      "receipts": [
+        "controller-package135-live-20261016.json",
+        "controller-remaining-matrix-review-20261016.json",
+        "controller-switch135-20261016.json"
+      ],
+      "deferred": "物理断电/盘满、所有慢机器长尾退出当前计划；SQLite FULL和强杀恢复已有证据。"
+    },
+    {
+      "id": "6.3",
+      "status": "blocked",
+      "criterion": "Windows当前声明支持的多屏/DPI窗口与输入行为一致。",
+      "conclusion": "与3.1共用同一硬件缺口；已有单屏144DPI和减少动态证据，不重复测试。",
+      "next": "真实多屏环境具备后与3.1合并一轮；其余单屏界面/启动结论分别复用4.1和EX-03。",
+      "receipts": [
+        "controller-236-audit.json",
+        "controller-installed-133-native.json"
+      ],
+      "deferred": "启动损坏资源注入属于加强项，不再额外卡住已正常的开机动画。"
+    },
+    {
+      "id": "6.4",
+      "status": "pending_evidence",
+      "criterion": "交付包组件与许可证/NOTICE一致，版本和交付说明可追溯。",
+      "conclusion": "最近许可证审计556组件中82缺本地原文，实际组件映射未确认；需要重核实际缺项，不是继续跑业务功能测试。",
+      "next": "按最终载荷去重核许可证缺项并补NOTICE/映射，签名与远端发布作为交付条件单列；不对未核组件声明已合规。",
+      "receipts": [
+        "controller-281-wbs-6-4-audit.json"
+      ],
+      "deferred": "缺签名证书不阻断本地功能验收，但保留最终发布限制；不未经授权对外发布。"
+    },
+    {
+      "id": "EX-01",
+      "status": "accepted",
+      "criterion": "适用控制台完整套件有真实完成结果，后续改动按影响范围补验。",
+      "conclusion": "已核源码完整测试1492过、0败、6忽略；本轮后续hook八项及实际build通过，保持原关项。",
+      "next": "不再重跑已过全量；只有后续修改影响未覆盖行为时补定点测试。",
+      "receipts": [
+        "controller-current-full-20261016.json",
+        "controller-hook-budget-review-20261016.json"
+      ],
+      "deferred": "旧全量证据只对其源码有效，不称当前hook修改已重跑完整套件；忽略不计通过。"
+    },
+    {
+      "id": "EX-02",
+      "status": "blocked",
+      "criterion": "只清理已确认可恢复且无占用的C盘旧数据，并核实际释放字节。",
+      "conclusion": "按用户后续要求留待手动处理；16目录约276.7MiB已核可清，实际释放0。另9.28GB工作树含D归档缺失文件，不能直接删。",
+      "next": "收到实际手工清理结果后核空间；独有文件先归档再另判，junction指向D的数据不算C回收，不自动删除。",
+      "receipts": [
+        "controller-c-readonly-20261015.json",
+        "controller-c-reference-readonly-20261015.json",
+        "controller-gotdot-compare.json"
+      ],
+      "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "EX-03",
+      "status": "accepted",
+      "criterion": "去旧印章/舞剑，COOLZHU下方居中打坐；动画可跳过并正常进入控制台。",
+      "conclusion": "安装版关键帧、首次/日常交接、减少动态与Esc/按钮/演出区跳过均已有实际证据；基本视觉需求通过。",
+      "next": "已关关键动画，不重跑。",
+      "receipts": [
+        "controller-installed-133-native.json",
+        "controller-installed-133-cold-start-d-workspace.json",
+        "controller-installed-133-click-button.json",
+        "controller-installed-133-click-area.json"
+      ],
+      "deferred": "资源损坏注入此前没有成功，仍未验证；本次移到故障加强，不把它伪写为通过。"
+    }
+  ],
+  "receipt_checks": {
+    "controller-release135-20261016.json": {
+      "bytes": 153279,
+      "sha256": "03a738f76447b5b66cb81af4afbd862d5991839f7f01b0b3f4bd26b02c59f0e6",
+      "historical_state": "completed"
+    },
+    "controller-package135-live-20261016.json": {
+      "bytes": 6712,
+      "sha256": "2f5f542b063b5638d4744ac6d02db6964c6c6ecab71c706150e794665f573120",
+      "historical_state": "completed"
+    },
+    "controller-159-audit.json": {
+      "bytes": 1106,
+      "sha256": "5022797aaff798df903ca31062102e24ae6b9dd8c90e6a33dd481715dfdeab21",
+      "historical_state": "blocked-no-evidence"
+    },
+    "wbs-0-3-ci-current-head-audit.json": {
+      "bytes": 2831,
+      "sha256": "2abd7c2b4a040958918ab4d6b11a4e2183f50ce6cacba03134505d0df728775d",
+      "historical_state": null
+    },
+    "controller-283-installed-ui-audit.json": {
+      "bytes": 765,
+      "sha256": "2ddb2468ef1bfbe8fca883b10c6eb153ab82290d08797fbc9815e0d5b86299f4",
+      "historical_state": "4.1和4.2局部可视证据，整项继续进行中"
+    },
+    "controller-289-dom-audit.json": {
+      "bytes": 642,
+      "sha256": "bafc56b1498b600ba10a3f756547f7198b459342f729a709ba1c7c8cfa4d607f",
+      "historical_state": "第289轮公开回复和工具行级DOM可视层通过；不外推其他入口/Goal阶段与安装版"
+    },
+    "controller-runtime-history-20261016.json": {
+      "bytes": 13401,
+      "sha256": "8901f9110e73228f0149720a1da441d9c41548660d7a88a2e045764b63cc5bc8",
+      "historical_state": "completed"
+    },
+    "controller-recovery-contract-matrix-20261016.json": {
+      "bytes": 6091,
+      "sha256": "83a317463e510f5b4ed627aa596e51d1c262d734b2560fd2fef85c90edd25369",
+      "historical_state": "completed"
+    },
+    "controller-300-audit.json": {
+      "bytes": 1702,
+      "sha256": "930cd8bf309613a0ce21685848a7d96e3a9b1f08d35b7694119a7cc1d06485b5",
+      "historical_state": null
+    },
+    "controller-344-audit.json": {
+      "bytes": 1868,
+      "sha256": "e0368a943a03ab484ac2b5f5bc466c5acc440829f73ded5b6d8f24b3c37c12f1",
+      "historical_state": "原Devin真实桌面失配后有界纠正链通过；3.3其余矩阵待验"
+    },
+    "controller-345-audit.json": {
+      "bytes": 1833,
+      "sha256": "7097f1ac73ac01b79ca8d63d3f30cc55035c92725233369593ba162b9d3d2c1b",
+      "historical_state": "桌面严格目标正负例通过；跨来源真实commit及BODY keydown等仍未验"
+    },
+    "controller-183-audit.json": {
+      "bytes": 2419,
+      "sha256": "eafa9fc93cd8169e71c0dedd5389429c91485c6796fd4c568b2ab7f6d4054b4a",
+      "historical_state": "accepted-guard-subset-only"
+    },
+    "controller-184-audit.json": {
+      "bytes": 2388,
+      "sha256": "9e476830404d31c48e4d2be1afa3288bb3933f4d0926b51352103bbf60aac3e4",
+      "historical_state": "accepted-store-subset-only"
+    },
+    "controller-writer-live-matrix-20261016.json": {
+      "bytes": 5999,
+      "sha256": "57b632ccd9d8aa5a5d0528ee938ef31bc58af71c10be03bc7589c8e9dab59575",
+      "historical_state": "completed"
+    },
+    "controller-311-audit.json": {
+      "bytes": 1020,
+      "sha256": "57f8ddb65febcfa56dc129e06a312581bec93461f51d063162b03ef6666fadc4",
+      "historical_state": null
+    },
+    "controller-318-audit.json": {
+      "bytes": 1171,
+      "sha256": "9d9afb4bfcb5f0b7ae64f6b5d59ae9705378685be4e7630ee5d90c806c10c0a4",
+      "historical_state": null
+    },
+    "controller-permission-expiry-matrix-20261016.json": {
+      "bytes": 3435,
+      "sha256": "1fe17b4b873945cf40fa715a16b6d2f2b7d522e652fd471e916a07adf1928a78",
+      "historical_state": "completed"
+    },
+    "controller-312-audit.json": {
+      "bytes": 1334,
+      "sha256": "5b05997f3ee21a827160ad67ddef89c4350ea088417bb331e267ce27438eb728",
+      "historical_state": null
+    },
+    "controller-313-audit.json": {
+      "bytes": 1462,
+      "sha256": "50f88936a90fec9d5bd65a003fafcea44d25f498b0b0c2e6cc54c861808bbf2a",
+      "historical_state": null
+    },
+    "controller-hook-budget-review-20261016.json": {
+      "bytes": 3672,
+      "sha256": "9723649f8f17485fdd44b8c4857b9b78f824491f572003f5593df040c6029891",
+      "historical_state": "completed_with_remaining_gates"
+    },
+    "controller-341-audit.json": {
+      "bytes": 4968,
+      "sha256": "1e43c5568069d6be271124fd0aa58cf5909c6ac8428b8bc264078158013b9ddc",
+      "historical_state": "2.1隔离服务/跨资源崩溃边界局部通过，正式服务及断电矩阵未全证，整项继续in_progress"
+    },
+    "controller-342-audit.json": {
+      "bytes": 4610,
+      "sha256": "c036be9c287b7b62b5fd6ed23471202a249ed88ca321cb303b52ade069ff9ed8",
+      "historical_state": "2.1跨资源提交与隔离HTTP重启读回通过；新平台真实凭据wire/OS断电未证，按规则搁置"
+    },
+    "controller-installed-133-history-review.json": {
+      "bytes": 2765,
+      "sha256": "ef0c604c883abfbc8324a980644b53bf5785d3aa7fc432afb7e29d32e101ebc9",
+      "historical_state": "completed"
+    },
+    "controller-315-audit.json": {
+      "bytes": 1382,
+      "sha256": "8589a457490995e9b0c6ddff0e18c055070d9cb6323c0cdc167ad8f720d4aee6",
+      "historical_state": null
+    },
+    "controller-320-audit.json": {
+      "bytes": 1772,
+      "sha256": "b6ad99d9686fae13a25171773c898eaf842d3ed5e8467bece253d1d047a11486",
+      "historical_state": null
+    },
+    "controller-remaining-matrix-review-20261016.json": {
+      "bytes": 3016,
+      "sha256": "5a9c26de9958dc4da9647a9a39561855b3fac209db5b543319594994ea2088da",
+      "historical_state": "completed_with_remaining_gates"
+    },
+    "controller-245-audit.json": {
+      "bytes": 1967,
+      "sha256": "120e77f048934eb0a4aa32665e6f3a3935ef64e90a344038158d7199912f589a",
+      "historical_state": null
+    },
+    "controller-246-audit.json": {
+      "bytes": 2134,
+      "sha256": "690a69ed7c95dfb3f997cd897753bd6af433639ecfbe883f54029e607de2386a",
+      "historical_state": null
+    },
+    "controller-294-audit.json": {
+      "bytes": 2216,
+      "sha256": "1e0e1cfd70f4bfe9a20dafe2f5436284891fa956e85d51e02953fd3494ddcf52",
+      "historical_state": "partial_outbox_matrix_only"
+    },
+    "controller-299-audit.json": {
+      "bytes": 1366,
+      "sha256": "ce3f34662da500d8d2d2539a8d29ccf2c2150d89d1bd80b2609121e9af1da103",
+      "historical_state": "isolated_boundaries_17_pass_formal_matrix_open"
+    },
+    "controller-236-audit.json": {
+      "bytes": 1178,
+      "sha256": "8a80dc6a0ac92b58097f6380dd903ff8c7ed31fc4e23c93af66249877f49557c",
+      "historical_state": "single_monitor_and_degraded_input_partial_6.3"
+    },
+    "controller-279-audit.json": {
+      "bytes": 1177,
+      "sha256": "f1518aa08c0d7553d6b8af84e62213647506dbc3576b868cd45281a236d64927",
+      "historical_state": "3.2仅UIA读取正负例通过；语义输入动作未执行，整项不通过并留阻塞"
+    },
+    "controller-316-audit.json": {
+      "bytes": 1030,
+      "sha256": "ea06d4afd20188af4e7fbee5fb040556c7c48b3d1f736dd0e2113d73f6fce8de",
+      "historical_state": null
+    },
+    "controller-317-audit.json": {
+      "bytes": 1136,
+      "sha256": "3b7f2ca9b5d4a02e34baf8c583da2c1027e285c0f6cf31d89c3629689057f700",
+      "historical_state": null
+    },
+    "controller-installed-133-http-files.json": {
+      "bytes": 95432,
+      "sha256": "92512faf4e905ae1cbb141219d8f8ddfefcb14e8620f8162a496fb2f88af7a97",
+      "historical_state": "结构化数组，按各条原始结论保留"
+    },
+    "controller-installed-133-cold-start-d-workspace.json": {
+      "bytes": 9135,
+      "sha256": "4d1c0b02728a43372e1a67473fc993fb972fb0c916970c0c1ce74c9bae6ac202",
+      "historical_state": "completed"
+    },
+    "controller-reply-ui-20261016.json": {
+      "bytes": 1841,
+      "sha256": "6162891e245c940ded3f2fd3e7b9803358d7179f7400866fa4bf3f8dcd151c53",
+      "historical_state": "completed"
+    },
+    "controller-300-installed-search-audit.json": {
+      "bytes": 946,
+      "sha256": "be75f8b7c5bc0f163f34fc9308e285c746f0bce1758282e4868398ca3c8b9574",
+      "historical_state": null
+    },
+    "controller-reply-formal135-20261016.json": {
+      "bytes": 3212,
+      "sha256": "5f08be8c6b417e7934d3dd913c2a6365359f507c7993a101914c067a568fc1e0",
+      "historical_state": "completed"
+    },
+    "controller-reply-browser-reload-20261016.json": {
+      "bytes": 1213,
+      "sha256": "390ef430779c1724476bb2e5d285528870b845f2982e0b3e40f06d39246f768d",
+      "historical_state": "completed"
+    },
+    "controller-252-audit.json": {
+      "bytes": 2261,
+      "sha256": "b4d21efc34585641a6b63db9b925a8454d233e8ee3428a24694148bb5f7dc16d",
+      "historical_state": "partial_pass_gc_feature_gap"
+    },
+    "controller-253-audit.json": {
+      "bytes": 1830,
+      "sha256": "29250108165e9b50441d275e9712c6e997ba64b79f2f73b29aa06bf17dcbc65e",
+      "historical_state": "safe_delete_not_proven_gc_stays_dry_run"
+    },
+    "controller-251-audit.json": {
+      "bytes": 1762,
+      "sha256": "f23845375fb020593c0311a43c7977a638a68e798f9c0a625752ef43fd767050",
+      "historical_state": "partial_pass_item_open"
+    },
+    "controller-goal-release-134-installed.json": {
+      "bytes": 93074,
+      "sha256": "054fbc6ce67477cb3bf45f4793fbd972fe6696c2c763fcea8f0b99ba9d670f6a",
+      "historical_state": "completed"
+    },
+    "controller-234-audit.json": {
+      "bytes": 1003,
+      "sha256": "73b4ce6353a35d1eb183bb4ba43bef50af46addd0a6e2a92ed9132f3c986ba17",
+      "historical_state": "isolated_dpapi_and_redaction_pass_5.1_partial"
+    },
+    "controller-235-audit.json": {
+      "bytes": 1570,
+      "sha256": "e1ed7a4840b4707348e30cd85a047e52024824ccf6af3f64d742a5e34d1b944c",
+      "historical_state": "job_supervision_partial_no_os_sandbox_acceptance"
+    },
+    "controller-173-audit.json": {
+      "bytes": 2346,
+      "sha256": "2e3acc584c70aa3c113ec349250e8e7faaa593da8c7458476941900d1f1eb4a7",
+      "historical_state": "partial-pass-official-sdk-integration-pending"
+    },
+    "controller-198-audit.json": {
+      "bytes": 3216,
+      "sha256": "46d2e140f02fc62219181ad103bbd09ba4aa4e6b1a698749ebb03d81443b63e9",
+      "historical_state": "accepted-stdio-mcp-scope"
+    },
+    "controller-202-audit.json": {
+      "bytes": 5089,
+      "sha256": "095f004970e737913522c2c95681bea234ad70fe9de9ba41003719b079cea2f9",
+      "historical_state": "partial-failed-lsp-navigation-5.4-remains-pending"
+    },
+    "controller-203-audit.json": {
+      "bytes": 1561,
+      "sha256": "1fb29953edefac840a673b12dc28432fa96670843882e94fbb280a7d674827da",
+      "historical_state": "failed-no-product-fix-5.4-blocked"
+    },
+    "controller-325-audit.json": {
+      "bytes": 1182,
+      "sha256": "1e16897282e9e5141cb4e93e66d772cf01e967f199e37193b9a4a707b9b93bd1",
+      "historical_state": "partial-only"
+    },
+    "controller-327-audit.json": {
+      "bytes": 1576,
+      "sha256": "5ffc2362c628a60176c950d2af4685d40a79e348272fb5f44aaf13291e4cd247",
+      "historical_state": "partial-accepted-manifest-hardlink-fixed"
+    },
+    "controller-switch135-20261016.json": {
+      "bytes": 3263,
+      "sha256": "7b6153c1b243a5f49763fdf4f03b09731465f31ee4fa860e6727013bc8adf761",
+      "historical_state": "failed"
+    },
+    "controller-installed-133-native.json": {
+      "bytes": 25584,
+      "sha256": "8588152dc5979ddea2d74bf8c967c29cd79b0e8e91a78d8445e0095c823d5693",
+      "historical_state": "completed_pending_visual_review"
+    },
+    "controller-281-wbs-6-4-audit.json": {
+      "bytes": 728,
+      "sha256": "5409f8df4f64fba633aefc7422bb4e943991a5a4d8e465ef002632085452b72b",
+      "historical_state": "blocked"
+    },
+    "controller-current-full-20261016.json": {
+      "bytes": 136197,
+      "sha256": "31b2c8de4806ab1bdac287e667661d952141dd347d50ba1eeaa44fe44fa1f16a",
+      "historical_state": "completed"
+    },
+    "controller-c-readonly-20261015.json": {
+      "bytes": 2574651,
+      "sha256": "3f984a25dc1b15d96eb14bfb57e2150b149e522c003edfcb1cd54ae2fe698911",
+      "historical_state": "completed"
+    },
+    "controller-c-reference-readonly-20261015.json": {
+      "bytes": 4899,
+      "sha256": "d3db67e6926681290cc1055f164ea97d9849bceb7582e2e2e39aeeda0e365566",
+      "historical_state": null
+    },
+    "controller-gotdot-compare.json": {
+      "bytes": 3990,
+      "sha256": "db962697782973ae8df3b012cb769b0b059cefa660af1f49e5e9c798a1b35a01",
+      "historical_state": "结构化数组，按各条原始结论保留"
+    },
+    "controller-installed-133-click-button.json": {
+      "bytes": 9287,
+      "sha256": "edaad1eac5b9e8d5e38af673885fe7ffad7939cace9c03750ebadbd0ce4088da",
+      "historical_state": "completed"
+    },
+    "controller-installed-133-click-area.json": {
+      "bytes": 9265,
+      "sha256": "0fd73dfbcb952b24710df3539d760e0796b51bae0dd6e0bb1ca26e211795a0b6",
+      "historical_state": "completed"
+    }
+  },
+  "limits": [
+    "旧严格版2项与新关键版13项口径不同，不能宣称本轮新实现11项功能。",
+    "仍有21项关键缺口或条件阻塞，未宣称35项完整交付。",
+    "当前hook新源码尚未进入正式安装包。",
+    "旧失败/忽略/未执行证据保持原文件与SHA，不作修改。"
+  ]
+}

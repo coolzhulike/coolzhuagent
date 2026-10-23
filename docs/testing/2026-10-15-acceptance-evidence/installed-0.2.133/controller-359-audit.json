@@ -1,0 +1,19 @@
+{
+  "stage": "d-gpt6-luna-max-smoke-359",
+  "decision": "accepted_model_and_readonly_tool_smoke",
+  "session": "session-1791131217833",
+  "workspace": "island-kayak",
+  "configuration_revision": 61,
+  "requested_model": "gpt-6-luna-max",
+  "acp_effective_model": "gpt-6-luna-max",
+  "attempt_id": "06645c8472ac675912612f408f3985f8d503d8b1117dd0bc",
+  "attempt_state": "terminal",
+  "process_drained": 1,
+  "http_status": "completed",
+  "read_file_status": "completed",
+  "cargo_toml_sha256": "9cc59f26d6ecdb7eeed06dd1ae5cfa6f9ebdbc48c8a208c50a3ecb75b3f8536d",
+  "report_sha256": "1b9ed4e0012c8e23dc25ce523ae1b31c167e8615fe5d5bedefc4dacbe52c4747",
+  "executor_queue": "queued_once",
+  "billing_attribution": "not_verified",
+  "supervision": "paused_after_terminal"
+}

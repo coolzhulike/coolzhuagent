@@ -1,0 +1,86 @@
+[
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-review-20261016.json",
+    "file": "controller-quota-key-review-20261016.json",
+    "sha256": "b654ac1daaecdf729597bd93554a9e4927f3ac8f326527f2217986377a69311a",
+    "bytes": 866
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-20261016.py",
+    "file": "controller-quota-key-20261016.py",
+    "sha256": "b775cf64d325bb1996d29e70fc4ce765933a4bb57ce6889b8555f99004716ea4",
+    "bytes": 2095
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-review-20261016.py",
+    "file": "controller-quota-key-review-20261016.py",
+    "sha256": "9eaf170d9c2e4178ce68d768ac5b556436dfdefad384722dda7e15ced6ec23f4",
+    "bytes": 4383
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-test-20261016.json",
+    "file": "controller-quota-key-test-20261016.json",
+    "sha256": "ce981807e7a44865ea548edece35e29edb23b1d9e1996de8e0bf4159e1b623c0",
+    "bytes": 1480
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-test-20261016.log",
+    "file": "controller-quota-key-test-20261016.log",
+    "sha256": "b57a4438d1aa3fdc913b0fcbded2262b6c7c4a37daa76132aadba7181025978f",
+    "bytes": 881
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-build-20261016.json",
+    "file": "controller-quota-key-build-20261016.json",
+    "sha256": "b195698d31f541ec41c72287d421566145960b01228066e313236d26c092f566",
+    "bytes": 1294
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-quota-key-build-20261016.log",
+    "file": "controller-quota-key-build-20261016.log",
+    "sha256": "3c1bfd6bb2f7cd54a59bc80a6bc0b2e0cb9dec7bca0b73b8d9c688dd3a3fa77f",
+    "bytes": 172
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\src\\quota.rs",
+    "file": "quota.rs",
+    "sha256": "8616aa56433da97f6b8efce8764c0ec5f9b5bfe2827f0d935ebe678fce4c84bc",
+    "bytes": 47891
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\src\\quota_key_acceptance.rs",
+    "file": "quota_key_acceptance.rs",
+    "sha256": "eb5b11998bca6a86a8d25d7962146dd4792e4bc52b547d7a1aefb9a2f92b3015",
+    "bytes": 4715
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\quota-key-20261016\\quota-key-9220-1792181141843\\redacted-bundle\\manifest.json",
+    "file": "export/manifest.json",
+    "sha256": "d82685523a286a2d980d6d51ba78aaefd3864c1a9c5282a1117ec2a96cde9986",
+    "bytes": 355
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\quota-key-20261016\\quota-key-9220-1792181141843\\redacted-bundle\\manifest.sha256",
+    "file": "export/manifest.sha256",
+    "sha256": "5b4ea0ea5bcf19bcc795cb706c319222d219d425b28f271bfdfcbb6095583f54",
+    "bytes": 80
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\quota-key-20261016\\quota-key-9220-1792181141843\\redacted-bundle\\logs\\sample.txt",
+    "file": "export/logs/sample.txt",
+    "sha256": "9fa79285b0f7b816de629a3e4e00c22b5af4e6698b2c805380345eb2918b9cf4",
+    "bytes": 32
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\quota-key-20261016\\quota-key-9220-1792181141843\\coolzhu-web-console.jsonl.child-result.txt",
+    "file": "coolzhu-web-console.jsonl.child-result.txt",
+    "sha256": "f45d0a1d6b4713f825f479fcfe82bd88070b21c57c339a056f5154915529878a",
+    "bytes": 172
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\quota-key-20261016\\quota-key-9220-1792181141843\\coolzhu-tauri-shell.jsonl.child-result.txt",
+    "file": "coolzhu-tauri-shell.jsonl.child-result.txt",
+    "sha256": "d4f4de99b21642a32e1d096a3273d36bb2cf5f7552c9b91af44be124453feb44",
+    "bytes": 172
+  }
+]

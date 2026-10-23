@@ -1,0 +1,24 @@
+{
+  "evidence": {
+    "command_failures": [
+      "Command 验证 Skipped：明确要求的 Command 门已禁用，合同尚未满足"
+    ],
+    "command_verification": {
+      "contract": null,
+      "legacy_failures": null,
+      "reason": "明确要求的 Command 门已禁用，合同尚未满足",
+      "receipts": [],
+      "state": "skipped"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": null,
+    "legacy_failures": null,
+    "reason": "明确要求的 Command 门已禁用，合同尚未满足",
+    "receipts": [],
+    "state": "skipped"
+  },
+  "status": "running",
+  "verdict": "fail"
+}

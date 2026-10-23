@@ -1,0 +1,56 @@
+{
+  "at_utc": "2026-10-16T16:13:57.165525+00:00",
+  "state": "completed_with_remaining_gates",
+  "executor": "当前主会话直接执行与审核，未派发Devin、未新建执行/监督会话或定时任务",
+  "external_model_calls": 0,
+  "passed_slices": {
+    "4.2": {
+      "isolated_http_cases": 9,
+      "initial_valid_cases": [
+        "4.2 后代环路去重、跨工程/房间及孤儿隔离、未知用量保留",
+        "4.2 并发定位和后代读取不串回复",
+        "4.2 迟到usage补全后只更新正确后代树",
+        "4.2 缺失/陈旧scope及跨工程房间拒绝",
+        "4.2 服务重启后归属与后代去重保持"
+      ],
+      "reconnect_cases": 4,
+      "frontend_tests": 9,
+      "formal_browser_new_reload_cases": 2,
+      "parallel_reads": 64,
+      "concurrent_commits": 24
+    },
+    "6.2": {
+      "release_service_migration_cases": 8,
+      "rust_migration_fault_tests": 4,
+      "cargo_test_exit_code": 0,
+      "actual_build_exit_code": 0
+    }
+  },
+  "initial_failures_preserved": {
+    "controller-remaining-http-matrix-20261016.json": {
+      "passed": 8,
+      "failed": 6,
+      "diagnosis": "1项SSE测试漏传必需workspace查询参数；5项v12服务夹具只有Goal表，缺v7-v10历史记忆侧表，首次保存找不到表。修正测试输入后分别补测4/4与8/8，原失败文件不改写。"
+    },
+    "controller-reply-frontend-matrix-20261016-initial.log": {
+      "passed": 8,
+      "failed": 1,
+      "diagnosis": "测试错误期待英文completed且按整卡工具名计数；界面真实为中文已完成，修正为唯一工具事实行后9/9。未改生产前端。"
+    }
+  },
+  "remaining_gates": {
+    "4.2": [
+      "正式真实后代执行树的可见UI和真实模型并发/断线迟到全链：当前生产execution_index=0，没有可只读复验的真实后代对象",
+      "C机器级安装目录仍0.2.134，管理员权限阻塞，未把D完整135包正式8765运行冒充MSI覆盖"
+    ],
+    "6.2": [
+      "真实设备重启/OS冷缓存及慢机器长尾启动；当前12.837秒为新进程启动",
+      "物理磁盘满、备份盘满及物理断电：本轮覆盖SQLite配额SQLITE_FULL和精确强杀迁移进程，不等同硬件故障",
+      "机器级MSI覆盖及安装器降级：本轮只验证同schema29的134兼容二进制回退再启动135"
+    ]
+  },
+  "production_boundary": "正式页面只读；隔离服务单独SQLite/config/port且均退出。新增Rust与前端测试，没有新增生产行为修复。生产应用默认日志位置未因夹具环境变量改变。",
+  "temporary_root": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013",
+  "cleanup": "隔离服务均结束；小型故障夹具及首次失败日志作为复现证据保留，活动135发布包、正式库备份与后续需要的编译缓存不清除。此前scratch删除拒绝不绕过。",
+  "build_receipt": "controller-remaining-build-20261016.json"
+}

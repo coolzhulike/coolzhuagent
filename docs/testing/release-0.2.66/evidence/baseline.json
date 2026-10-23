@@ -1338,7 +1338,9 @@
     },
     {
       "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/change-report-and-targeted-test-plan.md",
-      "sha256": "ba713ac7174bba70db964eba9333c1a4600282bbb01d9b02693dfa8f3e92db8c"
+      "sha256": "ba713ac7174bba70db964eba9333c1a4600282bbb01d9b02693dfa8f3e92db8c",
+      "removed_2026_10_17": "重复副本已删除",
+      "canonical_path": "docs/testing/release-0.2.64/change-report-and-targeted-test-plan.md"
     },
     {
       "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/dsh-runtime-lock.json",
@@ -1510,7 +1512,9 @@
     },
     {
       "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/work-log.md",
-      "sha256": "2c5756f041c9866360dbe2a4d6bf3c414f12e7335bd155cd52ab9d0e3cbfdcb2"
+      "sha256": "2c5756f041c9866360dbe2a4d6bf3c414f12e7335bd155cd52ab9d0e3cbfdcb2",
+      "removed_2026_10_17": "重复副本已删除",
+      "canonical_path": "docs/work-logs/2026-10-02-local-session-dsh-msi-candidate.md"
     },
     {
       "path": "docs/testing/release-0.2.64/evidence/dsh-offline-candidate/working-tree-source.patch",

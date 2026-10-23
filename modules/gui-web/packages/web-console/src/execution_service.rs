@@ -41,6 +41,7 @@ pub(crate) fn require_capability(provider: &str, source: Source) -> Result<(), S
         (B::LlmHttp, _) | (B::DevinAcp, Source::Scheduled) => Ok(()),
         (B::DevinAcp, Source::SessionTool) => Err("Devin ACP 尚未提供冻结模型快照的会话工具契约，子 Agent 未执行；普通聊天及定时 poll 不受此限制".into()),
         (B::DevinAcp, Source::GoalPhase) => Err("Devin ACP Goal 阶段尚未开放，未派发请求".into()),
+        (B::OpenaiSubscription, _) => Err("OpenAI 订阅目前仅开放文本聊天；后台任务、子 Agent 和 Goal 尚未派发".into()),
         (B::DevinCloud, _) => Err("Devin Cloud 尚未接入共享执行服务，未派发请求".into()),
     }
 }

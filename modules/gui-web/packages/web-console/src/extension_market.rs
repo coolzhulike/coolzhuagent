@@ -8,9 +8,7 @@ pub(super) fn routes() -> Router {
         .route("/api/extension-market/plugins/install", post(install_plugin))
         .route("/api/plugins/install", post(install_plugin))
         .route("/api/extension-market/plugins/action", post(plugin_action))
-        .route("/api/extension-market/skills", get(list_skills))
-        .route("/api/extension-market/skills/{id}", get(skill_detail))
-        .route("/api/extension-market/skills/select", post(select_skill))
+        .merge(skill_catalog::routes())
         .merge(dsh_market::routes())
 }
 
@@ -98,17 +96,6 @@ fn plugin_catalog(workspace: &Path, manager: &plugins::PluginManager) -> ApiResu
                     .ok().flatten().is_some();
             }
             plugin_entry(item, is_installed, is_loaded) }).collect();
-    plugins.push(serde_json::from_value(devin_plugin::catalog(workspace))
-        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "Devin 插件目录信息无效"))?);
-    for (id, name, description, source) in [
-        ("opencode-zen@native", "OpenCode Zen", "免费聊天模型连接器；由本人填写平台密钥，复用统一会话与宿主工具链路。", "opencode.ai"),
-        ("huggingface-inference@native", "Hugging Face Inference", "推理模型连接器；使用平台 Token 与账户额度，支持选择模型及推理提供方。", "huggingface.co"),
-    ] {
-        plugins.push(PluginEntry { id:id.into(), name:name.into(), version:env!("CARGO_PKG_VERSION").into(),
-            description:description.into(), source:source.into(), enabled:true, installed:true,
-            kind:"builtin".into(), installable:false, manageable:false, loaded_in_chat:false,
-            dsh:false, dsh_source_sha256:None });
-    }
     Ok(PluginListResponse { workspace_id: workspace_identity(workspace),
         plugins, candidates: local_plugin_candidates(workspace), runtime_error })
 }
@@ -194,118 +181,6 @@ async fn plugin_action(Json(payload): Json<PluginMutation>) -> ApiResult<Json<Pl
         }
         Ok(Json(plugin_catalog(&workspace, &manager)?))
     }).await.map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "插件管理任务中断"))?
-}
-
-#[derive(Serialize)]
-struct SkillEntry {
-    id: String,
-    name: String,
-    description: String,
-    source: String,
-    selected: bool,
-}
-
-#[derive(Serialize)]
-struct SkillListResponse {
-    workspace_id: String,
-    skills: Vec<SkillEntry>,
-    selected_id: Option<String>,
-}
-
-fn skill_roots(workspace: &Path) -> [(&'static str, PathBuf); 2] {
-    [("local", workspace.join(".coolzhu").join("skills")),
-     ("project", workspace.join("skills"))]
-}
-
-fn skill_file(workspace: &Path, id: &str) -> ApiResult<PathBuf> {
-    let (source, directory) = id.split_once(':').ok_or_else(|| api_error(StatusCode::BAD_REQUEST, "SKILL id 无效"))?;
-    if directory.is_empty() || directory.contains('/') || directory.contains('\\') || directory == "." || directory == ".." {
-        return Err(api_error(StatusCode::BAD_REQUEST, "SKILL id 无效"));
-    }
-    let (_, root) = skill_roots(workspace).into_iter().find(|(kind, _)| *kind == source)
-        .ok_or_else(|| api_error(StatusCode::BAD_REQUEST, "SKILL 来源无效"))?;
-    let root = root.canonicalize().map_err(|_| api_error(StatusCode::NOT_FOUND, "SKILL 目录不存在"))?;
-    let file = root.join(directory).join("SKILL.md").canonicalize()
-        .map_err(|_| api_error(StatusCode::NOT_FOUND, "SKILL 文档不存在"))?;
-    if !file.starts_with(&root) || file.parent().and_then(Path::parent) != Some(root.as_path()) {
-        return Err(api_error(StatusCode::FORBIDDEN, "SKILL 文档超出当前工程目录"));
-    }
-    Ok(file)
-}
-
-fn selection_path(workspace: &Path) -> PathBuf { workspace.join(".coolzhu").join("active-skill.json") }
-
-fn selected_skill_id(workspace: &Path) -> Option<String> {
-    let text = std::fs::read_to_string(selection_path(workspace)).ok()?;
-    let selected = serde_json::from_str::<JsonValue>(&text).ok()?
-        .get("selected_id")?.as_str()?.to_string();
-    skill_file(workspace, &selected).ok().map(|_| selected)
-}
-
-fn skill_entries(workspace: &Path) -> SkillListResponse {
-    let selected_id = selected_skill_id(workspace);
-    let mut skills = Vec::new();
-    for (source, root) in skill_roots(workspace) {
-        let Ok(root) = root.canonicalize() else { continue; };
-        for directory in child_directories(&root) {
-            let Some(slug) = directory.file_name().and_then(|name| name.to_str()) else { continue; };
-            let id = format!("{source}:{slug}");
-            let Ok(file) = skill_file(workspace, &id) else { continue; };
-            let metadata = parse_skill_metadata(&file);
-            skills.push(SkillEntry { selected: selected_id.as_deref() == Some(&id), id,
-                name: metadata.name.unwrap_or_else(|| slug.to_string()),
-                description: metadata.description.unwrap_or_else(|| "本地 SKILL 工作流".into()),
-                source: if source == "local" { "当前工程 .coolzhu/skills" } else { "当前工程 skills" }.into() });
-        }
-    }
-    SkillListResponse { workspace_id: workspace_identity(workspace), skills, selected_id }
-}
-
-async fn list_skills() -> ApiResult<Json<SkillListResponse>> {
-    Ok(Json(skill_entries(&active_workspace_path())))
-}
-
-#[derive(Serialize)]
-struct SkillDetailResponse { workspace_id: String, id: String, content: String, selected: bool }
-
-async fn skill_detail(AxumPath(id): AxumPath<String>) -> ApiResult<Json<SkillDetailResponse>> {
-    let workspace = active_workspace_path();
-    let file = skill_file(&workspace, &id)?;
-    let content = read_skill_content(&file)?;
-    Ok(Json(SkillDetailResponse { workspace_id: workspace_identity(&workspace),
-        selected: selected_skill_id(&workspace).as_deref() == Some(&id), id, content }))
-}
-
-fn read_skill_content(file: &Path) -> ApiResult<String> {
-    let metadata = std::fs::metadata(file).map_err(|_| api_error(StatusCode::NOT_FOUND, "SKILL 文档不可读"))?;
-    if metadata.len() > 24_000 { return Err(api_error(StatusCode::PAYLOAD_TOO_LARGE, "SKILL 文档超过 24 KB，无法加载")); }
-    std::fs::read_to_string(file).map_err(|_| api_error(StatusCode::BAD_REQUEST, "SKILL 文档不是 UTF-8"))
-}
-
-#[derive(Deserialize)]
-struct SkillSelection { expected_workspace: String, selected_id: Option<String> }
-
-async fn select_skill(Json(payload): Json<SkillSelection>) -> ApiResult<Json<SkillListResponse>> {
-    let workspace = active_workspace_path();
-    assert_workspace(&payload.expected_workspace, &workspace)?;
-    if let Some(id) = payload.selected_id.as_deref() {
-        read_skill_content(&skill_file(&workspace, id)?)?;
-    }
-    let path = selection_path(&workspace);
-    std::fs::create_dir_all(path.parent().unwrap()).map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "无法创建工程 SKILL 配置目录"))?;
-    let data = serde_json::to_vec(&json!({"selected_id": payload.selected_id}))
-        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "无法保存 SKILL 选择"))?;
-    config_publication::publish(&path, &String::from_utf8(data).map_err(|_| api_error(
-        StatusCode::INTERNAL_SERVER_ERROR, "无法保存 SKILL 选择"))?)
-        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "无法保存 SKILL 选择"))?;
-    Ok(Json(skill_entries(&workspace)))
-}
-
-pub(super) fn active_skill_guidance(workspace: &Path) -> Option<String> {
-    let id = selected_skill_id(workspace)?;
-    let file = skill_file(workspace, &id).ok()?;
-    let content = read_skill_content(&file).ok()?;
-    Some(format!("\n\n当前工程已选用 SKILL ({id})：\n{content}"))
 }
 
 #[cfg(test)]

@@ -1,0 +1,78 @@
+{
+  "at_utc": "2026-10-16T16:38:31.915506+00:00",
+  "decision": "partial-accepted",
+  "passed": 20,
+  "failed": 0,
+  "actual_checks_passed": 28,
+  "excluded_scope_checks": 8,
+  "groups": {
+    "writer": {
+      "receipt": "controller-writer-live-matrix-20261016.json",
+      "passed": 8,
+      "processes_exited": 7
+    },
+    "recovery": {
+      "receipt": "controller-recovery-contract-matrix-20261016.json",
+      "passed": 13,
+      "processes_exited": 4
+    },
+    "permission": {
+      "receipt": "controller-permission-expiry-matrix-20261016.json",
+      "passed": 7,
+      "processes_exited": 2
+    }
+  },
+  "formal_health": {
+    "http": 200,
+    "workspace": {
+      "workspace": "D:\\coolzhuagent",
+      "workspace_id": "ws-8d17063fefe5c23c",
+      "status": "ok",
+      "writable": true
+    },
+    "system_info": {
+      "workspace": "\\\\?\\D:\\coolzhuagent",
+      "port": 8765,
+      "build_version": "8a13551b037f · 2026-10-16",
+      "active_sessions": 3
+    },
+    "port_owner": {
+      "ProcessId": 9064,
+      "ExecutablePath": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "sha256": "313cb9ece330628b03b40ad7ffb5b98b5fdf60927a9c2cce45925fcc9dda0f7c"
+    }
+  },
+  "isolated_ports_open": {
+    "29501": false,
+    "29502": false,
+    "29503": false,
+    "29504": false,
+    "29505": false,
+    "29506": false,
+    "29507": false,
+    "29511": false,
+    "29512": false
+  },
+  "source_modified": false,
+  "external_model_calls": 0,
+  "external_message_sends": 0,
+  "supervision_created": false,
+  "temporary_root": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013",
+  "remaining_gates": {
+    "2.4": [
+      "生产双实例与更旧不遵锁helper",
+      "主控通知outbox崩溃窗口和Codex队列UI积压；Clawbot本地outbox不是该通知通道"
+    ],
+    "1.1/2.5": [
+      "实际worker/模型在途取消和崩溃恢复",
+      "正式已支持入口全链；本轮人工execution_index不是真实会话执行"
+    ],
+    "1.4": [
+      "DSH/chat父轮冻结grant",
+      "在途撤权和迟到工具结果",
+      "正式页面权限入口完整验收"
+    ]
+  },
+  "scope_correction": "恢复脚本前八项误选Clawbot本地outbox。补核微信不改不测约定后停止该方向；历史实际结果原样保留，八项均标范围外，不计完成进度。恢复脚本后五项执行索引契约属于本轮范围。",
+  "temporary_files_note": "本轮脚本/收据/数据库/stdout集中统一根；前两组测试服务沿用程序默认共享诊断日志，第三组已通过COOLZHU_LOG_DIR重定向至夹具logs。未删除共享日志、旧回退备份、活动发布包或编译缓存。只终止本轮自有进程，无文件删除。"
+}

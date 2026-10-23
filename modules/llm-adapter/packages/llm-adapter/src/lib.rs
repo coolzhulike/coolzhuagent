@@ -47,7 +47,7 @@ pub use registry::{ModelRegistry, ResolvedModel};
 pub use request_parameters::RequestParameters;
 mod response_format;
 pub use response_format::ResponseFormat;
-pub use request_observer::{RequestObserver, RequestAttemptSnapshot, UsageEvidence};
+pub use request_observer::{RequestObserver, RequestAttemptSnapshot, RequestWireSummary, UsageEvidence};
 pub use reasoning::{
     parse_legacy_reasoning_effort, parse_reasoning_effort, reasoning_capability_catalog,
     reasoning_capability_for_provider, reasoning_model_aliases, resolve_legacy_reasoning,

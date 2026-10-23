@@ -1,0 +1,261 @@
+{
+  "started_at_utc": "2026-10-16T14:25:21.057702+00:00",
+  "state": "ready",
+  "method": "安装版正式启动器，隔离诊断配置仅将就绪期限30秒延长180秒并单独保存日志",
+  "backup": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cold-start-20261016\\session-before.sqlite3",
+  "changes_to_installed_files": false,
+  "probes": [
+    {
+      "seconds": 2.35,
+      "error": "URLError"
+    },
+    {
+      "seconds": 9.35,
+      "error": "URLError"
+    },
+    {
+      "seconds": 16.36,
+      "error": "URLError"
+    }
+  ],
+  "launcher_pid": 6664,
+  "health": {
+    "generated_at": 1792160742647,
+    "summary": {
+      "status": "error",
+      "ok": 9,
+      "warn": 1,
+      "error": 1
+    },
+    "checks": [
+      {
+        "id": "web.state",
+        "label": "Web Console",
+        "status": "ok",
+        "detail": "Axum router is available; health check is read-only.",
+        "fix_hint": "No action required."
+      },
+      {
+        "id": "web.bind",
+        "label": "Web Bind Address",
+        "status": "ok",
+        "detail": "Web GUI bind address is valid: 127.0.0.1:8765.",
+        "fix_hint": "If startup reports a port conflict, set [web].bind_addr in coolzhu.toml to 127.0.0.1:8766 or another free local port before launching."
+      },
+      {
+        "id": "workspace.root",
+        "label": "Workspace",
+        "status": "ok",
+        "detail": "Workspace root resolved to D:\\coolzhuagent",
+        "fix_hint": "No action required."
+      },
+      {
+        "id": "config.coolzhu_toml",
+        "label": "Workspace Config",
+        "status": "ok",
+        "detail": "coolzhu.toml parsed at \\\\?\\D:\\coolzhuagent\\coolzhu.toml; protected_mode=defaults, rules=0, append_defaults=false, extra_rules=0.",
+        "fix_hint": "No action required."
+      },
+      {
+        "id": "session.sqlite",
+        "label": "SQLite Session Store",
+        "status": "ok",
+        "detail": "SQLite session store is readable at D:/tmp/.coolzhu\\web-sessions.sqlite3; sessions=3.",
+        "fix_hint": "No action required."
+      },
+      {
+        "id": "llm.providers",
+        "label": "LLM Providers",
+        "status": "error",
+        "detail": "0/3 selectable agents are ready; 2 warn; 1 error.",
+        "fix_hint": "Review each session's authentication, provider, model and address diagnostics."
+      },
+      {
+        "id": "vision.capture",
+        "label": "Inner Vision",
+        "status": "ok",
+        "detail": "Latest desktop capture exists (692818 bytes); local VLM base_url=http://127.0.0.1:8000/v1.",
+        "fix_hint": "If local VLM grounding is unavailable, run `modules/vision/resources/local-vlm/start-local-vlm.ps1` from the repo root."
+      },
+      {
+        "id": "audio.voice_monitor",
+        "label": "Audio Voice Monitor",
+        "status": "ok",
+        "detail": "Voice monitor bridge is available; running=false, mode=dry-run.",
+        "fix_hint": "No action required."
+      },
+      {
+        "id": "tools.catalog",
+        "label": "Tools Catalog",
+        "status": "ok",
+        "detail": "Catalog has 5 categories, 54 items, 19 executable dry-run entries.",
+        "fix_hint": "No action required."
+      },
+      {
+        "id": "desktop.pet",
+        "label": "Desktop Pet",
+        "status": "warn",
+        "detail": "Desktop pet auto-launch is disabled by coolzhu.toml [pet].enabled=false.",
+        "fix_hint": "Set [pet].enabled=true to enable auto-launch from Web GUI."
+      },
+      {
+        "id": "desktop.webview2",
+        "label": "WebView2 Runtime",
+        "status": "ok",
+        "detail": "WebView2 Runtime candidate found at C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.62\\msedgewebview2.exe.",
+        "fix_hint": "No action required."
+      }
+    ],
+    "suggestions": [
+      {
+        "check_id": "llm.providers",
+        "priority": "high",
+        "message": "Review each session's authentication, provider, model and address diagnostics."
+      },
+      {
+        "check_id": "desktop.pet",
+        "priority": "medium",
+        "message": "Set [pet].enabled=true to enable auto-launch from Web GUI."
+      },
+      {
+        "check_id": "llm.providers.mario-demo.api_key",
+        "priority": "high",
+        "message": "Configure API key for 主 Agent via ZAI_API_KEY / BIGMODEL_API_KEY or the session Key reference before enabling real chat."
+      },
+      {
+        "check_id": "llm.providers.session-1791122188340.provider_issue",
+        "priority": "medium",
+        "message": "Review Devin Opus 5.5 审查 provider diagnostics: 请从模型配置刷新 Devin 登录状态；无需填写 API Key。"
+      },
+      {
+        "check_id": "llm.providers.session-1791131217833.provider_issue",
+        "priority": "medium",
+        "message": "Review Devin SWE-2 真实CU验收 provider diagnostics: 请从模型配置刷新 Devin 登录状态；无需填写 API Key。"
+      }
+    ],
+    "flags": {
+      "real_llm_enabled": true,
+      "llm_tools_enabled": true,
+      "desktop_pet_disabled": true
+    },
+    "paths": {
+      "workspace": "D:\\coolzhuagent",
+      "session_db": "D:/tmp/.coolzhu\\web-sessions.sqlite3",
+      "legacy_session_json": "D:/tmp/.coolzhu\\web-sessions.json",
+      "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+      "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+    },
+    "agents": [
+      {
+        "agent_id": "mario-demo",
+        "name": "主 Agent",
+        "provider_label": "智谱 AI",
+        "provider_kind": "zhipuai",
+        "selected_provider_kind": "zhipuai",
+        "detected_provider_kind": "zhipuai",
+        "provider_match": true,
+        "provider_slug": "zhipu",
+        "model": "glm-4.6",
+        "canonical_model": "glm-4.6",
+        "api_model_id": "glm-4.6",
+        "base_url": "https://open.bigmodel.cn/api/paas/v4",
+        "base_url_default": "https://open.bigmodel.cn/api/paas/v4",
+        "base_url_env": "ZAI_BASE_URL",
+        "base_url_env_present": false,
+        "base_url_source": "default",
+        "base_url_matches_default": true,
+        "api_key_present": false,
+        "api_key_source": null,
+        "api_key_status": "missing; checked env: ZAI_API_KEY or BIGMODEL_API_KEY",
+        "env_keys": [
+          "ZAI_API_KEY",
+          "BIGMODEL_API_KEY"
+        ],
+        "recommended_models": [
+          "glm-free",
+          "glm-4.7-flash",
+          "glm-4.7",
+          "glm-5"
+        ],
+        "provider_status": "error",
+        "provider_issue": "No session API key or provider environment key is available."
+      },
+      {
+        "agent_id": "session-1791122188340",
+        "name": "Devin Opus 5.5 审查",
+        "provider_label": "devin",
+        "provider_kind": "devin_acp",
+        "selected_provider_kind": "devin_acp",
+        "detected_provider_kind": "devin_acp",
+        "provider_match": true,
+        "provider_slug": "devin",
+        "model": "claude-opus-5-5-high",
+        "canonical_model": "claude-opus-5-5-high",
+        "api_model_id": "claude-opus-5-5-high",
+        "base_url": "",
+        "base_url_default": null,
+        "base_url_env": null,
+        "base_url_env_present": false,
+        "base_url_source": "official-cli",
+        "base_url_matches_default": true,
+        "api_key_present": false,
+        "api_key_source": null,
+        "api_key_status": "Devin 登录状态未确认",
+        "env_keys": [],
+        "recommended_models": [],
+        "provider_status": "warn",
+        "provider_issue": "请从模型配置刷新 Devin 登录状态；无需填写 API Key。"
+      },
+      {
+        "agent_id": "session-1791131217833",
+        "name": "Devin SWE-2 真实CU验收",
+        "provider_label": "devin",
+        "provider_kind": "devin_acp",
+        "selected_provider_kind": "devin_acp",
+        "detected_provider_kind": "devin_acp",
+        "provider_match": true,
+        "provider_slug": "devin",
+        "model": "gpt-6-luna-max",
+        "canonical_model": "gpt-6-luna-max",
+        "api_model_id": "gpt-6-luna-max",
+        "base_url": "",
+        "base_url_default": null,
+        "base_url_env": null,
+        "base_url_env_present": false,
+        "base_url_source": "official-cli",
+        "base_url_matches_default": true,
+        "api_key_present": false,
+        "api_key_source": null,
+        "api_key_status": "Devin 登录状态未确认",
+        "env_keys": [],
+        "recommended_models": [],
+        "provider_status": "warn",
+        "provider_issue": "请从模型配置刷新 Devin 登录状态；无需填写 API Key。"
+      }
+    ],
+    "latest_capture": {
+      "path": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+      "exists": true,
+      "bytes": 692818,
+      "modified_at": 1790853897862,
+      "preview_url": "/api/capture/latest/image"
+    },
+    "tools": {
+      "categories": 5,
+      "items": 54,
+      "executable_now": 19,
+      "migration_candidates": 0
+    },
+    "voice_monitor": {
+      "available": true,
+      "running": false,
+      "mode": "dry-run",
+      "message": "待开启；当前仅支持状态桥",
+      "backend": "none",
+      "requires_interactive_test": true
+    }
+  },
+  "ready_after_seconds": 23.01,
+  "launcher_exit_code": null,
+  "finished_at_utc": "2026-10-16T14:25:44.445098+00:00"
+}

@@ -1,0 +1,79 @@
+{
+  "failed": {
+    "contract": {
+      "commands": [
+        "exit 1"
+      ],
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 1` 失败（exit 1）：\n",
+    "receipts": [
+      {
+        "command": "exit 1",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmprqfK3x",
+        "exit_code": 1,
+        "finished_at_unix_ms": 1792331479856,
+        "id": "goal-command-1792331479647-14624-2",
+        "reason": "`exit 1` 失败（exit 1）：\n",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792331479647,
+        "status": "failed",
+        "timeout_ms": 600000
+      }
+    ],
+    "state": "failed"
+  },
+  "passed": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmprqfK3x",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792331479637,
+        "id": "goal-command-1792331479430-14624-1",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792331479430,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "unable": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmprqfK3x\\missing",
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 0` 未能完成：目录名称无效。 (os error 267)",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmprqfK3x\\missing",
+        "exit_code": null,
+        "finished_at_unix_ms": 1792331479876,
+        "id": "goal-command-1792331479866-14624-3",
+        "reason": "`exit 0` 未能完成：目录名称无效。 (os error 267)",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792331479866,
+        "status": "unable",
+        "timeout_ms": 600000
+      }
+    ],
+    "state": "unable"
+  }
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-scheduled-worker-review-20261016.json",
+    "file": "controller-scheduled-worker-review-20261016.json",
+    "sha256": "9f826ac50808af6d034d16736b02ea5fed23194646f2bab371ae552a62ffd306",
+    "bytes": 2634
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-scheduled-worker-key-retry-20261016.json",
+    "file": "controller-scheduled-worker-key-retry-20261016.json",
+    "sha256": "2f3f0cba0a3465738282744d1de85b5e015a64995d7f4466001cdbcbdd8a674b",
+    "bytes": 1803
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-scheduled-worker-review-20261016.py",
+    "file": "controller-scheduled-worker-review-20261016.py",
+    "sha256": "fe73119286240df7c24fbf485ab1ac87ff5df72b887eaa52a10910944efe010f",
+    "bytes": 4551
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-scheduled-worker-key-retry-20261016.py",
+    "file": "controller-scheduled-worker-key-retry-20261016.py",
+    "sha256": "8a8ff488806576029e8d8d202c032dc751b58f2263d7bd9cb96b269af2711a35",
+    "bytes": 8172
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-scheduled-worker-key-20261016.py",
+    "file": "controller-scheduled-worker-key-20261016.py",
+    "sha256": "2b8b2556f4cda6e18d2abe145c3ec56a183732a6f95c769f3c72afc79e280e69",
+    "bytes": 7790
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-scheduled-worker-key-20261016.json",
+    "file": "controller-scheduled-worker-key-20261016.json",
+    "sha256": "5b81c173f3796dc61d99206c2f3dc4e2d9cb28440c2604a52c5630130d169f36",
+    "bytes": 685
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\sessions.sqlite3",
+    "file": "sessions.sqlite3",
+    "sha256": "e4b493da7be9d5b4977ba5fbaeffbc8f6d943c8fb1b562ccc17b7108591d8a3f",
+    "bytes": 532480
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\.coolzhu\\scheduled-jobs.sqlite3",
+    "file": "scheduled-jobs.sqlite3",
+    "sha256": "2724ad14ade4a2e50dbc444324abb6fa3fcec1fb1d7e9bfab3949e2948af5d8f",
+    "bytes": 12288
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\coolzhu.toml",
+    "file": "coolzhu.toml",
+    "sha256": "6be4dcd9b9fcc988c5877423ab5cbb8ba403001754a055a17bd138a67e732723",
+    "bytes": 4537
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\server-1.log",
+    "file": "server-1.log",
+    "sha256": "33b512cedc697c45c4b2ec9023b69962abe0eb270c34a0cc59823417cb70e2b0",
+    "bytes": 791
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\server-2.log",
+    "file": "server-2.log",
+    "sha256": "e9846c96e4b66074dfbac97fe687bce4566bc88bd39011a18f8da2ff57ba2dc9",
+    "bytes": 791
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\server-3.log",
+    "file": "server-3.log",
+    "sha256": "d9696caeee3eb763f509a4b91bec73f4d4ccf07b2b7d79e87f32bf7e749c231f",
+    "bytes": 1178
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\server-4.log",
+    "file": "server-4.log",
+    "sha256": "5326bcc7e76ed2506bf994a54ef2c43ff436e962ff07a2fa8b97d05d8fae3242",
+    "bytes": 920
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\scheduled-worker-key-retry-20261016\\logs\\coolzhu-web-console.jsonl",
+    "file": "coolzhu-web-console.jsonl",
+    "sha256": "f13b95966d777c429ead6d144dfe2181f114d407a096a136154a90bb3cf8c46e",
+    "bytes": 5122
+  }
+]

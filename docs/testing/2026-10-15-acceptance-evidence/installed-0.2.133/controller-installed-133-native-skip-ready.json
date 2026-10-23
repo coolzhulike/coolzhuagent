@@ -1,0 +1,189 @@
+{
+  "job_id": "native-installed-133-b96be5f6258c40548b5d37743ed12c89",
+  "started_at_utc": "2026-10-15T18:09:22.580149+00:00",
+  "state": "failed",
+  "exit_code": 1,
+  "cases": [
+    {
+      "mode_requested_by_profile": "skip-ready",
+      "pid": 25556,
+      "frames": [
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-skip-ready-00.png",
+          "sha256": "2ee4e9eb542a3b1b6f3e560cf9062126475737ca57ad6a7434ca7f1412d82eab",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T18:09:44.763903+00:00",
+          "window": {
+            "hwnd": 9768306,
+            "pid": 25556,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 2.406
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-skip-ready-01.png",
+          "sha256": "dde5c54f2391f8fb49541124613de54d74c3d6dd624766d26975b3407e03dfe2",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T18:09:46.018538+00:00",
+          "window": {
+            "hwnd": 9768306,
+            "pid": 25556,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 3.682
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-skip-ready-02.png",
+          "sha256": "20afee2f5b45f6780fe512b3ad579392460908980e8c30793a51ad7d05f56bb2",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T18:09:46.673012+00:00",
+          "window": {
+            "hwnd": 9768306,
+            "pid": 25556,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 4.935
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-skip-ready-03.png",
+          "sha256": "bb9215aea9b016ccf7f5a8efea95d9e87c7f7fcb163c625bf4cbe6c22bdef0e0",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T18:10:05.033528+00:00",
+          "window": {
+            "hwnd": 9768306,
+            "pid": 25556,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 6.139
+        }
+      ],
+      "started_at_utc": "2026-10-15T18:09:41.017579+00:00",
+      "animation_first_seen_seconds": 2.4056081000017002,
+      "dpi": 144,
+      "bounds": [
+        200,
+        12,
+        2382,
+        1369
+      ],
+      "skip_button": {
+        "invoked": false,
+        "reason": "UIA 查找达到5秒上限"
+      }
+    }
+  ],
+  "binary": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+  "binary_sha256": "b47353397b63389830a70f1fdfb3de940e8b4a751030dece33c6cb2654bf66ee",
+  "scope": "安装版真实桌面；沿用独立WebView2数据，交接到正式8765；临时系统动画首选项在finally恢复",
+  "production_before": {
+    "http_status": 200,
+    "paths": {
+      "workspace": "D:\\coolzhuagent",
+      "session_db": "D:\\tmp\\.coolzhu\\web-sessions.sqlite3",
+      "legacy_session_json": "D:\\tmp\\.coolzhu\\web-sessions.json",
+      "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+      "desktop_pet_exe": null
+    }
+  },
+  "production_run_counts": [
+    [
+      "completed",
+      600
+    ],
+    [
+      "failed",
+      210
+    ],
+    [
+      "interrupted",
+      15
+    ],
+    [
+      "orphaned",
+      3
+    ]
+  ],
+  "original_window": {
+    "ProcessId": 2612,
+    "ExecutablePath": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "CommandLine": "\"C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe\" --show-console"
+  },
+  "explicit_environment": {
+    "COOLZHU_GUI_WEB_URL": "http://127.0.0.1:8765",
+    "COOLZHU_RUNTIME_DIR": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2",
+    "COOLZHU_LOG_DIR": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\native-logs",
+    "COOLZHU_INPUT_SAFETY_STATE_ROOT": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\input-safety",
+    "WEBVIEW2_USER_DATA_FOLDER": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry2\\native-webview-profile"
+  },
+  "error": "AssertionError('skip-ready 未观察到真实控制台交接')",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\coolzhuagent\\tmp\\analysis-installed-native-20261015.py\", line 236, in main\n    assert console_seen, f\"{mode} 未观察到真实控制台交接\"\n           ^^^^^^^^^^^^\nAssertionError: skip-ready 未观察到真实控制台交接\n",
+  "emergency_owned_close_exit": 0,
+  "restored_production_window_pid": 30444,
+  "production_after": {
+    "http_status": 200,
+    "paths": {
+      "workspace": "D:\\coolzhuagent",
+      "session_db": "D:\\tmp\\.coolzhu\\web-sessions.sqlite3",
+      "legacy_session_json": "D:\\tmp\\.coolzhu\\web-sessions.json",
+      "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+      "desktop_pet_exe": null
+    }
+  },
+  "finished_at_utc": "2026-10-15T18:10:22.873828+00:00"
+}

@@ -1,0 +1,97 @@
+{
+ "run_id": "run-chat-cc7abd5960a868377acabaccf1a0b9cee947f34e50175b36",
+ "tool_executions": 13,
+ "rows": [
+  {
+   "tool_call_id": "tool-d9777d591c320492f7cebc8962b14d3ca7f9b232e2efa508da402f78fb53803c",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792687657645,
+   "updated_ms": 1792687662899
+  },
+  {
+   "tool_call_id": "tool-b4a525a61187012ab3a4096926c7a02b6fcff3527b1eeef8f64617b992b6d193",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687658111,
+   "updated_ms": 1792687662967
+  },
+  {
+   "tool_call_id": "tool-f9fb5d98f0f149337fe8ba755cd036eb933716146ace1b651706072ece82d8b7",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687669523,
+   "updated_ms": 1792687671241
+  },
+  {
+   "tool_call_id": "tool-e3104d9044c5454ab265929c0e021783a94c64f8ecf2c3d33f40eeb2fbece177",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687669692,
+   "updated_ms": 1792687673079
+  },
+  {
+   "tool_call_id": "tool-379ebcf01c55052900911de7bc6242918f4bbc1a8661c05d9678851fa300caac",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687669544,
+   "updated_ms": 1792687673078
+  },
+  {
+   "tool_call_id": "tool-50c721d5a62acb3e8fe017e2b01b76a128e0f6bc372f39575010d75ff0745cc7",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687669523,
+   "updated_ms": 1792687674015
+  },
+  {
+   "tool_call_id": "tool-ba88d78bfd51be59c7f82ea30616fec9bc17b652d839b3790aed427140148dda",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687682346,
+   "updated_ms": 1792687683109
+  },
+  {
+   "tool_call_id": "tool-5b11dcf65991c7196397b0664ffe900616b5e8d85f70133a11d2df7353081a74",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687682418,
+   "updated_ms": 1792687683376
+  },
+  {
+   "tool_call_id": "tool-f7269ee251ab26b3eec8fa6d7bc6cbc77e36c6b9bc61e1ec6667a5dae70c8cb5",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792687682432,
+   "updated_ms": 1792687683354
+  },
+  {
+   "tool_call_id": "tool-880809328e3fb433f7df38dbaee152409388f1a1136afd534775af4baea6a58c",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687694156,
+   "updated_ms": 1792687695883
+  },
+  {
+   "tool_call_id": "tool-43e34cab1ca68368f71d6416b2d93d1047a7da32d2e2b8f98e71515dd53003f4",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687694386,
+   "updated_ms": 1792687695775
+  },
+  {
+   "tool_call_id": "tool-13c9079224b67b5b62d68594c4464ed82564f2e71ed7fbcee5fbdaf5e75906b4",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792687694156,
+   "updated_ms": 1792687696468
+  },
+  {
+   "tool_call_id": "tool-33f9da976ddd88de2f1f8e55739762c8ae5a899ef242f3ba90c896e28c432016",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792687703889,
+   "updated_ms": 1792687714443
+  }
+ ]
+}

@@ -1,0 +1,123 @@
+{
+  "at_utc": "2026-10-15T22:13:05.963499+00:00",
+  "state": "completed",
+  "exit_code": 0,
+  "job_id": "console-full-80f8e2ed6be74ad4905afed7828f87b4",
+  "cargo_exit_code": 0,
+  "profile": "test/debug",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.exe",
+    "test",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+    "--",
+    "--test-threads=1",
+    "--skip",
+    "wechat"
+  ],
+  "source_hashes": {
+    "modules/gui-web/packages/web-console/src/main.rs": "aeb17997621668388b99591a3b2cb0211529ade78a7b2fcfa34f50132eefdb09",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "8838e769775c091f02602b800d7bf48790846af9b2c85244a226647b27ca55eb",
+    "modules/gui-web/packages/web-console/src/runtime_tool_supervision.rs": "046c879961c5891ba0f24b8e66c469a9aced7295dcef3ffda5dd85976775ef34",
+    "modules/gui-web/packages/web-console/src/root_execution_budget.rs": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985",
+    "modules/diagnostics/packages/diagnostics/src/quota.rs": "85785c07f41d01447d991a38528d444c4ed6bca40e851e24f84911d2519eedc8",
+    "modules/gui-web/packages/web-console/src/app.js": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+    "modules/gui-web/packages/web-console/index.html": "d58af71116263a3ee51db01638a81dbdc1f9e22733f331496a06ecad5a83cebb",
+    "Cargo.lock": "82647ca80a79666f366126695d69a11317610d16a1dd89bbdefdd5d54e7bea5b"
+  },
+  "source_unchanged": true,
+  "primary_suites": [
+    {
+      "target": "Running unittests src\\lib.rs (tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\deps\\coolzhu_web_console-e0208fbc2ebfe02a.exe)",
+      "verdict": "ok",
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    },
+    {
+      "target": "Running unittests src\\bin\\browser_native_host.rs (tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\deps\\coolzhu_browser_native_host-e5f669a26648a049.exe)",
+      "verdict": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    },
+    {
+      "target": "Running unittests src\\main.rs (tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\deps\\coolzhu_web_console-5dc07a65bf6aca46.exe)",
+      "verdict": "ok",
+      "passed": 1479,
+      "failed": 0,
+      "ignored": 6,
+      "filtered": 26
+    },
+    {
+      "target": "Doc-tests coolzhu_web_console",
+      "verdict": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    }
+  ],
+  "primary_totals": {
+    "passed": 1488,
+    "failed": 0,
+    "ignored": 6,
+    "filtered": 26
+  },
+  "child_probe_summaries": [
+    {
+      "target": "Running unittests src\\main.rs (tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\deps\\coolzhu_web_console-5dc07a65bf6aca46.exe)",
+      "verdict": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 1510
+    },
+    {
+      "target": "Running unittests src\\main.rs (tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\deps\\coolzhu_web_console-5dc07a65bf6aca46.exe)",
+      "verdict": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 1510
+    },
+    {
+      "target": "Running unittests src\\main.rs (tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\deps\\coolzhu_web_console-5dc07a65bf6aca46.exe)",
+      "verdict": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 1510
+    }
+  ],
+  "child_probe_totals": {
+    "passed": 3,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 4530
+  },
+  "all_invocations": {
+    "passed": 1491,
+    "failed": 0,
+    "ignored": 6,
+    "filtered": 4556
+  },
+  "user_exclusion": {
+    "filter": "wechat",
+    "count": 26,
+    "reason": "用户要求微信不改不测；子进程用例自身的精确筛选不计作微信排除",
+    "wechat_named_test_executed": false
+  },
+  "statistics_note": "原始收据按所有test result行求和；通过总数与335轮相同口径，主套件与子探针另列，避免把子探针filtered合计误报为微信排除数。",
+  "raw_receipt": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-console-full-20261015.json",
+  "raw_receipt_sha256": "5c04bc363db2504008b0eb5af30c13c74bfd56c59f1e67f91c001c8ed58d23eb",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-console-full-20261015.log",
+  "log_sha256": "67945e52f2d59be022eab9fda343eb7102535821ccb382fe5a345a4cad02945c"
+}

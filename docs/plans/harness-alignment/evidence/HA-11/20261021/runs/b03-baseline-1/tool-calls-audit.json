@@ -1,0 +1,48 @@
+{
+ "run_id": "run-chat-432fe539da7b3d9a1397f802f193fdfa0a33927ee21f2571",
+ "tool_executions": 6,
+ "rows": [
+  {
+   "tool_call_id": "tool-6d9bf821065b2a971395aa356c9cf72d88320b589e4029db49d28d5ee9d21a4a",
+   "tool_name": "glob_search",
+   "status": "completed",
+   "created_ms": 1792685872707,
+   "updated_ms": 1792685876453
+  },
+  {
+   "tool_call_id": "tool-30ef70c3fedf903261bb0b3ef7b588cfec51ef38511a86393ddea76122de00bc",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792685886208,
+   "updated_ms": 1792685889689
+  },
+  {
+   "tool_call_id": "tool-ea7e9f507ca26e5198abb0b5c74de7cf488367bcadfe7009d0203dc3846ca8a4",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792685886333,
+   "updated_ms": 1792685889596
+  },
+  {
+   "tool_call_id": "tool-394c82e7715ccff32b3cee095e9a344b97fb216e90619a432549916f4abd496c",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792685902111,
+   "updated_ms": 1792685904896
+  },
+  {
+   "tool_call_id": "tool-847f102cc32a59ea4b3dc3dba807ef190f9663ce96b421287934366146cb0f41",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792685902136,
+   "updated_ms": 1792685904991
+  },
+  {
+   "tool_call_id": "tool-56c285e7b7588267652f387a0e04eac7c3b198c8be51751b68c0ada4fe3206f4",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792685917771,
+   "updated_ms": 1792685932878
+  }
+ ]
+}

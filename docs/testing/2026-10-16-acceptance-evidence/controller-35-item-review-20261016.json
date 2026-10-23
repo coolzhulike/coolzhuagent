@@ -1,0 +1,741 @@
+{
+  "at_utc": "2026-10-16T14:40:01.602090+00:00",
+  "scope": "35项逐项核查；已豁免项保留历史但完全不进入执行计划",
+  "executor": "当前主会话直接执行，不派发Devin，不启动旧监督",
+  "items": [
+    {
+      "id": "0.1",
+      "item": "身份与证据",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-175-audit.json",
+          "exists": true,
+          "sha256": "22a7bc17161983167ff53dad10b2c617f34b27f6c586a8b8e0f76e2c2ab35592",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "0.2",
+      "item": "基线",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-159-audit.json",
+          "exists": true,
+          "sha256": "5022797aaff798df903ca31062102e24ae6b9dd8c90e6a33dd481715dfdeab21",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "0.3",
+      "item": "CI与假成功",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": []
+    },
+    {
+      "id": "1.1",
+      "item": "身份/终态契约",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-runtime-history-20261016.json",
+          "exists": true,
+          "sha256": "8901f9110e73228f0149720a1da441d9c41548660d7a88a2e045764b63cc5bc8",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-298-audit.json",
+          "exists": true,
+          "sha256": "b010a73dab8525fa3722b22964b4b413fd6a4dcd10565b568189ea765923b6a6",
+          "valid_json": true,
+          "decision": "regression_three_of_three_pass_candidate_not_deployed"
+        },
+        {
+          "name": "controller-298-release-audit.json",
+          "exists": true,
+          "sha256": "5cd50c7ed270987f4d128fdd2e021a332df69e0fa46d7fbbf63e2e52674bef62",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "1.2",
+      "item": "输入事实/回执",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-181-audit.json",
+          "exists": true,
+          "sha256": "ac68f7c86e49f6d6222ff8b28de2d1c14d239a7467047af2cb6c4131514f1f4e",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-300-audit.json",
+          "exists": true,
+          "sha256": "930cd8bf309613a0ce21685848a7d96e3a9b1f08d35b7694119a7cc1d06485b5",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "1.3",
+      "item": "broker/lease",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-293-audit.json",
+          "exists": true,
+          "sha256": "a711d082a1719ba5d1311bf6699b3636e5fb8f6ceed5345b3889e7b7af6432a8",
+          "valid_json": true,
+          "decision": "accepted_binding_recovery_only"
+        },
+        {
+          "name": "controller-295-audit.json",
+          "exists": true,
+          "sha256": "3ba9c1e838b4416195b179d2dda6fd6392742ae36aa98ff4feaadd4de5c1f367",
+          "valid_json": true,
+          "decision": "failed_unverified_source_changes"
+        }
+      ]
+    },
+    {
+      "id": "1.4",
+      "item": "权限",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-311-audit.json",
+          "exists": true,
+          "sha256": "57f8ddb65febcfa56dc129e06a312581bec93461f51d063162b03ef6666fadc4",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-318-audit.json",
+          "exists": true,
+          "sha256": "9d9afb4bfcb5f0b7ae64f6b5d59ae9705378685be4e7630ee5d90c806c10c0a4",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "1.5",
+      "item": "取消/预算",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-313-audit.json",
+          "exists": true,
+          "sha256": "50f88936a90fec9d5bd65a003fafcea44d25f498b0b0c2e6cc54c861808bbf2a",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-322-audit.json",
+          "exists": true,
+          "sha256": "10880980fb86f4e331b384c15cc058b66b8e948f8f625e94d9594f609307fb32",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "2.1",
+      "item": "SessionConfig",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-341-audit.json",
+          "exists": true,
+          "sha256": "1e43c5568069d6be271124fd0aa58cf5909c6ac8428b8bc264078158013b9ddc",
+          "valid_json": true,
+          "decision": "2.1隔离服务/跨资源崩溃边界局部通过，正式服务及断电矩阵未全证，整项继续in_progress"
+        },
+        {
+          "name": "controller-342-audit.json",
+          "exists": true,
+          "sha256": "c036be9c287b7b62b5fd6ed23471202a249ed88ca321cb303b52ade069ff9ed8",
+          "valid_json": true,
+          "decision": "2.1跨资源提交与隔离HTTP重启读回通过；新平台真实凭据wire/OS断电未证，按规则搁置"
+        }
+      ]
+    },
+    {
+      "id": "2.2",
+      "item": "历史/usage",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-installed-133-history-after-tests.json",
+          "exists": true,
+          "sha256": "ca7572196b583e019ec53d1460c1b453b2a53ecf426b5c7fc5794f7bb6e435b9",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-real-trace-readonly-20261015.json",
+          "exists": true,
+          "sha256": "9d537c8b6ee179f5bd1685899e49f1cd07ff613d14dc6c6cc73bb95d277d846a",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-319-audit.json",
+          "exists": true,
+          "sha256": "7edb33365d044774651483c190212906ac73efe69328f82adcc481de45f95e8a",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-320-audit.json",
+          "exists": true,
+          "sha256": "b6ad99d9686fae13a25171773c898eaf842d3ed5e8467bece253d1d047a11486",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "2.3",
+      "item": "工具派发",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-245-audit.json",
+          "exists": true,
+          "sha256": "120e77f048934eb0a4aa32665e6f3a3935ef64e90a344038158d7199912f589a",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "2.4",
+      "item": "单写者/outbox/epoch",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-294-audit.json",
+          "exists": true,
+          "sha256": "1e0e1cfd70f4bfe9a20dafe2f5436284891fa956e85d51e02953fd3494ddcf52",
+          "valid_json": true,
+          "decision": "partial_outbox_matrix_only"
+        }
+      ]
+    },
+    {
+      "id": "2.5",
+      "item": "共享异步TurnRunner",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-193-audit.json",
+          "exists": true,
+          "sha256": "dc64f610682abf530aa17c80332048d015b61b63c337f8a93e2302928451b0da",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-299-audit.json",
+          "exists": true,
+          "sha256": "ce3f34662da500d8d2d2539a8d29ccf2c2150d89d1bd80b2609121e9af1da103",
+          "valid_json": true,
+          "decision": "isolated_boundaries_17_pass_formal_matrix_open"
+        }
+      ]
+    },
+    {
+      "id": "3.1",
+      "item": "Frame/DPI",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-236-audit.json",
+          "exists": true,
+          "sha256": "8a80dc6a0ac92b58097f6380dd903ff8c7ed31fc4e23c93af66249877f49557c",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "3.2",
+      "item": "UIA/语义动作",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-279-audit.json",
+          "exists": true,
+          "sha256": "f1518aa08c0d7553d6b8af84e62213647506dbc3576b868cd45281a236d64927",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "3.3",
+      "item": "有界反馈/验证",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-344-audit.json",
+          "exists": true,
+          "sha256": "e0368a943a03ab484ac2b5f5bc466c5acc440829f73ded5b6d8f24b3c37c12f1",
+          "valid_json": true,
+          "decision": "原Devin真实桌面失配后有界纠正链通过；3.3其余矩阵待验"
+        },
+        {
+          "name": "controller-343-audit.json",
+          "exists": true,
+          "sha256": "3b78b26cb6591098497c55395bef192d4a7cde9e4a4587c95a25bf33ca6b5082",
+          "valid_json": true,
+          "decision": "真实CU门控零投递，3.3桌面端到端未验；直接启动正式服务遗漏launcher注入的输入安全根"
+        }
+      ]
+    },
+    {
+      "id": "3.4",
+      "item": "失配/settle",
+      "status": "pending_evidence",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-345-audit.json",
+          "exists": true,
+          "sha256": "7097f1ac73ac01b79ca8d63d3f30cc55035c92725233369593ba162b9d3d2c1b",
+          "valid_json": true,
+          "decision": "桌面严格目标正负例通过；跨来源真实commit及BODY keydown等仍未验"
+        },
+        {
+          "name": "controller-317-audit.json",
+          "exists": true,
+          "sha256": "3b7f2ca9b5d4a02e34baf8c583da2c1027e285c0f6cf31d89c3629689057f700",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "3.5",
+      "item": "Paint实验",
+      "status": "waived",
+      "in_execution_plan": false,
+      "receipt_checks": []
+    },
+    {
+      "id": "4.1",
+      "item": "前端模块/面板",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-installed-133-cold-start-d-workspace.json",
+          "exists": true,
+          "sha256": "4d1c0b02728a43372e1a67473fc993fb972fb0c916970c0c1ce74c9bae6ac202",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-346-static-repair.json",
+          "exists": true,
+          "sha256": "c5e7d27684b66a53e752d8d56e4386209b5463ce3f43ea59c8b0778b1fa1386d",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-347-audit.json",
+          "exists": true,
+          "sha256": "84edd2d13885a97dbc582741595c1c10914d31729479c67e116cdd6117902a4b",
+          "valid_json": true,
+          "decision": "原执行终态与494文件候选哈希通过；候选仍在tmp，持久启动/正式包和重启后验收未完成"
+        }
+      ]
+    },
+    {
+      "id": "4.2",
+      "item": "轨迹/统计/FTS",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-message-run-build.json",
+          "exists": true,
+          "sha256": "be33baa604919c2ee1e80cbed5f52d41d4a145d2d299d6ea097728a3587fae76",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-reply-http-20261016.json",
+          "exists": true,
+          "sha256": "73d8659ec31ec5bcf0127894a813a1442849897352271f1e0c04e97b0ca10113",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-339-ui-reload.json",
+          "exists": true,
+          "sha256": "32c97c28091ffae8f7034cefcc6368748c93293caa267b2872adcb6589fdbe0f",
+          "valid_json": true,
+          "decision": "当前源码前端已在安装版窗口加载；凭据未就绪是真实状态，不宣称系统故障已消失。"
+        },
+        {
+          "name": "controller-339-audit.json",
+          "exists": true,
+          "sha256": "90343f36a13282e0c1038a2f9bd48a9d8ce1ce3e9ed987f4f3ff415bef254b1a",
+          "valid_json": true,
+          "decision": "发布构建与受控在线切换通过；4.1/4.2/6.2局部通过，整项继续开放"
+        }
+      ]
+    },
+    {
+      "id": "4.3",
+      "item": "文件/附件",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": []
+    },
+    {
+      "id": "4.4",
+      "item": "SKILL/记忆",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": []
+    },
+    {
+      "id": "4.5",
+      "item": "Goal/调度",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-goal-release-134-staged.json",
+          "exists": true,
+          "sha256": "15e6db5d51bcfe37392db5bcc39d093f6ac96a94914e69e1028fb8e1b300631a",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-goal-release-134-installed.json",
+          "exists": true,
+          "sha256": "054fbc6ce67477cb3bf45f4793fbd972fe6696c2c763fcea8f0b99ba9d670f6a",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-337-audit.json",
+          "exists": true,
+          "sha256": "223e95504006058bf2bbf923960cc98df9d7d394444587b679ffda5cfd3424d4",
+          "valid_json": true,
+          "decision": "not_sent_not_accepted"
+        },
+        {
+          "name": "controller-338-audit.json",
+          "exists": true,
+          "sha256": "6c22f78cf3624d6923e36daa3d0a964811a272f92423d2d518d3eb0b2ec053b7",
+          "valid_json": true,
+          "decision": "partial_not_accepted"
+        }
+      ]
+    },
+    {
+      "id": "5.1",
+      "item": "凭据",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-234-audit.json",
+          "exists": true,
+          "sha256": "73b4ce6353a35d1eb183bb4ba43bef50af46addd0a6e2a92ed9132f3c986ba17",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "5.2",
+      "item": "隔离/监督",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-235-audit.json",
+          "exists": true,
+          "sha256": "e1ed7a4840b4707348e30cd85a047e52024824ccf6af3f64d742a5e34d1b944c",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "5.3",
+      "item": "MCP",
+      "status": "accepted",
+      "in_execution_plan": false,
+      "receipt_checks": [
+        {
+          "name": "controller-173-audit.json",
+          "exists": true,
+          "sha256": "2e3acc584c70aa3c113ec349250e8e7faaa593da8c7458476941900d1f1eb4a7",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-198-audit.json",
+          "exists": true,
+          "sha256": "46d2e140f02fc62219181ad103bbd09ba4aa4e6b1a698749ebb03d81443b63e9",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "5.4",
+      "item": "LSP/PTY",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-203-audit.json",
+          "exists": true,
+          "sha256": "1fb29953edefac840a673b12dc28432fa96670843882e94fbb280a7d674827da",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "5.5",
+      "item": "连接器",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-324-audit.json",
+          "exists": true,
+          "sha256": "d04f7f6037376a4cd90b4703c29fb9bace0cff58d02fcfbbf571e4f96a42391d",
+          "valid_json": true,
+          "decision": "blocked-before-execution"
+        },
+        {
+          "name": "controller-325-audit.json",
+          "exists": true,
+          "sha256": "1e16897282e9e5141cb4e93e66d772cf01e967f199e37193b9a4a707b9b93bd1",
+          "valid_json": true,
+          "decision": "partial-only"
+        }
+      ]
+    },
+    {
+      "id": "6.1",
+      "item": "运维/诊断",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-326-audit.json",
+          "exists": true,
+          "sha256": "a58e0d31ddffe17433a69f36160c21f6786db72195c10e8fa0f72653a15c425e",
+          "valid_json": true,
+          "decision": "partial-rejected-security-gap"
+        },
+        {
+          "name": "controller-327-audit.json",
+          "exists": true,
+          "sha256": "5ffc2362c628a60176c950d2af4685d40a79e348272fb5f44aaf13291e4cd247",
+          "valid_json": true,
+          "decision": "partial-accepted-manifest-hardlink-fixed"
+        }
+      ]
+    },
+    {
+      "id": "6.2",
+      "item": "迁移/升级",
+      "status": "in_progress",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-runtime-history-20261016.json",
+          "exists": true,
+          "sha256": "8901f9110e73228f0149720a1da441d9c41548660d7a88a2e045764b63cc5bc8",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-353-audit.json",
+          "exists": true,
+          "sha256": "5e2f199cb997fe40075d4ddad2f34dda9475dab7e508d102b3a6e74390fe60fa",
+          "valid_json": true,
+          "decision": "根边界定点修复独立复核通过；完整 WebView2 套件仍 3 项失败，完整打包及安装未验收；按用户要求下一轮插入开机动画"
+        },
+        {
+          "name": "controller-357-audit.json",
+          "exists": true,
+          "sha256": "0b8fbfd2816d43a3421b6f7df303c79f2dfa4276a9d70c88e3752181a56ae580",
+          "valid_json": true,
+          "decision": "静态页夹具与空资源发布门定点修复通过；完整生产包和MSI安装仍待验"
+        }
+      ]
+    },
+    {
+      "id": "6.3",
+      "item": "Windows矩阵",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-236-audit.json",
+          "exists": true,
+          "sha256": "8a80dc6a0ac92b58097f6380dd903ff8c7ed31fc4e23c93af66249877f49557c",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-283-installed-ui-audit.json",
+          "exists": true,
+          "sha256": "2ddb2468ef1bfbe8fca883b10c6eb153ab82290d08797fbc9815e0d5b86299f4",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "6.4",
+      "item": "文档/交付",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-281-wbs-6-4-audit.json",
+          "exists": true,
+          "sha256": "5409f8df4f64fba633aefc7422bb4e943991a5a4d8e465ef002632085452b72b",
+          "valid_json": true,
+          "decision": null
+        }
+      ]
+    },
+    {
+      "id": "EX-01",
+      "item": "控制台完整测试",
+      "status": "accepted",
+      "in_execution_plan": false,
+      "receipt_checks": [
+        {
+          "name": "controller-current-full-20261016.json",
+          "exists": true,
+          "sha256": "31b2c8de4806ab1bdac287e667661d952141dd347d50ba1eeaa44fe44fa1f16a",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-334-audit.json",
+          "exists": true,
+          "sha256": "43f56523bdbe012b26be03834446ea54896bfa55e6e21a21f3c93dcf92c9bb80",
+          "valid_json": true,
+          "decision": "targeted-fix-accepted-EX-01-full-suite-open"
+        },
+        {
+          "name": "controller-335-audit.json",
+          "exists": true,
+          "sha256": "efafb2074c39228eaf9e71dad99af83124a499c8bbae1cfd889794c328709042",
+          "valid_json": true,
+          "decision": "EX-01-accepted-current-source"
+        }
+      ]
+    },
+    {
+      "id": "EX-02",
+      "item": "C 盘旧仓库清理与空间回收",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-c-readonly-20261015.json",
+          "exists": true,
+          "sha256": "3f984a25dc1b15d96eb14bfb57e2150b149e522c003edfcb1cd54ae2fe698911",
+          "valid_json": true,
+          "decision": "completed"
+        },
+        {
+          "name": "controller-c-reference-readonly-20261015.json",
+          "exists": true,
+          "sha256": "d3db67e6926681290cc1055f164ea97d9849bceb7582e2e2e39aeeda0e365566",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-c-inventory-audit.json",
+          "exists": true,
+          "sha256": "a7ef7b330a2379c7b744576a78571ccc024a97e519759fcd8432e983092b92e2",
+          "valid_json": true,
+          "decision": null
+        },
+        {
+          "name": "controller-gotdot-compare.json",
+          "exists": true,
+          "sha256": "db962697782973ae8df3b012cb769b0b059cefa660af1f49e5e9c798a1b35a01",
+          "valid_json": true,
+          "decision": "结构化列表"
+        }
+      ]
+    },
+    {
+      "id": "EX-03",
+      "item": "开机动画打坐运气替换",
+      "status": "blocked",
+      "in_execution_plan": true,
+      "receipt_checks": [
+        {
+          "name": "controller-356-audit.json",
+          "exists": true,
+          "sha256": "f65219637567222731b12dfd13cc61447f63ac374c0771caaabb80593a0b6c16",
+          "valid_json": true,
+          "decision": "启动动画候选源码和离线构建接受；真实画面、正式打包安装及启动可视验收仍待证，EX-03保持进行中"
+        },
+        {
+          "name": "controller-357-audit.json",
+          "exists": true,
+          "sha256": "0b8fbfd2816d43a3421b6f7df303c79f2dfa4276a9d70c88e3752181a56ae580",
+          "valid_json": true,
+          "decision": "静态页夹具与空资源发布门定点修复通过；完整生产包和MSI安装仍待验"
+        }
+      ]
+    }
+  ],
+  "status_counts": {
+    "blocked": 16,
+    "in_progress": 9,
+    "pending_evidence": 7,
+    "waived": 1,
+    "accepted": 2
+  },
+  "checked_receipts": 64,
+  "missing_receipts": [],
+  "scope_note": "状态为整项完成门禁；已有大量子检查通过，不能将局部通过计作整项完成。"
+}

@@ -1,0 +1,10 @@
+﻿{
+    "room_id":  "room-1792638491842",
+    "case":  "b04",
+    "elapsed_ms":  45227,
+    "prompt":  "当前工作区（目录 D:\\coolzhuagent\\tmp\\ha11-run\\baseline\\ws）是一个 Rust crate，`cargo test --offline` 有 3 个测试失败，分别对应 src/arith.rs、src/text.rs、src/stats.rs 三个文件中的 bug。请只在该目录内操作，修复这三个文件，并实际运行 `cargo test --offline` 验证全部通过后再简短汇报。",
+    "side":  "baseline",
+    "first_turn_end_ms":  1792638537158,
+    "round":  3,
+    "http":  200
+}

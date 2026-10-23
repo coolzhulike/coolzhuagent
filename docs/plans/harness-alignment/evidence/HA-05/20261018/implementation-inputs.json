@@ -1,0 +1,17 @@
+[
+  {
+    "path": "modules/gui-web/packages/web-console/src/main.rs",
+    "before_sha256": "1f87e130e3383c5d33d1723059a6a77ae209eb48842e79ad306b8ace7f0da1f7",
+    "after_sha256": "fc2b418ce847a6249d6e98b39a2bed8c0cc036ef08a682fb2a91aec9cbdfc408"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/tool_loop_progress.rs",
+    "before_sha256": null,
+    "after_sha256": "ab23c1b2a34f42fb0803cdc5673b0d2a38cdf227ba6c6759e6ce1898a80a3a41"
+  },
+  {
+    "path": "modules/gui-web/packages/web-console/src/ha05_tests.rs",
+    "before_sha256": null,
+    "after_sha256": "daac34763b07fc50b8752e9f57d4d8433977a65644728a8577cbc2289d3cbdb1"
+  }
+]

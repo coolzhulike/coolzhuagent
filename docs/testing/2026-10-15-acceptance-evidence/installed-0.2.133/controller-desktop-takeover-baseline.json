@@ -1,0 +1,467 @@
+{
+  "at_utc": "2026-10-15T17:11:18.181755+00:00",
+  "mode": "read_only",
+  "tools": {
+    "PIL": true,
+    "psutil": false,
+    "playwright": false,
+    "pywinauto": false
+  },
+  "processes": [
+    {
+      "ProcessId": 28944,
+      "ParentProcessId": 18200,
+      "Name": "coolzhu-web-console.exe",
+      "ExecutablePath": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\release\\coolzhu-web-console.exe",
+      "CreationDate": "/Date(1792066449388)/",
+      "cwd": "D:\\coolzhuagent\\",
+      "executable_sha256": "83f87e5baecca596095ca3bdaeda582324615480f1e5daef28110c21e4f5c6f6"
+    },
+    {
+      "ProcessId": 2176,
+      "ParentProcessId": 30264,
+      "Name": "coolzhu-tauri-shell.exe",
+      "ExecutablePath": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+      "CreationDate": "/Date(1792083147295)/",
+      "cwd": "D:\\coolzhuagent\\",
+      "executable_sha256": "b47353397b63389830a70f1fdfb3de940e8b4a751030dece33c6cb2654bf66ee"
+    }
+  ],
+  "listeners": {
+    "LocalAddress": "127.0.0.1",
+    "LocalPort": 8765,
+    "OwningProcess": 28944
+  },
+  "health": {
+    "http_status": 200,
+    "paths": {
+      "workspace": "D:\\coolzhuagent",
+      "session_db": "D:\\tmp\\.coolzhu\\web-sessions.sqlite3",
+      "legacy_session_json": "D:\\tmp\\.coolzhu\\web-sessions.json",
+      "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+      "desktop_pet_exe": null
+    },
+    "summary": {
+      "status": "error",
+      "ok": 9,
+      "warn": 1,
+      "error": 1
+    },
+    "checks": [
+      {
+        "id": "web.state",
+        "status": "ok"
+      },
+      {
+        "id": "web.bind",
+        "status": "ok"
+      },
+      {
+        "id": "workspace.root",
+        "status": "ok"
+      },
+      {
+        "id": "config.coolzhu_toml",
+        "status": "ok"
+      },
+      {
+        "id": "session.sqlite",
+        "status": "ok"
+      },
+      {
+        "id": "llm.providers",
+        "status": "error"
+      },
+      {
+        "id": "vision.capture",
+        "status": "ok"
+      },
+      {
+        "id": "audio.voice_monitor",
+        "status": "ok"
+      },
+      {
+        "id": "tools.catalog",
+        "status": "ok"
+      },
+      {
+        "id": "desktop.pet",
+        "status": "warn"
+      },
+      {
+        "id": "desktop.webview2",
+        "status": "ok"
+      }
+    ]
+  },
+  "state": {
+    "http_status": 200,
+    "workspace": "D:\\coolzhuagent",
+    "workspace_id": "ws-8d17063fefe5c23c",
+    "app_name": "COOLZHU AGENT",
+    "status": "运行"
+  },
+  "database": {
+    "path": "D:\\tmp\\.coolzhu\\web-sessions.sqlite3",
+    "bytes": 147521536,
+    "state_table_schema": {
+      "computer_use_legacy_run_convergence_intents": [
+        "recovery_operation_id",
+        "reconciliation_key",
+        "source_database_identity",
+        "original_run_id",
+        "original_state",
+        "original_state_version",
+        "recorded_at_ms",
+        "reconciled"
+      ],
+      "computer_use_legacy_run_convergences": [
+        "convergence_id",
+        "reconciliation_key",
+        "source_database_identity",
+        "source_database_identity_registered_now",
+        "source_database_identity_not_past_attribution",
+        "original_run_id",
+        "original_state",
+        "original_state_version",
+        "session_id",
+        "turn_id",
+        "workspace_id_unrecorded",
+        "other_gaps_json",
+        "terminal_status",
+        "reason_code",
+        "explanation",
+        "rule_version",
+        "recovery_operation_id",
+        "evidence_json",
+        "recovery_service_instance",
+        "recovery_control_authority",
+        "operated_at_ms",
+        "control_continuation_allowed",
+        "historical_outcome_kind",
+        "historical_goal_verdict",
+        "historical_execution_ended_at_ms",
+        "historical_evidence_refs_json",
+        "input_old_executor_may_be_present",
+        "input_unconfirmed_release_obligations",
+        "input_blocking_event_refs_json",
+        "input_safe_for_new_input",
+        "historical_resource_scope_kind",
+        "historical_resource_scope_id",
+        "current_resource_basis",
+        "current_resource_session_id",
+        "current_resource_turn_id",
+        "current_resource_checked_at_ms",
+        "side_effect_limits_json",
+        "reconciled_at_ms",
+        "original_execution_ended_at_ms"
+      ],
+      "computer_use_plan_attempts": [
+        "attempt_key",
+        "call_id",
+        "logical_request_id",
+        "attempt_id",
+        "step_index",
+        "action_id",
+        "registered_at_unix_ms"
+      ],
+      "computer_use_release_resolution_runs": [
+        "resolution_id",
+        "run_id"
+      ],
+      "computer_use_runs": [
+        "call_id",
+        "provider_tool_call_id",
+        "turn_id",
+        "session_id",
+        "chat_room_id",
+        "idempotency_key",
+        "objective_json",
+        "surface",
+        "state",
+        "state_version",
+        "risk_class",
+        "approval_state",
+        "approval_deadline_ms",
+        "action_count",
+        "replan_count",
+        "no_progress_count",
+        "current_observation_generation",
+        "deadline_ms",
+        "terminal_result_json",
+        "created_at_ms",
+        "updated_at_ms",
+        "workspace_id",
+        "workspace_context_version",
+        "legacy_convergence_id",
+        "legacy_convergence_state",
+        "legacy_convergence_reconciled_at_ms"
+      ],
+      "devin_acp_attempts": [
+        "attempt_id",
+        "scope_json",
+        "state",
+        "cancel_requested",
+        "protocol_stop",
+        "process_drained",
+        "model_json"
+      ],
+      "goal_events": [
+        "id",
+        "goal_id",
+        "event_type",
+        "message",
+        "payload_json",
+        "created_at"
+      ],
+      "goal_phases": [
+        "id",
+        "goal_id",
+        "title",
+        "assigned_role",
+        "status",
+        "depends_on_json",
+        "skills_json",
+        "output_artifacts_json",
+        "verification_json",
+        "created_at",
+        "updated_at",
+        "retry_count",
+        "max_retries",
+        "last_verdict",
+        "last_reason",
+        "last_evidence_json",
+        "route_hint",
+        "requires_human_ack",
+        "human_ack",
+        "active_run_id",
+        "claim_token",
+        "claim_owner",
+        "claimed_at",
+        "lease_until"
+      ],
+      "goal_role_configs": [
+        "session_id",
+        "role",
+        "responsibility",
+        "commander",
+        "heartbeat_timeout_ms",
+        "task_timeout_ms",
+        "last_heartbeat_at",
+        "active_task_started_at",
+        "updated_at"
+      ],
+      "goals": [
+        "id",
+        "workspace_id",
+        "chat_room_id",
+        "title",
+        "status",
+        "max_iterations",
+        "current_iteration",
+        "background",
+        "originating_user_msg_id",
+        "completion_condition_json",
+        "plan_json",
+        "created_at",
+        "updated_at",
+        "cancelled_at"
+      ],
+      "runtime_run_events": [
+        "id",
+        "run_id",
+        "event_type",
+        "payload_json",
+        "created_at"
+      ],
+      "runtime_runs": [
+        "id",
+        "kind",
+        "workspace_id",
+        "session_id",
+        "chat_room_id",
+        "goal_id",
+        "phase_id",
+        "legacy_turn_id",
+        "provider_turn_id",
+        "state",
+        "owner_id",
+        "claim_token",
+        "stop_reason",
+        "error_json",
+        "created_at",
+        "started_at",
+        "stop_requested_at",
+        "heartbeat_at",
+        "finished_at"
+      ]
+    },
+    "status_counts": {
+      "goal_phases": [
+        [
+          "completed",
+          3
+        ],
+        [
+          "pending",
+          31
+        ]
+      ],
+      "goals": [
+        [
+          "cancelled",
+          3
+        ],
+        [
+          "running",
+          1
+        ]
+      ]
+    }
+  },
+  "installer": {
+    "version": "0.2.133",
+    "signed": false,
+    "sha256": "b9674a7e30936d04ca9da6158bb09057fb1a30cf80beefe4f71cc0466e183ee5",
+    "expected_sha256": "b9674a7e30936d04ca9da6158bb09057fb1a30cf80beefe4f71cc0466e183ee5",
+    "build_identity": {
+      "schema": 1,
+      "source_snapshot_digest": "e069dde16b0b9dc8fa707ecaa52d3d1f5e0b816bacc93a141d429a5e70a9aaca",
+      "build_input_digest": "d68dc8e1bc8e952f18e7067a48d9591ce13b9aaa938395acc2f2cc5a8889de26",
+      "payload_digest": "0155e13b8eb4e6ad2c08ee071d7d7998f9fa4366b5d44191cd7071acbd2fae03",
+      "msi_payload_sha256": "b9674a7e30936d04ca9da6158bb09057fb1a30cf80beefe4f71cc0466e183ee5",
+      "note": "payload_digest 是 MSI 输入（暂存包）的文件清单摘要；msi_payload_sha256 是最终分发文件本身的摘要。两者一起回答\"最终生成和分发了哪些二进制与资源\"。"
+    },
+    "package_report_ref": {
+      "report_id": "pkg-report-release-20261015-085414907-b86a8314",
+      "content_sha256": "ff352c2afd172fd76f32c9198217cb0f091520fd41ae1c5b266bb7d1ff2aa394",
+      "content_hash_scope": "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+      "report_file_sha256": "cdcd5d662f4ea82bc4591e03a74c33e6a3ba5ab810c82f6de1fd0d0b8bf85a4c",
+      "report_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/package-172.json",
+      "captured_from": "package-root-inventory-report-ref",
+      "package_root_identity": "pkg-report-release-20261015-085414907-b86a8314@0155e13b8eb4e6ad2c08ee071d7d7998f9fa4366b5d44191cd7071acbd2fae03",
+      "verified": true
+    }
+  },
+  "payload_keys": [
+    "schema",
+    "kind",
+    "generated_at",
+    "configuration",
+    "package_root",
+    "payload_digest",
+    "digest_scope",
+    "file_count",
+    "total_bytes",
+    "self_carrier",
+    "build_identity",
+    "vcs",
+    "report_ref",
+    "retention",
+    "files"
+  ],
+  "payload_file_sha256": "47dee40ecdb6f2418694e5798156d68586860b0eeb670452ef88a9073dc49385",
+  "archived_payload_file_sha256": "47dee40ecdb6f2418694e5798156d68586860b0eeb670452ef88a9073dc49385",
+  "payload_first_entry": {
+    "path": "COOLZHU-AGENT.exe",
+    "length": 1009664,
+    "sha256": "57ba8e0bf8feb6988a182e744761f7251f587f001320d93bbc4d350302be65b8"
+  },
+  "package_report_keys": [
+    "generated_at",
+    "run_id",
+    "configuration",
+    "run_phase",
+    "manifest",
+    "package_root",
+    "backup_keep",
+    "release_eligible",
+    "release_eligibility",
+    "build_context",
+    "build_identity",
+    "source_snapshot",
+    "build_inputs",
+    "declared_input_scope",
+    "payload_inventory",
+    "exported_artifacts",
+    "cargo_build_evidence",
+    "preparation_and_freeze",
+    "changed_paths",
+    "artifacts",
+    "report_identity"
+  ],
+  "package_report_sha256": "cdcd5d662f4ea82bc4591e03a74c33e6a3ba5ab810c82f6de1fd0d0b8bf85a4c",
+  "important_installed_files": {
+    "COOLZHU-AGENT.exe": {
+      "bytes": 1009664,
+      "sha256": "57ba8e0bf8feb6988a182e744761f7251f587f001320d93bbc4d350302be65b8"
+    },
+    "bin/coolzhu-web-console.exe": {
+      "bytes": 42488832,
+      "sha256": "6fec2863f595a6284a15ead7e3eff5b33f070d6d55ef7bc731b53fcb46311da7"
+    },
+    "bin/coolzhu-tauri-shell.exe": {
+      "bytes": 87513600,
+      "sha256": "b47353397b63389830a70f1fdfb3de940e8b4a751030dece33c6cb2654bf66ee"
+    },
+    "bin/WebView2Loader.dll": {
+      "bytes": 160320,
+      "sha256": "8427b1fc58ec707813e5c0a51eb5d69397bb333250a7b891be4d3b123f1e0f1c"
+    },
+    "modules/gui-web/packages/web-console/index.html": {
+      "bytes": 134567,
+      "sha256": "d58af71116263a3ee51db01638a81dbdc1f9e22733f331496a06ecad5a83cebb"
+    },
+    "modules/gui-web/packages/web-console/src/app.js": {
+      "bytes": 879491,
+      "sha256": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903"
+    },
+    "modules/gui-desktop/packages/tauri-shell/ui/scroll-startup-player.js": {
+      "bytes": 10281,
+      "sha256": "7e6cad4b3cdc04cbadef826114baa9e82cbe64e89e8e90e98d3f5d3f8ba65dcb"
+    },
+    "modules/gui-desktop/packages/tauri-shell/ui/assets/p83-coolzhu/actors/meditating-actor-v1.png": {
+      "bytes": 1102287,
+      "sha256": "c358c014e2d046fa973a36cd54aad16a1e0cbc533047a760f8bd295070952148"
+    }
+  },
+  "round_358_job": {
+    "job_id": "d937a25ae0624e94abf640e7e9bfdfd8",
+    "action": "package-candidate-172",
+    "attempt_id": "49df4bb3481098f82a8d8a9773dbb38faacc00ec7cc6eaa9",
+    "scope": {
+      "workspace_id": "ws-8d17063fefe5c23c",
+      "room_id": "room-1791131523339",
+      "agent_id": "session-1791131217833",
+      "run_id": "run-chat-0fbd555ca8eaa7a8f46976899899c0c39e47bde7987e50d4",
+      "turn_id": "chat-turn-1792079077096-14",
+      "attempt_id": "49df4bb3481098f82a8d8a9773dbb38faacc00ec7cc6eaa9",
+      "owner_epoch": 637,
+      "generation": 637
+    },
+    "state": "failed",
+    "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\build-jobs\\d937a25ae0624e94abf640e7e9bfdfd8.log",
+    "created": 1792079117.3264956,
+    "pid": 7532,
+    "started": 1792079117.4299269,
+    "exit_code": 1,
+    "finished": 1792079325.5203736,
+    "notification": {
+      "state": "controller_queued",
+      "source": "build:d937a25ae0624e94abf640e7e9bfdfd8",
+      "returncode": 0,
+      "stdout": "Queued message 01a14040-6a0a-71a2-bff3-4a68036b9e6d for thread 01a12a5b-b9db-7333-a27c-80695e293364.",
+      "stderr": "",
+      "claim": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-alert-claims\\49df4bb3481098f82a8d8a9773dbb38faacc00ec7cc6eaa9.json",
+      "at": 1792079325.7981935
+    }
+  },
+  "evidence_sha256": {
+    "controller-335-audit.json": "efafb2074c39228eaf9e71dad99af83124a499c8bbae1cfd889794c328709042",
+    "devin-startup-package-submit-358.json": "2e33a2687e1b284554f56e159cf9625b7d4b5e4aa60cd914e351304a6bcaf0e1",
+    "controller-359-audit.json": "25ebc7e7f576430ffba2a83b4bd9a1eab38781dee683754454069e081421e96f",
+    "devin-installed-startup-visual-360.json": "eb0c734ed1ad17779214220bfe2c79b4e8ae420eaa6816a92a3098d4c49a6e93"
+  },
+  "git_head": "8a13551b037f5f673188802f2c9128984245fab8",
+  "instruction_files": []
+}

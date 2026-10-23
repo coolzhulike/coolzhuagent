@@ -224,6 +224,8 @@
           "--bin",
           "COOLZHU-AGENT",
           "--offline",
+          "--target-dir",
+          "target",
           "--message-format=json-render-diagnostics"
         ],
         "working_dir": ".",
@@ -271,6 +273,16 @@
       "source": "modules/gui-web/packages/web-console/assets",
       "target": "modules/gui-web/packages/web-console/assets",
       "optional": true
+    },
+    {
+      "id": "gui-web.console-pages",
+      "source": "modules/gui-web/packages/web-console",
+      "target": "modules/gui-web/packages/web-console",
+      "include": [
+        "^index\\.html$",
+        "^src/[^/]+\\.(js|css)$",
+        "^assets/bamboo-banner-wind\\.js$"
+      ]
     },
     {
       "id": "browser.extension",

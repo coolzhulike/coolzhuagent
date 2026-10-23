@@ -1,0 +1,21 @@
+{
+  "state": "failed",
+  "boundary": "隔离真实HTTP服务、调度和worker；本机确定性模型协议夹具，不是外部模型自主行为或正式GUI",
+  "binary": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\coolzhu-web-console.exe",
+  "binarySha256": "f9b08d3419ddfb7c798ecdd4bc9e3232973cc426b3022d3ace1734b832f21fe4",
+  "steps": [],
+  "processes": [
+    {
+      "pid": 34944,
+      "exited": true
+    },
+    {
+      "pid": 18604,
+      "exited": true
+    }
+  ],
+  "model_requests": [],
+  "productionTouched": false,
+  "error": "TimeoutError('等待事实超时')",
+  "finishedAtUtc": "2026-10-16T19:46:22.368240+00:00"
+}

@@ -1,0 +1,189 @@
+{
+  "state": "completed",
+  "started_at": "2026-10-16T16:25:25.162309+00:00",
+  "boundary": "完整发布服务真实HTTP、两个独立进程及隔离DB；没有向正式8765/生产库注入故障，不等同正式生产安装环境",
+  "external_model_calls": 0,
+  "source_modified": false,
+  "binary_sha256": {
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe": "313cb9ece330628b03b40ad7ffb5b98b5fdf60927a9c2cce45925fcc9dda0f7c",
+    "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe": "7e678c39883a6fcaabc61cad080d7e9073931a25b4ce4a77e3e3048a941d08f8"
+  },
+  "cases": [
+    {
+      "name": "2.4 完整135服务取得epoch并通过HTTP提交中文房间",
+      "state": "passed",
+      "evidence": {
+        "epoch": 1,
+        "room": "room-1792167929815",
+        "persisted": true
+      }
+    },
+    {
+      "name": "2.4 同版第二实例在迁移和HTTP前拒绝",
+      "state": "passed",
+      "evidence": {
+        "rejected_exit": 1,
+        "http_opened": false,
+        "epoch_and_rows_unchanged": true,
+        "owner_still_healthy": true
+      }
+    },
+    {
+      "name": "2.4 135持有期间旧134完整服务拒绝且不改库",
+      "state": "passed",
+      "evidence": {
+        "rejected_exit": 1,
+        "http_opened": false,
+        "epoch_and_rows_unchanged": true,
+        "owner_still_healthy": true
+      }
+    },
+    {
+      "name": "2.4 持有者强杀后134服务接管并实际保存",
+      "state": "passed",
+      "evidence": {
+        "epoch": 2,
+        "prior_rows_preserved": true,
+        "new_room": "room-1792167938956",
+        "old_owner_confirmed_exited": true
+      }
+    },
+    {
+      "name": "2.4 134持有期间135服务同样拒绝",
+      "state": "passed",
+      "evidence": {
+        "rejected_exit": 1,
+        "old_owner_healthy": true,
+        "db_unchanged": true
+      }
+    },
+    {
+      "name": "2.4 再由135接管且跨版本业务记录保留",
+      "state": "passed",
+      "evidence": {
+        "epoch": 3,
+        "both_versions_rows_preserved": true
+      }
+    },
+    {
+      "name": "2.4 在线权威epoch改变后两次HTTP保存均409且无幽灵缓存",
+      "state": "passed",
+      "evidence": {
+        "injected_epoch": 103,
+        "responses": [
+          {
+            "status": 409,
+            "error": {
+              "error": "会话库写者版本已变化，未提交旧缓存；请重启并核对数据库"
+            }
+          },
+          {
+            "status": 409,
+            "error": {
+              "error": "会话库写者版本已变化，未提交旧缓存；请重启并核对数据库"
+            }
+          }
+        ],
+        "database_and_visible_cache_unchanged": true,
+        "retry_did_not_succeed": true
+      }
+    },
+    {
+      "name": "2.4 异常后重启取得更高epoch并恢复正常保存",
+      "state": "passed",
+      "evidence": {
+        "epoch": 104,
+        "new_room": "room-1792167958141",
+        "all_committed_rows_preserved": true,
+        "quick_check": "ok",
+        "no_epoch_decrement": true
+      }
+    }
+  ],
+  "processes": [
+    {
+      "name": "owner-135",
+      "pid": 31012,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "port": 29501,
+      "expected_healthy": true,
+      "ready_seconds": 4.464,
+      "http_opened": true,
+      "process_exited": true,
+      "exit_code": 1,
+      "termination": "forced_crash"
+    },
+    {
+      "name": "rejected-135",
+      "pid": 33284,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "port": 29502,
+      "expected_healthy": false,
+      "exit_code": 1,
+      "http_opened": false,
+      "process_exited": true,
+      "termination": "stop_or_already_exited"
+    },
+    {
+      "name": "rejected-134",
+      "pid": 33032,
+      "exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "port": 29503,
+      "expected_healthy": false,
+      "exit_code": 1,
+      "http_opened": false,
+      "process_exited": true,
+      "termination": "stop_or_already_exited"
+    },
+    {
+      "name": "successor-134",
+      "pid": 19200,
+      "exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "port": 29504,
+      "expected_healthy": true,
+      "ready_seconds": 3.317,
+      "http_opened": true,
+      "process_exited": true,
+      "exit_code": 1,
+      "termination": "forced_crash"
+    },
+    {
+      "name": "new-vs-old",
+      "pid": 21368,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "port": 29505,
+      "expected_healthy": false,
+      "exit_code": 1,
+      "http_opened": false,
+      "process_exited": true,
+      "termination": "stop_or_already_exited"
+    },
+    {
+      "name": "reacquired-135",
+      "pid": 14108,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "port": 29506,
+      "expected_healthy": true,
+      "ready_seconds": 10.54,
+      "http_opened": true,
+      "process_exited": true,
+      "exit_code": 1,
+      "termination": "forced_crash"
+    },
+    {
+      "name": "recovery-135",
+      "pid": 10084,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "port": 29507,
+      "expected_healthy": true,
+      "ready_seconds": 6.144,
+      "http_opened": true,
+      "process_exited": true,
+      "exit_code": 1,
+      "termination": "stop_or_already_exited"
+    }
+  ],
+  "passed": 8,
+  "failed": 0,
+  "finished_at": "2026-10-16T16:25:59.349990+00:00"
+}

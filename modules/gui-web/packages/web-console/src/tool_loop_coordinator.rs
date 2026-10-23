@@ -122,7 +122,7 @@ mod tests {
             },
         ]);
 
-        let selected = crate::select_tools_for_request(tools, true, 8_192, true,
+        let selected = crate::select_tools_for_request(tools, true, false, 8_192,
             2_048, "测试系统提示", &[])
             .expect("小上下文仍保留文件和 UI 的合法工具入口");
 
@@ -135,22 +135,39 @@ mod tests {
     }
 
     #[test]
-    fn no_tool_intent_still_hides_compact_tool() {
+    fn no_keyword_intent_keeps_tools_but_explicit_disable_hides_them() {
         let selected = crate::select_tools_for_request(
             Some(vec![crate::computer_use_tool_definition()]),
             true,
-            8_192,
             false,
+            8_192,
             2_048,
             "测试系统提示",
             &[],
         );
-        assert!(selected.is_none());
+        assert!(selected.is_some(), "关键词不再作为暴露硬门");
+        let disabled = crate::select_tools_for_request(
+            Some(vec![crate::computer_use_tool_definition()]),
+            true,
+            true,
+            8_192,
+            2_048,
+            "测试系统提示",
+            &[],
+        );
+        assert!(disabled.is_none(), "显式不要用工具仍关闭");
     }
 
     #[tokio::test(flavor = "current_thread")]
     async fn scoped_execution_identity_reaches_computer_use_tool_result() {
         let _guard = crate::tests::config_test_guard();
+        let temporary = tempfile::tempdir().expect("独立测试目录");
+        let _database = crate::tests::scoped_session_db_env(temporary.path());
+        let connection = crate::open_session_connection(&crate::default_session_sqlite_path()).unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        drop(connection);
+        // 本用例只验证身份传递；权限门另有覆盖，显式开启测试授权接缝。
+        let _authorized = crate::tests::DevOpenPermissionsTestGuard::enable();
         let mut config = crate::WorkspaceConfig::default();
         config.model.enable_llm_tools = true;
         config.model.llm_tool_exposure = Some("all".to_string());

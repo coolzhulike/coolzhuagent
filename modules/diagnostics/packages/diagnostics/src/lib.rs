@@ -1,4 +1,6 @@
+mod bundle;
 mod output;
+mod quota;
 mod redaction;
 mod rolling_file;
 mod span;
@@ -15,6 +17,8 @@ use output::{ConsoleOutput, FileOutput, GuiCallback, GuiOutput, Output};
 use span::SpanClosed;
 use trace_id::{SpanId, TraceId};
 
+pub use bundle::{export_bundle, EntryStatus, ExportAttachment, ExportLimits, ExportReport, ManifestEntry};
+pub use quota::{DiagnosticQuota, QuotaReport};
 pub use span::{
     current_context, current_span_id, current_trace_id, enter_span, exit_span, start_span,
     start_span_with_parent, SpanContext, SpanEvent, SpanGuard,
@@ -22,6 +26,11 @@ pub use span::{
 pub use trace_id::{SpanId as SpanIdType, TraceId as TraceIdType};
 
 static LOGGER: OnceLock<Logger> = OnceLock::new();
+
+/// 供导出/共享文本使用的公开脱敏：与日志写出同一规则（凭据键值、令牌前缀、
+/// Bearer/JWT、URL userinfo）。仅按文本内容判断，不识别业务对象身份。
+#[must_use]
+pub fn redact_text(value: &str) -> String { redaction::text(value) }
 
 /// 人读诊断面包屑复用文件轮转边界；调用方保留既有错误处理，禁止用于权威审计。
 pub fn append_diagnostic_line(path: &Path, message: &str) -> io::Result<()> {

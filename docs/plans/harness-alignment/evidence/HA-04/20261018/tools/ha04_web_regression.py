@@ -1,0 +1,6 @@
+import json,subprocess,sys
+from pathlib import Path
+filters=json.loads(Path('tmp/ha04-prior-test-names.json').read_text())+['ha04_tests','request_binding::tests','request_usage::tests','host_child_agent::tests','tests::shared_runner_real_http_and_sse_routes_keep_history_and_read_two_files_once','tool_invocation_identity::tests','tool_dispatch_settlement::tests::refused_registration_never_reaches_file_write_or_changes_original_owner','agent_session_backend::tests','devin_acp::session::tests','openai_subscription::tests','root_execution_budget::tests']
+filters += ['devin_acp::bridge::tests::bridge_uses_real_executor_and_ledger_and_blocks_duplicate_or_cancelled_writes','devin_acp::bridge::tests::frozen_gate_survives_live_full_access_and_produces_real_denial','devin_acp::bridge::tests::acp_turn_roundtrip_uses_http_bridge_and_real_host_producer','devin_acp::bridge::tests::revoking_tools_live_blocks_admission_before_side_effect_or_tool_record','devin_acp::bridge::tests::parent_claim_change_blocks_execution_before_file_write']
+cmd=[sys.executable,'tmp/ha04_run.py','web-regression-03','cargo','test','-p','coolzhu-web-console','--offline','--bin','coolzhu-web-console','--','--nocapture','--test-threads=1']+filters
+raise SystemExit(subprocess.call(cmd))

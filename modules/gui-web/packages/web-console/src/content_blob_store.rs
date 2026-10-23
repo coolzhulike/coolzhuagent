@@ -1,5 +1,5 @@
-//! 内容寻址原文存储；原子发布、拒绝覆盖已有损坏对象，不负责权限与自动回收。
-use std::{fs, io::{self, Read, Write}, path::{Path, PathBuf}};
+//! 内容寻址原文存储；原子发布、拒绝覆盖已有损坏对象，只回收从未发布的完整暂存残留。
+use std::{fs, io::{self, Read}, path::{Path, PathBuf}};
 use sha2::{Digest, Sha256};
 
 pub(crate) struct StoredBlob {
@@ -8,27 +8,16 @@ pub(crate) struct StoredBlob {
     pub(crate) sha256: String,
 }
 
+#[path = "content_staging_gc.rs"]
+mod staging_gc;
+
 pub(crate) fn put(root: &Path, bytes: &[u8], extension: &str) -> io::Result<StoredBlob> {
-    if extension.is_empty() || extension.len() > 16 || !extension.bytes().all(|c| c.is_ascii_alphanumeric()) {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "内容对象扩展名无效"));
-    }
-    fs::create_dir_all(root)?;
-    if !fs::symlink_metadata(root)?.file_type().is_dir() {
-        return Err(io::Error::new(io::ErrorKind::PermissionDenied, "内容目录不能是链接"));
-    }
-    let root = root.canonicalize()?;
-    let sha256 = format!("{:x}", Sha256::digest(bytes));
-    let file_name = format!("sha256-{sha256}.{}", extension.to_ascii_lowercase());
-    let path = root.join(&file_name);
-    let mut temporary = tempfile::NamedTempFile::new_in(&root)?;
-    temporary.write_all(bytes)?;
-    temporary.as_file().sync_all()?;
-    verify(temporary.path(), &sha256)?;
-    if let Err(error) = temporary.persist_noclobber(&path) {
-        if error.error.kind() != io::ErrorKind::AlreadyExists { return Err(error.error); }
-    }
-    verify(&path, &sha256)?;
-    Ok(StoredBlob { path, file_name, sha256 })
+    staging_gc::put(root, bytes, extension)
+}
+
+/// 只删除从未发布的完整暂存残留；已发布或未知引用对象一律保留。
+pub(crate) fn collect_unpublished(root: &Path) -> io::Result<usize> {
+    staging_gc::collect_unpublished(root)
 }
 
 pub(crate) fn digest_from_name(name: &str) -> Option<&str> {

@@ -1,0 +1,54 @@
+{
+  "job_id": "installed-133-4c511ea1c99a41258f63cc368d7744cb",
+  "started_at_utc": "2026-10-15T17:20:43.538774+00:00",
+  "state": "failed",
+  "exit_code": 1,
+  "scope": "安装二进制，独立配置/DB/输入安全根；静态资源只能来自安装目录或内嵌副本",
+  "base_url": "http://127.0.0.1:29421",
+  "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1",
+  "commands": [
+    [
+      "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe"
+    ]
+  ],
+  "lifecycles": [
+    {
+      "pid": 31836,
+      "started_at_utc": "2026-10-15T17:20:43.648417+00:00",
+      "health": {
+        "http_status": 200,
+        "paths": {
+          "workspace": "D:\\coolzhuagent",
+          "session_db": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\sessions.sqlite3",
+          "legacy_session_json": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\store.json",
+          "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+          "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+        }
+      },
+      "exit_code": 1
+    }
+  ],
+  "explicit_environment": {
+    "COOLZHU_RUNTIME_DIR": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1",
+    "COOLZHU_CONFIG_PATH": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\coolzhu.toml",
+    "COOLZHU_WEB_SESSION_DB": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\sessions.sqlite3",
+    "COOLZHU_WEB_SESSION_STORE": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\store.json",
+    "COOLZHU_WEB_ATTACHMENT_STORE": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\attachments",
+    "COOLZHU_INPUT_SAFETY_STATE_ROOT": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\input-safety",
+    "COOLZHU_LOG_DIR": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-installed-133-fixture-retry1\\logs"
+  },
+  "payload": {
+    "manifest_sha256": "47dee40ecdb6f2418694e5798156d68586860b0eeb670452ef88a9073dc49385",
+    "payload_digest": "0155e13b8eb4e6ad2c08ee071d7d7998f9fa4366b5d44191cd7071acbd2fae03",
+    "files": 1222,
+    "matched": 1222,
+    "mismatches": [],
+    "receipt": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-payload-files.json",
+    "receipt_sha256": "47f0c881e1e8bb979f0cb3a4be46beec461349bc9b15c320c0f4ba76d0f24f2d"
+  },
+  "payload_prior_observed_at_utc": "2026-10-15T17:17:17.720289+00:00",
+  "retry_reason": "原夹具误用 pet 默认开启导致单实例桌宠退出联动；配置关闭 pet，并用 samefile 比对 Windows 扩展路径",
+  "error": "AssertionError({'workspace': 'D:\\\\coolzhuagent', 'session_db': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\desktop-installed-133-fixture-retry1\\\\sessions.sqlite3', 'legacy_session_json': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\desktop-installed-133-fixture-retry1\\\\store.json', 'latest_capture': 'C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\desktop-latest.png', 'desktop_pet_exe': 'C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe'})",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\coolzhuagent\\tmp\\analysis-installed-static-20261015.py\", line 133, in main\n    start()\n    ~~~~~^^\n  File \"D:\\coolzhuagent\\tmp\\analysis-installed-static-20261015.py\", line 115, in start\n    assert os.path.samefile(paths[\"workspace\"], FIXTURE), paths\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'workspace': 'D:\\\\coolzhuagent', 'session_db': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\desktop-installed-133-fixture-retry1\\\\sessions.sqlite3', 'legacy_session_json': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\desktop-installed-133-fixture-retry1\\\\store.json', 'latest_capture': 'C:\\\\Users\\\\zhupu\\\\.coolzhu\\\\vision\\\\desktop-capture\\\\desktop-latest.png', 'desktop_pet_exe': 'C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-tauri-shell.exe'}\n",
+  "finished_at_utc": "2026-10-15T17:20:48.353844+00:00"
+}

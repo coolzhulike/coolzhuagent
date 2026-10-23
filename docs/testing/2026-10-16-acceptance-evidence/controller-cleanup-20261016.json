@@ -1,0 +1,7 @@
+{
+  "state": "retained",
+  "deleted_bytes": 0,
+  "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cold-start-20261016\\bounded-backup.sqlite3",
+  "rollback": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cold-start-20261016\\session-before.sqlite3",
+  "identical_sha256": false
+}

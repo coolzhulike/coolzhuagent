@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "kind": "package-report-archive",
+  "archived_at_utc": "2026-10-15T23:43:36.5680625Z",
+  "report_id": "pkg-report-release-20261015-164143969-0c4e751c",
+  "report_content_sha256": "98197d043c6f7d7fa260bb6298d9bb6dd4f522fb14864e99e5699bdf4c668f2b",
+  "report_content_hash_scope": "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+  "report_file_sha256": "61c1371a36121ee5578bb3365ccd7978227603c7885b407ba665f3e828accd97",
+  "original_report_path": "tmp/package-reports/package-report-release-20261015-164143969.json",
+  "archived_report_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/package-report.json",
+  "payload_inventory_original_path": "tmp/goal-32wbs-acceptance-20261013/release-0.2.134/package/payload-inventory.json",
+  "payload_inventory_file_sha256": "a04720cc5f20d8a31b0b0957da017c229052d3955d73d77d00c0fa3a723ba505",
+  "archived_payload_inventory_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/payload-inventory.json",
+  "archived_payload_inventory_file_sha256": "a04720cc5f20d8a31b0b0957da017c229052d3955d73d77d00c0fa3a723ba505",
+  "release_version": "0.2.134",
+  "release_artifact": "dist/CoolzhuAgent-0.2.134.msi",
+  "reason": "referenced by released MSI dist/CoolzhuAgent-0.2.134.msi",
+  "extra_evidence": [
+    {
+      "source_path": "dist/CoolzhuAgent-0.2.134-installer-report.json",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/CoolzhuAgent-0.2.134-installer-report.json",
+      "file_sha256": "78614c62764674ab0b199c1550b17377a941e39fefbca6d900b6f20063b1f961"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/cli.command-line.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/cli.command-line.jsonl",
+      "file_sha256": "16d8289f3022883d33f43a632192dbdc253003c3a6e6a37f6b745c4a9f982a53"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/computer-use.preflight-check.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/computer-use.preflight-check.jsonl",
+      "file_sha256": "7633d3aa9f1ca312129749e147137a101b9590db238e5cbf95bce3337dfd984c"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/gui-desktop.tauri-shell.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/gui-desktop.tauri-shell.jsonl",
+      "file_sha256": "62075556a5d40cc69b4b814435aa8dc67e8b6c017b7a80f596862debe9456532"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/gui-web.browser-native-host.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/gui-web.browser-native-host.jsonl",
+      "file_sha256": "c6b0e1064d865c1b09f27043757a90a4e72752b946faed4d70b87671c1a98b20"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/gui-web.clawbot-sidecar.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/gui-web.clawbot-sidecar.jsonl",
+      "file_sha256": "51775106adffdd00a7a3ef714d51a371191f476789b3947820baa75ce6b65005"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/gui-web.web-console.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/gui-web.web-console.jsonl",
+      "file_sha256": "7cff41a3961b9eec5416dcbf135e924c12d7e110b0133ec11e94e5a38dd278af"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/package.app-launcher.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/package.app-launcher.jsonl",
+      "file_sha256": "daf2032b6d2b7ff883a05b5cacb4988eccdaae17472d9c5bad576246c00c53c4"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/package.build-capture.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/package.build-capture.jsonl",
+      "file_sha256": "62beed0db1968b5015d0fa8291bfa63256da20311507b2b756868a4b7b3f21e5"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/vision.latest-desktop.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/vision.latest-desktop.jsonl",
+      "file_sha256": "02c5423c5a4f196be8dd3622203608cf78e23a7667aa6f67b721ef71068e1d3a"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261015-162120097-d4d54fe7/vision.smoke.jsonl",
+      "archived_path": "docs/testing/release-0.2.134/evidence/build-identity/pkg-report-release-20261015-164143969-0c4e751c/vision.smoke.jsonl",
+      "file_sha256": "8159a58ae3e21da943684d28436b02356d1c3ddb2985436fea987e45006e3898"
+    }
+  ],
+  "rule": "该归档是发布证据：普通临时清理不得删除；tmp/ 下的原报告即使被清理，报本身份仍可从本归档核对"
+}

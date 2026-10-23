@@ -1,0 +1,32 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\diagnostics\\packages\\diagnostics\\Cargo.toml",
+    "sha256": "a37ddd8eb7acfea655788a38005b7e87392d170d41af5665221a6cd44e22ad92",
+    "archive_sha256": "a37ddd8eb7acfea655788a38005b7e87392d170d41af5665221a6cd44e22ad92"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\diagnostics\\packages\\diagnostics\\src\\lib.rs",
+    "sha256": "34775fe29256596c2985bd81567f9b0b821427fcd29e4aa0b8abed40065c7958",
+    "archive_sha256": "34775fe29256596c2985bd81567f9b0b821427fcd29e4aa0b8abed40065c7958"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\src\\output.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\diagnostics\\packages\\diagnostics\\src\\output.rs",
+    "sha256": "6385a7e73d969d1457762e7f314e105eb36247a503b5e2c6d27a3f168643575d",
+    "archive_sha256": "6385a7e73d969d1457762e7f314e105eb36247a503b5e2c6d27a3f168643575d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\src\\span.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\diagnostics\\packages\\diagnostics\\src\\span.rs",
+    "sha256": "45c7116aec8e67bedf5d0c34ccc58b19408639584feaee4187479f168fb3d340",
+    "archive_sha256": "45c7116aec8e67bedf5d0c34ccc58b19408639584feaee4187479f168fb3d340"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\diagnostics\\packages\\diagnostics\\src\\trace_id.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\diagnostics\\packages\\diagnostics\\src\\trace_id.rs",
+    "sha256": "6e03e5b6046091186e67ee4175bb9083e2a85fba620368e19c9f511a1a9e2f6d",
+    "archive_sha256": "6e03e5b6046091186e67ee4175bb9083e2a85fba620368e19c9f511a1a9e2f6d"
+  }
+]

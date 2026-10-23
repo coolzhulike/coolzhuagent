@@ -1,0 +1,2 @@
+{"ts": 1792693839.0346136, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b07"}
+{"ts": 1792693862.7791047, "seq": 2, "stream": false, "roles": ["assistant", "tool", "tool", "tool"], "has_tool_result": true, "n_tools": 20, "action": "respond", "mode": "b07"}

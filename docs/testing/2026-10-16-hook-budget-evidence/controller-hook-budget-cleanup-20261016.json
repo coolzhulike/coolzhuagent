@@ -1,0 +1,22 @@
+{
+  "state": "completed",
+  "removed": [
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\command-diagnostic.exe",
+      "bytes": 1277440,
+      "sha256": "60ff69fa3cd7cc0314ced42e4188b83883bd4aecb7da92a2425c6f643fdee94b"
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\command-diagnostic.pdb",
+      "bytes": 50180096,
+      "sha256": "0fc252ec92ec3744ff0260ff396d7d2f6133bd84a15c73120624cbf1550ad03d"
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\quoted helper.exe",
+      "bytes": 65536,
+      "sha256": "f51fab8041e5023d7290b540a2106f051ef0bd2bc3443c9daf318628b560fa29"
+    }
+  ],
+  "removed_bytes": 51523072.0,
+  "retained": "日志、源码、原始失败、数据库夹具、活动发布包和可复用编译缓存"
+}

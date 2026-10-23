@@ -69,7 +69,8 @@ impl HostModelSnapshot {
     /// 冻结授权是执行上限，后续会话设置不能扩大本次运行的工具集合。
     pub(super) fn permits_tool(&self, name: &str) -> bool {
         let required = required_permission_for_tool(name);
-        self.parent_tools.contains(name) && !required.is_unspecified() && required <= self.permission
+        self.parent_tools.contains(name) && !required.is_unspecified()
+            && (required <= self.permission || (super::workspace_dev_command::is_shell_tool(name) && self.permission >= PermissionMode::WorkspaceWrite))
     }
     pub(super) fn permits_parent_agent(&self) -> bool {
         self.parent_tools.contains("Agent")
@@ -667,10 +668,20 @@ mod tests {
             assembly.messages.insert(0, crate::InputMessage::user_text("历史上下文哨兵，不得丢失")); assembly.turn_id = Some(turn.clone());
             // 捕获后会话端点发生变化，父执行与子执行都必须继续使用原模型快照。
             agent.base_url = Some("http://127.0.0.1:1/v1".into());
-            let initial = seeded.then(|| (api::MessageResponse { id: None, kind: "message".into(), role: "assistant".into(),
+            let initial = seeded.then(|| {
+                // 此用例的首响应是人工夹具；原请求必须随夹具传入，不能由循环回读设置。
+                let request = crate::agent_message_request_build_with_system_resolved(&agent, assembly.messages.clone(), true,
+                    child.definitions(), assembly.system_prompt.clone(), Some(&child.request));
+                let event = api::RequestAttemptSnapshot { dispatched:true, protocol:Some("openai_chat_completions".into()),
+                    wire:Some(api::RequestWireSummary::from_payload(&api::build_chat_completion_request_for("custom", &request))),
+                    ..Default::default() };
+                let binding = crate::request_binding::RequestBinding::from_attempt("seeded-fixture", None, &turn, &event).unwrap();
+                crate::request_binding::InitialResponse { sent:crate::request_binding::SentRequest { request, binding }, usage_known:false,
+                response: api::MessageResponse { id: None, kind: "message".into(), role: "assistant".into(),
                 content: vec![crate::OutputContentBlock::ToolUse { id: "same-provider-tool-id".into(), name: "read_file".into(), input: serde_json::json!({"path":first_path}) }],
                 model: agent.model.clone(), stop_reason: Some("tool_use".into()), stop_sequence: None,
-                usage: api::Usage { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 }, request_id: None }, false));
+                usage: api::Usage { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 }, request_id: None } }
+            });
             let (sender, mut events) = tokio::sync::mpsc::unbounded_channel();
             let response = crate::TURN_TRACE.scope(turn.clone(), Box::pin(crate::run_shared_model_tool_loop(&agent, prompt,
                 assembly, Some("shared-room"), Some(&parent), if parent_execution {None} else {Some(child)}, turn.clone(), initial,
@@ -690,9 +701,10 @@ mod tests {
             }
             drop(bodies);
             if parent_execution {
-                let recovered = crate::call_agent_model_text_recovery(&agent, "冻结恢复测试", &[], prompt,
+                let (recovered,repaired) = crate::call_agent_model_text_recovery(&agent, "冻结恢复测试", &[], prompt,
                     "未开放的工具", Some("shared-room"), None, Some(&run),
                     parent.host_model_snapshots.get(&agent.id).map(Arc::as_ref)).await.unwrap();
+                assert!(repaired);
                 assert_eq!(crate::answer_text(&recovered.content), "两文件读取完成");
             }
             server.abort();

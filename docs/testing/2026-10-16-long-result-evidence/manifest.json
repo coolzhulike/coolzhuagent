@@ -1,0 +1,86 @@
+[
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-review-20261016.json",
+    "file": "controller-long-result-review-20261016.json",
+    "sha256": "44dc86596ebd5bca7b8fd7187c11e0ac7004eff7b773faf2a7e6c639c017bdfa",
+    "bytes": 700
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-checks-20261016.py",
+    "file": "controller-long-result-checks-20261016.py",
+    "sha256": "1c5fd62c3063aab03853a754d814696b5bdf8adcb199e961d550497bd6ee0d3b",
+    "bytes": 3489
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-review-20261016.py",
+    "file": "controller-long-result-review-20261016.py",
+    "sha256": "26aa61e34762bb0b8db0d97063bdca2317beef8c5649e066870d7e91d33d4916",
+    "bytes": 4355
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-20261016.json",
+    "file": "controller-long-result-test-20261016.json",
+    "sha256": "fca81af530e1d47afe915ade3fe7871637253b133403831e68148111d772cfbf",
+    "bytes": 1879
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-20261016.log",
+    "file": "controller-long-result-test-20261016.log",
+    "sha256": "66761a5c214a5cc0a9dbf642c43a021d930de41fc910d92b5324b5780c58399d",
+    "bytes": 22704
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-retry1-20261016.json",
+    "file": "controller-long-result-test-retry1-20261016.json",
+    "sha256": "2183c191ee93398d100a306b4fe06917cba1c10c1d6a98c3aa79100813f310f7",
+    "bytes": 1886
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-retry1-20261016.log",
+    "file": "controller-long-result-test-retry1-20261016.log",
+    "sha256": "1bb2c2efc7f8087a04c574fdfd7e887cada3b32c5b8f6637073c47918714b661",
+    "bytes": 118598
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-corrected-20261016.json",
+    "file": "controller-long-result-test-corrected-20261016.json",
+    "sha256": "e2f72380bdac2a2e10f1662e2f9f85a08c61002fe4652ac2c7ba67f4e41c0025",
+    "bytes": 1890
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-corrected-20261016.log",
+    "file": "controller-long-result-test-corrected-20261016.log",
+    "sha256": "87d9575f0f2b255409826e313a921b468096f355a678641fb6d2b1440d2c2f64",
+    "bytes": 23465
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-build-20261016.json",
+    "file": "controller-long-result-build-20261016.json",
+    "sha256": "063efe7c8c114864ca44c5f541692649e8841fed9d04e06da3247bf237028d6f",
+    "bytes": 1656
+  },
+  {
+    "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-build-20261016.log",
+    "file": "controller-long-result-build-20261016.log",
+    "sha256": "0eb6bc67124449618e74ea3cf174f3bda4a8e0683801803555461ea547a1e83a",
+    "bytes": 50266
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\gui-web\\packages\\web-console\\src\\devin_acp\\bridge.rs",
+    "file": "bridge.rs",
+    "sha256": "c3815cee41d728a53125a7fce7fc97ca40ab26ddb00a36ee455c9b53e401384e",
+    "bytes": 72076
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\gui-web\\packages\\web-console\\src\\devin_acp\\bridge_paging_acceptance_tests.rs",
+    "file": "bridge_paging_acceptance_tests.rs",
+    "sha256": "084a8db31dc455d01256c0dc5017c36d413c3f74742eb1f0a02406bb198783da",
+    "bytes": 4792
+  },
+  {
+    "source": "D:\\coolzhuagent\\modules\\gui-web\\packages\\web-console\\src\\devin_acp\\result_pages.rs",
+    "file": "result_pages.rs",
+    "sha256": "08d1724a58b8af63f2f5ed9ca453ccffbb5a7982fe7d1d4845629a59bfe4d051",
+    "bytes": 9272
+  }
+]

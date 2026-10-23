@@ -1,0 +1,20 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.github\\ISSUE_TEMPLATE\\bug.md",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.github\\ISSUE_TEMPLATE\\bug.md",
+    "sha256": "283ba58eeb53438ab45027fcd2107e1578e5a2f0e23e1ca3f4c003057025332b",
+    "archive_sha256": "283ba58eeb53438ab45027fcd2107e1578e5a2f0e23e1ca3f4c003057025332b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.github\\ISSUE_TEMPLATE\\task.md",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.github\\ISSUE_TEMPLATE\\task.md",
+    "sha256": "96382f64d60fdce7b074913b57008f71a60309351e648405a43d48255a85d455",
+    "archive_sha256": "96382f64d60fdce7b074913b57008f71a60309351e648405a43d48255a85d455"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\.github\\workflows\\s0-baseline.yml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\.github\\workflows\\s0-baseline.yml",
+    "sha256": "32365e2cd37b76569412df82a8a3aebaaef89a1507a14db8f46ab93ad7578c1e",
+    "archive_sha256": "32365e2cd37b76569412df82a8a3aebaaef89a1507a14db8f46ab93ad7578c1e"
+  }
+]

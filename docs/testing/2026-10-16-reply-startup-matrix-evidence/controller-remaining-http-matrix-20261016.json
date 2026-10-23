@@ -1,0 +1,330 @@
+{
+  "started_at": "2026-10-16T15:58:02.174306+00:00",
+  "state": "failed",
+  "boundary": "完整0.2.135发布二进制+隔离SQLite合成夹具，非正式界面/外部模型/OS重启/物理磁盘满/安装降级验收",
+  "binary": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "313cb9ece330628b03b40ad7ffb5b98b5fdf60927a9c2cce45925fcc9dda0f7c",
+  "production_database_touched": false,
+  "external_model_calls": 0,
+  "cases": [
+    {
+      "name": "4.2 后代环路去重、跨工程/房间及孤儿隔离、未知用量保留",
+      "state": "passed",
+      "evidence": {
+        "descendant_count": 2,
+        "execution_ids": [
+          "child",
+          "execution-one",
+          "grand"
+        ],
+        "input_tokens": 60,
+        "output_tokens": null,
+        "usage_attempt_count": 3,
+        "usage_attempts": [
+          {
+            "attempt_id": "first",
+            "call_id": null,
+            "created_at": 1,
+            "dispatched": true,
+            "input_tokens": 10,
+            "output_tokens": 2,
+            "process_drained": null,
+            "protocol_stop": null,
+            "purpose": null,
+            "source": "http",
+            "source_turn_id": null,
+            "status": "completed"
+          },
+          {
+            "attempt_id": "second",
+            "call_id": "child-call",
+            "created_at": 1,
+            "dispatched": true,
+            "input_tokens": 20,
+            "output_tokens": 3,
+            "process_drained": null,
+            "protocol_stop": null,
+            "purpose": null,
+            "source": "http",
+            "source_turn_id": null,
+            "status": "completed"
+          },
+          {
+            "attempt_id": "third",
+            "call_id": null,
+            "created_at": 1,
+            "dispatched": true,
+            "input_tokens": 30,
+            "output_tokens": null,
+            "process_drained": null,
+            "protocol_stop": null,
+            "purpose": null,
+            "source": "http",
+            "source_turn_id": null,
+            "status": "completed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4.2 并发定位和后代读取不串回复",
+      "state": "passed",
+      "evidence": {
+        "reply_requests": 32,
+        "subtree_requests": 32,
+        "concurrent_commits": 24,
+        "reply_counts": {
+          "reply-new": 16,
+          "reply-old": 16
+        }
+      }
+    },
+    {
+      "name": "4.2 迟到usage补全后只更新正确后代树",
+      "state": "passed",
+      "evidence": {
+        "descendant_count": 2,
+        "execution_ids": [
+          "child",
+          "execution-one",
+          "grand"
+        ],
+        "input_tokens": 60,
+        "output_tokens": 9,
+        "usage_attempt_count": 3,
+        "usage_attempts": [
+          {
+            "attempt_id": "first",
+            "call_id": null,
+            "created_at": 1,
+            "dispatched": true,
+            "input_tokens": 10,
+            "output_tokens": 2,
+            "process_drained": null,
+            "protocol_stop": null,
+            "purpose": null,
+            "source": "http",
+            "source_turn_id": null,
+            "status": "completed"
+          },
+          {
+            "attempt_id": "second",
+            "call_id": "child-call",
+            "created_at": 1,
+            "dispatched": true,
+            "input_tokens": 20,
+            "output_tokens": 3,
+            "process_drained": null,
+            "protocol_stop": null,
+            "purpose": null,
+            "source": "http",
+            "source_turn_id": null,
+            "status": "completed"
+          },
+          {
+            "attempt_id": "third",
+            "call_id": null,
+            "created_at": 1,
+            "dispatched": true,
+            "input_tokens": 30,
+            "output_tokens": 4,
+            "process_drained": null,
+            "protocol_stop": null,
+            "purpose": null,
+            "source": "http",
+            "source_turn_id": null,
+            "status": "completed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4.2 缺失/陈旧scope及跨工程房间拒绝",
+      "state": "passed",
+      "evidence": [
+        {
+          "path": "/api/executions/execution-one",
+          "status": 400
+        },
+        {
+          "path": "/api/executions/execution-one",
+          "status": 409
+        },
+        {
+          "path": "/api/executions/foreign-workspace",
+          "status": 404
+        },
+        {
+          "path": "/api/chat/rooms/room-1792166325369/trace?message_id=reply-old",
+          "status": 404
+        },
+        {
+          "path": "/api/chat/rooms/room-1792166317595/trace?run_id=foreign-run",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "name": "4.2 SSE重连后重读已提交正文且定位保持",
+      "state": "failed",
+      "error": "<HTTPError 400: 'Bad Request'>"
+    },
+    {
+      "name": "4.2 服务重启后归属与后代去重保持",
+      "state": "passed",
+      "evidence": {
+        "reply": "root-run",
+        "subtree_output_tokens": 9
+      }
+    },
+    {
+      "name": "6.2 v12复合同名阶段旧库真实发布服务升级v29",
+      "state": "failed",
+      "error": "AssertionError({'fixture': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\remaining-matrix-20261016\\\\migration-v12', 'pid': 31632, 'exe': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\release-0.2.135\\\\package\\\\bin\\\\coolzhu-web-console.exe', 'expected_healthy': True, 'exit_code': 101})"
+    },
+    {
+      "name": "6.2 重启幂等，不重复迁移备份",
+      "state": "failed",
+      "error": "AssertionError({'fixture': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\remaining-matrix-20261016\\\\migration-v12', 'pid': 29416, 'exe': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\release-0.2.135\\\\package\\\\bin\\\\coolzhu-web-console.exe', 'expected_healthy': True, 'exit_code': 101})"
+    },
+    {
+      "name": "6.2 旧0.2.134兼容二进制回退后再启135",
+      "state": "failed",
+      "error": "AssertionError({'fixture': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\remaining-matrix-20261016\\\\migration-v12', 'pid': 30268, 'exe': 'C:\\\\Program Files\\\\CoolzhuAgent\\\\bin\\\\coolzhu-web-console.exe', 'expected_healthy': True, 'exit_code': 101})"
+    },
+    {
+      "name": "6.2 故障关闭且旧库保留：metadata-abort",
+      "state": "passed",
+      "evidence": {
+        "kind": "metadata-abort",
+        "exit_code": 1,
+        "http_opened": false,
+        "old_schema_rows_unchanged": true,
+        "json_did_not_replace_database": true,
+        "raw_bytes_unchanged": false
+      }
+    },
+    {
+      "name": "6.2 移除隔离故障后重新升级：metadata-abort",
+      "state": "failed",
+      "error": "AssertionError({'fixture': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\remaining-matrix-20261016\\\\migration-metadata-abort', 'pid': 22388, 'exe': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\release-0.2.135\\\\package\\\\bin\\\\coolzhu-web-console.exe', 'expected_healthy': True, 'exit_code': 101, 'process_exited': True})"
+    },
+    {
+      "name": "6.2 故障关闭且旧库保留：backup-path-file",
+      "state": "passed",
+      "evidence": {
+        "kind": "backup-path-file",
+        "exit_code": 1,
+        "http_opened": false,
+        "old_schema_rows_unchanged": true,
+        "json_did_not_replace_database": true,
+        "raw_bytes_unchanged": false
+      }
+    },
+    {
+      "name": "6.2 移除隔离故障后重新升级：backup-path-file",
+      "state": "failed",
+      "error": "AssertionError({'fixture': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\remaining-matrix-20261016\\\\migration-backup-path-file', 'pid': 14984, 'exe': 'D:\\\\coolzhuagent\\\\tmp\\\\goal-32wbs-acceptance-20261013\\\\release-0.2.135\\\\package\\\\bin\\\\coolzhu-web-console.exe', 'expected_healthy': True, 'exit_code': 101, 'process_exited': True})"
+    },
+    {
+      "name": "6.2 故障关闭且旧库保留：future-version",
+      "state": "passed",
+      "evidence": {
+        "kind": "future-version",
+        "exit_code": 1,
+        "http_opened": false,
+        "old_schema_rows_unchanged": true,
+        "json_did_not_replace_database": true,
+        "raw_bytes_unchanged": true
+      }
+    }
+  ],
+  "processes": [
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\reply-concurrent",
+      "pid": 22604,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "ready_seconds": 34.412,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\reply-concurrent",
+      "pid": 9356,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "ready_seconds": 16.759,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-v12",
+      "pid": 31632,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "exit_code": 101,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-v12",
+      "pid": 29416,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "exit_code": 101,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-v12",
+      "pid": 30268,
+      "exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "exit_code": 101,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-metadata-abort",
+      "pid": 3024,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": false,
+      "exit_code": 1,
+      "http_opened": false,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-metadata-abort",
+      "pid": 22388,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "exit_code": 101,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-backup-path-file",
+      "pid": 23156,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": false,
+      "exit_code": 1,
+      "http_opened": false,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-backup-path-file",
+      "pid": 14984,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": true,
+      "exit_code": 101,
+      "process_exited": true
+    },
+    {
+      "fixture": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\remaining-matrix-20261016\\migration-future-version",
+      "pid": 26636,
+      "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+      "expected_healthy": false,
+      "exit_code": 1,
+      "http_opened": false,
+      "process_exited": true
+    }
+  ],
+  "passed": 8,
+  "failed": 6,
+  "finished_at": "2026-10-16T16:01:42.094339+00:00"
+}

@@ -1,4 +1,4 @@
-﻿param(
+param(
   # L04 需要一次"全新 target + 已准备离线依赖"的真实构建（数百 crate，预计数十分钟），
   # 因此默认跳过；有构建预算时加该开关执行。
   [switch]$RunCleanTargetBuild,
@@ -266,10 +266,21 @@ function New-LoaderFixture {
         }
       }
     )
-    resources = @()
+    resources = @(
+      [ordered]@{
+        id = 'gui-web.console-pages'
+        source = "$caseRelative/console-pages-src"
+        target = 'web-console-static'
+      }
+    )
   }
 
+  $consolePagesSource = Join-Path $caseRoot 'console-pages-src'
+  Write-FixtureText -Path (Join-Path $consolePagesSource 'src/static_resource_contract.rs') -Text "pub static PAGES: &[(&str, &[u8])] = &[`n    (`"index.html`", include_bytes!(`"index.html`")),`n    (`"app.js`", include_bytes!(`"app.js`")),`n];"
+  Write-FixtureText -Path (Join-Path $consolePagesSource 'index.html') -Text '<!doctype html><meta charset="utf-8"><title>fixture-console</title>'
+  Write-FixtureText -Path (Join-Path $consolePagesSource 'app.js') -Text '"use strict"; // fixture console app'
   $manifestPath = Join-Path $caseRoot 'manifest.json'
+
   Write-FixtureText -Path $manifestPath -Text ($manifest | ConvertTo-Json -Depth 12)
 
   return [pscustomobject]@{

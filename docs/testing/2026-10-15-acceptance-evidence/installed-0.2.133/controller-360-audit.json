@@ -1,0 +1,22 @@
+{
+  "round": 360,
+  "decision": "该轮观察被阻塞，不计动画或安装验收通过",
+  "report": "devin-installed-startup-visual-360.json",
+  "computer_use": {
+    "status": "blocked",
+    "stage": "observation",
+    "error": "target_not_found",
+    "attempts": 0,
+    "steps_completed": 0,
+    "input_steps": 0,
+    "screenshots": 0
+  },
+  "scope": "第360轮没有独立核实安装目录、PID、动画或最终窗口。",
+  "later_independent_evidence": [
+    "controller-desktop-takeover-baseline.json",
+    "controller-installed-133-static-retry2.json",
+    "controller-installed-133-native.json",
+    "controller-installed-133-native-followup.json"
+  ],
+  "later_evidence_boundary": "后续本地直接验收必须单独计数，不能改写第360轮的阻塞结果。"
+}

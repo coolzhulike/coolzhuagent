@@ -1,0 +1,32 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tests\\crash_harness_smoke.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\tests\\crash_harness_smoke.rs",
+    "sha256": "60a7b4c2f69d0ffcf535a684feab4421fc390f654724f0c3004e3264994921c1",
+    "archive_sha256": "60a7b4c2f69d0ffcf535a684feab4421fc390f654724f0c3004e3264994921c1"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tests\\module_linkage_smoke.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\tests\\module_linkage_smoke.rs",
+    "sha256": "626afd7b27ffe50f02e2fda483afb24f65ae93b68ca916bb9f68dfbcb7031fc1",
+    "archive_sha256": "626afd7b27ffe50f02e2fda483afb24f65ae93b68ca916bb9f68dfbcb7031fc1"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tests\\s0_fixture_contract.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\tests\\s0_fixture_contract.rs",
+    "sha256": "5fa785ee52f2c6836f502ae32939da54f727f4df5647be0d63362494eda46d2b",
+    "archive_sha256": "5fa785ee52f2c6836f502ae32939da54f727f4df5647be0d63362494eda46d2b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tests\\fixtures\\s0-golden\\manifest.json",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\tests\\fixtures\\s0-golden\\manifest.json",
+    "sha256": "8badc857a8852ec171718a5d3cfb03e1a10a74d5961f1b95c4404fd713849c46",
+    "archive_sha256": "8badc857a8852ec171718a5d3cfb03e1a10a74d5961f1b95c4404fd713849c46"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\tests\\integration\\s0_controlled_replay.py",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\tests\\integration\\s0_controlled_replay.py",
+    "sha256": "ed2dff1223021fd2f4b5fe1144d9b862d2aa468f4b508be7900b2c841b2a55cd",
+    "archive_sha256": "ed2dff1223021fd2f4b5fe1144d9b862d2aa468f4b508be7900b2c841b2a55cd"
+  }
+]

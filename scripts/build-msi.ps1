@@ -3,6 +3,9 @@
     [ValidateSet('debug', 'release')]
     [string]$Configuration = 'debug',
     [string]$PackageRoot = 'package',
+    [string]$OutputDirectory = 'dist',
+    [string]$LicenseBundlePath,
+    [string]$LicensePython = 'python',
     [switch]$SkipPackageBuild
 )
 
@@ -23,7 +26,11 @@ $packageRootCandidate = if ([System.IO.Path]::IsPathRooted($PackageRoot)) {
 $packageRoot = [System.IO.Path]::GetFullPath($packageRootCandidate).TrimEnd('\', '/')
 $productWxs = Join-Path $workspace 'installer\Product.wxs'
 $applicationIcon = Join-Path $workspace 'docs\design-assets\coolzhu-icons-2026-08-27\final\app-icon-cz-moon-gate-lantern-v1.ico'
-$distDir = Join-Path $workspace 'dist'
+$distCandidate = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { $OutputDirectory } else { Join-Path $workspace $OutputDirectory }
+$distDir = [System.IO.Path]::GetFullPath($distCandidate).TrimEnd('\', '/')
+if (-not $distDir.StartsWith($workspacePrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "installer output must stay inside workspace: $distDir"
+}
 $localDotnetExe = Join-Path $workspace 'tmp\tools\dotnet\dotnet.exe'
 $wixToolDir = Join-Path $workspace 'tmp\tools\wix'
 $wixExe = Join-Path $wixToolDir 'wix.exe'
@@ -213,7 +220,9 @@ if (-not $SkipPackageBuild) {
         # package-all.ps1 的最后一个输出对象是报告指针（report_id / 内容哈希 / 载荷清单）。
         $script:packageReportPointer = & (Join-Path $workspace 'scripts\package-all.ps1') `
             -Configuration $Configuration `
-            -PackageRoot $packageRoot
+            -PackageRoot $packageRoot `
+            -LicenseBundlePath $LicenseBundlePath `
+            -LicensePython $LicensePython
     }
 }
 

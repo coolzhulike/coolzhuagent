@@ -1,0 +1,92 @@
+{
+  "started_at_utc": "2026-10-16T14:29:56.791285+00:00",
+  "state": "completed",
+  "boundary": "隔离候选HTTP路由+合成回复/归属数据；不代表正式安装UI或真实模型执行验收",
+  "exe": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\coolzhu-web-console.exe",
+  "exe_sha256": "33cf5da6102aa91e70a5726c84d394d8b1a415e285ef7af257f42c2d73b37f3b",
+  "cases": [
+    {
+      "name": "唯一归属旧回复，不能返回无关新运行",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=owned-reply",
+      "expected": 200,
+      "actual": 200,
+      "run_ids": [
+        "owned-old"
+      ],
+      "requested_message_id": "owned-reply",
+      "has_more": false
+    },
+    {
+      "name": "foreign-workspace-reply",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=foreign-workspace-reply",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "name": "foreign-room-reply",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=foreign-room-reply",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "name": "unmapped-reply",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=unmapped-reply",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "name": "missing-reply",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=missing-reply",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "name": "跨房间查询",
+      "path": "/api/chat/rooms/room-1792161005780/trace?message_id=owned-reply",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "name": "冲突筛选",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=owned-reply&run_id=unrelated-new",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "禁止分页混用",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=owned-reply&before=1",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "name": "同回复多重归属不选最新",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=owned-reply",
+      "expected": 409,
+      "actual": 409
+    },
+    {
+      "name": "已删除回复不得直达",
+      "path": "/api/chat/rooms/room-1792161004643/trace?message_id=owned-reply",
+      "expected": 404,
+      "actual": 404
+    }
+  ],
+  "production_database_touched": false,
+  "model_calls": 0,
+  "pid": 18792,
+  "workspace_response_keys": [
+    "workspace_id",
+    "configuration_scope",
+    "workspace",
+    "entries",
+    "allowed_roots",
+    "writable",
+    "boundary",
+    "status",
+    "message"
+  ],
+  "fixture_workspace_id": "ws-f6bcfef2a5c8151e",
+  "database_quick_check": "ok",
+  "process_exited": true,
+  "finished_at_utc": "2026-10-16T14:30:08.872739+00:00"
+}

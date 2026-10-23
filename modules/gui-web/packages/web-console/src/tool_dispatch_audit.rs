@@ -1,5 +1,6 @@
 //! 工具结果的审计投影：授权、成功和是否产生执行分别表达，不推断失败无副作用。
-use super::{tool_audit_log_path, ComputerUseAuditRecord, ToolOutcome, ToolOutcomeStatus};
+use super::{tool_audit_log_path, ComputerUseAuditRecord};
+use runtime::{ToolOutcome, ToolOutcomeStatus};
 
 pub(super) fn from_outcome(outcome: &ToolOutcome, mode: &str) -> ComputerUseAuditRecord {
     ComputerUseAuditRecord {

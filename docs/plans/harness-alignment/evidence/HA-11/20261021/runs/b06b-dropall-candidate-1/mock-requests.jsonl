@@ -1,0 +1,4 @@
+{"ts": 1792693106.9001782, "seq": 1, "stream": false, "roles": ["system", "user"], "has_tool_result": false, "n_tools": 20, "action": "respond", "mode": "b06"}
+{"ts": 1792693159.728854, "seq": 2, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "drop", "mode": "b06"}
+{"ts": 1792693167.182205, "seq": 3, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "drop", "mode": "b06"}
+{"ts": 1792693171.221861, "seq": 4, "stream": false, "roles": ["system", "user", "assistant", "tool"], "has_tool_result": true, "n_tools": 20, "action": "drop", "mode": "b06"}

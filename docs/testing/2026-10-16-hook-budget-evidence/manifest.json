@@ -1,0 +1,185 @@
+{
+  "at_utc": "2026-10-16T18:38:21.009279+00:00",
+  "files": [
+    {
+      "path": "controller-hook-budget-core-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-core-20261016.json",
+      "bytes": 2045,
+      "sha256": "aa985a5520a235eee7f61f42393fd89458592f6a81eb0e9775767f324185a4da"
+    },
+    {
+      "path": "controller-hook-budget-core-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-core-20261016.log",
+      "bytes": 2335,
+      "sha256": "bbc5d012652478b9fcea978378093faf6e6f7916a5b8edde8dd91117cfae7000"
+    },
+    {
+      "path": "controller-hook-budget-test-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-test-20261016.json",
+      "bytes": 2068,
+      "sha256": "be05c1f46c2a6ddaa41aacb8340db07e166c9decdae62f0f14b7b6582f7c5383"
+    },
+    {
+      "path": "controller-hook-budget-test-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-test-20261016.log",
+      "bytes": 22691,
+      "sha256": "d7e684afd90cb444acfa83b69c8219976362a9eab9da90c11e1176b961c84b59"
+    },
+    {
+      "path": "controller-hook-budget-build-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-build-20261016.json",
+      "bytes": 1906,
+      "sha256": "8aa5488060652eed7357e22662e70b2e8c6498e69521f9dca3cf51d4f66897c4"
+    },
+    {
+      "path": "controller-hook-budget-build-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-build-20261016.log",
+      "bytes": 50874,
+      "sha256": "02f54ca051852a9c6c4b0520cbdd9db3475e15294848cc31ddeddfdee86499b2"
+    },
+    {
+      "path": "controller-hook-budget-baseline-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-baseline-20261016.log",
+      "bytes": 23993,
+      "sha256": "fec21865b9db067205c0b2641cfebd919c8d29616c1dca92aa7f3d8bfdc3b3ed"
+    },
+    {
+      "path": "controller-hook-budget-baseline-isolated-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-baseline-isolated-20261016.log",
+      "bytes": 13530,
+      "sha256": "f161cb05f0e6fc07fd0c89578f9f1d1bf7d96ae36f15dedf33ed63ea4a12752e"
+    },
+    {
+      "path": "controller-hook-budget-first-test-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-first-test-20261016.json",
+      "bytes": 1804,
+      "sha256": "67137d39f9109f96c3fa604563b5a88799900971ca7d6e98883773e065cd4e9a"
+    },
+    {
+      "path": "controller-hook-budget-first-test-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-first-test-20261016.log",
+      "bytes": 41715,
+      "sha256": "582993db2303efedb87861547a7b6d1ae0e97ccc51ae19d6d288b6c2fccc83c1"
+    },
+    {
+      "path": "controller-hook-command-diagnostic-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-command-diagnostic-20261016.log",
+      "bytes": 759,
+      "sha256": "4aa6fa7bc5ebae87e4a9cfe8dd8024843d268f37a3b5eb145959574c3897c214"
+    },
+    {
+      "path": "controller-hook-leading-quote-probe-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-leading-quote-probe-20261016.json",
+      "bytes": 740,
+      "sha256": "5ac2de42d8a1b2029da0a9e7741aef874b47758e2abe9b0bffdc048971c874ac"
+    },
+    {
+      "path": "controller-hook-leading-quote-probe-20261016.py",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-leading-quote-probe-20261016.py",
+      "bytes": 1044,
+      "sha256": "400ad4be9791c1e6654f8fda0461cc79ce87a7ddc2d98c66af20f48f45a85aeb"
+    },
+    {
+      "path": "controller-hook-budget-interrupted-test-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-interrupted-test-20261016.json",
+      "bytes": 1415,
+      "sha256": "9b4a28701c3d796cc71548513140fe01a98f62d9c247bd5dc5f3648810e1a631"
+    },
+    {
+      "path": "controller-hook-budget-interrupted-test-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-interrupted-test-20261016.log",
+      "bytes": 22055,
+      "sha256": "56caaa20a3c4e769b19dd992ae550341a9dcf813eed7f66f924bfbe4127cded6"
+    },
+    {
+      "path": "controller-hook-budget-checks-20261016.py",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-checks-20261016.py",
+      "bytes": 3396,
+      "sha256": "51e85e37cffb034df68d6b56c48d649480c01242b39955e37d2b3162d4d718e3"
+    },
+    {
+      "path": "controller-hook-budget-finalize-20261016.py",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-finalize-20261016.py",
+      "bytes": 11537,
+      "sha256": "978d8bd441f553a690cf699ca145ade2e66d06bb4d12bf155fc8ad0ce69fd17c"
+    },
+    {
+      "path": "controller-ledger-review-20261016.py",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-ledger-review-20261016.py",
+      "bytes": 21970,
+      "sha256": "bf11c5464de55b4759f8bbb8ad744e435b8d63348b1507c24535d9bb60079002"
+    },
+    {
+      "path": "controller-hook-budget-before-outer-quote-core-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-before-outer-quote-core-20261016.json",
+      "bytes": 2045,
+      "sha256": "e3fa3128910e817ede592392930df2563c076f1df68b929ce8d8ca69f002181f"
+    },
+    {
+      "path": "controller-hook-budget-before-outer-quote-core-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-before-outer-quote-core-20261016.log",
+      "bytes": 2335,
+      "sha256": "ebd4b25d142226e755662bf4d55ed6e93e418bc590c9e2196a34dccb0c6c3c1c"
+    },
+    {
+      "path": "controller-hook-budget-before-outer-quote-test-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-before-outer-quote-test-20261016.json",
+      "bytes": 2068,
+      "sha256": "b7faf4e3afc3c7c87c5527e4c4b89b356f925c83d834561c7aa966c8ff4ecf2b"
+    },
+    {
+      "path": "controller-hook-budget-before-outer-quote-test-20261016.log",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-before-outer-quote-test-20261016.log",
+      "bytes": 23299,
+      "sha256": "7a1080278d96f7c442504faa429e901011a7b9f29546736d7abc264438f0c4a2"
+    },
+    {
+      "path": "command-diagnostic.rs",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\command-diagnostic.rs",
+      "bytes": 936,
+      "sha256": "8ad65e42eaee477dff1b2c389e34bdfb96be516cf339a7224a219087d1607ef1"
+    },
+    {
+      "path": "tool_dispatch_service.before.rs",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\tool_dispatch_service.before.rs",
+      "bytes": 10106,
+      "sha256": "c60f7770257a8de02ea4367e5815a9780c81618ea4237395d750ed5a5cf40c59"
+    },
+    {
+      "path": "tool_dispatch_service.rs",
+      "source": "modules\\gui-web\\packages\\web-console\\src\\tool_dispatch_service.rs",
+      "bytes": 13438,
+      "sha256": "40c3d40cf9d64f8389ee8e354db4a9e39eab63a0f6f0d65313b2bc2cc67364d4"
+    },
+    {
+      "path": "dispatch_hook_budget_tests.rs",
+      "source": "modules\\gui-web\\packages\\web-console\\src\\dispatch_hook_budget_tests.rs",
+      "bytes": 9052,
+      "sha256": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc"
+    },
+    {
+      "path": "hooks.rs",
+      "source": "modules\\core-runtime\\packages\\core-runtime\\src\\hooks.rs",
+      "bytes": 33835,
+      "sha256": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+    },
+    {
+      "path": "controller-hook-budget-review-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-review-20261016.json",
+      "bytes": 3672,
+      "sha256": "9723649f8f17485fdd44b8c4857b9b78f824491f572003f5593df040c6029891"
+    },
+    {
+      "path": "controller-hook-budget-cleanup-20261016.json",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-cleanup-20261016.json",
+      "bytes": 912,
+      "sha256": "b1d3dd21c0bb129306dd9d6ff096860bab82272824b9c451ce24b099810012a2"
+    },
+    {
+      "path": "controller-hook-budget-cleanup-20261016.ps1",
+      "source": "tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-cleanup-20261016.ps1",
+      "bytes": 2445,
+      "sha256": "54be9535d5186463790c715866bc2bfd2340c4b53c1597cef52d40bfcf970b49"
+    }
+  ]
+}

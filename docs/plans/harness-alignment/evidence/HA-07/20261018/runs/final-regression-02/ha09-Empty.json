@@ -1,0 +1,24 @@
+{
+  "evidence": {
+    "command_failures": [
+      "Command 验证 Invalid：Command 合同必须包含非空命令，不能默默过滤无效项"
+    ],
+    "command_verification": {
+      "contract": null,
+      "legacy_failures": null,
+      "reason": "Command 合同必须包含非空命令，不能默默过滤无效项",
+      "receipts": [],
+      "state": "invalid"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": null,
+    "legacy_failures": null,
+    "reason": "Command 合同必须包含非空命令，不能默默过滤无效项",
+    "receipts": [],
+    "state": "invalid"
+  },
+  "status": "running",
+  "verdict": "fail"
+}

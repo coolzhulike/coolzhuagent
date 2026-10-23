@@ -1,0 +1,89 @@
+{
+  "generated_at_utc": "2026-10-16T14:40:02.595447+00:00",
+  "state": "completed",
+  "files": [
+    {
+      "path": "acceptance-checklist.json",
+      "sha256": "c059b6b398920505ac2224bdda99091be94fa895d889d4dfc48fa97fe98dc75d",
+      "bytes": 73236
+    },
+    {
+      "path": "controller-35-item-review-20261016.json",
+      "sha256": "6c3a1ae187a798ba5a97dd89b224946dcacf267131ef4187ba3ca4b35de508f8",
+      "bytes": 24148
+    },
+    {
+      "path": "controller-current-full-20261016.json",
+      "sha256": "31b2c8de4806ab1bdac287e667661d952141dd347d50ba1eeaa44fe44fa1f16a",
+      "bytes": 136197
+    },
+    {
+      "path": "controller-current-frontend-20261016.log",
+      "sha256": "66f8dddaaea7fded073af0b6d1c82124a199c279cdbae2e3e20a64921243c0ed",
+      "bytes": 676
+    },
+    {
+      "path": "controller-current-console-full-20261016.log",
+      "sha256": "f0777b806a4466dffffb7b40c874193614b7e84a2e27a83d1b115c3234d1dc08",
+      "bytes": 155240
+    },
+    {
+      "path": "controller-reply-http-20261016.json",
+      "sha256": "73d8659ec31ec5bcf0127894a813a1442849897352271f1e0c04e97b0ca10113",
+      "bytes": 2887
+    },
+    {
+      "path": "controller-runtime-history-20261016.json",
+      "sha256": "8901f9110e73228f0149720a1da441d9c41548660d7a88a2e045764b63cc5bc8",
+      "bytes": 13401
+    },
+    {
+      "path": "controller-cold-start-20261016.json",
+      "sha256": "a755fd02f3281eb85b27c18bb6119cee732b379c9d14bbe68256cac6583987ea",
+      "bytes": 9619
+    },
+    {
+      "path": "controller-cleanup-20261016.json",
+      "sha256": "2cc653a52e70b46868d03d30d15271630e36ada73258500c9bf3f6a85730d55d",
+      "bytes": 312
+    },
+    {
+      "path": "controller-takeover-20261016.py",
+      "sha256": "400b4b964383bcbcaff7bc214347dd59761e3756504c400ceb6dc39d5a78da7a",
+      "bytes": 3422
+    },
+    {
+      "path": "controller-reply-http-20261016.py",
+      "sha256": "1a0d0ca3427c5425d9d518aa8d1b0ee19f31a78d77bf3c41c11afb46cee4f0dd",
+      "bytes": 6549
+    },
+    {
+      "path": "controller-runtime-review-20261016.py",
+      "sha256": "b3246b07041f1a35519d2da850c6b8e9c973a9853b778cdcaa47de5c4c3410a5",
+      "bytes": 2577
+    },
+    {
+      "path": "controller-startup-20261016.py",
+      "sha256": "63d9779cc066c0c6586b19c7f11f130611931671ce974cdf24352725e36386c0",
+      "bytes": 2615
+    },
+    {
+      "path": "controller-ledger-review-20261016.py",
+      "sha256": "d64ae6fe1b528f19c42d534a991bd27d86fc143c2b0bab3e117043f227b6a789",
+      "bytes": 10618
+    },
+    {
+      "path": "controller-archive-20261016.py",
+      "sha256": "0678b8fe3f00e7e92ba065af59283f748fc3ed76134e834e6d3416afeafb90bc",
+      "bytes": 3937
+    }
+  ],
+  "counts": {
+    "blocked": 16,
+    "in_progress": 9,
+    "pending_evidence": 7,
+    "waived": 1,
+    "accepted": 2
+  },
+  "scope": "历史JSON保留35项；当前执行计划不含历史豁免项；局部通过不代表整项验收。"
+}

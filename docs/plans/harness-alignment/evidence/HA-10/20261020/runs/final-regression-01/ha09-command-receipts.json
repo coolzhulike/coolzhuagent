@@ -1,0 +1,82 @@
+{
+  "failed": {
+    "contract": {
+      "commands": [
+        "exit 1"
+      ],
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 1` 失败（exit 1）：\n",
+    "receipts": [
+      {
+        "command": "exit 1",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpo7cylQ",
+        "exit_code": 1,
+        "finished_at_unix_ms": 1792517468016,
+        "id": "goal-command-1792517467742-33576-9",
+        "input_digest": "1eb983737efd49673bd0ac56fecce13ea208bbd02944d71d0a74bf7daa8e494a",
+        "reason": "`exit 1` 失败（exit 1）：\n",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517467742,
+        "status": "failed",
+        "timeout_ms": 600000
+      }
+    ],
+    "state": "failed"
+  },
+  "passed": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpo7cylQ",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792517467728,
+        "id": "goal-command-1792517467434-33576-8",
+        "input_digest": "1eb983737efd49673bd0ac56fecce13ea208bbd02944d71d0a74bf7daa8e494a",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517467434,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "unable": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpo7cylQ\\missing",
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 0` 未能完成：目录名称无效。 (os error 267)",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpo7cylQ\\missing",
+        "exit_code": null,
+        "finished_at_unix_ms": 1792517468043,
+        "id": "goal-command-1792517468030-33576-10",
+        "input_digest": "c10809a51d33309d529aaa1484ea76974c1c1c94831626c7b4558b780d3e59d1",
+        "reason": "`exit 0` 未能完成：目录名称无效。 (os error 267)",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517468030,
+        "status": "unable",
+        "timeout_ms": 600000
+      }
+    ],
+    "state": "unable"
+  }
+}

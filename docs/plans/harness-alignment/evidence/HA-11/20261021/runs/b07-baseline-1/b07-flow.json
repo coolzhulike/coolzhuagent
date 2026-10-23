@@ -1,0 +1,40 @@
+﻿{
+    "pending_after_turn":  3,
+    "pending_ids":  [
+                        "llm-1792693788071",
+                        "llm-1792693788343",
+                        "llm-1792693788349"
+                    ],
+    "mapping":  {
+                    "A1":  "llm-1792693788071",
+                    "A2":  "llm-1792693788349",
+                    "B1":  "llm-1792693788343"
+                },
+    "approve_A1_once":  {
+                            "result":  "{\"call_id\":\"llm-1792693788071\",\"scope\":\"once\",\"confirmed_twice\":true,\"outcome\":{\"call_id\":\"llm-1792693788071\",\"tool_name\":\"PowerShell\",\"status\":\"ok\",\"output\":\"{\\n  \\\"stdout\\\": \\\"\\\",\\n  \\\"stderr\\\": \\\"\\\",\\n  \\\"rawOutputPath\\\": null,\\n  \\\"interrupted\\\": false,\\n  \\\"isImage\\\": null,\\n  \\\"backgroundTaskId\\\": null,\\n  \\\"backgroundedByUser\\\": null,\\n  \\\"assistantAutoBackgrounded\\\": null,\\n  \\\"dangerouslyDisableSandbox\\\": null,\\n  \\\"returnCodeInterpretation\\\": null,\\n  \\\"noOutputExpected\\\": true,\\n  \\\"structuredContent\\\": null,\\n  \\\"persistedOutputPath\\\": null,\\n  \\\"persistedOutputSize\\\": null,\\n  \\\"s",
+                            "ok":  true
+                        },
+    "effectA_after_approve_A1":  1,
+    "approve_A1_again":  {
+                             "error":  "{\"error\":\"未找到对应待审批的工具调用，可能已过期或已被处理\"}{\"error\":\"未找到对应待审批的工具调用，可能已过期或已被处理\"}",
+                             "ok":  false
+                         },
+    "effectA_after_approve_A1_again":  1,
+    "reject_B1":  {
+                      "result":  "{\"call_id\":\"llm-1792693788343\",\"reason\":\"ha11 revoke\"}",
+                      "ok":  true
+                  },
+    "approve_B1_after_reject":  {
+                                    "error":  "{\"error\":\"未找到对应待审批的工具调用，可能已过期或已被处理\"}{\"error\":\"未找到对应待审批的工具调用，可能已过期或已被处理\"}",
+                                    "ok":  false
+                                },
+    "effectB_after_reject_then_approve":  0,
+    "approve_A2_once":  {
+                            "result":  "{\"call_id\":\"llm-1792693788349\",\"scope\":\"once\",\"confirmed_twice\":true,\"outcome\":{\"call_id\":\"llm-1792693788349\",\"tool_name\":\"PowerShell\",\"status\":\"ok\",\"output\":\"{\\n  \\\"stdout\\\": \\\"\\\",\\n  \\\"stderr\\\": \\\"\\\",\\n  \\\"rawOutputPath\\\": null,\\n  \\\"interrupted\\\": false,\\n  \\\"isImage\\\": null,\\n  \\\"backgroundTaskId\\\": null,\\n  \\\"backgroundedByUser\\\": null,\\n  \\\"assistantAutoBackgrounded\\\": null,\\n  \\\"dangerouslyDisableSandbox\\\": null,\\n  \\\"returnCodeInterpretation\\\": null,\\n  \\\"noOutputExpected\\\": true,\\n  \\\"structuredContent\\\": null,\\n  \\\"persistedOutputPath\\\": null,\\n  \\\"persistedOutputSize\\\": null,\\n  \\\"s",
+                            "ok":  true
+                        },
+    "effectA_final":  2,
+    "effectB_final":  0,
+    "pending_final":  0,
+    "mock_requests":  2
+}

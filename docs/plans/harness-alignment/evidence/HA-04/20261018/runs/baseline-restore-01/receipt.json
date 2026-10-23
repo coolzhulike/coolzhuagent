@@ -1,0 +1,723 @@
+{
+  "command": [
+    "python",
+    "tmp/ha04_verify_baseline.py"
+  ],
+  "cwd": "D:\\coolzhuagent",
+  "started_at": "2026-10-18T09:38:25.475370+00:00",
+  "environment": {
+    "CARGO_BUILD_JOBS": "1",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "sources": [
+    {
+      "path": "modules/gui-web/packages/web-console/src/action_origin_authority.rs",
+      "sha256": "26dab6a32cde2df1b5c93d79bae55dcd8f554867a3fc9072913cb833b531a005"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/agent_session_backend.rs",
+      "sha256": "d793861fdfd312125f05a50b0b43f0c4503a8ab2a0285c2d893158fd3847fba7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/app_update.rs",
+      "sha256": "b4a547aa58218aabf5a56dd146312a5328dcf6b76517bdaf05a7e3720bd51308"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/async_diagnostics.rs",
+      "sha256": "ca0366daeca228a785c960ba8d18105fe5afa50bb699f94e2259a9460ecdc8db"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/attachment_text.rs",
+      "sha256": "07dc11ca420ad39dd62d99e5bfa67c451e1bdfa26f170659abda41e01137e01a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/audio.rs",
+      "sha256": "b7212612fd45598dd31dc66bcfc22c4eab2db65585bc1ac06d5543192084f5de"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/browser_bridge.rs",
+      "sha256": "5f7e9ad286871568d3ec72e7066b9ec46387f89bb55c62c78c4ad875aa0d29e2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/browser_bridge_protocol.rs",
+      "sha256": "c9c34c011a9e6d2214d76e886d5080bdefc225f03df8e32ef8d0644fadb1d7a6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/chat_history_sync.rs",
+      "sha256": "64f0dddc6b84f572f43db69d335de93ee5645f7135b9078309514c93ec560d97"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/chat_insights.rs",
+      "sha256": "2929c2441f343b4aa0abf3dce41b43da9c3baabd7042f8c5c7ec40a8eef918cb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/chat_run_admission.rs",
+      "sha256": "133478504a998c7beb893a982f4bdade692fdd241d7cfae450e3f1455ce3789d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/chat_search_index.rs",
+      "sha256": "b517fd451358a2040610e6efa7f2a19ee7dccb376b01cdcf26df228eaa5343f1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/chat_tool_history.rs",
+      "sha256": "29ae50f959f3105569aa19afcc9e1f930bfb434b9eaf70d6075b2fbf04cfb2b1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/clawbot_channel.rs",
+      "sha256": "b45f81eea80bca875b65f8705896b7fba9d2bddbb29cce67871700cf41c0d830"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/clawbot_gateway.rs",
+      "sha256": "fab8eb908dd986abff100f0f7947f88639b67f3e61528119a87ed865af843ba3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/clawbot_media.rs",
+      "sha256": "c7140230d6cbf05963da136411151525ad45da5949fa05d8df7781315eb50a24"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_activity.rs",
+      "sha256": "e1a93a6b22f11bb0fa698d213c63c0a586dfe3acb6f434a5444a4e5733b3965c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_adapters.rs",
+      "sha256": "271159216db9d2c401c37e337a83417c0039d92deea06da0434592dde21efdb7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_desktop_bridge.rs",
+      "sha256": "f67aaae74b8db922ea9f8eac30e45b69ffb68559a928a4f8eb9e41058b6bb859"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_eval_corpus.rs",
+      "sha256": "e0202446e0250e371e57bf62391df94ce79eac459f27c23686b2043de8e7d264"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_eval_rescore.rs",
+      "sha256": "43609e0405c3bc080cb092aecf37e3650e8347331db99d42c844d56a695e46cf"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_eval_scorer.rs",
+      "sha256": "52ff8d327a64a3f2649a7ae4e09e5dbec2433540790b94a0a3384ca30d8ce246"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_executor.rs",
+      "sha256": "345ef0bab38ae6df6c332916c881f5a63344a7f67bde99db454c80a7914956b9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_frame.rs",
+      "sha256": "a9f10175740572b5aa19d18bfcdf880131434e99fd42546522ab7806b74c3214"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_planner.rs",
+      "sha256": "c5876c61139608380ae189889916f143730981975cba38cb658f9cbc4b4499a8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_store.rs",
+      "sha256": "b260e72b3b70d281604a38a0547741b211c23d7172e56d6d8e3e1f4a2ce97a14"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_turn_scope.rs",
+      "sha256": "2157e6ea83491ac99e752daa504ebb0ce50568d9f8683b2637d81de5f029fad1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/computer_use_visual_baseline.rs",
+      "sha256": "8616f023fcb569fadd9b94eb4c753c23e532458f19bf1c5edd45124b6a67cad8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/config_publication.rs",
+      "sha256": "a8f74b0bf9d0a5e6d712841b6e71e7da3acfa1ef42646af547da894e0fd57bb4"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/content_blob_store.rs",
+      "sha256": "2e4c7e5e682f2a942d058c3432ceb1d8902c227909c420dcb834b807048b858b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/content_delivery.rs",
+      "sha256": "6baa5dfa3c11ab6046cc2ef4972fdf0a883235f8e3c6872ff13f95ed043b9645"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/content_staging_gc.rs",
+      "sha256": "680af93b1f6f44555629ed9fc4c8cfc7384c18a5e3e9ab00c2fc11d1b2cc9138"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/credential_store.rs",
+      "sha256": "ddb300bf3b725e8036d6f1c2398023dc899e44905ec1da46a9b7c4ce266dfc12"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/desktop_uia_acceptance_tests.rs",
+      "sha256": "fd31608c3682fa1efc0618db3c611915cdd2c699c6d5a6492b29e5229f34ad33"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dispatch_hooks.rs",
+      "sha256": "9ff94952680820a1e704c9b3e6542514a84b19a6392ddf0d05d14e48f9f3f07a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs",
+      "sha256": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dispatch_hook_config_tests.rs",
+      "sha256": "30d7ae1328d3ddf4abd140bd90e32299a54b09399867bc5956d02ed51b8526bb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_activation_host.rs",
+      "sha256": "8a2e3c78e9ebd77804ccb3b00b8067233e10dd51f45ba05ca5aa23275e9836e5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_execution.rs",
+      "sha256": "1f5de2ce32d5a304e44f8ba83307312538cdfeb0ecb07dd48c6ccfbac270c3ce"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_install_service.rs",
+      "sha256": "f7fc46704880374f61a9b14165954ceb3d86fcb9c8546eb2b86a6ada9a873999"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_market.rs",
+      "sha256": "f9537a66aca66bd815fe14d0df334051f06cea88564793eab9a3d7910cc6a788"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_source_download.rs",
+      "sha256": "9609ea1115c129159ff70e623f10ffac1367206bbdec65093811971d8624bef9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_source_resolve.rs",
+      "sha256": "ce7de6cd993127eae8290f338c153a0dba57a3335b6f5aeb2fe74087eb349c2e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_web.rs",
+      "sha256": "82d36972c3fe1504d0f4e2633d9e2a3c7b28229d748b0bd6599df46fa09dfad0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/dsh_web_tests.rs",
+      "sha256": "74703c8f381c0b1d3c71691cb86dad5c47ab218960ff2b79b7543ee98f48d50a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/execution_service.rs",
+      "sha256": "37eb807f21f71650e95641188dd3df4f8deec27ac9f57ef1ab974b5b1bb581ab"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/extension_market.rs",
+      "sha256": "a049cd072bad043f449f656e8ab6878e4ddc46c89757fa65ac3bc974f8ce2813"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/fact_log_sqlite.rs",
+      "sha256": "cf8784dabaaf8134a60f3d5316a616952cb037f4263fb7380c9336337978182f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/goal_command.rs",
+      "sha256": "c475c0f21ec1630b2ee996f58690de4fd3a2690d96a2e07708e89f8afa648906"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/goal_execution_parent.rs",
+      "sha256": "a43c0653b04187ef8e2240c11107444170c6dbae73334f776ddfcb852aea13b9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/goal_phase_stage.rs",
+      "sha256": "c44e80810fe9c1a0759bb75f14a176c0e13e03de4750569335503bed72a27cff"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/goal_replan.rs",
+      "sha256": "9723ff9e8eac71e2448733cd70b1025eb0c335ae2196a2ba0daaf143eb68af4c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/goal_stage_pin.rs",
+      "sha256": "2885b3ac1e9f5491b8857a58c70657d47dc40b1e27d80b5525057643ad27c978"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/ha04_tests.rs",
+      "sha256": "5125957eae87dce0bb0a300eb8d415885cec696225ebba051dc6787504090d38"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/history_persistence.rs",
+      "sha256": "a22f73dcab8ee56f935e402d3222cf1223adae6afd9970f6830cd2223fb172d2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/host_child_agent.rs",
+      "sha256": "ebc26922670a17b6f92baaa43f6654f1134ccd64c49443a6f3a70f97829f677b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/input_lease_process_acceptance_tests.rs",
+      "sha256": "2913e766d6d4ffe1075a4c4ef443803fc1611066bd5b478b9ed906abb30df53c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/input_permit_gate.rs",
+      "sha256": "20ed09d8e66421a2f5f5bef0c5b9cb62fb21b592ccf040c4d6c25d28fcb9c7d3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/input_permit_store.rs",
+      "sha256": "01ebf92c5876205cf8cd7c4551b575d45733322d7379427a00b3a7bb3de43775"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/input_safety_harness.rs",
+      "sha256": "99360f51f7648cdf4cfbe903625f0ab64192b255f2b7fc2482bd075b250645cb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/input_safety_opening.rs",
+      "sha256": "d8560a033a6ddb1094b0e4dd831cae8d37e0c2513e15cb92d01e24435d59f904"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/input_safety_store.rs",
+      "sha256": "92c539146f91218736b2a63892e9f68872ff1125429e034e3807e66f0df75e80"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/legacy_recovery.rs",
+      "sha256": "002ee3ae5114e02e7166a2bee10ffd301ea3b62d7f443ab7c1072f71505c8a6f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/legacy_recovery_driver.rs",
+      "sha256": "83bc2453546416e824fb354ed26d9e44b81ccbd6c14c318cf56915b721ca69df"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/lib.rs",
+      "sha256": "b2f33bd1c00966eb965e7a67d3966977424a5db1c9e81bd97dcaddfc6b808bd7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/lsp_host.rs",
+      "sha256": "553a241f4ed82fc59bff0b59e3c9a4bef9ab1a05bc3997312468884476405f2b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/main.rs",
+      "sha256": "1f87e130e3383c5d33d1723059a6a77ae209eb48842e79ad306b8ace7f0da1f7"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/mcp_host.rs",
+      "sha256": "1c30c1b1860e199abbf6f7900d2288f2447b491ed0bfa8c216382c613885de71"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/media_generation.rs",
+      "sha256": "7d0622b2eaa4e3170cbdcb80340d34cdd78a91a245e1ede329bff46c7e8f6883"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/model_discovery.rs",
+      "sha256": "f29fbf0508646a12d0677bcb0af76fb1c36b48795a1b5895e616267b498fca68"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/multimodal_input.rs",
+      "sha256": "7305b67f3cde758b9e9203c8bb19b5eb12cdec1bcbcd488e4010d16ba203f598"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_browser_adapter.rs",
+      "sha256": "ef5e4a1615473025ee963983afd07432ce31e912085a9982a50ce1018f937b73"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_browser_host.rs",
+      "sha256": "d21f88be186faf86708d6d43c2c9ee9c59a6f7d91d2c005822cd73c8a5fc1fec"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_browser_input.rs",
+      "sha256": "327c4a0ed2a48055f68714fd0b406516fc3399eefd5e49003a3b9c5d5482d039"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_browser_verification.rs",
+      "sha256": "ba9570b7f48a92def6c900c5acaea054cb1e31a737813a43571c06dcaf016df2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_input_authorization.rs",
+      "sha256": "42368edf08aa41e38323bfc5d0255118584b275af409e8854c0d868a6ce86256"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_message.rs",
+      "sha256": "178dd64e892aa297316a6ffe7c1da7bd57d4bb04b7ca106186604cdd8ac1f140"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_panel_authorization.rs",
+      "sha256": "6ab7e86158d253f036625cf5aa7f84572bb8e1fffeedb879faffae405e5071fb"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_recovery.rs",
+      "sha256": "0b7bf6349613229feb8940301807e14230dc8d663fc50f235ea0e047a4e62781"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/native_recovery_store.rs",
+      "sha256": "8cbd3a8930ee67281015a8fe0ff082f48f5144cdb6cacaa3b8f6fa50ca0fbc0a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/openai_subscription.rs",
+      "sha256": "640424a933c1a175b8591c1c21091e042e42f42b58158a11ca5433ffb02e5999"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/persistent_panel_executor.rs",
+      "sha256": "6929ed7f8b3c0d5babce1dbff4d3438ee742bc3035b7287f8ba2e7faa5adc6a0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/plugin_runtime.rs",
+      "sha256": "b2cb9697cba2c48640b4e67cf498613d8e0e39b6aa486f7c69d8295ae10684b5"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/project_file_snapshot.rs",
+      "sha256": "ea210f70ec20b1f6056f3d49387411d9957ea165c616b5bc4213fb841ecfd3bd"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/project_recycle.rs",
+      "sha256": "11ce15012f7babb55b64253dece93ae48dd44d1ce003a6a465f5090055241f33"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/realtime_voice_stream.rs",
+      "sha256": "292cbd041e40b2a9464aaff66b9180c3df9117163c8711f9d314320ad7850965"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/request_binding.rs",
+      "sha256": "b61687ca8b942fbeea1047593dad1ed2f694c05241e2501dcab5ca1820b9205f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/request_usage.rs",
+      "sha256": "8e423a0d4d4946983761facb0202628e0ee8ff333d16f4f3165d2fade45837d6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/root_execution_budget.rs",
+      "sha256": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/runtime_retention.rs",
+      "sha256": "85eccea2796ae0b965e341a351033ec62403215be2b435a6b0c526b9ac0a12c1"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/runtime_tool_supervision.rs",
+      "sha256": "046c879961c5891ba0f24b8e66c469a9aced7295dcef3ffda5dd85976775ef34"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/s0_fixture_replay.rs",
+      "sha256": "785227da611cd494846e102d5ff9254638ad2a52dc6b2a3e4146d3faf5713b33"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/scheduled_delivery.rs",
+      "sha256": "4055c530e61c3780d4536d3f73144769b417bfd04e6d376cad6e68530f1602da"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/scheduled_execution.rs",
+      "sha256": "be587d00d66bbf9a610ab6655851a20e4273a4907ba9b913e4621e3e0bfc5184"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/scheduled_jobs.rs",
+      "sha256": "b44eb4de9e8f486893888bce8f903f6f56e389f8c1bbac0b1ec2c97dbb310150"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/schema_upgrade.rs",
+      "sha256": "10349ccb39fb0438de82856425fc784d987ecc0456b71e0cfbe5d9248dde61ae"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/service_restart.rs",
+      "sha256": "752fa4fd53d93e174754af26ecb9061e3a6cf2c7760382df42c6c5862b04fb78"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_avatar.rs",
+      "sha256": "c87fd7ab716fbf0456a776b15a274452f21cc8ffd01a998f303af4de69e7d605"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_config_journal.rs",
+      "sha256": "ec8c0be42406e6bf1236f68138f957dc3675e840702ee5b2c2ddbfa0d6a8233b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_config_service.rs",
+      "sha256": "13d2bfabac23ee61cebe5f68bd89bbbf212f7b41b8bcaa381b971b70ce01991f"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_model_config.rs",
+      "sha256": "78790ef57a397c7efc987db6a680a57a018c0eb5dbb40e5432262c2a2e0d8562"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/session_writer.rs",
+      "sha256": "42f26565d448c30aa81d9aa31f4b124fa66d4cc05268e914a116eaac9c2fd448"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/skill_catalog.rs",
+      "sha256": "130b6465752bc098ab44e82c79535e35659b2f4fc0d0a61bc42f036e9fec9e60"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/static_resource_contract.rs",
+      "sha256": "4734c368c87c2a5f38b80512ca516ca6d15fdcd50b4c2fc9ca4f709b5925232e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/task_evidence.rs",
+      "sha256": "c0be7c4035136571f40788e7dcc258dd1020e3a2f163d056e64eaeeb5361aeb8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/terminal_host.rs",
+      "sha256": "41d33795f0e3034815e23824f4f21f3de9caf003f456fed6b6c0c6e3e80ac021"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/test_env.rs",
+      "sha256": "f8d30a89c51d6321588c499edd75d0831beeb1b53ac230b735f7d485b5567891"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_diagnostics.rs",
+      "sha256": "3b9f5f4eb5ac4616409e7bad5d87f068ae63ab948b4ce6e73dac2d31fc3566e0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_audit.rs",
+      "sha256": "08a7041393aa21bd72da5904b7dd59f08e9a9d93d1115e871ca2d98aa9a6d306"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs",
+      "sha256": "595b40ac71cf7e0cdd86c2ce2b0bbc288bc5b7e47357205135f83afa028833b2"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_dispatch_settlement.rs",
+      "sha256": "4f88b39141858de20433fe67ad4cc9341e97fade8761f802f2f034e5976ca483"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_invocation_identity.rs",
+      "sha256": "d3dcda037a4b7f729eb8ac4567d5627ae0daf338af06664921451884cc9ea9f9"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_loop_coordinator.rs",
+      "sha256": "0522a7956f0f8cfd43613bdcbc4e5783dd241a4ced997c844938e276c89e2bab"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/tool_result_spill.rs",
+      "sha256": "f1a58a77d8e7a22ba821d024b9a36d567064d9838c6d389491ac7572331516f0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/usage_statistics.rs",
+      "sha256": "422034bfe33785e8233755101924217a01b71c42c8b8bda23649cb4b056f702b"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/video_job_budget.rs",
+      "sha256": "3dc2a38df3fa2953778c2e7335b6d6474e4a2769df72a8034aa62a52ad7bacb3"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/video_job_control.rs",
+      "sha256": "2446d6ce84b0546f27ddac3b8dd8532d298e9a6855ec8763b9e43c72806afe4a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/wechat_authorization.rs",
+      "sha256": "a9749fab7818c6525827a0e0cc8fc37f0a8f831b8ff80508a1d4b8a8fc737510"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/wechat_command.rs",
+      "sha256": "a6bc79ff90e790c72867a80524274dba5d2db733c415c18d5d3c5c1c65bd2682"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/wechat_command_runtime.rs",
+      "sha256": "a3ed32e3fbba2a351a9321aaa187747db0f44b9b535f82bbb06eedfc3e1a1265"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/wechat_file.rs",
+      "sha256": "c0591da8a45a4f67229a492dad7f757d733cf846823512e9068e23fc7b477088"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/wechat_group.rs",
+      "sha256": "9b0d188550e53d2588a1b2a9e702c67508420069414142f7468214d721ec4fef"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/workspace_activity.rs",
+      "sha256": "9f405e92d521c6f76981eabdd7d3d7b2beaa62796f51fa69101c1485135e4791"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/workspace_projects.rs",
+      "sha256": "1397ef916a1c0a158098d3643045dda8606710d62452ec4893e51f4bd007ce45"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/bin/browser_native_host.rs",
+      "sha256": "77ed6623df37963d293b878ae12f8c74d1c922d44fed7a1e06a6ea7e000ecb34"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/auth.rs",
+      "sha256": "cc1ff244b835ce7f7395b9fa83fdd6460529bb60e39691b61ff2f94d0c014553"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/bindings.rs",
+      "sha256": "c9706bace06dca28d981504245bd1c38f17e44e0f5959910c3d4e6c76e6fffa0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs",
+      "sha256": "ccd278937bc2751ef54a6a8c0506e68ca4c59e9de1a3c635771838d2a9a6d725"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/bridge_paging_acceptance_tests.rs",
+      "sha256": "084a8db31dc455d01256c0dc5017c36d413c3f74742eb1f0a02406bb198783da"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/chat.rs",
+      "sha256": "b80d670ac5ee352416a69e145d3e921c1de76a13ba2806aa620b9cfacf72a21e"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/context.rs",
+      "sha256": "02be1b76e7bd3d87eb33469a50b63e1ee8d90cded91e03ee20a46281ab5bf3d6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/diagnostics.rs",
+      "sha256": "f8083b0d353f7ab1bacac1ba3b7392a798996dd3d1dc88d8b982544f52e123c8"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/discovery.rs",
+      "sha256": "8408d5c0d4cc8446c2b6cef454c592bffe1017e69b0edfd4effb1d02e40d4f98"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/host_tools.rs",
+      "sha256": "45f1d2b1897d57060e9d5d138acbaf2c5860bef9b0cbe473ddcb39672f02b945"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/image_input.rs",
+      "sha256": "5ee69519c94e083b817b232fb9a84eae3ba12077a4cf14a0969fc71d6a829f14"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/internal.rs",
+      "sha256": "975211f2ce52e5f3715b799dfcc337ebf05a657a6693d219446d8de3f8a8ad62"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/journal.rs",
+      "sha256": "b2784264701b29650760e9a128907a307f18635d0b4945d19bfec9e5ea10a446"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/mod.rs",
+      "sha256": "a0d91078e4674fa5a8b2650e9fcb06653808008a476e932200c962dec8475c5a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/planning_exchange.rs",
+      "sha256": "31b781526e81ec4c7b93e74a4de75975c2ea942996bb16b200ad80362ff61e2d"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/process.rs",
+      "sha256": "bdb2283f7500529477b209e01a73a40f12a59bde353274c2b3cf01735d29a437"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/protocol.rs",
+      "sha256": "d434df24143844bc0d715791deb53e7229641efa59da90b0af7eda1fc5463878"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/real_smoke.rs",
+      "sha256": "714e772c23cc8c4f084408954c2691902218302df9a06d64e424e70a05a8903c"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/result_pages.rs",
+      "sha256": "08d1724a58b8af63f2f5ed9ca453ccffbb5a7982fe7d1d4845629a59bfe4d051"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/session.rs",
+      "sha256": "4349236bc11d2e3d412cef918d15cc06350a9e78a330bf2baab1ba710c62fcd0"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/tool_wait.rs",
+      "sha256": "41b3174a7ca4174fdaf38a472d2f2c3fb71f8785e99be9ab0b1c788c2ce00810"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_acp/transport.rs",
+      "sha256": "a3392fdf3c967a36b8b8f1377054495da48efdfc26069c6990fcadb7cc68786a"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_plugin/client.rs",
+      "sha256": "aabbc1e07e4ba3f69a871295ae5da60d3bbce908964fd8e35bb8033a23cef0cc"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_plugin/mod.rs",
+      "sha256": "649426731a1899a3baf4ebdfcf8909602359b90b5ee9155ccdc528f01fa491f6"
+    },
+    {
+      "path": "modules/gui-web/packages/web-console/src/devin_plugin/store.rs",
+      "sha256": "c32220fd4a9b453b726238bb27093683d0adff0f8f45d9f36f8525f773e46aad"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/client.rs",
+      "sha256": "5c8614811ac19b8aab1937c1fa28ff6b20cabc7cd1f2e7f663415e81bcf51014"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/config.rs",
+      "sha256": "102edc90fa0591b41d0baa2070bcc70afc8a0153236959739699d30c9c353557"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/embeddings.rs",
+      "sha256": "4806079c70ccf91e86c2da3be21594041d74d0850353a10da9bd9a4cc750b4cb"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/error.rs",
+      "sha256": "a7d582143ce9084aabd521831ec61993fd8ff0923005c29845ba7b6e128776dc"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/inflight.rs",
+      "sha256": "1e9b31abb8bccf65cfde0c0560ad8b1e26d36be4ed1a8fd656f2ded3f0a0c9be"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/lib.rs",
+      "sha256": "28223f9f3a8b1c283b51ae83b850ae3e99f8a4f8afb23a33793b6e6e2a2bd742"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/message_id.rs",
+      "sha256": "a8fc5c36a03d4ed4041fbf82c7df83e5f2f547b7a14a0702fa5207871d111f16"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/model_info.rs",
+      "sha256": "f3e0b9d7c2e8ad4b87ee774ec207768c71675fbc47430748658a2972f1936ed3"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/reasoning.rs",
+      "sha256": "39d51085c83fa7e10dd6fdc3c0f51b4b870a9d2755da530eefbde0456f42ca1b"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/registry.rs",
+      "sha256": "4560a771ad496fb2ad111125f6f75629f7bb6b7ce37847e6b9c69bf4e165a6c8"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/request_observer.rs",
+      "sha256": "e4a2358407c044cd02e04003ce66a7882d6ebf08f10f662294a7d072a46c35da"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/request_parameters.rs",
+      "sha256": "9cc27ce4e95e377f90bc318a8e50415dd206eef1ed282588d45b9f04fdda7cba"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/resolver.rs",
+      "sha256": "3f6a92566399b97cea7880f16cbf690c283f5a62f460d84fa5b5e6237d0684b0"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/response_format.rs",
+      "sha256": "61d001df6d0164880e60a2572eab2de1d1c18a03717e1418c84613531f72f416"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/sse.rs",
+      "sha256": "f8338d3369517e9c2e51d85a2c993f5fdd1f1b3d8bca1f4d759fc5362cf4aad4"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/test_env.rs",
+      "sha256": "8f493670bee907358143dd0c5618822f135f1da943ef655406ee0873e5aaa373"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/types.rs",
+      "sha256": "5fd32b9e0fabbc02f2610cc3e2db91f7c0d8160f4a53bfe75008e94776817fb5"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/tests/alibaba_bailian_integration.rs",
+      "sha256": "e97badaa05f75f8a48e978f0900df74f97bf42edcefcbde5180ec1f2d76b426e"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/tests/client_integration.rs",
+      "sha256": "e5e4d308e62aa6e9af35113045b9e128635ecd88541236f47eb5dae47da6b1db"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/tests/inflight_drain_integration.rs",
+      "sha256": "d3b1d8e3c5cb3a270ebdecdc31cae42109fa143ecbf8f2b5188208af42df5dbc"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/tests/openai_compat_integration.rs",
+      "sha256": "4d1eaf7a5e27ba9aef39646c3a1de57eff183afef7919f9b3cf2a4818a11283f"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/tests/provider_client_integration.rs",
+      "sha256": "e2bf5d970ac557ad57fac3d88b79296b4ceb0ecdbcabfdce33a0efcad4dfc4c1"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/providers/claw_provider.rs",
+      "sha256": "d2869de71fba57b795b50fa8fc2600207dd200ade83520f4adb962a23220b430"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/providers/mod.rs",
+      "sha256": "fe064d7101c6e2e96d6daa4206cb313ad5dfbdc6ff6f65c19dd1f2acf2c5f74b"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/src/providers/openai_compat.rs",
+      "sha256": "0fd15ac4fddbf3d2dca5a9c601d08ed878db0a5b4e9aa947f87835f2f41b564b"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "823c9c1a9c4fdd3dfffffd29fda4ea5b422f47d214ae8b74bf794592cc27421c"
+    },
+    {
+      "path": "modules/llm-adapter/packages/llm-adapter/Cargo.toml",
+      "sha256": "d5a3a38173cfe7f107a1603e9a5be755267119ead6aaada2ab8361bc133e551d"
+    }
+  ],
+  "pid": 28968,
+  "exit_code": 0,
+  "finished_at": "2026-10-18T09:38:58.739442+00:00",
+  "duration_seconds": 33.224,
+  "source_changed_during_run": []
+}

@@ -1,0 +1,61 @@
+{
+  "state": "completed",
+  "boundary": "隔离真实HTTP服务、调度和worker；本机确定性模型协议夹具，不是外部模型自主行为或正式GUI",
+  "binary": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target\\debug\\coolzhu-web-console.exe",
+  "binarySha256": "f9b08d3419ddfb7c798ecdd4bc9e3232973cc426b3022d3ace1734b832f21fe4",
+  "steps": [
+    {
+      "name": "4.5 一次性任务落盘后重启，真实执行一次，终态重启不重放",
+      "state": "passed",
+      "evidence": {
+        "executionId": "scheduled:schedule-1792180206171-35b67d9cc59b3c9a:1792180221145",
+        "runId": "run-chat-86d2044d90e40554ca5861b07ca3479e64e498acc4b9f4a6",
+        "modelCalls": 1
+      }
+    },
+    {
+      "name": "2.5 真实共享worker运行、取消、重启后同身份查询，不自动重放",
+      "state": "passed",
+      "evidence": {
+        "executionId": "scheduled:schedule-1792180294602-40882bd02c2739cd:1792180294602",
+        "runId": "run-chat-2ce89772ed21a6c9f5dc4a2a4e9929042822beed8caf2ea8",
+        "state": "interrupted",
+        "totalModelCalls": 2
+      }
+    }
+  ],
+  "processes": [
+    {
+      "pid": 23252,
+      "exited": true
+    },
+    {
+      "pid": 33540,
+      "exited": true
+    },
+    {
+      "pid": 34384,
+      "exited": true
+    },
+    {
+      "pid": 25096,
+      "exited": true
+    }
+  ],
+  "model_requests": [
+    {
+      "index": 1,
+      "path": "/v1/chat/completions",
+      "stream": false,
+      "model": "isolated-worker-model"
+    },
+    {
+      "index": 2,
+      "path": "/v1/chat/completions",
+      "stream": false,
+      "model": "isolated-worker-model"
+    }
+  ],
+  "productionTouched": false,
+  "finishedAtUtc": "2026-10-16T19:53:16.317586+00:00"
+}

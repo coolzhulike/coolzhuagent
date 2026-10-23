@@ -1,0 +1,33 @@
+{
+  "state": "completed",
+  "action": "build",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.EXE",
+    "build",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target"
+  ],
+  "source_before": {
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "c3815cee41d728a53125a7fce7fc97ca40ab26ddb00a36ee455c9b53e401384e",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge_paging_acceptance_tests.rs": "084a8db31dc455d01256c0dc5017c36d413c3f74742eb1f0a02406bb198783da",
+    "modules/gui-web/packages/web-console/src/devin_acp/result_pages.rs": "08d1724a58b8af63f2f5ed9ca453ccffbb5a7982fe7d1d4845629a59bfe4d051"
+  },
+  "started_at_utc": "2026-10-16T19:23:45.557719+00:00",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-build-20261016.log",
+  "exit_code": 0,
+  "elapsed_seconds": 364.645,
+  "source_after": {
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "c3815cee41d728a53125a7fce7fc97ca40ab26ddb00a36ee455c9b53e401384e",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge_paging_acceptance_tests.rs": "084a8db31dc455d01256c0dc5017c36d413c3f74742eb1f0a02406bb198783da",
+    "modules/gui-web/packages/web-console/src/devin_acp/result_pages.rs": "08d1724a58b8af63f2f5ed9ca453ccffbb5a7982fe7d1d4845629a59bfe4d051"
+  },
+  "source_unchanged": true,
+  "log_sha256": "0eb6bc67124449618e74ea3cf174f3bda4a8e0683801803555461ea547a1e83a",
+  "test_results": [],
+  "finished_at_utc": "2026-10-16T19:29:50.363560+00:00"
+}

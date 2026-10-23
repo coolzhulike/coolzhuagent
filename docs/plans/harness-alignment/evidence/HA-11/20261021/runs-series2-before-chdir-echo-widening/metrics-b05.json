@@ -1,0 +1,171 @@
+[
+ {
+  "shell_ok": 0,
+  "shell_not_ok": 6,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 1,
+  "status": "completed",
+  "elapsed_ms": 81044,
+  "tool_calls": 13,
+  "by_tool": {
+   "glob_search": 2,
+   "PowerShell": 4,
+   "read_file": 5,
+   "bash": 2
+  },
+  "by_status": {
+   "ok": 7,
+   "dry-run-only": 6
+  },
+  "by_decision": {
+   "allow-auto": 7,
+   "require-confirm": 6
+  },
+  "require_confirm": 6,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 0,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 1,
+  "status": "completed",
+  "elapsed_ms": 92408,
+  "tool_calls": 2,
+  "by_tool": {
+   "glob_search": 1,
+   "PowerShell": 1
+  },
+  "by_status": {
+   "ok": 2
+  },
+  "by_decision": {
+   "allow-auto": 2
+  },
+  "require_confirm": 0,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 2,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 2,
+  "status": "completed",
+  "elapsed_ms": 106258,
+  "tool_calls": 9,
+  "by_tool": {
+   "PowerShell": 2,
+   "glob_search": 1,
+   "read_file": 5,
+   "bash": 1
+  },
+  "by_status": {
+   "dry-run-only": 3,
+   "ok": 6
+  },
+  "by_decision": {
+   "require-confirm": 3,
+   "allow-auto": 6
+  },
+  "require_confirm": 3,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 0,
+  "shell_not_ok": 4,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 2,
+  "status": "completed",
+  "elapsed_ms": 211682,
+  "tool_calls": 14,
+  "by_tool": {
+   "glob_search": 1,
+   "read_file": 4,
+   "PowerShell": 3,
+   "bash": 1,
+   "Config": 1,
+   "Sleep": 4
+  },
+  "by_status": {
+   "ok": 6,
+   "dry-run-only": 6,
+   "timeout": 2
+  },
+  "by_decision": {
+   "allow-auto": 7,
+   "require-confirm": 5,
+   "require-approval": 1,
+   "deny": 1
+  },
+  "require_confirm": 5,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 1,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 3,
+  "status": "completed",
+  "elapsed_ms": 100581,
+  "tool_calls": 7,
+  "by_tool": {
+   "glob_search": 2,
+   "read_file": 3,
+   "PowerShell": 1,
+   "bash": 1
+  },
+  "by_status": {
+   "ok": 6,
+   "dry-run-only": 1
+  },
+  "by_decision": {
+   "allow-auto": 6,
+   "require-confirm": 1
+  },
+  "require_confirm": 1,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 2,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 3,
+  "status": "completed",
+  "elapsed_ms": 113755,
+  "tool_calls": 8,
+  "by_tool": {
+   "read_file": 3,
+   "bash": 1,
+   "glob_search": 2,
+   "PowerShell": 2
+  },
+  "by_status": {
+   "ok": 6,
+   "dry-run-only": 2
+  },
+  "by_decision": {
+   "allow-auto": 6,
+   "require-confirm": 2
+  },
+  "require_confirm": 2,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ }
+]

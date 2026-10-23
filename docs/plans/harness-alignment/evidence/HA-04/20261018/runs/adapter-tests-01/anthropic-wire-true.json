@@ -1,0 +1,12 @@
+{
+  "binding_summary": {
+    "model": "claude-sonnet-4-6",
+    "parameters_digest": "sha256:8619cd4931363ec584bade2c1f67c35bde60fd5cc50e538e30c0e72096e33d41",
+    "stream": true,
+    "tool_names": [
+      "get_weather"
+    ],
+    "tools_digest": "sha256:c43f12e376322c223aedb72caab4bce94dda5286000588cfd91f450b92273d93"
+  },
+  "raw_http_body": "{\"max_tokens\":8192,\"messages\":[{\"content\":[{\"text\":\"Say hello\",\"type\":\"text\"},{\"content\":[{\"type\":\"json\",\"value\":{\"forecast\":\"sunny\"}}],\"tool_use_id\":\"toolu_prev\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"claude-sonnet-4-6\",\"stream\":true,\"system\":\"Use tools when needed\",\"temperature\":0.25,\"thinking\":{\"budget_tokens\":2048,\"type\":\"enabled\"},\"tool_choice\":{\"type\":\"auto\"},\"tools\":[{\"description\":\"Fetches the weather\",\"input_schema\":{\"properties\":{\"city\":{\"type\":\"string\"}},\"required\":[\"city\"],\"type\":\"object\"},\"name\":\"get_weather\"}]}"
+}

@@ -36,8 +36,11 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
     crate::create_chat_runtime_run_sqlite(&db_path, &run_id, &claim_token, &workspace_id,
         result.conversation_session_id.as_deref(), &result.chat_room_id, &turn_id)
         .map_err(crate::sqlite_api_error)?;
+    // 注册新回合之前清扫：仅在本房间无任何未终态回合时移除 `live-` 孤儿残留。
+    crate::sweep_orphan_room_live_messages(&result.chat_room_id);
     let cancellation = crate::register_chat_turn_with_run(&turn_id, Some(run_id.clone()),
         result.conversation_session_id.clone(), result.chat_room_id.clone());
+    crate::mark_live_turn_active(&turn_id, &result.chat_room_id, cancellation.clone());
     let mut guard = ChatTurnGuard::new_runtime(turn_id.clone(), run_id.clone(), claim_token.clone(), db_path.clone())
         .with_workspace_pin(Arc::clone(&result.workspace_pin));
     if let Some(scope) = crate::chat_run_scope_for(&workspace_id, &result.chat_room_id,
@@ -147,7 +150,7 @@ pub(crate) async fn run_nonstream(result: PreparedChatDispatch, force_relay: boo
                     (detail, ChatTurnStatus::Failed)
                 };
                 (SendMessageResponse { accepted_agent_ids, messages: initial_messages, tasks: initial_tasks,
-                    notes: vec![reason], runtime: None, execution_failed: true }, status)
+                    notes: vec![reason], runtime: None, execution_failed: true, request_bindings: Vec::new() }, status)
             }
         };
         // 收尾不放进已到期的业务 timeout；提交失败明确返回 commit_pending。
@@ -160,4 +163,58 @@ pub(crate) async fn run_nonstream(result: PreparedChatDispatch, force_relay: boo
         }
         Ok(crate::Json(response))
     })).await
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    // 过期预算必须在 durable runtime_run 建立前拒绝：库内不新增 run/事件，模型与工具零调用。
+    #[tokio::test]
+    async fn expired_root_budget_rejects_before_durable_run_side_effects() {
+        let directory = tempfile::tempdir().unwrap();
+        let db = directory.path().join("sessions.sqlite3");
+        let connection = crate::open_session_connection(&db).unwrap();
+        crate::initialize_session_schema(&connection).unwrap();
+        let count = |table: &str| -> i64 {
+            connection.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| row.get(0)).unwrap()
+        };
+        assert_eq!(count("runtime_runs"), 0);
+        assert_eq!(count("runtime_run_events"), 0);
+        let dispatched = crate::PreparedChatDispatch {
+            workspace_pin: Arc::new(crate::workspace_activity::pin_workspace().unwrap()),
+            workspace_id: "w".into(),
+            db_path: db.clone(),
+            targets: Vec::new(),
+            messages: Vec::new(),
+            tasks: Vec::new(),
+            user_content: String::new(),
+            computer_use_turn_scope: crate::computer_use_turn_scope::ComputerUseTurnScope::default(),
+            chat_room_id: "r".into(),
+            conversation_session_id: None,
+            attachment_count: 0,
+            image_urls: Vec::new(),
+            context_history: Vec::new(),
+            context_rosters: BTreeMap::new(),
+            calls_vision: false,
+            calls_tool: false,
+            reference_context: crate::ChatReferenceContext::new(Vec::new(), Vec::new(), "r".into(), "", &[]),
+            goal_trigger: None,
+        };
+        let expired = RootExecutionBudget::from_started_at(1, 1);
+        assert!(expired.is_expired());
+        // 真实 accept 入口：过期拒绝发生在建 run/落事件/登记回合之前。
+        let outcome = root_execution_budget::scope(expired, async {
+            accept(&dispatched, "chat-send")
+        }).await;
+        let (status, crate::Json(body)) = outcome.err().expect("过期预算必须拒绝接纳");
+        assert_eq!(status, crate::StatusCode::REQUEST_TIMEOUT);
+        assert_eq!(body.error, root_execution_budget::EXPIRED_REASON);
+        assert_eq!(count("runtime_runs"), 0, "拒绝后不得新增 durable runtime_run");
+        assert_eq!(count("runtime_run_events"), 0, "拒绝后不得新增 run 事件");
+        assert_eq!(count("chat_room_messages"), 0, "拒绝后不得写入消息");
+        assert_eq!(count("sessions"), 0, "拒绝后不得写入会话");
+    }
 }

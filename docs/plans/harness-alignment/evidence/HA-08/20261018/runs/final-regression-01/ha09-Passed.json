@@ -1,0 +1,61 @@
+{
+  "evidence": {
+    "command_verification": {
+      "contract": {
+        "commands": [
+          "exit 0"
+        ],
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpF7dsFD",
+        "timeout_ms": 90000,
+        "type": "Command"
+      },
+      "legacy_failures": null,
+      "reason": "",
+      "receipts": [
+        {
+          "command": "exit 0",
+          "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpF7dsFD",
+          "exit_code": 0,
+          "finished_at_unix_ms": 1792367007462,
+          "id": "goal-command-1792367007249-33776-17",
+          "reason": "",
+          "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+          "started_at_unix_ms": 1792367007249,
+          "status": "passed",
+          "timeout_ms": 90000
+        }
+      ],
+      "state": "passed"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpF7dsFD",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpF7dsFD",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792367007462,
+        "id": "goal-command-1792367007249-33776-17",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792367007249,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "status": "completed",
+  "verdict": "pass"
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\Cargo.toml",
+    "sha256": "1d3a8e3bcabc066d3c90bec5483490429ba816c72d5735b1afc7d39315b68f90",
+    "archive_sha256": "1d3a8e3bcabc066d3c90bec5483490429ba816c72d5735b1afc7d39315b68f90"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\budget.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\budget.rs",
+    "sha256": "0a85942265896eb26cd6dc8cb9fe0b4ca927a7148f68c42e7065c8d3bde9eb02",
+    "archive_sha256": "0a85942265896eb26cd6dc8cb9fe0b4ca927a7148f68c42e7065c8d3bde9eb02"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\cleanup.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\cleanup.rs",
+    "sha256": "d465eefc05813a59cb6fb783224d8e0307873196af6b935ea370d462e5529496",
+    "archive_sha256": "d465eefc05813a59cb6fb783224d8e0307873196af6b935ea370d462e5529496"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\contracts.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\contracts.rs",
+    "sha256": "ed47b84d57152abae2591d077d731146443a22a7cd2f18c019c1d67f1e1b9949",
+    "archive_sha256": "ed47b84d57152abae2591d077d731146443a22a7cd2f18c019c1d67f1e1b9949"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\controller.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\controller.rs",
+    "sha256": "7ae8d8f88a0ae55857906d04264f1a6c2356991e5f33a01c8f2939e759c04c9a",
+    "archive_sha256": "7ae8d8f88a0ae55857906d04264f1a6c2356991e5f33a01c8f2939e759c04c9a"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\helper_ready.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\helper_ready.rs",
+    "sha256": "f9f7830d9ce37b007be50389d0909d07a4b80ee1c2c6bcfbd80ccbf5bb7f363b",
+    "archive_sha256": "f9f7830d9ce37b007be50389d0909d07a4b80ee1c2c6bcfbd80ccbf5bb7f363b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\input.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\input.rs",
+    "sha256": "3a7f84491b2a72d79a5bf9f3c0696ac573b240ecc9f131936cca1b6bcdfa52d4",
+    "archive_sha256": "3a7f84491b2a72d79a5bf9f3c0696ac573b240ecc9f131936cca1b6bcdfa52d4"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\input_stroke.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\input_stroke.rs",
+    "sha256": "07d0f6e3bcb0c9a5acfcb839cecee267fc025060d31ccf6dc8531ee0fd0960c0",
+    "archive_sha256": "07d0f6e3bcb0c9a5acfcb839cecee267fc025060d31ccf6dc8531ee0fd0960c0"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\input_stroke_native.cs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\input_stroke_native.cs",
+    "sha256": "f71a037cce9b6280843bca60cc8d745e40b3d623a4855cf3f6fed22611f060da",
+    "archive_sha256": "f71a037cce9b6280843bca60cc8d745e40b3d623a4855cf3f6fed22611f060da"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\lib.rs",
+    "sha256": "c32bfd99b4ff60e43df62d65d416f714ff7bc4b4bd914c370bbd3e778a0682f5",
+    "archive_sha256": "c32bfd99b4ff60e43df62d65d416f714ff7bc4b4bd914c370bbd3e778a0682f5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\prepared_input.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\prepared_input.rs",
+    "sha256": "a91c10d06551f908daa7c2ce978f0b8b558ec823f8cc583a441adf4fdfed1c41",
+    "archive_sha256": "a91c10d06551f908daa7c2ce978f0b8b558ec823f8cc583a441adf4fdfed1c41"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\supervisor.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\supervisor.rs",
+    "sha256": "496ab657a7052fd0302b409c507865d8bc182c7bf85b8d758419e41972fa9932",
+    "archive_sha256": "496ab657a7052fd0302b409c507865d8bc182c7bf85b8d758419e41972fa9932"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\computer-use-core\\src\\bin\\check.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\computer-use-core\\src\\bin\\check.rs",
+    "sha256": "c2d048ada326d7646630e4560092981006d5c39c81438c275e71ee57cc1500b5",
+    "archive_sha256": "c2d048ada326d7646630e4560092981006d5c39c81438c275e71ee57cc1500b5"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\native-browser-protocol\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\native-browser-protocol\\Cargo.toml",
+    "sha256": "e212cdb8cd88817a5a68eff58feed11e3a4395b9d9cfb308e54d6c5d374fd680",
+    "archive_sha256": "e212cdb8cd88817a5a68eff58feed11e3a4395b9d9cfb308e54d6c5d374fd680"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\computer-use\\packages\\native-browser-protocol\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\computer-use\\packages\\native-browser-protocol\\src\\lib.rs",
+    "sha256": "1ee9264f3fa03861bbbe8962b252c34996bf9ebc4e53d9f6732072a70507c2fb",
+    "archive_sha256": "1ee9264f3fa03861bbbe8962b252c34996bf9ebc4e53d9f6732072a70507c2fb"
+  }
+]

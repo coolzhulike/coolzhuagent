@@ -1,0 +1,76 @@
+{
+  "failed": {
+    "contract": {
+      "commands": [
+        "exit 1"
+      ],
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 1` 失败（exit 1）：\n",
+    "receipts": [
+      {
+        "command": "exit 1",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp5i6UEn",
+        "exit_code": 1,
+        "finished_at_unix_ms": 1792321912619,
+        "id": "goal-command-1792321912414-18540-7",
+        "reason": "`exit 1` 失败（exit 1）：\n",
+        "started_at_unix_ms": 1792321912414,
+        "status": "failed",
+        "timeout_ms": 600000
+      }
+    ],
+    "state": "failed"
+  },
+  "passed": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp5i6UEn",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792321912414,
+        "id": "goal-command-1792321912191-18540-6",
+        "reason": "",
+        "started_at_unix_ms": 1792321912191,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "unable": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp5i6UEn\\missing",
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 0` 未能完成：目录名称无效。 (os error 267)",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp5i6UEn\\missing",
+        "exit_code": null,
+        "finished_at_unix_ms": 1792321912620,
+        "id": "goal-command-1792321912619-18540-8",
+        "reason": "`exit 0` 未能完成：目录名称无效。 (os error 267)",
+        "started_at_unix_ms": 1792321912619,
+        "status": "unable",
+        "timeout_ms": 600000
+      }
+    ],
+    "state": "unable"
+  }
+}

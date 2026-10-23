@@ -17,6 +17,7 @@ pub enum LspError {
     },
     PathToUrl(PathBuf),
     Protocol(String),
+    NotReady,
 }
 
 impl Display for LspError {
@@ -43,6 +44,7 @@ impl Display for LspError {
             ),
             Self::PathToUrl(path) => write!(f, "failed to convert path to file URL: {}", path.display()),
             Self::Protocol(message) => write!(f, "LSP protocol error: {message}"),
+            Self::NotReady => write!(f, "语言服务正在索引，请就绪后重试"),
         }
     }
 }

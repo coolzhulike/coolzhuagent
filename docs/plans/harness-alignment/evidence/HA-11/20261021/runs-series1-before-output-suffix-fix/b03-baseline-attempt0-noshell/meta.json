@@ -1,0 +1,9 @@
+﻿{
+    "room_id":  "room-1792590083928",
+    "round":  1,
+    "http":  200,
+    "side":  "baseline",
+    "prompt":  "当前工作区是一个 Rust crate，`cargo test` 目前失败。请修复 add 函数的 bug，并实际运行 `cargo test --offline` 验证通过后再简短汇报结果。",
+    "case":  "b03",
+    "elapsed_ms":  53248
+}

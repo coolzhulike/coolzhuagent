@@ -1,0 +1,513 @@
+{
+  "at_utc": "2026-10-16T14:35:00.770465+00:00",
+  "mode": "read_only",
+  "backup": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cold-start-20261016\\session-before.sqlite3",
+  "database": "D:\\tmp\\.coolzhu\\web-sessions.sqlite3",
+  "tables": [
+    {
+      "table": "chat_room_messages",
+      "before": {
+        "exists": true,
+        "rows": 2336,
+        "columns": [
+          "room_id",
+          "id",
+          "author",
+          "role",
+          "target",
+          "content",
+          "kind",
+          "attachments_json",
+          "created_at"
+        ],
+        "rows_sha256": "5ebc90c8cbb910ee6adcdc1a719eb1f3244342cb1a7a5d696ee086fbc5b10024"
+      },
+      "after": {
+        "exists": true,
+        "rows": 2336,
+        "columns": [
+          "room_id",
+          "id",
+          "author",
+          "role",
+          "target",
+          "content",
+          "kind",
+          "attachments_json",
+          "created_at"
+        ],
+        "rows_sha256": "5ebc90c8cbb910ee6adcdc1a719eb1f3244342cb1a7a5d696ee086fbc5b10024"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "tool_calls",
+      "before": {
+        "exists": true,
+        "rows": 6060,
+        "columns": [
+          "tool_call_id",
+          "run_id",
+          "request_attempt_id",
+          "tool_name",
+          "arguments_digest",
+          "status",
+          "created_at_unix_ms",
+          "updated_at_unix_ms",
+          "provider_tool_call_id",
+          "source_request_key"
+        ],
+        "rows_sha256": "38ff79985e571e3f4f5062004db959174b2e17362563a5f8f149257d7d41912f"
+      },
+      "after": {
+        "exists": true,
+        "rows": 6060,
+        "columns": [
+          "tool_call_id",
+          "run_id",
+          "request_attempt_id",
+          "tool_name",
+          "arguments_digest",
+          "status",
+          "created_at_unix_ms",
+          "updated_at_unix_ms",
+          "provider_tool_call_id",
+          "source_request_key"
+        ],
+        "rows_sha256": "38ff79985e571e3f4f5062004db959174b2e17362563a5f8f149257d7d41912f"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "runtime_runs",
+      "before": {
+        "exists": true,
+        "rows": 828,
+        "columns": [
+          "id",
+          "kind",
+          "workspace_id",
+          "session_id",
+          "chat_room_id",
+          "goal_id",
+          "phase_id",
+          "legacy_turn_id",
+          "provider_turn_id",
+          "state",
+          "owner_id",
+          "claim_token",
+          "stop_reason",
+          "error_json",
+          "created_at",
+          "started_at",
+          "stop_requested_at",
+          "heartbeat_at",
+          "finished_at"
+        ],
+        "rows_sha256": "21516efa0666a59028adfe75df0d79fb5132ef992738fb2f02a153c703abe406"
+      },
+      "after": {
+        "exists": true,
+        "rows": 828,
+        "columns": [
+          "id",
+          "kind",
+          "workspace_id",
+          "session_id",
+          "chat_room_id",
+          "goal_id",
+          "phase_id",
+          "legacy_turn_id",
+          "provider_turn_id",
+          "state",
+          "owner_id",
+          "claim_token",
+          "stop_reason",
+          "error_json",
+          "created_at",
+          "started_at",
+          "stop_requested_at",
+          "heartbeat_at",
+          "finished_at"
+        ],
+        "rows_sha256": "21516efa0666a59028adfe75df0d79fb5132ef992738fb2f02a153c703abe406"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "runtime_run_events",
+      "before": {
+        "exists": true,
+        "rows": 9130,
+        "columns": [
+          "id",
+          "run_id",
+          "event_type",
+          "payload_json",
+          "created_at"
+        ],
+        "rows_sha256": "aae983a96a20ac59450985d40afbba4b30658c762ad2eb9fcece0e8cb3cc2bff"
+      },
+      "after": {
+        "exists": true,
+        "rows": 9130,
+        "columns": [
+          "id",
+          "run_id",
+          "event_type",
+          "payload_json",
+          "created_at"
+        ],
+        "rows_sha256": "aae983a96a20ac59450985d40afbba4b30658c762ad2eb9fcece0e8cb3cc2bff"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "devin_acp_attempts",
+      "before": {
+        "exists": true,
+        "rows": 1352,
+        "columns": [
+          "attempt_id",
+          "scope_json",
+          "state",
+          "cancel_requested",
+          "protocol_stop",
+          "process_drained",
+          "model_json"
+        ],
+        "rows_sha256": "6e8d3a408b0f4f8a25a968f8021e127a792c33f773e9bd53f5b23255ae01493d"
+      },
+      "after": {
+        "exists": true,
+        "rows": 1352,
+        "columns": [
+          "attempt_id",
+          "scope_json",
+          "state",
+          "cancel_requested",
+          "protocol_stop",
+          "process_drained",
+          "model_json"
+        ],
+        "rows_sha256": "6e8d3a408b0f4f8a25a968f8021e127a792c33f773e9bd53f5b23255ae01493d"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "devin_acp_bindings",
+      "before": {
+        "exists": true,
+        "rows": 9,
+        "columns": [
+          "workspace_id",
+          "room_id",
+          "agent_id",
+          "lane",
+          "cwd",
+          "cli_identity",
+          "context_digest",
+          "remote_session_id",
+          "owner_epoch",
+          "generation",
+          "locked_attempt"
+        ],
+        "rows_sha256": "0ef23aac488f2fea2dfeafbd4be80af04f0695405f4225da4d080a9f1c77bc27"
+      },
+      "after": {
+        "exists": true,
+        "rows": 9,
+        "columns": [
+          "workspace_id",
+          "room_id",
+          "agent_id",
+          "lane",
+          "cwd",
+          "cli_identity",
+          "context_digest",
+          "remote_session_id",
+          "owner_epoch",
+          "generation",
+          "locked_attempt"
+        ],
+        "rows_sha256": "0ef23aac488f2fea2dfeafbd4be80af04f0695405f4225da4d080a9f1c77bc27"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "goals",
+      "before": {
+        "exists": true,
+        "rows": 4,
+        "columns": [
+          "id",
+          "workspace_id",
+          "chat_room_id",
+          "title",
+          "status",
+          "max_iterations",
+          "current_iteration",
+          "background",
+          "originating_user_msg_id",
+          "completion_condition_json",
+          "plan_json",
+          "created_at",
+          "updated_at",
+          "cancelled_at"
+        ],
+        "rows_sha256": "6f0c38983be04fb1dcd4356a9cb7c7f58edd5bcde747fe0f92cf1202d33fe715"
+      },
+      "after": {
+        "exists": true,
+        "rows": 4,
+        "columns": [
+          "id",
+          "workspace_id",
+          "chat_room_id",
+          "title",
+          "status",
+          "max_iterations",
+          "current_iteration",
+          "background",
+          "originating_user_msg_id",
+          "completion_condition_json",
+          "plan_json",
+          "created_at",
+          "updated_at",
+          "cancelled_at"
+        ],
+        "rows_sha256": "6f0c38983be04fb1dcd4356a9cb7c7f58edd5bcde747fe0f92cf1202d33fe715"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "goal_phases",
+      "before": {
+        "exists": true,
+        "rows": 34,
+        "columns": [
+          "id",
+          "goal_id",
+          "title",
+          "assigned_role",
+          "status",
+          "depends_on_json",
+          "skills_json",
+          "output_artifacts_json",
+          "verification_json",
+          "created_at",
+          "updated_at",
+          "retry_count",
+          "max_retries",
+          "last_verdict",
+          "last_reason",
+          "last_evidence_json",
+          "route_hint",
+          "requires_human_ack",
+          "human_ack",
+          "active_run_id",
+          "claim_token",
+          "claim_owner",
+          "claimed_at",
+          "lease_until"
+        ],
+        "rows_sha256": "aee8906e9f9b65dad230d416ceb36bc50cfcab11894173820b26d95c8f89720b"
+      },
+      "after": {
+        "exists": true,
+        "rows": 34,
+        "columns": [
+          "id",
+          "goal_id",
+          "title",
+          "assigned_role",
+          "status",
+          "depends_on_json",
+          "skills_json",
+          "output_artifacts_json",
+          "verification_json",
+          "created_at",
+          "updated_at",
+          "retry_count",
+          "max_retries",
+          "last_verdict",
+          "last_reason",
+          "last_evidence_json",
+          "route_hint",
+          "requires_human_ack",
+          "human_ack",
+          "active_run_id",
+          "claim_token",
+          "claim_owner",
+          "claimed_at",
+          "lease_until"
+        ],
+        "rows_sha256": "aee8906e9f9b65dad230d416ceb36bc50cfcab11894173820b26d95c8f89720b"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "goal_events",
+      "before": {
+        "exists": true,
+        "rows": 41,
+        "columns": [
+          "id",
+          "goal_id",
+          "event_type",
+          "message",
+          "payload_json",
+          "created_at"
+        ],
+        "rows_sha256": "75650d428368e74258f4cf5ad1e9d8e3277525d048e39c759bfca851ccd8c032"
+      },
+      "after": {
+        "exists": true,
+        "rows": 41,
+        "columns": [
+          "id",
+          "goal_id",
+          "event_type",
+          "message",
+          "payload_json",
+          "created_at"
+        ],
+        "rows_sha256": "75650d428368e74258f4cf5ad1e9d8e3277525d048e39c759bfca851ccd8c032"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "computer_use_runs",
+      "before": {
+        "exists": true,
+        "rows": 352,
+        "columns": [
+          "call_id",
+          "provider_tool_call_id",
+          "turn_id",
+          "session_id",
+          "chat_room_id",
+          "idempotency_key",
+          "objective_json",
+          "surface",
+          "state",
+          "state_version",
+          "risk_class",
+          "approval_state",
+          "approval_deadline_ms",
+          "action_count",
+          "replan_count",
+          "no_progress_count",
+          "current_observation_generation",
+          "deadline_ms",
+          "terminal_result_json",
+          "created_at_ms",
+          "updated_at_ms",
+          "workspace_id",
+          "workspace_context_version",
+          "legacy_convergence_id",
+          "legacy_convergence_state",
+          "legacy_convergence_reconciled_at_ms"
+        ],
+        "rows_sha256": "73474869fffd54dbcbcf7a5e905e170741fc290806510f13f062cdfd950edeed"
+      },
+      "after": {
+        "exists": true,
+        "rows": 352,
+        "columns": [
+          "call_id",
+          "provider_tool_call_id",
+          "turn_id",
+          "session_id",
+          "chat_room_id",
+          "idempotency_key",
+          "objective_json",
+          "surface",
+          "state",
+          "state_version",
+          "risk_class",
+          "approval_state",
+          "approval_deadline_ms",
+          "action_count",
+          "replan_count",
+          "no_progress_count",
+          "current_observation_generation",
+          "deadline_ms",
+          "terminal_result_json",
+          "created_at_ms",
+          "updated_at_ms",
+          "workspace_id",
+          "workspace_context_version",
+          "legacy_convergence_id",
+          "legacy_convergence_state",
+          "legacy_convergence_reconciled_at_ms"
+        ],
+        "rows_sha256": "73474869fffd54dbcbcf7a5e905e170741fc290806510f13f062cdfd950edeed"
+      },
+      "unchanged": true
+    },
+    {
+      "table": "memory_beads",
+      "before": {
+        "exists": true,
+        "rows": 158,
+        "columns": [
+          "session_id",
+          "id",
+          "kind",
+          "layer",
+          "summary",
+          "source",
+          "pinned",
+          "confidence",
+          "created_at",
+          "origin_message_id",
+          "origin_table",
+          "token_count"
+        ],
+        "rows_sha256": "dc32362f531922dbba2842bb61ff19cd42140481addd73ebf8c6d79ca32040eb"
+      },
+      "after": {
+        "exists": true,
+        "rows": 158,
+        "columns": [
+          "session_id",
+          "id",
+          "kind",
+          "layer",
+          "summary",
+          "source",
+          "pinned",
+          "confidence",
+          "created_at",
+          "origin_message_id",
+          "origin_table",
+          "token_count"
+        ],
+        "rows_sha256": "dc32362f531922dbba2842bb61ff19cd42140481addd73ebf8c6d79ca32040eb"
+      },
+      "unchanged": true
+    }
+  ],
+  "workspace": {
+    "workspace_id": "ws-8d17063fefe5c23c",
+    "workspace": "D:\\coolzhuagent"
+  },
+  "binding": [
+    [
+      "ws-23f646a969206cb4",
+      "session-1791131217833",
+      null,
+      null
+    ],
+    [
+      "ws-8d17063fefe5c23c",
+      "session-1791131217833",
+      "buttercup-pink",
+      null
+    ]
+  ],
+  "quick_check": "ok",
+  "history_unchanged": true,
+  "state": "completed"
+}

@@ -1,0 +1,90 @@
+{
+  "at_utc": "2026-10-16T15:42:04.355991+00:00",
+  "version": "0.2.135完整候选包，正式8765；MSI覆盖仍受阻",
+  "method": "正式端口只读HTTP，与实际持久化归属对照；没有模型调用或生产库写入",
+  "cases": [
+    {
+      "case": "真实回复精确归属",
+      "path": "/api/chat/rooms/room-1791131523339/trace?limit=30&message_id=msg-1792083075400-0",
+      "status": 200,
+      "message_id": "msg-1792083075400-0",
+      "expected_run_id": "run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645",
+      "actual_run_ids": [
+        "run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645"
+      ],
+      "requested_message_id": "msg-1792083075400-0",
+      "pass": true
+    },
+    {
+      "case": "真实回复精确归属",
+      "path": "/api/chat/rooms/room-1791131523339/trace?limit=30&message_id=msg-1792082872685-0",
+      "status": 200,
+      "message_id": "msg-1792082872685-0",
+      "expected_run_id": "run-chat-d3b77a88654dfa89adc342b46500e08d90005daad743adaf",
+      "actual_run_ids": [
+        "run-chat-d3b77a88654dfa89adc342b46500e08d90005daad743adaf"
+      ],
+      "requested_message_id": "msg-1792082872685-0",
+      "pass": true
+    },
+    {
+      "case": "不存在回复",
+      "path": "/api/chat/rooms/room-1791131523339/trace?message_id=missing-formal-135",
+      "expected_status": 404,
+      "status": 404,
+      "pass": true,
+      "response": {
+        "error": "这条回复没有可定位的运行记录"
+      }
+    },
+    {
+      "case": "跨聊天室",
+      "path": "/api/chat/rooms/main-room/trace?message_id=msg-1792083075400-0",
+      "expected_status": 404,
+      "status": 404,
+      "pass": true,
+      "response": {
+        "error": "这条回复没有可定位的运行记录"
+      }
+    },
+    {
+      "case": "冲突run筛选",
+      "path": "/api/chat/rooms/room-1791131523339/trace?message_id=msg-1792083075400-0&run_id=run-chat-d3b77a88654dfa89adc342b46500e08d90005daad743adaf",
+      "expected_status": 400,
+      "status": 400,
+      "pass": true,
+      "response": {
+        "error": "回复定位不能同时指定其他运行或分页游标"
+      }
+    },
+    {
+      "case": "禁止回复定位混用分页",
+      "path": "/api/chat/rooms/room-1791131523339/trace?message_id=msg-1792083075400-0&before=1",
+      "expected_status": 400,
+      "status": 400,
+      "pass": true,
+      "response": {
+        "error": "回复定位不能同时指定其他运行或分页游标"
+      }
+    }
+  ],
+  "static_resources": [
+    {
+      "route": "/src/app.js",
+      "status": 200,
+      "actual_sha256": "4b948d3244671df48f2e634aafdd3ca09905130e220e72ee1aff1c936b41685c",
+      "source_sha256": "4b948d3244671df48f2e634aafdd3ca09905130e220e72ee1aff1c936b41685c",
+      "match": true
+    },
+    {
+      "route": "/src/workspace_panels.js",
+      "status": 200,
+      "actual_sha256": "d2292b676b5ed483c34ebc619c1480f538deb0343f6a7271dc7010820ac35892",
+      "source_sha256": "d2292b676b5ed483c34ebc619c1480f538deb0343f6a7271dc7010820ac35892",
+      "match": true
+    }
+  ],
+  "passed": 6,
+  "failed": 0,
+  "state": "completed"
+}

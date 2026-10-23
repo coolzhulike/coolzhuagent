@@ -1,0 +1,63 @@
+{
+  "job_id": "goal-fix-build-d468dadf2a9f48a482598debd4e99b4b",
+  "state": "completed",
+  "started_at_utc": "2026-10-15T18:03:18.928682+00:00",
+  "source_sha256_before": "aeb17997621668388b99591a3b2cb0211529ade78a7b2fcfa34f50132eefdb09",
+  "commands": [
+    {
+      "name": "build",
+      "command": [
+        "C:\\Users\\zhupu\\.cargo\\bin\\cargo.exe",
+        "build",
+        "-p",
+        "coolzhu-web-console",
+        "--offline",
+        "-j",
+        "1",
+        "--target-dir",
+        "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target"
+      ],
+      "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-fix-build-20261015.log",
+      "state": "completed",
+      "exit_code": 0,
+      "seconds": 713.032,
+      "log_sha256": "0a89db7fe788422d151d37149cedd6accc3d93695b21f1e25482d542c0b8a50f",
+      "results": []
+    },
+    {
+      "name": "goal-regression",
+      "command": [
+        "C:\\Users\\zhupu\\.cargo\\bin\\cargo.exe",
+        "test",
+        "-p",
+        "coolzhu-web-console",
+        "--offline",
+        "-j",
+        "1",
+        "--target-dir",
+        "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+        "--bin",
+        "coolzhu-web-console",
+        "tests::goal_phase_token_finalizer_repair_returns_to_verifier_without_resetting_budget",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-fix-goal-regression-20261015.log",
+      "state": "completed",
+      "exit_code": 0,
+      "seconds": 674.86,
+      "log_sha256": "d28e60a0de2b2d56882fafcba0d2fe4b84c1b4b6a33fff952127b570c85b5cda",
+      "results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    }
+  ],
+  "exit_code": 0,
+  "source_sha256_after": "aeb17997621668388b99591a3b2cb0211529ade78a7b2fcfa34f50132eefdb09",
+  "finished_at_utc": "2026-10-15T18:26:27.549021+00:00"
+}

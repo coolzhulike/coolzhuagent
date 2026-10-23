@@ -1799,11 +1799,15 @@ fn element_rect_area(element: &JsonValue) -> Option<u64> {
 }
 
 fn extract_requested_text_input_from_request(request: &ComputerUseRequest) -> Option<String> {
-    let mut sources = Vec::with_capacity(request.success_criteria.len() + 1);
-    sources.push(request.objective.as_str());
-    for criterion in &request.success_criteria {
-        sources.push(criterion.as_str());
+    // 结果判据里的轮次、工单号只是待观察文本，不能单独触发对可编辑控件的输入。
+    // 只有目标明确要求输入时，才走无需模型规划的快速路径。
+    let objective = request.objective.as_str();
+    let lower = objective.to_ascii_lowercase();
+    if ["禁止输入", "不得输入", "不要输入", "不输入", "do not type", "don't type", "no typing"]
+        .iter().any(|deny| lower.contains(deny)) {
+        return None;
     }
+    let explicit_text = extract_requested_text_input(objective)?;
     // Success criteria often carry the exact observable marker while the objective wraps it in
     // prose such as "Type the exact text ... into Notepad". Prefer that bounded marker before
     // the broad `type ` parser, otherwise the whole instruction tail is typed into the control.
@@ -1812,17 +1816,7 @@ fn extract_requested_text_input_from_request(request: &ComputerUseRequest) -> Op
             return Some(text);
         }
     }
-    for source in &sources {
-        if let Some(text) = extract_requested_text_input(source) {
-            return Some(text);
-        }
-    }
-    for source in sources {
-        if let Some(text) = extract_bounded_marker_token(source) {
-            return Some(text);
-        }
-    }
-    None
+    extract_bounded_marker_token(objective).or(Some(explicit_text))
 }
 
 fn extract_requested_text_input(objective: &str) -> Option<String> {
@@ -3037,7 +3031,7 @@ mod tests {
     }
 
     #[test]
-    fn deterministic_desktop_text_input_recovers_marker_from_success_criteria() {
+    fn deterministic_desktop_text_input_rejects_marker_without_input_intent() {
         let request: ComputerUseRequest = serde_json::from_value(json!({
             "objective": "??? computer_use.perform,surface=desktop,???? COOLZHU-DESKTOP-E2E-38f93bb9f9a9?",
             "surface": "desktop",
@@ -3064,12 +3058,25 @@ mod tests {
             evidence: vec!["uia_snapshot:test".to_string()],
         };
 
-        let action = deterministic_desktop_text_input_action(&request, &observation)
-            .expect("deterministic text input action");
+        assert!(deterministic_desktop_text_input_action(&request, &observation).is_none());
+    }
 
-        assert_eq!(action.kind, ComputerUseActionKind::TextInput);
-        assert_eq!(action.target, "uia-edit-1");
-        assert_eq!(action.arguments["text"], "COOLZHU-DESKTOP-E2E-38f93bb9f9a9");
+    #[test]
+    fn desktop_observation_ids_must_not_be_typed_into_chat_editor() {
+        let request: ComputerUseRequest = serde_json::from_value(json!({
+            "objective": "在聊天室滚动找到 D-CU-DESKTOP-TRACE-108 的回复，再点击运行轨迹入口；不要输入文本或发送消息。",
+            "surface": "desktop",
+            "success_criteria": ["屏幕可见 D-CU-DESKTOP-TRACE-108 的公开回复"]
+        })).unwrap();
+        let observation = Observation {
+            generation: 1,
+            surface: ComputerUseSurface::Desktop,
+            surface_identity: "desktop:test".to_string(),
+            state: json!({"desktop":{"elements":[{"reference":"uia-chat-input","control_type":"Edit",
+                "enabled":true,"offscreen":false,"rect":[10,20,300,80]}]}}),
+            evidence: vec!["uia_snapshot:test".to_string()],
+        };
+        assert!(deterministic_desktop_text_input_action(&request, &observation).is_none());
     }
 
     #[test]

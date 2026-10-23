@@ -1,0 +1,46 @@
+{
+  "state": "completed",
+  "action": "core",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.EXE",
+    "test",
+    "-p",
+    "coolzhu-core-runtime",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+    "--lib",
+    "quoted_hook_path_with_spaces_keeps_shell_semantics",
+    "--",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "source_before": {
+    "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs": "40c3d40cf9d64f8389ee8e354db4a9e39eab63a0f6f0d65313b2bc2cc67364d4",
+    "modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc",
+    "modules/gui-web/packages/web-console/src/main.rs": "f0172524ad25d74c8fa335741ed8368bd35e2ce5b132a947a1b5a5fce42c483b",
+    "modules/core-runtime/packages/core-runtime/src/hooks.rs": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+  },
+  "started_at_utc": "2026-10-16T17:54:41.040152+00:00",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-hook-budget-core-20261016.log",
+  "exit_code": 0,
+  "elapsed_seconds": 81.012,
+  "source_after": {
+    "modules/gui-web/packages/web-console/src/tool_dispatch_service.rs": "40c3d40cf9d64f8389ee8e354db4a9e39eab63a0f6f0d65313b2bc2cc67364d4",
+    "modules/gui-web/packages/web-console/src/dispatch_hook_budget_tests.rs": "6b4f7d1ad30df6d5179c74df9416d0d2f97b86141fa0c0f32515fbd53e9016bc",
+    "modules/gui-web/packages/web-console/src/main.rs": "f0172524ad25d74c8fa335741ed8368bd35e2ce5b132a947a1b5a5fce42c483b",
+    "modules/core-runtime/packages/core-runtime/src/hooks.rs": "af88c7158fc92c097d02bd0ff194245536ebbed7d4029f8586def4db25cd5c94"
+  },
+  "source_unchanged": true,
+  "log_sha256": "bbc5d012652478b9fcea978378093faf6e6f7916a5b8edde8dd91117cfae7000",
+  "test_results": [
+    [
+      "1",
+      "0",
+      "0"
+    ]
+  ],
+  "finished_at_utc": "2026-10-16T17:56:02.178538+00:00"
+}

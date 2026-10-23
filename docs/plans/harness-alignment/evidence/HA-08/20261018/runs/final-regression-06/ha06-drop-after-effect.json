@@ -1,0 +1,10 @@
+{
+  "effects": 1,
+  "elapsed_ms": 229,
+  "execution_id": "tool-513e58302f32ce03afe2875cb531ff7cbed929dd4640fd7e88eebeaae8d9c032",
+  "hook_drained": true,
+  "hook_pid": 28464,
+  "late_effect": false,
+  "replay_refused": true,
+  "state": "cancelled_outcome_unknown"
+}

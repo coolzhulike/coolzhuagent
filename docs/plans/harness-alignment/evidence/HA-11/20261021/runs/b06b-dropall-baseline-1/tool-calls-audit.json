@@ -1,0 +1,17 @@
+{
+ "case": "b06b-dropall",
+ "side": "baseline",
+ "run_id": "run-chat-50cc7b8a5bc27729ed7cb50f5a4800dcbf42a08325cb5799",
+ "tool_executions": 1,
+ "rows": [
+  {
+   "tool_call_id": "tool-2ed20c171b5b227292701f0027e9683e54d9ee1e0a7de4b6b2b1a3b50466b31b",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792692951095,
+   "updated_ms": 1792692991483,
+   "provider_call_id": "call_b06_1"
+  }
+ ],
+ "note": "tool_calls audit from isolated sqlite; exactly-once execution"
+}

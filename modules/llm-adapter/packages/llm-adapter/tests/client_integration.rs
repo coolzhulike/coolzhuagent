@@ -542,3 +542,73 @@ async fn compat_id_anthropic_shape_endpoint_check() {
         ),
     }
 }
+
+#[derive(Debug, Default)]
+struct WireObserver(std::sync::Mutex<Vec<api::RequestAttemptSnapshot>>);
+impl api::RequestObserver for WireObserver {
+    fn update(&self, snapshot: &api::RequestAttemptSnapshot) { self.0.lock().unwrap().push(snapshot.clone()); }
+}
+
+#[tokio::test]
+async fn ha04_anthropic_final_wire_summary_matches_actual_bytes_in_both_modes() {
+    use sha2::{Digest, Sha256};
+    for streamed in [false,true] {
+        let captured=Arc::new(Mutex::new(Vec::new()));
+        let message=json!({"id":"ha04-message","type":"message","role":"assistant","model":"claude-sonnet-4-6",
+            "content":[],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":4,"output_tokens":2}});
+        let response=if streamed {
+            let start=json!({"type":"message_start","message":message});
+            http_response("200 OK","text/event-stream",&format!("event: message_start\ndata: {start}\n\nevent: message_stop\ndata: {{\"type\":\"message_stop\"}}\n\n"))
+        } else {http_response("200 OK","application/json",&message.to_string())};
+        let server=spawn_server(captured.clone(),vec![response]).await;
+        let observer=Arc::new(WireObserver::default());
+        let client=ApiClient::new("HA04_SYNTHETIC_KEY").with_base_url(server.base_url())
+            .with_request_parameters(api::RequestParameters {temperature:Some(0.25),top_p:None,
+                reasoning_mode:Some("budget".into()),thinking_budget:Some(2048)})
+            .with_request_observer(observer.clone());
+        let mut request=sample_request(false); request.max_tokens=8192; request.reasoning_effort=Some("high".into());
+        if streamed { let mut stream=client.stream_message(&request).await.unwrap(); while stream.next_event().await.unwrap().is_some() {} }
+        else {client.send_message(&request).await.unwrap();}
+        let raw=captured.lock().await[0].body.clone(); let mut body:serde_json::Value=serde_json::from_str(&raw).unwrap();
+        let summary=observer.0.lock().unwrap().iter().find_map(|event|event.wire.clone()).unwrap();
+        assert_eq!(summary.model,request.model); assert_eq!(summary.stream,streamed);
+        assert_eq!(summary.tool_names,vec!["get_weather"]);
+        assert_eq!(body["tools"][0]["input_schema"],request.tools.as_ref().unwrap()[0].input_schema);
+        assert_eq!(body["tool_choice"],json!({"type":"auto"})); assert_eq!(body["max_tokens"],8192);
+        assert_eq!(body["thinking"],json!({"type":"enabled","budget_tokens":2048}));
+        assert_eq!(body["temperature"],0.25); assert!(body.get("reasoning_effort").is_none());
+        assert!(body.get("thinking_budget").is_none()); assert!(body.get("top_p").is_none());
+        assert_eq!(summary.tools_digest,format!("sha256:{:x}",Sha256::digest(body["tools"].to_string().as_bytes())));
+        for key in ["messages","system","tools"] {body.as_object_mut().unwrap().remove(key);}
+        assert_eq!(summary.parameters_digest,format!("sha256:{:x}",Sha256::digest(body.to_string().as_bytes())));
+        let encoded=serde_json::to_string(&summary).unwrap();
+        for private in ["HA04_SYNTHETIC_KEY","Say hello","Use tools when needed"] {assert!(!encoded.contains(private));}
+        if let Ok(dir)=std::env::var("COOLZHU_HARNESS_EVIDENCE_DIR") {
+            std::fs::write(std::path::Path::new(&dir).join(format!("anthropic-wire-{streamed}.json")),
+                serde_json::to_vec_pretty(&json!({"raw_http_body":raw,"binding_summary":summary})).unwrap()).unwrap();
+        }
+    }
+}
+
+#[tokio::test]
+async fn ha04_exhausted_real_retries_have_two_terminal_attempts_with_wire_evidence() {
+    let captured=Arc::new(Mutex::new(Vec::new()));
+    let response=http_response("503 Service Unavailable","application/json",r#"{"error":{"message":"HA04_BUSY"}}"#);
+    let server=spawn_server(captured.clone(),vec![response.clone(),response]).await;
+    let observer=Arc::new(WireObserver::default());
+    let client=ApiClient::new("fixture").with_base_url(server.base_url())
+        .with_retry_policy(1,Duration::from_millis(1),Duration::from_millis(2)).with_request_observer(observer.clone());
+    let error=client.send_message(&sample_request(false)).await.unwrap_err();
+    assert!(matches!(error,ApiError::RetriesExhausted{attempts:2,..}));
+    let events=observer.0.lock().unwrap();
+    let terminal:Vec<_>=events.iter().filter(|event|event.terminal).collect();
+    assert_eq!(terminal.len(),2); assert_eq!(terminal[0].attempt_no,1); assert_eq!(terminal[1].attempt_no,2);
+    assert!(terminal.iter().all(|event|event.dispatched&&event.status=="http_error"&&event.http_status==Some(503)&&event.wire.is_some()));
+    let raw=captured.lock().await; assert_eq!(raw.len(),2); assert_eq!(raw[0].body,raw[1].body);
+    if let Ok(dir)=std::env::var("COOLZHU_HARNESS_EVIDENCE_DIR") {
+        std::fs::write(std::path::Path::new(&dir).join("retry-exhausted.json"),serde_json::to_vec_pretty(&json!({
+            "raw_http_bodies":[raw[0].body,raw[1].body],"attempts":terminal.iter().map(|e|json!({"attempt":e.attempt_no,"status":e.status,"wire":e.wire})).collect::<Vec<_>>()
+        })).unwrap()).unwrap();
+    }
+}
+

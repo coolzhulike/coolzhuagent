@@ -97,12 +97,6 @@ let activeSessionId = null;
 let activeChatRoomId = null;
 let chatHistorySync = null;
 let chatHistoryLoadVersion = 0;
-const terminalWindowState = {
-  handle: null, cursor: 0, scopeKey: "", pollTimer: 0, resizeTimer: 0,
-  busy: false, closed: false, epoch: 0, vtMode: "text", vtCsi: "",
-  vtLines: [], vtRow: 0, vtColumn: 0, vtEraseBlank: false, vtTruncated: false,
-  lastSize: "",
-};
 let activeChatRoomDiagnostics = { enabled: true, auto_refresh: false, show_stream_interrupts: true, show_details: true };
 let activeChatAbortController = null;
 let activeServerTurnId = null;
@@ -185,7 +179,7 @@ let clawbotLoginPollTimer = null;
 let clawbotLoginPollInFlight = false;
 let handoffDrawerOpen = false;
 const CHAT_TOOL_WINDOW_META = Object.freeze({
-  schedules: Object.freeze({ label: "定时任务", kicker: "自动执行", asset: "./assets/icons-wuxia/tasks.svg" }),
+  schedules: Object.freeze({ label: "任务", kicker: "运行概览", asset: "./assets/icons-wuxia/tasks.svg" }),
   preview: Object.freeze({ label: "内容预览", kicker: "文件与媒体", asset: "./assets/icons-wuxia/file.svg" }),
   trace: Object.freeze({ label: "运行轨迹", kicker: "过程记录", asset: "./assets/icons-wuxia/route-plan.svg" }),
   history: Object.freeze({ label: "聊天记录", kicker: "搜索与定位", asset: "./assets/icons-wuxia/search.svg" }),
@@ -576,18 +570,6 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       browserWindowNavigate();
     }
-  });
-  actionButtons.get("terminal-window-run")?.addEventListener("click", terminalWindowRunPowerShell);
-  actionButtons.get("terminal-window-clear")?.addEventListener("click", terminalWindowClear);
-  actionButtons.get("terminal-window-interrupt")?.addEventListener("click", terminalWindowInterrupt);
-  actionButtons.get("terminal-window-close")?.addEventListener("click", terminalWindowClose);
-  const terminalOutput = document.querySelector('[data-role="terminal-window-output"]');
-  if (terminalOutput && typeof ResizeObserver === "function") {
-    new ResizeObserver(() => terminalWindowResizeSoon()).observe(terminalOutput);
-  }
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) window.clearTimeout(terminalWindowState.resizeTimer);
-    else terminalWindowResizeSoon();
   });
   actionButtons.get("skills-catalog-refresh")?.addEventListener("click", () => refreshQuickCatalogWindow("skills"));
   actionButtons.get("plugin-market-refresh")?.addEventListener("click", () => refreshQuickCatalogWindow("plugin-market"));
@@ -5553,6 +5535,16 @@ function chatPermissionStatusKnown(roomId = activeChatRoomId) {
 
 async function refreshFullAccessStatus() {
   const roomId = activeChatRoomId;
+  if (chatPermissionInFlight?.room === roomId && projectRequestScopeCurrent(chatPermissionInFlight.scope)) return chatPermissionInFlight.promise;
+  const scopeKey=projectRequestScope();
+  const entry={room:roomId,scope:scopeKey,promise:null};
+  entry.promise=loadFullAccessStatus().finally(()=>{if(chatPermissionInFlight===entry)chatPermissionInFlight=null;});
+  chatPermissionInFlight=entry;
+  return entry.promise;
+}
+
+async function loadFullAccessStatus() {
+  const roomId = activeChatRoomId;
   const scope = projectRequestScope();
   const requestSerial = ++chatPermissionRequestSerial;
   if (!roomId) {
@@ -5562,7 +5554,8 @@ async function refreshFullAccessStatus() {
   }
   taskRenderFullAccessStatus({ room_id: roomId, loading: true });
   try {
-    const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`);
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),10000);
+    let status;try {status=await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`,{signal:controller.signal});}finally{clearTimeout(timeout);}
     if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
     taskRenderFullAccessStatus(status);
   } catch (error) {
@@ -5572,6 +5565,11 @@ async function refreshFullAccessStatus() {
 }
 
 let chatPermissionRequestSerial = 0;
+let chatDiagnosticsRequestSerial = 0;
+let chatPermissionInFlight = null;
+function chatDiagnosticsRequestCurrent(roomId, scope, serial) {
+  return activeChatRoomId === roomId && projectRequestScopeCurrent(scope) && chatDiagnosticsRequestSerial === serial;
+}
 function chatPermissionRequestCurrent(roomId, scope, requestSerial) {
   return activeChatRoomId === roomId && projectRequestScopeCurrent(scope) && chatPermissionRequestSerial === requestSerial;
 }
@@ -5582,7 +5580,7 @@ function taskRenderFullAccessStatus(status = {}) {
   // 顶栏与授权详情描述当前聊天室已保存的授权；工程调试开放不等于 CU 房间授权。
   const active = known && status.permission_profile === "full-access" && status.full_access === true;
   const permissionProfile = known ? status.permission_profile || "workspace-write" : "workspace-write";
-  setBindText("tasks.fullAccessStatus", !hasRoom ? "未选择聊天室" : !known ? "状态未知" : active ? "已启用 · 完全访问" : "未启用 · 工作区范围");
+  setBindText("tasks.fullAccessStatus", !hasRoom ? "未选择聊天室" : !known ? (status.loading ? "加载中" : status.error ? "读取失败" : "状态未知") : active ? "已启用 · 完全访问" : "未启用 · 工作区范围");
   const permissionSelect = document.querySelector('[data-role="chat-permission-select"]');
   const permissionStatus = document.querySelector('[data-role="chat-permission-status"]');
   const permissionHint = document.querySelector('[data-role="chat-permission-hint"]');
@@ -5595,7 +5593,7 @@ function taskRenderFullAccessStatus(status = {}) {
     permissionSaveButton.disabled = !known;
   }
   if (permissionStatus) {
-    permissionStatus.textContent = !hasRoom ? "未选择" : !known ? "状态未知" : active ? "完全访问" : "目录权限";
+    permissionStatus.textContent = !hasRoom ? "未选择" : !known ? (status.loading ? "加载中" : status.error ? "读取失败" : "状态未知") : active ? "完全访问" : "默认权限";
     permissionStatus.title = known && status.dev_open_permissions && !active
       ? "工程默认开放不代表当前聊天室已授权桌面操作；computer-use 仍需本聊天室的完全访问授权。"
       : permissionStatus.textContent;
@@ -5626,8 +5624,8 @@ function taskRenderFullAccessStatus(status = {}) {
       : status.dev_open_permissions && !active
       ? "工程默认开放不代表当前聊天室已授权桌面操作；computer-use 需单独授予该聊天室完全访问。"
       : active
-      ? "此聊天室已启用完全访问；应用重启后再次选择该聊天室时会恢复该权限。"
-      : "完全访问权限按聊天室分别保存；启用后，该聊天室可执行任意命令和文件写入。";
+      ? "此聊天室已启用完全访问；可随时撤销，应用重启后自动恢复默认权限。"
+      : "完全访问只在本次运行中对当前聊天室生效；启用后可执行任意命令和文件写入。";
   }
   const panel = document.querySelector(".task-full-access");
   panel?.classList.toggle("is-active", active);
@@ -5673,6 +5671,7 @@ async function saveChatRoomPermission(event) {
   }
   if (activeChatRoomId !== roomId || !projectRequestScopeCurrent(scope)) return;
   const requestSerial = ++chatPermissionRequestSerial;
+  chatPermissionInFlight=null;
   setBusy(button, true, "保存中");
   try {
     const status = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`, {
@@ -5707,20 +5706,20 @@ async function saveChatRoomPermission(event) {
 async function refreshChatRoomDiagnosticsPreferences() {
   const roomId = activeChatRoomId;
   const scope = projectRequestScope();
-  const requestSerial = ++chatPermissionRequestSerial;
+  const requestSerial = ++chatDiagnosticsRequestSerial;
   if (!roomId) {
     activeChatRoomDiagnostics = { enabled: true, auto_refresh: false, show_stream_interrupts: true, show_details: true };
     return activeChatRoomDiagnostics;
   }
   try {
     const diagnostics = await requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`);
-    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
+    if (!chatDiagnosticsRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
     activeChatRoomDiagnostics = diagnostics;
     if (activeChatRoomDiagnostics.enabled && activeChatRoomDiagnostics.auto_refresh) {
       void diagnosticsWindowRefresh({ silent: true });
     }
   } catch (error) {
-    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
+    if (!chatDiagnosticsRequestCurrent(roomId, scope, requestSerial)) return activeChatRoomDiagnostics;
     console.warn("聊天室诊断偏好读取失败", error);
   }
   return activeChatRoomDiagnostics;
@@ -5734,14 +5733,14 @@ async function openChatRoomDiagnosticsSettings(event) {
     addMessage({ author: "聊天室诊断", text: "请先选择聊天室。", kind: "thought", icon: "error-log" });
     return;
   }
-  const requestSerial = ++chatPermissionRequestSerial;
+  const requestSerial = ++chatDiagnosticsRequestSerial;
   setBusy(button, true, "读取中");
   try {
     const [data, permission] = await Promise.all([
       requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/diagnostics`),
       requestJson(`/api/chat/rooms/${encodeURIComponent(roomId)}/permissions`),
     ]);
-    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
+    if (!chatDiagnosticsRequestCurrent(roomId, scope, requestSerial)) return;
     document.querySelector(".chat-room-diagnostics-modal")?.remove();
     const modal = document.createElement("div");
     modal.className = "task-chain-modal chat-room-diagnostics-modal";
@@ -5776,7 +5775,7 @@ async function openChatRoomDiagnosticsSettings(event) {
         close();
         return;
       }
-      const saveSerial = ++chatPermissionRequestSerial;
+      const saveSerial = ++chatDiagnosticsRequestSerial;
       const payload = {};
       modal.querySelectorAll("[data-diagnostics-field]").forEach((input) => {
         payload[input.dataset.diagnosticsField] = Boolean(input.checked);
@@ -5788,7 +5787,7 @@ async function openChatRoomDiagnosticsSettings(event) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+        if (!chatDiagnosticsRequestCurrent(roomId, scope, saveSerial)) {
           close();
           return;
         }
@@ -5800,7 +5799,7 @@ async function openChatRoomDiagnosticsSettings(event) {
           if (selectedProfile === "full-access" && (!riskAck || !confirmedTwice)) {
             throw new Error("完全访问未完成双重确认，已保持原权限");
           }
-          if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+          if (!chatDiagnosticsRequestCurrent(roomId, scope, saveSerial)) {
             close();
             return;
           }
@@ -5809,7 +5808,7 @@ async function openChatRoomDiagnosticsSettings(event) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ expected_workspace: scope.workspace, permission_profile: selectedProfile, risk_acknowledged: riskAck, confirmed_twice: confirmedTwice }),
           });
-          if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+          if (!chatDiagnosticsRequestCurrent(roomId, scope, saveSerial)) {
             close();
             if (activeChatRoomId === roomId && projectRequestScopeCurrent(scope)) void refreshFullAccessStatus();
             return;
@@ -5820,7 +5819,7 @@ async function openChatRoomDiagnosticsSettings(event) {
         if (status) status.textContent = `已保存 · ${new Date((saved.updated_at || Date.now())).toLocaleTimeString()}`;
         refreshAuthorizationSelectedRoom();
       } catch (error) {
-        if (!chatPermissionRequestCurrent(roomId, scope, saveSerial)) {
+        if (!chatDiagnosticsRequestCurrent(roomId, scope, saveSerial)) {
           close();
           return;
         }
@@ -5832,7 +5831,7 @@ async function openChatRoomDiagnosticsSettings(event) {
     });
     document.body.append(modal);
   } catch (error) {
-    if (!chatPermissionRequestCurrent(roomId, scope, requestSerial)) return;
+    if (!chatDiagnosticsRequestCurrent(roomId, scope, requestSerial)) return;
     addMessage({ author: "聊天室诊断", text: `读取诊断设置失败：${error.message}`, kind: "thought", icon: "error-log" });
   } finally {
     setBusy(button, false);
@@ -5856,7 +5855,7 @@ async function enableFullAccessGrant(event) {
   if (!ok) {
     return;
   }
-  const confirmedTwice = window.confirm(`请再次确认聊天室“${roomName}”的完全访问权限。应用重启后再次选择该聊天室时，此权限会自动恢复。`);
+  const confirmedTwice = window.confirm(`请再次确认聊天室“${roomName}”的完全访问权限。应用重启后此权限失效，需重新确认。`);
   if (!confirmedTwice) {
     return;
   }
@@ -7476,11 +7475,11 @@ function agentHealthSnapshot(registry = agentRegistry) {
 function topStatusLabel(kind, state) {
   if (kind === "ready") {
     return {
-      good: "系统健康：良好 · 就绪",
-      warn: "系统健康：需留意",
-      critical: "系统健康：异常",
-      idle: "系统健康：等待自检",
-    }[state] || "系统健康：等待自检";
+      good: "Agent 就绪：良好 · 凭据已确认",
+      warn: "Agent 就绪：需留意",
+      critical: "Agent 就绪：凭据/配置未就绪",
+      idle: "Agent 就绪：等待自检",
+    }[state] || "Agent 就绪：等待自检";
   }
   if (kind === "alert") {
     return {
@@ -7670,7 +7669,17 @@ function visionRealtimeTaskItem(status = {}) {
   );
   const loopActive = Boolean(status.loop_running || status.loop_requested);
   const resourceIssue = status.detection_service_reachable === false || status.detection_model_path_exists === false;
-  if (!hasDetectorConfig || (!loopActive && !resourceIssue)) {
+  // 只有真正请求过/运行过（或有 last_error 失败事实）的检测循环，资源缺失才计为执行失败；
+  // 从未请求的预留配置缺资源只是未就绪信息，不制造 failed 任务误报“任务异常”。
+  const hasRunEvidence = Boolean(
+    loopActive
+    || (status.frames_processed || 0) > 0
+    || status.started_at_ms
+    || status.last_frame_ms
+    || status.stopped_at_ms
+  );
+  const executionFailed = Boolean(status.last_error) || (resourceIssue && hasRunEvidence);
+  if (!hasDetectorConfig || (!loopActive && !resourceIssue && !executionFailed)) {
     return null;
   }
   const states = [
@@ -7683,6 +7692,9 @@ function visionRealtimeTaskItem(status = {}) {
     `frames=${status.frames_processed || 0}`,
     `elements=${status.element_count || 0}`,
   ];
+  if (status.last_error) {
+    states.push(`last_error=${status.last_error}`);
+  }
   if (status.detection_launcher_hint) {
     states.push(`launcher=${status.detection_launcher_hint}`);
   }
@@ -7690,7 +7702,7 @@ function visionRealtimeTaskItem(status = {}) {
     id: "runtime-vision-realtime",
     owner_agent: "vision-realtime",
     executor_agent: "Realtime vision detector",
-    status: loopActive ? "running" : (resourceIssue ? "failed" : "pending"),
+    status: executionFailed ? "failed" : (loopActive ? "running" : "pending"),
     summary: states.join(" / "),
     readiness_gates: [],
     startedAt: Number(status.started_at_ms || status.last_frame_ms || Date.now()),
@@ -8620,7 +8632,7 @@ function setOverviewWorkspaceName(workspace) {
   if (button) {
     const changed = button.dataset.workspacePath !== full;
     button.dataset.workspacePath = full;
-    button.title = full ? `切换工程目录：${full}` : "工作区路径未就绪";
+    button.title = full ? `切换工程目录：${workspaceDisplayPath(full)}` : "工作区路径未就绪";
     // 完整路径就绪后才挂载配置页，不把截断的草稿存储键当作工程ID。
     if (changed && full) window.CoolzhuChatExperience?.syncModelSession(activeSessionId);
   }
@@ -8631,6 +8643,14 @@ function workspaceLeafName(workspace) {
   return full ? full.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || full : "";
 }
 
+// 只转换界面显示；工程身份、权限校验及请求仍使用原始路径。
+function workspaceDisplayPath(workspace) {
+  const path = String(workspace || "").trim();
+  if (/^\\\\\?\\UNC\\/i.test(path)) return `\\\\${path.slice(8)}`;
+  if (/^\\\\\?\\[a-z]:\\/i.test(path)) return path.slice(4);
+  return path;
+}
+
 async function copyOverviewWorkspacePath() {
   const button = document.querySelector('[data-role="overview-workspace-name"]');
   const full = button?.dataset.workspacePath || "";
@@ -8638,7 +8658,7 @@ async function copyOverviewWorkspacePath() {
     return;
   }
   try {
-    await navigator.clipboard.writeText(full);
+    await navigator.clipboard.writeText(workspaceDisplayPath(full));
     button.classList.add("is-copied");
     window.setTimeout(() => button.classList.remove("is-copied"), 1200);
   } catch (error) {
@@ -8801,7 +8821,7 @@ async function saveWorkspacePath(path, fallbackPath) {
     await refreshWorkspaceBoundState(result.workspace);
     addMessage({
       author: "工程目录",
-      text: `${result.message}\n${result.workspace}`,
+      text: `${result.message}\n${workspaceDisplayPath(result.workspace)}`,
       kind: "thought",
       icon: "task-list",
     });
@@ -8820,17 +8840,17 @@ async function saveWorkspacePath(path, fallbackPath) {
 function setChatWorkspacePath(workspace) {
   const node = document.querySelector('[data-role="chat-workspace-path"]');
   const full = String(workspace || "").trim();
-  const display = full || "未设置";
+  const display = workspaceDisplayPath(full) || "未设置";
   setOverviewWorkspaceName(full);
   if (node) {
     node.replaceChildren();
     node.textContent = display;
-    node.title = full || "工作目录未就绪";
+    node.title = workspaceDisplayPath(full) || "工作目录未就绪";
   }
   const summary = document.querySelector('[data-role="chat-workspace-summary-path"]');
   if (summary) {
     summary.textContent = display;
-    summary.title = full || "工作目录未就绪";
+    summary.title = workspaceDisplayPath(full) || "工作目录未就绪";
   }
   renderChatRightRailStatus();
 }
@@ -9052,11 +9072,7 @@ function initializeIconControls() {
     "dsh-market-prev": ["chevron", "上一页"],
     "dsh-market-next": ["chevron", "下一页"],
     "app-update-check": ["refresh", "检查更新"],
-    "terminal-window-interrupt": ["stop", "中断当前命令"],
-    "terminal-window-close": ["stop", "关闭终端"],
-    "terminal-window-run": ["terminal", "运行命令"],
     "chat-history-open": ["search", "搜索聊天记录与消息索引"],
-    "chat-trace-open": ["context-ring", "查看运行轨迹与安全详情"],
     "task-schedule-create": ["plus", "添加定时任务"],
     "task-schedule-run-due": ["send", "运行到期任务"],
     "task-schedule-relay-timeout-save": ["save", "保存接力超时"],
@@ -9065,7 +9081,6 @@ function initializeIconControls() {
     "session-reset": ["refresh", "重置模型会话"],
     "session-delete": ["delete", "删除模型会话"],
     "message-load-older": ["chevron", "加载更早消息"],
-    "terminal-window-clear": ["delete", "清空终端显示"],
     "project-mode-toggle": ["diff", "切换到文件对比"],
     "project-save": ["save", "保存当前文件"],
     "project-new-file": ["file", "新建文件"],
@@ -9392,7 +9407,6 @@ async function loadChatRooms() {
     clearChatMessagesUi("暂无聊天室");
   }
   await refreshPendingApprovals();
-  void terminalWindowRestore();
 }
 
 function clearChatMessagesUi(label = "暂无聊天记录") {
@@ -10892,385 +10906,6 @@ async function runBrowserBridgeDiagnostic(action, button) {
 // 外站先尝试当前内容宿主；受站点嵌入策略限制时明确显示原因。
 // Static contract sample: browserWindowClassifyTarget("http://127.0.0.1:8765/health") === "iframePreview";
 
-function terminalWindowOutcomeText(outcome = {}, pendingCallId = "") {
-  let payload = outcome.output;
-  if (typeof payload === "string") {
-    try {
-      payload = JSON.parse(payload);
-    } catch {
-      // Keep plain command output as-is.
-    }
-  }
-  const outputText = typeof payload === "string"
-    ? payload
-    : payload?.stdout || payload?.output || payload?.stderr || "";
-  const gate = outcome.permission_gate?.decision || "unknown";
-  const status = outcome.status || "unknown";
-  const gateLabel = {
-    allow: "允许",
-    allowed: "允许",
-    ask: "需审批",
-    pending: "待审批",
-    deny: "拒绝",
-    denied: "拒绝",
-  }[gate] || gate;
-  const lines = [
-    `状态：${toolStatusLabel(status)} · 用时：${outcome.elapsed_ms ?? 0} 毫秒 · 权限：${gateLabel}`,
-  ];
-  if (outputText) {
-    lines.push(String(outputText).trimEnd());
-  } else if (outcome.summary_text) {
-    lines.push(outcome.summary_text);
-  }
-  if (pendingCallId) {
-    lines.push(`[待审批] ${pendingCallId}`);
-  }
-  return lines.join("\n\n");
-}
-
-function terminalWindowScope() {
-  if (!activeSessionId || !activeChatRoomId) return null;
-  return { session_id: activeSessionId, room_id: activeChatRoomId };
-}
-
-function terminalWindowScopeKey(scope) {
-  return scope ? `${activeWorkspaceKey}\u001f${scope.room_id}\u001f${scope.session_id}` : "";
-}
-
-function terminalWindowStatus(message) {
-  const status = document.querySelector('[data-role="terminal-window-status"]');
-  if (status) status.textContent = message;
-}
-
-function terminalWindowStopPolling() {
-  if (terminalWindowState.pollTimer) window.clearTimeout(terminalWindowState.pollTimer);
-  terminalWindowState.pollTimer = 0;
-}
-
-function terminalWindowReset(scopeKey = "") {
-  terminalWindowStopPolling();
-  if (terminalWindowState.resizeTimer) window.clearTimeout(terminalWindowState.resizeTimer);
-  terminalWindowState.resizeTimer = 0;
-  terminalWindowState.handle = null;
-  terminalWindowState.cursor = 0;
-  terminalWindowState.scopeKey = scopeKey;
-  terminalWindowState.closed = false;
-  terminalWindowResetProjection();
-  terminalWindowState.lastSize = "";
-  terminalWindowState.epoch += 1;
-  const output = document.querySelector('[data-role="terminal-window-output"]');
-  if (output) output.textContent = "启动后可在当前工程目录运行 PowerShell 命令。";
-  terminalWindowStatus("终端尚未启动");
-}
-
-function terminalWindowResetProjection() {
-  terminalWindowState.vtMode = "text";
-  terminalWindowState.vtCsi = "";
-  terminalWindowState.vtLines = [];
-  terminalWindowState.vtRow = 0;
-  terminalWindowState.vtColumn = 0;
-  terminalWindowState.vtEraseBlank = false;
-  terminalWindowState.vtTruncated = false;
-}
-
-function terminalWindowWriteCharacter(char) {
-  const state = terminalWindowState;
-  while (state.vtLines.length <= state.vtRow) state.vtLines.push([]);
-  const cells = state.vtLines[state.vtRow];
-  while (cells.length < state.vtColumn) cells.push(" ");
-  cells[state.vtColumn] = char;
-  state.vtColumn += 1;
-  state.vtEraseBlank = false;
-  if (cells.length > 110000) {
-    cells.splice(0, 20000);
-    state.vtColumn = Math.max(0, state.vtColumn - 20000);
-    state.vtTruncated = true;
-  }
-}
-
-function terminalWindowProjectCsi(command, parameters) {
-  const state = terminalWindowState;
-  const first = Number.parseInt(parameters.split(";")[0], 10);
-  if (command === "H" || command === "f") {
-    const parts = parameters.split(";");
-    state.vtRow = Math.min(1000, Math.max(0, (Number.parseInt(parts[0], 10) || 1) - 1));
-    state.vtColumn = Math.min(1000, Math.max(0, (Number.parseInt(parts[1], 10) || 1) - 1));
-    // PSReadLine 从首页重绘当前屏幕；旧屏幕的长输出和空白尾行不再属于本轮画面。
-    if (state.vtRow === 0 && state.vtColumn === 0) state.vtLines = [];
-    state.vtEraseBlank = false;
-  } else if (command === "J" && first === 2) {
-    state.vtLines = [];
-    state.vtRow = 0;
-    state.vtColumn = 0;
-    state.vtEraseBlank = false;
-  } else if (command === "K") {
-    const line = state.vtLines[state.vtRow];
-    if (line !== undefined) {
-      if (first === 2) line.length = 0;
-      else if (first === 1) line.fill(" ", 0, Math.min(state.vtColumn + 1, line.length));
-      else line.length = Math.min(line.length, state.vtColumn);
-    }
-    // PowerShell 用 K + CRLF 清理屏幕余下行；这些行不是新的命令输出。
-    state.vtEraseBlank = !state.vtLines[state.vtRow]?.length;
-  }
-}
-
-function terminalWindowProjectionText(text) {
-  // 只投影文字与基本光标/擦除操作；颜色、窗口标题等终端控制序列不显示。
-  const state = terminalWindowState;
-  for (const char of String(text || "")) {
-    const code = char.charCodeAt(0);
-    const mode = state.vtMode;
-    if (mode === "csi") {
-      if (code >= 0x40 && code <= 0x7e) {
-        terminalWindowProjectCsi(char, state.vtCsi);
-        state.vtCsi = "";
-        state.vtMode = "text";
-      } else if (state.vtCsi.length < 24) state.vtCsi += char;
-      continue;
-    }
-    if (mode === "string") {
-      if (char === "\x07") state.vtMode = "text";
-      else if (char === "\x1b") state.vtMode = "string-esc";
-      continue;
-    }
-    if (mode === "string-esc") {
-      state.vtMode = char === "\\" ? "text" : (char === "\x1b" ? "string-esc" : "string");
-      continue;
-    }
-    if (mode === "esc-one") { state.vtMode = "text"; continue; }
-    if (mode === "esc") {
-      state.vtMode = char === "[" ? "csi"
-        : "]_PX^".includes(char) ? "string"
-          : "()#".includes(char) ? "esc-one" : "text";
-      if (char === "[") state.vtCsi = "";
-      continue;
-    }
-    if (char === "\x1b") { state.vtMode = "esc"; continue; }
-    if (char === "\b") { state.vtColumn = Math.max(0, state.vtColumn - 1); continue; }
-    if (char === "\r") { state.vtColumn = 0; continue; }
-    if (char === "\n") {
-      state.vtRow += 1;
-      state.vtColumn = 0;
-      if (!state.vtEraseBlank) {
-        while (state.vtLines.length <= state.vtRow) state.vtLines.push([]);
-      }
-      state.vtEraseBlank = false;
-      if (state.vtLines.length > 6000) {
-        state.vtLines.splice(0, 1000);
-        state.vtRow = Math.max(0, state.vtRow - 1000);
-        state.vtTruncated = true;
-      }
-      continue;
-    }
-    if (char === "\t") {
-      do { terminalWindowWriteCharacter(" "); } while (state.vtColumn % 8);
-    } else if (code >= 0x20 && code !== 0x7f) terminalWindowWriteCharacter(char);
-  }
-  let length = state.vtLines.reduce((total, line) => total + line.length + 1, 0);
-  let drop = 0;
-  while ((state.vtLines.length - drop > 5000 || length > 100000)
-      && state.vtLines.length - drop > 1) {
-    length -= state.vtLines[drop].length + 1;
-    drop += 1;
-  }
-  if (drop) {
-    state.vtLines.splice(0, drop);
-    state.vtRow = Math.max(0, state.vtRow - drop);
-    state.vtTruncated = true;
-  }
-  if (state.vtLines.length === 1 && state.vtLines[0].length > 100000) {
-    const removed = state.vtLines[0].length - 100000;
-    state.vtLines[0].splice(0, removed);
-    state.vtColumn = Math.max(0, state.vtColumn - removed);
-    state.vtTruncated = true;
-  }
-  return `${state.vtTruncated ? "[较早输出已省略]\n" : ""}${state.vtLines.map((line) => line.join("")).join("\n")}`;
-}
-
-function terminalWindowResizeSoon() {
-  if (terminalWindowState.resizeTimer) window.clearTimeout(terminalWindowState.resizeTimer);
-  if (document.hidden || !terminalWindowState.handle || terminalWindowState.closed) return;
-  terminalWindowState.resizeTimer = window.setTimeout(() => { void terminalWindowResize(); }, 180);
-}
-
-async function terminalWindowResize() {
-  terminalWindowState.resizeTimer = 0;
-  const scope = terminalWindowScope();
-  const output = document.querySelector('[data-role="terminal-window-output"]');
-  if (!scope || !output || document.hidden || !output.getClientRects().length
-      || !terminalWindowState.handle || terminalWindowState.closed) return;
-  const cols = Math.max(40, Math.min(200, Math.floor(output.clientWidth / 8)));
-  const rows = Math.max(10, Math.min(80, Math.floor(output.clientHeight / 18)));
-  const size = `${cols}x${rows}`;
-  if (terminalWindowState.lastSize === size) return;
-  const handle = terminalWindowState.handle;
-  try {
-    await requestJson(`/api/terminal/${encodeURIComponent(handle)}/resize`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...scope, cols, rows }),
-    });
-    if (handle === terminalWindowState.handle) terminalWindowState.lastSize = size;
-  } catch (error) {
-    if (handle === terminalWindowState.handle && error.status === 409) terminalWindowReset(terminalWindowScopeKey(scope));
-  }
-}
-
-function terminalWindowApply(response, { replace = false } = {}) {
-  if (replace) terminalWindowResetProjection();
-  if (response?.handle) terminalWindowState.handle = response.handle;
-  if (Number.isSafeInteger(response?.next_cursor)) terminalWindowState.cursor = response.next_cursor;
-  terminalWindowState.closed = !!response?.closed;
-  const output = document.querySelector('[data-role="terminal-window-output"]');
-  if (output) {
-    const raw = typeof response?.text === "string" ? response.text : "";
-    if (replace || raw || response?.truncated) {
-      const wasAtBottom = output.scrollHeight - output.clientHeight - output.scrollTop <= 24;
-      if (response?.truncated) terminalWindowState.vtTruncated = true;
-      const projected = terminalWindowProjectionText(raw);
-      if (projected !== output.textContent) {
-        output.textContent = projected;
-        if (replace || wasAtBottom) output.scrollTop = output.scrollHeight;
-      }
-    }
-  }
-  terminalWindowStatus(response?.message || (response?.closed ? "终端已退出" : "终端正在运行"));
-  if (response?.closed) terminalWindowStopPolling();
-  else terminalWindowResizeSoon();
-}
-
-function terminalWindowSchedulePoll(delay = 450) {
-  terminalWindowStopPolling();
-  if (!terminalWindowState.handle) return;
-  terminalWindowState.pollTimer = window.setTimeout(() => { void terminalWindowPoll(); }, delay);
-}
-
-async function terminalWindowPoll() {
-  const scope = terminalWindowScope();
-  if (!scope || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey || !terminalWindowState.handle) {
-    terminalWindowReset(terminalWindowScopeKey(scope));
-    return;
-  }
-  const handle = terminalWindowState.handle;
-  const cursor = terminalWindowState.cursor;
-  const params = new URLSearchParams({ ...scope, cursor: String(cursor) });
-  try {
-    const response = await requestJson(`/api/terminal/${encodeURIComponent(handle)}/output?${params}`);
-    if (handle !== terminalWindowState.handle || cursor !== terminalWindowState.cursor
-        || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
-    terminalWindowApply(response);
-    // 退出只表示进程结束；已缓存的多页尾部仍需读至空页。
-    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
-  } catch (error) {
-    if (handle !== terminalWindowState.handle) return;
-    terminalWindowStatus(error.message || "终端连接中断");
-    if (error.status === 409) terminalWindowReset(terminalWindowScopeKey(scope));
-    else if (error.status !== 403) terminalWindowSchedulePoll(1500);
-  }
-}
-
-async function terminalWindowRestore() {
-  const scope = terminalWindowScope();
-  const scopeKey = terminalWindowScopeKey(scope);
-  if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
-  if (!scope) return;
-  // 已连接时继续读取增量；重新打开侧栏不重置正在投影的输出。
-  if (terminalWindowState.handle) {
-    if (!terminalWindowState.closed) terminalWindowSchedulePoll();
-    return;
-  }
-  if (terminalWindowState.busy) return;
-  const epoch = terminalWindowState.epoch;
-  try {
-    const params = new URLSearchParams(scope);
-    const response = await requestJson(`/api/terminal?${params}`);
-    // 初始化恢复、侧栏打开和用户启动可能重叠，迟到恢复不得覆盖新句柄。
-    if (epoch !== terminalWindowState.epoch || terminalWindowState.handle || terminalWindowState.busy) return;
-    if (!response.active || !response.handle) return;
-    terminalWindowApply(response, { replace: true });
-    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
-  } catch (error) {
-    if (epoch === terminalWindowState.epoch && !terminalWindowState.handle && !terminalWindowState.busy) {
-      terminalWindowStatus(error.message || "终端状态不可用");
-    }
-  }
-}
-
-async function terminalWindowRunPowerShell() {
-  if (terminalWindowState.busy) return;
-  const scope = terminalWindowScope();
-  if (!scope) { terminalWindowStatus("请先选择当前 Agent 和聊天室"); return; }
-  const scopeKey = terminalWindowScopeKey(scope);
-  if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
-  const command = document.querySelector('[data-role="terminal-command"]')?.value || "";
-  const button = actionButtons.get("terminal-window-run");
-  terminalWindowState.busy = true;
-  setBusy(button, true, "运行中");
-  try {
-    if (terminalWindowState.handle && terminalWindowState.closed) {
-      await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/close`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
-      });
-      terminalWindowReset(scopeKey);
-    }
-    if (!terminalWindowState.handle) {
-      const started = await requestJson("/api/terminal/start", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...scope, cols: 90, rows: 30 }),
-      });
-      if (scopeKey !== terminalWindowScopeKey(terminalWindowScope())) return;
-      terminalWindowApply(started, { replace: true });
-    }
-    if (command.trim()) {
-      await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/input`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...scope, text: `${command.replace(/\r?\n/g, "\r\n")}\r\n` }),
-      });
-      terminalWindowSchedulePoll(50);
-    } else {
-      terminalWindowSchedulePoll();
-    }
-  } catch (error) {
-    terminalWindowStatus(error.message || "终端运行失败");
-  } finally {
-    terminalWindowState.busy = false;
-    setBusy(button, false);
-  }
-}
-
-async function terminalWindowRun() { return terminalWindowRunPowerShell(); }
-
-async function terminalWindowInterrupt() {
-  const scope = terminalWindowScope();
-  if (!scope || !terminalWindowState.handle) return;
-  try {
-    await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/interrupt`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
-    });
-    terminalWindowStatus("正在中断当前命令…");
-    terminalWindowSchedulePoll(50);
-  } catch (error) { terminalWindowStatus(error.message || "中断失败"); }
-}
-
-async function terminalWindowClose() {
-  const scope = terminalWindowScope();
-  if (!scope || !terminalWindowState.handle) return;
-  terminalWindowStopPolling();
-  try {
-    await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/close`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
-    });
-    terminalWindowReset(terminalWindowScopeKey(scope));
-    terminalWindowStatus("终端已关闭");
-  } catch (error) { terminalWindowStatus(error.message || "关闭失败"); }
-}
-
-function terminalWindowClear() {
-  const output = document.querySelector('[data-role="terminal-window-output"]');
-  terminalWindowResetProjection();
-  if (output) output.textContent = "";
-}
-
 function activateChatHistorySync() {
   if (!activeChatRoomId || !projectWorkspaceScope || !window.CoolzhuChatHistorySync || typeof EventSource === "undefined") return;
   if (!chatHistorySync) {
@@ -11510,8 +11145,7 @@ function refreshQuickWorkbenchWindow(windowId) {
   } else if (windowId === "app-update") {
     void refreshAppUpdateStatus();
   } else if (windowId === "terminal") {
-    void terminalWindowRestore();
-  }
+    }
 }
 
 function chatToolWindowNode(windowId) {
@@ -14235,6 +13869,43 @@ function showQuickCatalogDetail(title, content) {
   document.body.append(overlay);
 }
 
+function showSkillPage(title, id, response, workspaceId, workspaceKey) {
+  showQuickCatalogDetail(title, `${response.path}\n${response.permission_note}\n\n${response.content}`);
+  if (response.next_offset != null) {
+    const next = document.createElement("button"); next.textContent = "下一段";
+    next.onclick = async () => {
+      setBusy(next, true, "读取中");
+      try {
+        const result = await requestJson(`/api/extension-market/skills/${encodeURIComponent(id)}?offset=${response.next_offset}`);
+        if (result.workspace_id === workspaceId && workspaceKey === activeWorkspaceKey) showSkillPage(title, id, result, workspaceId, workspaceKey);
+      } catch (error) { next.textContent = `重试：${error.message}`; } finally { setBusy(next, false); }
+    };
+    document.querySelector('[data-role="quick-catalog-detail"] .tool-detail-card')?.append(next);
+  }
+}
+function showSkillCreator(workspaceId, workspaceKey) {
+  const dialog = document.createElement("dialog"); dialog.className = "skill-create-dialog";
+  dialog.innerHTML = `<form><h2>创建 SKILL</h2><label>名称<input name="name" required pattern="[a-z0-9][a-z0-9-]{0,63}" placeholder="my-workflow"></label><label>描述<input name="description" required maxlength="1024" placeholder="说明用途及何时调用"></label><label>触发场景<textarea name="trigger" maxlength="4096" placeholder="例如：需要检查交付文件时"></textarea></label><label>正文<textarea name="body" rows="9" maxlength="65536">## 操作步骤
+1. 理解当前需求及授权范围。
+2. 读取所需资料，执行工作流。
+3. 验证结果并报告依据。
+
+## 示例
+输入：请检查交付文件。
+输出：检查结果、证据与待办。</textarea></label><p role="status"></p><div><button type="button" data-close>取消</button><button type="submit">创建（默认停用）</button></div></form>`;
+  document.body.append(dialog); dialog.querySelector('[data-close]').onclick = () => dialog.close();
+  dialog.onclose = () => dialog.remove(); dialog.showModal();
+  dialog.querySelector("form").onsubmit = async event => {
+    event.preventDefault(); const submit = dialog.querySelector('[type="submit"]'); setBusy(submit,true,"创建中");
+    try {
+      if (workspaceKey !== activeWorkspaceKey) throw new Error("工程已切换，请重新打开向导");
+      const values = Object.fromEntries(new FormData(event.currentTarget));
+      await requestJson("/api/extension-market/skills/create",{method:"POST",body:JSON.stringify({...values,expected_workspace:workspaceId,session_id:activeSessionId || ""})});
+      dialog.close(); await refreshQuickCatalogWindow("skills");
+    } catch(error) { dialog.querySelector('[role="status"]').textContent=error.message; } finally {setBusy(submit,false);}
+  };
+}
+
 async function quickCatalogMutation(kind, path, payload, button) {
   const status = document.querySelector(`[data-role="${kind === "skills" ? "skills-catalog" : "plugin-market"}-status"]`);
   const workspaceKey = activeWorkspaceKey;
@@ -14262,7 +13933,7 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
   title.textContent = item.name || item.id || "未命名条目";
   const source = document.createElement("small");
   source.textContent = kind === "skills"
-    ? `${item.source} · ${item.selected ? "已选用到当前工程聊天" : "未选用"}`
+    ? `${item.source} · ${item.selected ? "当前会话已启用" : "未启用"} · ${item.updated_at ? new Date(item.updated_at).toLocaleString() : "更新时间未知"}`
     : `${item.source} · ${item.version || "版本未知"} · ${item.kind === "builtin" ? "内置" : item.installed ? "已安装" : "本地候选"} · ${item.loaded_in_chat ? "工具已接入" : "聊天未加载"}`;
   const summary = document.createElement("p");
   summary.textContent = item.description || "暂无说明。";
@@ -14280,13 +13951,13 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
   if (kind === "skills") {
     const detail = document.createElement("button");
     detail.type = "button";
-    setWuxiaIconOnly(detail, "file", "查看 SKILL 内容");
+    detail.textContent = "查看内容";
     detail.addEventListener("click", async () => {
       setBusy(detail, true, "读取中");
       try {
-        const response = await requestJson(`/api/extension-market/skills/${encodeURIComponent(item.id)}`);
+        const response = await requestJson(`/api/extension-market/skills/${encodeURIComponent(item.id)}?session_id=${encodeURIComponent(activeSessionId || "")}`);
         if (response.workspace_id !== workspaceId || workspaceKey !== activeWorkspaceKey) throw new Error("工程目录已切换，请刷新");
-        showQuickCatalogDetail(item.name, response.content);
+        showSkillPage(item.name, item.id, response, workspaceId, workspaceKey);
       } catch (error) {
         if (workspaceKey === activeWorkspaceKey) document.querySelector('[data-role="skills-catalog-status"]').textContent = `内容读取失败：${error.message}`;
       } finally { setBusy(detail, false); }
@@ -14294,10 +13965,11 @@ function renderQuickCatalogItem(item, kind, workspaceId, workspaceKey) {
     actions.append(detail);
     const select = document.createElement("button");
     select.type = "button";
-    setWuxiaIconOnly(select, item.selected ? "stop" : "check", item.selected ? "停用 SKILL" : "选用 SKILL");
+    select.textContent = item.selected ? "停用 SKILL" : "启用 SKILL";
+    select.disabled = !activeSessionId;
     select.setAttribute("aria-pressed", String(item.selected));
     select.addEventListener("click", () => quickCatalogMutation("skills", "/api/extension-market/skills/select",
-      {expected_workspace:workspaceId, selected_id:item.selected ? null : item.id}, select));
+      {expected_workspace:workspaceId, session_id:activeSessionId, selected_id:item.id, enabled:!item.selected}, select));
     actions.append(select);
   } else if (item.installable) {
     const install = document.createElement("button");
@@ -14355,7 +14027,7 @@ async function refreshQuickCatalogWindow(kind) {
   if (!isSkill && directory) directory.textContent = "读取中";
   setBusy(button, true, "读取中");
   try {
-    const catalog = await requestJson(isSkill ? "/api/extension-market/skills" : "/api/extension-market/plugins");
+    const catalog = await requestJson(isSkill ? `/api/extension-market/skills?session_id=${encodeURIComponent(activeSessionId || "")}` : "/api/extension-market/plugins");
     if (serial !== quickCatalogRequestSerial[kind] || workspaceKey !== activeWorkspaceKey) return;
     const workspaceId = catalog.workspace_id;
     const items = isSkill ? (catalog.skills || []) : [...(catalog.plugins || []), ...(catalog.candidates || []).filter(candidate =>
@@ -14365,10 +14037,30 @@ async function refreshQuickCatalogWindow(kind) {
     const installedState = document.querySelector('[data-role="plugin-market-installed-state"]');
     if (!isSkill && installedState) installedState.textContent = `${installed} 个已安装`;
     status.textContent = isSkill
-      ? (items.length ? `当前工程发现 ${items.length} 个 SKILL；选用后会进入普通聊天提示。` : "当前工程暂无可用 SKILL。")
+      ? (items.length ? `发现 ${items.length} 个 SKILL。按模型会话启用；还需在“模型与会话”中开启工具调用，正文才能按需加载。` : "当前工程暂无可用 SKILL。")
       : (catalog.runtime_error ? `插件运行时未加载：${catalog.runtime_error}`
         : items.length ? `当前工程发现 ${items.length} 个插件；安装、启用和聊天执行权限分别生效。` : "当前工程暂无插件候选或已安装项。");
-    list.replaceChildren(...items.map(item => renderQuickCatalogItem(item, kind, workspaceId, workspaceKey)));
+    const filter = document.querySelector('[data-role="skills-search"]');
+    const paint = () => {
+      const term = isSkill ? String(filter?.value || "").trim().toLowerCase() : "";
+      list.replaceChildren(...items.filter(item => !term || `${item.name} ${item.description} ${item.source}`.toLowerCase().includes(term)).map(item => renderQuickCatalogItem(item, kind, workspaceId, workspaceKey)));
+    };
+    paint();
+    if (isSkill) {
+      if (filter) filter.oninput = paint;
+      const create = document.querySelector('[data-action="skills-create"]');
+      const install = document.querySelector('[data-action="skills-install-bundle"]');
+      const local = document.querySelector('[data-action="skills-install-local"]');
+      if (create) create.onclick = () => showSkillCreator(workspaceId, workspaceKey);
+      if (install) install.onclick = () => {
+        if (window.confirm(`安装 Superpowers ${catalog.bundle?.version || ""}（MIT）？\n来源：${catalog.bundle?.source}\n版本：${catalog.bundle?.commit}\n使用随包资源，不联网、不覆盖同名技能；安装后默认停用。`))
+          quickCatalogMutation("skills", "/api/extension-market/skills/install", {expected_workspace:workspaceId,session_id:activeSessionId || "",package:"superpowers"}, install);
+      };
+      if (local) local.onclick = () => {
+        const path = window.prompt("输入含 SKILL.md 的本地目录绝对路径。仅复制文件，安装后默认停用；请先核对来源。", "");
+        if (path?.trim()) quickCatalogMutation("skills", "/api/extension-market/skills/install", {expected_workspace:workspaceId,session_id:activeSessionId || "",package:"local",path:path.trim()}, local);
+      };
+    }
   } catch (error) {
     if (serial !== quickCatalogRequestSerial[kind] || workspaceKey !== activeWorkspaceKey) return;
     if (!isSkill && directory) directory.textContent = "目录不可用";
@@ -15701,29 +15393,30 @@ function renderChatRoomList(rooms, activeId) {
   });
 }
 
+let chatRoomSwitchSerial = 0;
+let chatRoomActivationQueue = Promise.resolve();
 async function openSelectedChatRoom() {
-  closeTopChatPermissions();
-  document.querySelector(".chat-room-diagnostics-modal")?.remove();
-  if (!activeChatRoomId) {
-    return;
+  closeTopChatPermissions(); document.querySelector(".chat-room-diagnostics-modal")?.remove();
+  const room=activeChatRoomId, scope=projectRequestScope(), serial=++chatRoomSwitchSerial;
+  if (!room) return;
+  const started=performance.now();
+  renderChatRoomList(chatRoomRegistry.rooms,room);
+  updateChatRoomTrigger(chatRoomRegistry.rooms.find(item=>item.id===room)?.name || "加载中…");
+  taskRenderFullAccessStatus({room_id:room,loading:true}); clearStaleApprovalForActiveScope();
+  restoreComposerDraft(room);
+  const current=()=>serial===chatRoomSwitchSerial && room===activeChatRoomId && projectRequestScopeCurrent(scope);
+  try {
+    const activation=chatRoomActivationQueue.catch(()=>{}).then(()=>current() ? requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/activate`,{method:"POST"}) : null);
+    chatRoomActivationQueue=activation;
+    const result=await activation;
+    if(!current() || !result)return;
+    updateChatRoomTrigger(result.room.name);
+    restoreAgentTargets(agentRegistry.agents.filter(canSendToAgent),agentRegistry.active_agent_ids,room);
+    await Promise.allSettled([loadChatRoomMessages(room),refreshFullAccessStatus(),refreshChatRoomDiagnosticsPreferences(),refreshPendingApprovals()]);
+    if(current()) console.debug("[room-switch]",{room,ready_ms:Math.round(performance.now()-started)});
+  } catch(error) {
+    if(current()) { taskRenderFullAccessStatus({room_id:room,error:error.message}); addMessage({author:"聊天室",text:`加载失败：${error.message}。再次选择此聊天室可重试。`,kind:"thought",icon:"error-log"}); }
   }
-  taskRenderFullAccessStatus({ room_id: activeChatRoomId, loading: true });
-  clearStaleApprovalForActiveScope();
-  const result = await requestJson(`/api/chat/rooms/${encodeURIComponent(activeChatRoomId)}/activate`, { method: "POST" });
-  activeChatRoomId = result.room.id;
-  clearStaleApprovalForActiveScope();
-  renderChatRoomList(chatRoomRegistry.rooms, activeChatRoomId);
-  updateChatRoomTrigger(result.room.name);
-  restoreAgentTargets(
-    agentRegistry.agents.filter(canSendToAgent),
-    agentRegistry.active_agent_ids,
-    activeChatRoomId,
-  );
-  await loadChatRoomMessages(activeChatRoomId);
-  await refreshFullAccessStatus();
-  await refreshChatRoomDiagnosticsPreferences();
-  restoreComposerDraft(activeChatRoomId);
-  await refreshPendingApprovals();
 }
 
 function iconForMessage(message) {
@@ -16948,7 +16641,7 @@ function highlightLineFragment(lineText, keywords) {
 const IDE_EDITOR_MAX_BYTES = 200 * 1024;
 const IDE_EDITOR_LINE_WINDOW = 400;
 let ideEditorState = { path: "", startLine: 1, lineCount: 0, truncated: false, editable: false };
-let lspPreviewState = { path: "", handle: "", line: 1, character: 1, seq: 0, startSeq: 0 };
+let lspPreviewState = { path: "", handle: "", ready: false, line: 1, character: 1, seq: 0, startSeq: 0, watchSeq: 0 };
 
 function lspPreviewNode(role) {
   return document.querySelector(`[data-role="lsp-preview-${role}"]`);
@@ -16981,11 +16674,12 @@ function showLspPreviewResults(title, items = []) {
   panel.replaceChildren(heading, ...rows);
 }
 
-function renderLspPreviewControls({ configured = false, running = false, handle = "", message = "" } = {}) {
+function renderLspPreviewControls({ configured = false, running = false, ready = false, handle = "", message = "" } = {}) {
   const toolbar = lspPreviewNode("toolbar");
   if (!toolbar) return;
   toolbar.hidden = !lspPreviewState.path;
   lspPreviewState.handle = running ? String(handle || "") : "";
+  lspPreviewState.ready = running && ready;
   setLspPreviewStatus(message || (running ? "Rust 语言服务已启动" : "Rust 语言服务未启动"));
   const start = actionButtons.get("lsp-preview-start");
   if (start) {
@@ -16994,10 +16688,39 @@ function renderLspPreviewControls({ configured = false, running = false, handle 
   }
   for (const name of ["refresh", "definition", "references", "close"]) {
     const button = actionButtons.get(`lsp-preview-${name}`);
-    if (button) button.hidden = !running;
+    if (button) {
+      button.hidden = !running;
+      if (name === "definition" || name === "references") button.disabled = !ready;
+    }
   }
   const position = lspPreviewNode("position");
   if (position) position.hidden = !running;
+}
+
+// 仅在当前文件可见、服务索引中时短期刷新；换工程/聊天室/文件即停止。
+async function watchLspPreviewReadiness(status) {
+  const watchSeq = ++lspPreviewState.watchSeq;
+  if (!status.running || status.ready || !status.handle) return;
+  const { seq, path, handle } = lspPreviewState;
+  const workspace = activeWorkspaceKey, room = activeChatRoomId, session = activeSessionId;
+  const current = () => watchSeq === lspPreviewState.watchSeq && seq === lspPreviewState.seq
+    && path === lspPreviewState.path && handle === lspPreviewState.handle
+    && workspace === activeWorkspaceKey && room === activeChatRoomId && session === activeSessionId
+    && !lspPreviewNode("toolbar")?.hidden;
+  for (let count = 0; count < 36; count += 1) {
+    await new Promise((resolve) => window.setTimeout(resolve, 5000));
+    if (!current()) return;
+    try {
+      const latest = await requestJson("/api/lsp/status");
+      if (!current()) return;
+      renderLspPreviewControls(latest);
+      if (!latest.running || latest.ready) return;
+    } catch (error) {
+      if (current()) setLspPreviewStatus(error.message);
+      return;
+    }
+  }
+  if (current()) setLspPreviewStatus("索引仍在进行，可稍后点击刷新查看状态；服务继续运行。");
 }
 
 async function updateLspPreviewForFile(path) {
@@ -17014,7 +16737,8 @@ async function updateLspPreviewForFile(path) {
     const status = await requestJson("/api/lsp/status");
     if (seq !== lspPreviewState.seq || path !== lspPreviewState.path) return;
     renderLspPreviewControls(status);
-    if (status.running && status.handle) void refreshLspPreviewDiagnostics();
+    void watchLspPreviewReadiness(status);
+    if (status.running && status.ready && status.handle) void refreshLspPreviewDiagnostics();
   } catch (error) {
     if (seq === lspPreviewState.seq) renderLspPreviewControls({ message: error.message });
   }
@@ -17061,7 +16785,8 @@ async function startLspPreview() {
     });
     if (!scopeCurrent() || path !== lspPreviewState.path) return;
     renderLspPreviewControls(started);
-    await refreshLspPreviewDiagnostics();
+    void watchLspPreviewReadiness(started);
+    if (started.ready) await refreshLspPreviewDiagnostics();
   } catch (error) {
     if (scopeCurrent()) setLspPreviewStatus(error.message);
   } finally {
@@ -17077,6 +16802,12 @@ async function refreshLspPreviewDiagnostics(retry = 0) {
     return;
   }
   try {
+    if (!lspPreviewState.ready) {
+      const status = await requestJson("/api/lsp/status");
+      if (seq !== lspPreviewState.seq || handle !== lspPreviewState.handle) return;
+      renderLspPreviewControls(status);
+      if (!status.ready) { void watchLspPreviewReadiness(status); return; }
+    }
     const result = await requestJson("/api/lsp/diagnostics", {
       method: "POST", body: JSON.stringify({ handle, path }),
     });
@@ -19273,7 +19004,7 @@ function initializeWorkbenchWindows() {
     active: () => chatToolWindowId,
     open: id => openChatToolWindow(id),
     close: options => closeChatToolWindow({ focusChat: true, restoreTab: false, restoreLayout: false, discardLayoutSnapshot: true, ...options }),
-    collapse: () => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll:true}); },
+    collapse: (preserveScroll = true) => { chatLayoutState.right = "closed"; chatLayoutState.narrowOpen = null; applyChatLayoutState({persist:true,preserveScroll}); },
     refreshSchedules: () => refreshTaskSchedules(),
     refreshWechat: () => refreshClawbotWindow({silent:false}),
     resetBrowser: browserWindowResetContext,
@@ -19480,7 +19211,7 @@ function setText(key, value) {
   if (key === "vision.path") {
     node.title = value;
   }
-  node.textContent = value;
+  node.textContent = key === "project.path" ? workspaceDisplayPath(value) : value;
 }
 
 function setVisionPreview(capture) {
@@ -19512,7 +19243,6 @@ const WORKBENCH_MOTION_STATES = Object.freeze({
   clawbot: "linked",
   chat: "transmitting",
   browser: "observing",
-  terminal: "reactor-run",
   tasks: "unlocked",
   memory: "crystal-rise",
   vision: "scanning",
@@ -19554,27 +19284,26 @@ function pulseWorkbenchMotionState(windowId, state, durationMs = 900) {
 }
 
 function setBusy(button, busy, label) {
-  if (!button) {
-    return;
-  }
-  if (!button.dataset.label) {
-    button.dataset.label = button.textContent.trim();
-  }
+  if (!button) return;
+  if (!button.dataset.label) button.dataset.label = button.textContent.trim() || button.getAttribute("aria-label") || "操作";
   button.disabled = busy;
   button.classList.toggle("is-busy", busy);
-  if (button.dataset.iconOnly === "true") {
-    const accessibleLabel = busy ? `${button.dataset.label}：${label || "处理中"}` : button.dataset.label;
-    button.title = accessibleLabel;
-    button.setAttribute("aria-label", accessibleLabel);
-    return;
+  button.setAttribute("aria-busy", String(Boolean(busy)));
+  const text = busy ? (label || "处理中") : button.dataset.label;
+  button.setAttribute("aria-label", text);
+  if (button.dataset.iconOnly === "true") { button.title = text; return; }
+  // 沿现有文字节点更新，保留图标和嵌套 span；不会重复追加文案。
+  const walker = document.createTreeWalker(button, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node.textContent.trim() && !node.parentElement?.closest("svg, [aria-hidden='true']")) nodes.push(node);
   }
-  const textNode = Array.from(button.childNodes).find(
-    (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim(),
-  );
-  if (textNode) {
-    textNode.textContent = busy ? label : button.dataset.label;
+  if (nodes.length) {
+    nodes[0].textContent = text;
+    nodes.slice(1).forEach(node => { node.textContent = ""; });
   } else {
-    button.append(document.createTextNode(busy ? label : button.dataset.label));
+    const span = document.createElement("span"); span.textContent = text; button.append(span);
   }
 }
 
@@ -19675,6 +19404,7 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
       });
     }
     renderAttachments(existing.querySelector(".attachments"), message.attachments || []);
+    attachMessageTraceLink(existing, messageRole, messageKind, streaming);
     list.scrollTop = list.scrollHeight;
     return existing;
   }
@@ -19690,6 +19420,22 @@ function upsertMessage(message, { streaming = false, sessionId = activeSessionId
     role: message.role,
     createdAt: message.created_at,
   });
+}
+
+function attachMessageTraceLink(article, role, kind, streaming) {
+  const normalizedKind = String(kind || "").toLowerCase();
+  const isReply = String(role || "").toLowerCase() === "assistant"
+    && (normalizedKind === "assistant-reply" || normalizedKind === "bot");
+  const existing = article.querySelector('[data-role="message-trace-link"]');
+  if (!isReply || streaming) { existing?.remove(); return; }
+  if (existing) return;
+  const link = document.createElement("button");
+  link.type = "button";
+  link.className = "message-trace-link";
+  link.dataset.role = "message-trace-link";
+  link.textContent = "查看运行过程";
+  link.addEventListener("click", () => window.CoolzhuWorkspacePanels?.openTraceArchive(article.dataset.messageId));
+  article.querySelector(".attachments")?.after(link);
 }
 
 function appendMessageText(id, delta) {
@@ -19758,6 +19504,7 @@ function addMessage({ id, author, text, kind, icon, attachments = [], createdAt 
     streaming,
   });
   renderAttachments(article.querySelector(".attachments"), attachments);
+  attachMessageTraceLink(article, role, kind, streaming);
   if (prepend) {
     list.prepend(article);
   } else {
@@ -21062,6 +20809,7 @@ async function reportAudioRealtimeSegment(blob, { finalSegment = false, duration
   if (!blob || !audioRealtimeRunning) {
     return null;
   }
+  const requestSessionId = sttSessionId;
   const now = Date.now();
   audioRealtimeLastSegmentReportAt = now;
   let audioBase64 = "";
@@ -21070,12 +20818,13 @@ async function reportAudioRealtimeSegment(blob, { finalSegment = false, duration
   } catch (error) {
     console.warn("实时语音分段读取失败，仅上报 metadata:", error);
   }
+  if (!audioRealtimeRunning || sttSessionId !== requestSessionId) return null;
   try {
     const response = await fetch("/api/audio/realtime/segment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        session_id: sttSessionId,
+        session_id: requestSessionId,
         bytes: blob.size,
         duration_ms: Number.isFinite(Number(durationMs)) ? Math.max(0, Math.round(Number(durationMs))) : null,
         mime_type: blob.type || "audio/webm",
@@ -21084,7 +20833,7 @@ async function reportAudioRealtimeSegment(blob, { finalSegment = false, duration
       }),
     });
     const segment = response.ok ? await response.json() : null;
-    if (!segment) return null;
+    if (!segment || !segment.running || !audioRealtimeRunning || sttSessionId !== requestSessionId || segment.session_id !== requestSessionId) return null;
     realtimeSessionStatus = {
       ...realtimeSessionStatus,
       audio_segments_received: segment.audio_segments_received,
@@ -21198,12 +20947,13 @@ function reportAudioRealtimePartial({
   if (!transcript || !audioRealtimeRunning) {
     return;
   }
+  const requestSessionId = sttSessionId;
   const numericConfidence = Number(confidence);
   fetch("/api/audio/realtime/partial", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      session_id: sttSessionId,
+      session_id: requestSessionId,
       text: transcript,
       confidence: Number.isFinite(numericConfidence) ? numericConfidence : null,
       is_final: Boolean(isFinal),
@@ -21217,7 +20967,7 @@ function reportAudioRealtimePartial({
   })
     .then((response) => (response.ok ? response.json() : null))
     .then((partial) => {
-      if (!partial) return;
+      if (!partial || !partial.running || !audioRealtimeRunning || sttSessionId !== requestSessionId || partial.session_id !== requestSessionId) return;
       realtimeSessionStatus = {
         ...realtimeSessionStatus,
         partial_transcripts_received: partial.partial_transcripts_received,

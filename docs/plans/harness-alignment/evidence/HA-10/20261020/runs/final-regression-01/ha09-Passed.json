@@ -1,0 +1,63 @@
+{
+  "evidence": {
+    "command_verification": {
+      "contract": {
+        "commands": [
+          "exit 0"
+        ],
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpLgggcV",
+        "timeout_ms": 90000,
+        "type": "Command"
+      },
+      "legacy_failures": null,
+      "reason": "",
+      "receipts": [
+        {
+          "command": "exit 0",
+          "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpLgggcV",
+          "exit_code": 0,
+          "finished_at_unix_ms": 1792517629252,
+          "id": "goal-command-1792517628986-33576-19",
+          "input_digest": "136c185c39cdd5c1f7e7cbbe63ddbadc15dc171f2128bddfb1a2c79ebc5a1f98",
+          "reason": "",
+          "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+          "started_at_unix_ms": 1792517628986,
+          "status": "passed",
+          "timeout_ms": 90000
+        }
+      ],
+      "state": "passed"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": {
+      "commands": [
+        "exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpLgggcV",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpLgggcV",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792517629252,
+        "id": "goal-command-1792517628986-33576-19",
+        "input_digest": "136c185c39cdd5c1f7e7cbbe63ddbadc15dc171f2128bddfb1a2c79ebc5a1f98",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792517628986,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "status": "completed",
+  "verdict": "pass"
+}

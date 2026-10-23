@@ -1,0 +1,29 @@
+{
+  "state": "completed",
+  "at_utc": "2026-10-16T16:10:00Z",
+  "scope": "完整0.2.135发布包正式8765；可见浏览器新页和重载只读验证，不是C机器级安装升级",
+  "url": "http://127.0.0.1:8765/",
+  "external_model_calls": 0,
+  "cases": [
+    {
+      "name": "新浏览页指定359回复唯一运行",
+      "message": "msg-1792082872685-0",
+      "run": "run-chat-d3b77a88654dfa89adc342b46500e08d90005daad743adaf",
+      "count": 1,
+      "status": "已定位这条回复的运行记录",
+      "state": "passed"
+    },
+    {
+      "name": "重载后指定360回复唯一运行",
+      "message": "msg-1792083075400-0",
+      "run": "run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645",
+      "count": 1,
+      "status": "已定位这条回复的运行记录",
+      "observed": "84.8秒；computer_use_perform失败0.8秒，plugin__cli_anything_run已完成1.1秒；输入输出未知，未捏造成功或用量",
+      "state": "passed"
+    }
+  ],
+  "passed": 2,
+  "failed": 0,
+  "production_descendant_boundary": "只读核查正式execution_index为0行，没有真实后代执行可供页面复验；合成后代图只计隔离HTTP证据，不外推正式真实模型链。"
+}

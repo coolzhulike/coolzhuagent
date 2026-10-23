@@ -1,0 +1,16 @@
+[
+  {
+    "name": "raw",
+    "line": "\"C:\\WINDOWS\\System32\\cmd.exe\" /D /C \"D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\quoted helper.exe\" \"cmd.exe\"",
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "'D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\quoted' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+  },
+  {
+    "name": "wrapped",
+    "line": "\"C:\\WINDOWS\\System32\\cmd.exe\" /D /S /C \"\"D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\hook-budget-20261016\\quoted helper.exe\" \"cmd.exe\"\"",
+    "exit_code": 0,
+    "stdout": "C:\\Windows\\System32\\cmd.exe\r\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,103 @@
+{
+  "atUtc": "2026-10-15T10:53:23.078562+00:00",
+  "sourceHashesBefore": {
+    "modules\\gui-web\\packages\\web-console\\src\\main.rs": "8674534c8b00f6452886ae384bed40f77e09a1edaccbf599be82328b13cd3aa7",
+    "modules\\gui-web\\packages\\web-console\\src\\devin_acp\\bridge.rs": "8838e769775c091f02602b800d7bf48790846af9b2c85244a226647b27ca55eb",
+    "modules\\gui-web\\packages\\web-console\\src\\runtime_tool_supervision.rs": "046c879961c5891ba0f24b8e66c469a9aced7295dcef3ffda5dd85976775ef34",
+    "modules\\gui-web\\packages\\web-console\\src\\root_execution_budget.rs": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985",
+    "modules\\diagnostics\\packages\\diagnostics\\src\\quota.rs": "85785c07f41d01447d991a38528d444c4ed6bca40e851e24f84911d2519eedc8",
+    "modules\\gui-web\\packages\\web-console\\src\\app.js": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+    "Cargo.lock": "82647ca80a79666f366126695d69a11317610d16a1dd89bbdefdd5d54e7bea5b"
+  },
+  "sourceHashesAfter": {
+    "modules\\gui-web\\packages\\web-console\\src\\main.rs": "8674534c8b00f6452886ae384bed40f77e09a1edaccbf599be82328b13cd3aa7",
+    "modules\\gui-web\\packages\\web-console\\src\\devin_acp\\bridge.rs": "8838e769775c091f02602b800d7bf48790846af9b2c85244a226647b27ca55eb",
+    "modules\\gui-web\\packages\\web-console\\src\\runtime_tool_supervision.rs": "046c879961c5891ba0f24b8e66c469a9aced7295dcef3ffda5dd85976775ef34",
+    "modules\\gui-web\\packages\\web-console\\src\\root_execution_budget.rs": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985",
+    "modules\\diagnostics\\packages\\diagnostics\\src\\quota.rs": "85785c07f41d01447d991a38528d444c4ed6bca40e851e24f84911d2519eedc8",
+    "modules\\gui-web\\packages\\web-console\\src\\app.js": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+    "Cargo.lock": "82647ca80a79666f366126695d69a11317610d16a1dd89bbdefdd5d54e7bea5b"
+  },
+  "sourceUnchanged": true,
+  "results": [
+    {
+      "step": "build",
+      "command": [
+        "C:\\Users\\zhupu\\.cargo\\bin\\cargo.exe",
+        "build",
+        "-p",
+        "coolzhu-web-console",
+        "--offline",
+        "-j",
+        "1",
+        "--target-dir",
+        "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target"
+      ],
+      "exit": 0,
+      "seconds": 1.33,
+      "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\console-full-335-build.log",
+      "logSha256": "533574f6cc17a33e7f507ff6b8c85cba9248c69d769efa84caeef2de2ceb4fc6",
+      "logBytes": 50170,
+      "groups": []
+    },
+    {
+      "step": "full-test",
+      "command": [
+        "C:\\Users\\zhupu\\.cargo\\bin\\cargo.exe",
+        "test",
+        "-p",
+        "coolzhu-web-console",
+        "--release",
+        "--offline",
+        "-j",
+        "1",
+        "--target-dir",
+        "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "seconds": 2170.25,
+      "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\console-full-335-full-test.log",
+      "logSha256": "ec3dc7f305a30a26b70bb1340345012ca6ad5213d48c81ae0d6d979cffeae1e5",
+      "logBytes": 157537,
+      "groups": [
+        [
+          8,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          1505,
+          0,
+          6
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "kind": "package-report-archive",
+  "archived_at_utc": "2026-10-17T00:36:01.8376830Z",
+  "report_id": "pkg-report-release-20261016-173302114-3c2ef9a9",
+  "report_content_sha256": "3963cf2576a1ed20e8473c02da11d8a8c57b0336adcd2d076659840173bbaba2",
+  "report_content_hash_scope": "canonical sorted leaf paths; report_identity.content_sha256 excluded",
+  "report_file_sha256": "3977309ad9f00d4e1694994edc08ab8f825adff7b4e367ffadedf6f5bd2bf111",
+  "original_report_path": "tmp/package-reports/package-report-release-20261016-173302114.json",
+  "archived_report_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/package-report.json",
+  "payload_inventory_original_path": "tmp/goal-32wbs-acceptance-20261013/release-0.2.136/package/payload-inventory.json",
+  "payload_inventory_file_sha256": "ff99ff1b5327c48c0fa4b6add264ea1d0ee99c9827afefa3b7430d073ae251c2",
+  "archived_payload_inventory_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/payload-inventory.json",
+  "archived_payload_inventory_file_sha256": "ff99ff1b5327c48c0fa4b6add264ea1d0ee99c9827afefa3b7430d073ae251c2",
+  "release_version": "0.2.136",
+  "release_artifact": "tmp/goal-32wbs-acceptance-20261013/release-0.2.136/installer/CoolzhuAgent-0.2.136.msi",
+  "reason": "referenced by released MSI tmp/goal-32wbs-acceptance-20261013/release-0.2.136/installer/CoolzhuAgent-0.2.136.msi",
+  "extra_evidence": [
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/release-0.2.136/installer/CoolzhuAgent-0.2.136-installer-report.json",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/CoolzhuAgent-0.2.136-installer-report.json",
+      "file_sha256": "f480f427a66b42a6be5d677b9fc697f0bd1d92141ed7f3eef4279e81be7a1dd3"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/cli.command-line.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/cli.command-line.jsonl",
+      "file_sha256": "8e26dc87658dd5cd17263243508c7c5b2e7f108f8ab9daa36a60e9f7c6699e7b"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/computer-use.preflight-check.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/computer-use.preflight-check.jsonl",
+      "file_sha256": "57d8abc7109fa561531d5540884c0dd18190eb702252c068033ac8b458cb32bd"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/gui-desktop.tauri-shell.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/gui-desktop.tauri-shell.jsonl",
+      "file_sha256": "81a41f47da31dcc40c2231693385167b0e583a0e2c6108a16374a9cce44ed5ec"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/gui-web.browser-native-host.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/gui-web.browser-native-host.jsonl",
+      "file_sha256": "6455a7d8d4203efddbd5e2ce8306e6f5b4c317364af6eb36d4946a69d37032cd"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/gui-web.clawbot-sidecar.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/gui-web.clawbot-sidecar.jsonl",
+      "file_sha256": "9eb405667ee7681d4220b4486f338fcc737cb6aca2514aa7a9ef5f77f270a7e7"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/gui-web.web-console.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/gui-web.web-console.jsonl",
+      "file_sha256": "cf2cc6b055b70671dab8b0806b788b98e0fa3ecee3a146e39b3763df5a42a84b"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/package.app-launcher.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/package.app-launcher.jsonl",
+      "file_sha256": "c5fdd3d22595af9806fe147fdb05a7d17105a8f8f5a11c90834e0b433e735f27"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/package.build-capture.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/package.build-capture.jsonl",
+      "file_sha256": "8456b6d55a75d375a6a600d35b2a7d97088945524bd31fbec6d563f2ff9eec59"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/vision.latest-desktop.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/vision.latest-desktop.jsonl",
+      "file_sha256": "970d42ad49b7d7fe0cf74cda2722215ff9e53bfc931959669a7c1778dc9bbc9b"
+    },
+    {
+      "source_path": "tmp/goal-32wbs-acceptance-20261013/package-reports/build-evidence/pkg-run-release-20261016-165246312-5f47e642/vision.smoke.jsonl",
+      "archived_path": "docs/testing/release-0.2.136/evidence/build-identity/pkg-report-release-20261016-173302114-3c2ef9a9/vision.smoke.jsonl",
+      "file_sha256": "4ba3cbb1b89c8f6bc357fbbbb67ef1c6300d4fc805f3590ac9149931d499eebc"
+    }
+  ],
+  "rule": "该归档是发布证据：普通临时清理不得删除；tmp/ 下的原报告即使被清理，报本身份仍可从本归档核对"
+}

@@ -38,7 +38,7 @@ mod tool;
 mod usage;
 
 pub use agent_event::{AgentEvent, AgentEventKind, ContextSnapshot, ItemId, ThreadId, TurnId};
-pub use bash::{execute_bash, BashCommandInput, BashCommandOutput};
+pub use bash::{execute_bash, BashCommandInput, BashCommandOutput, ProcessExecutionReceipt};
 pub use bootstrap::{BootstrapPhase, BootstrapPlan};
 pub use compact::{
     compact_session, estimate_session_tokens, format_compact_summary,

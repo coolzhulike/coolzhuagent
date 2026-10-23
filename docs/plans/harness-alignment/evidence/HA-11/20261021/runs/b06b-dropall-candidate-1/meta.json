@@ -1,0 +1,10 @@
+﻿{
+    "room_id":  "room-1792693064456",
+    "case":  "b06b-dropall",
+    "elapsed_ms":  156419,
+    "prompt":  "mock b06: 请运行一次 cargo test --offline 并汇报。",
+    "side":  "candidate",
+    "first_turn_end_ms":  1792693224562,
+    "round":  1,
+    "http":  200
+}

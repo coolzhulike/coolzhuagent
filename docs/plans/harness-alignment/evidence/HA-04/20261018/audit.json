@@ -1,0 +1,136 @@
+{
+  "started_at_utc": "2026-10-18T09:46:43.286918+00:00",
+  "finished_at_utc": "2026-10-18T09:46:43.532185+00:00",
+  "git_head": "8a13551b037f5f673188802f2c9128984245fab8",
+  "current_main_sha256": "1f87e130e3383c5d33d1723059a6a77ae209eb48842e79ad306b8ace7f0da1f7",
+  "symbols": {
+    "run_prepared_chat_dispatch": 18663,
+    "run_shared_model_tool_loop": 27963,
+    "stream_agent_model": 32061,
+    "session_grant_key": 3845,
+    "enqueue_pending_approval_custom": 4226,
+    "goal_phase_command_failures": 48201,
+    "dispatch_model_tool_calls_parallel": 27722
+  },
+  "scenarios": [
+    {
+      "scenario": "route-false-Add",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 0,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-false-Control",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 1,
+      "effects": 1
+    },
+    {
+      "scenario": "route-false-Revoke",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-false-Disable",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 0,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-false-Retry429",
+      "requests_or_attempts": 3,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 1,
+      "effects": 1
+    },
+    {
+      "scenario": "route-false-Retry503",
+      "requests_or_attempts": 3,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 1,
+      "effects": 1
+    },
+    {
+      "scenario": "route-false-Exhaust503",
+      "requests_or_attempts": 3,
+      "admitted_human_inputs": 1,
+      "registered_calls": 0,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-true-Add",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 0,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-true-Control",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 1,
+      "effects": 1
+    },
+    {
+      "scenario": "route-true-Revoke",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-true-Disable",
+      "requests_or_attempts": 2,
+      "admitted_human_inputs": 1,
+      "registered_calls": 0,
+      "executor_entries": 0,
+      "effects": 0
+    },
+    {
+      "scenario": "route-true-Retry429",
+      "requests_or_attempts": 3,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 1,
+      "effects": 1
+    },
+    {
+      "scenario": "route-true-Retry503",
+      "requests_or_attempts": 3,
+      "admitted_human_inputs": 1,
+      "registered_calls": 1,
+      "executor_entries": 1,
+      "effects": 1
+    },
+    {
+      "scenario": "route-true-Exhaust503",
+      "requests_or_attempts": 3,
+      "admitted_human_inputs": 1,
+      "registered_calls": 0,
+      "executor_entries": 0,
+      "effects": 0
+    }
+  ],
+  "child_root_deadline_unchanged": true,
+  "frozen_baseline_manifest_and_patch_unchanged": true,
+  "limitations": [
+    "本地受控HTTP与真实adapter/宿主派发，不是付费模型质量证据",
+    "诊断输出有隔离目录清理导致的拒写提示；业务回执使用独立DB和导出文件验证",
+    "HA00恢复演练只恢复清单102项，不是完整基线构建"
+  ]
+}

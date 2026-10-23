@@ -1,7 +1,37 @@
 //! 请求事实观察接口；不负责排空、取消或计费，也不持有请求正文与凭据。
 use std::sync::Arc;
 use serde_json::Value;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use crate::{ApiError, Usage};
+
+/// 只投影实际发送的工具和有效参数；不保存正文、system、端点凭据或原始 schema。
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RequestWireSummary {
+    pub model: String,
+    pub stream: bool,
+    pub tool_names: Vec<String>,
+    pub tools_digest: String,
+    pub parameters_digest: String,
+}
+
+impl RequestWireSummary {
+    pub fn from_payload(payload: &Value) -> Self {
+        let tools = payload.get("tools").unwrap_or(&Value::Null);
+        let parameters = Value::Object(payload.as_object().into_iter().flat_map(|object| object.iter())
+            .filter(|(key, _)| !matches!(key.as_str(), "messages" | "system" | "tools"))
+            .map(|(key, value)| (key.clone(), value.clone())).collect());
+        let digest = |value: &Value| format!("sha256:{:x}", Sha256::digest(value.to_string().as_bytes()));
+        Self {
+            model: payload["model"].as_str().unwrap_or_default().into(),
+            stream: payload["stream"].as_bool().unwrap_or(false),
+            tool_names: tools.as_array().into_iter().flatten().filter_map(|tool|
+                tool.pointer("/function/name").or_else(|| tool.get("name")).and_then(Value::as_str).map(str::to_owned)).collect(),
+            tools_digest: digest(tools),
+            parameters_digest: digest(&parameters),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct UsageEvidence {
@@ -45,9 +75,14 @@ pub struct RequestAttemptSnapshot {
     pub usage: UsageEvidence,
     pub http_status: Option<u16>,
     pub terminal: bool,
+    pub model: Option<String>,
+    pub protocol: Option<String>,
+    pub started_at_ms: Option<u64>,
+    pub first_token_at_ms: Option<u64>,
+    pub wire: Option<RequestWireSummary>,
 }
 impl Default for RequestAttemptSnapshot {
-    fn default() -> Self { Self { attempt_no:1,status:"prepared",dispatched:false,usage:UsageEvidence::default(),http_status:None,terminal:false } }
+    fn default() -> Self { Self { attempt_no:1,status:"prepared",dispatched:false,usage:UsageEvidence::default(),http_status:None,terminal:false,model:None,protocol:None,started_at_ms:None,first_token_at_ms:None,wire:None } }
 }
 pub trait RequestObserver: std::fmt::Debug + Send + Sync {
     fn update(&self, snapshot: &RequestAttemptSnapshot);
@@ -65,9 +100,21 @@ impl RequestObservation {
     }
     fn publish(&self) { if let Some(observer)=&self.observer { observer.update(&self.snapshot); } }
     pub(crate) fn begin(&mut self, attempt_no:u32) {
-        self.snapshot=RequestAttemptSnapshot { attempt_no,..RequestAttemptSnapshot::default() }; self.publish();
+        self.snapshot=RequestAttemptSnapshot { attempt_no,model:self.snapshot.model.clone(),protocol:self.snapshot.protocol.clone(),started_at_ms:Some(now_ms()),..RequestAttemptSnapshot::default() }; self.publish();
     }
-    pub(crate) fn dispatch(&mut self) { self.snapshot.dispatched=true;self.snapshot.status="dispatched";self.publish(); }
+    pub(crate) fn configure(&mut self, model: &str, protocol: &str) {
+        self.snapshot.model=Some(model.into()); self.snapshot.protocol=Some(protocol.into());
+    }
+    pub(crate) fn stream_events<'a>(&mut self, events: impl IntoIterator<Item=&'a crate::StreamEvent>) {
+        if self.snapshot.first_token_at_ms.is_none() && events.into_iter().any(|event| matches!(event,crate::StreamEvent::ContentBlockDelta(_))) {
+            self.snapshot.first_token_at_ms=Some(now_ms()); self.publish();
+        }
+    }
+    pub(crate) fn dispatch(&mut self, payload: &Value) {
+        // 与下面 send 使用同一个最终 payload；重试沿用逻辑请求，只更新真实 attempt。
+        if self.observer.is_some() { self.snapshot.wire = Some(RequestWireSummary::from_payload(payload)); }
+        self.snapshot.dispatched=true;self.snapshot.status="dispatched";self.publish();
+    }
     pub(crate) fn usage(&mut self, usage:UsageEvidence) {
         let before=self.snapshot.usage;
         self.snapshot.usage.merge(usage);
@@ -92,3 +139,5 @@ impl RequestObservation {
 impl Drop for RequestObservation {
     fn drop(&mut self) { self.finish(if self.snapshot.dispatched {"remote_unknown"} else {"abandoned_before_dispatch"}); }
 }
+
+fn now_ms() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis().min(u64::MAX as u128) as u64 }

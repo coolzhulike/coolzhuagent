@@ -1,0 +1,171 @@
+[
+ {
+  "shell_ok": 0,
+  "shell_not_ok": 2,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 1,
+  "status": "completed",
+  "elapsed_ms": 27230,
+  "tool_calls": 6,
+  "by_tool": {
+   "glob_search": 1,
+   "read_file": 3,
+   "PowerShell": 1,
+   "bash": 1
+  },
+  "by_status": {
+   "ok": 4,
+   "dry-run-only": 2
+  },
+  "by_decision": {
+   "allow-auto": 4,
+   "require-confirm": 2
+  },
+  "require_confirm": 2,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 1,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 1,
+  "status": "completed",
+  "elapsed_ms": 90207,
+  "tool_calls": 2,
+  "by_tool": {
+   "PowerShell": 1,
+   "bash": 1
+  },
+  "by_status": {
+   "dry-run-only": 1,
+   "ok": 1
+  },
+  "by_decision": {
+   "require-confirm": 1,
+   "allow-auto": 1
+  },
+  "require_confirm": 1,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 0,
+  "shell_not_ok": 4,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 2,
+  "status": "completed",
+  "elapsed_ms": 150277,
+  "tool_calls": 12,
+  "by_tool": {
+   "bash": 1,
+   "PowerShell": 3,
+   "glob_search": 1,
+   "read_file": 6,
+   "Config": 1
+  },
+  "by_status": {
+   "dry-run-only": 6,
+   "ok": 6
+  },
+  "by_decision": {
+   "require-confirm": 5,
+   "allow-auto": 6,
+   "require-approval": 1
+  },
+  "require_confirm": 5,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 1,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 2,
+  "status": "completed",
+  "elapsed_ms": 93508,
+  "tool_calls": 3,
+  "by_tool": {
+   "read_file": 1,
+   "PowerShell": 1,
+   "bash": 1
+  },
+  "by_status": {
+   "ok": 2,
+   "dry-run-only": 1
+  },
+  "by_decision": {
+   "allow-auto": 2,
+   "require-confirm": 1
+  },
+  "require_confirm": 1,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 1,
+  "shell_not_ok": 2,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "baseline",
+  "round": 3,
+  "status": "completed",
+  "elapsed_ms": 134139,
+  "tool_calls": 9,
+  "by_tool": {
+   "glob_search": 1,
+   "read_file": 5,
+   "PowerShell": 2,
+   "bash": 1
+  },
+  "by_status": {
+   "ok": 6,
+   "dry-run-only": 3
+  },
+  "by_decision": {
+   "allow-auto": 6,
+   "require-confirm": 3
+  },
+  "require_confirm": 3,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ },
+ {
+  "shell_ok": 0,
+  "shell_not_ok": 3,
+  "followup_tool_calls": 0,
+  "followup_by_tool": {},
+  "side": "candidate",
+  "round": 3,
+  "status": "completed",
+  "elapsed_ms": 112842,
+  "tool_calls": 7,
+  "by_tool": {
+   "PowerShell": 1,
+   "bash": 2,
+   "Config": 1,
+   "read_file": 2,
+   "glob_search": 1
+  },
+  "by_status": {
+   "dry-run-only": 4,
+   "ok": 3
+  },
+  "by_decision": {
+   "require-confirm": 3,
+   "require-approval": 1,
+   "allow-auto": 3
+  },
+  "require_confirm": 3,
+  "indep_exit": 0,
+  "final_lib": "pub fn answer() -> i32 { 42 }"
+ }
+]

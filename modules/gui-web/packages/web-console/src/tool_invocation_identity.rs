@@ -7,7 +7,7 @@ tokio::task_local! { static SOURCE_REQUEST_KEY: String; }
 pub(crate) struct ModelToolIdentity {
     pub(crate) execution_id: String,
     pub(crate) provider_tool_call_id: String,
-    /// 宿主模型回复作用域（trace + feedback round），不是臆造的网络 request_attempt_id。
+    /// HTTP 共享循环使用实际 logical_request_id；其它宿主入口保留其自身来源标识。
     pub(crate) source_request_key: String,
 }
 impl ModelToolIdentity {

@@ -1,0 +1,221 @@
+{
+  "state": "completed",
+  "started_at": "2026-10-16T16:29:58.321125+00:00",
+  "boundary": "完整135发布服务与真实HTTP，隔离SQLite中人工预置outbox和execution_index；只证明持久化状态/恢复投影/HTTP门控，不代表外部投递exactly-once、真实模型在途取消、正式安装环境或队列UI已清理",
+  "production_database_touched": false,
+  "external_model_calls": 0,
+  "external_message_sends": 0,
+  "source_modified": false,
+  "binary": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "313cb9ece330628b03b40ad7ffb5b98b5fdf60927a9c2cce45925fcc9dda0f7c",
+  "cases": [
+    {
+      "name": "2.4 outbox真实HTTP十六并发仅一次认领",
+      "state": "passed",
+      "evidence": {
+        "parallel_requests": 16,
+        "total_claims": 1,
+        "id": 1,
+        "state": "sending"
+      }
+    },
+    {
+      "name": "2.4 sent重复ack和迟到fail不回退或重投",
+      "state": "passed",
+      "evidence": {
+        "first_ack": 200,
+        "repeat_ack": 200,
+        "late_fail": 200,
+        "terminal_rows_unchanged": true,
+        "reclaimed": false
+      }
+    },
+    {
+      "name": "2.4 未到期/死信不认领及非法回执无写入",
+      "state": "passed",
+      "evidence": {
+        "future_pending_ack": 400,
+        "dead_letter_ack": 400,
+        "empty_fail": 400,
+        "database_unchanged": true,
+        "future_or_dead_claimed": false
+      }
+    },
+    {
+      "name": "2.4 HTTP失败后真实一秒退避到期才重认领",
+      "state": "passed",
+      "evidence": {
+        "attempts": 1,
+        "actual_delay_ms": 1013,
+        "before_due_empty": true,
+        "after_due_claims": 1
+      }
+    },
+    {
+      "name": "2.4 重试上限进入死信且重复失败保持终态",
+      "state": "passed",
+      "evidence": {
+        "attempts": 3,
+        "state": "dead_letter",
+        "not_reclaimed": true,
+        "repeat_fail_unchanged": true
+      }
+    },
+    {
+      "name": "2.4 认领后强杀重启未过租约不重投且sent死信保留",
+      "state": "passed",
+      "evidence": {
+        "rows_identical": true,
+        "prelease_reclaimed": false,
+        "old_process_exited": true
+      }
+    },
+    {
+      "name": "2.4 租约过期后十二并发唯一回收并保留失败事实",
+      "state": "passed",
+      "evidence": {
+        "clock_boundary": "只修改隔离DB时间戳至租约外，未修改系统时钟",
+        "parallel_requests": 12,
+        "total_claims": 1,
+        "lease_expiry_attempts": 1,
+        "acknowledged": true
+      }
+    },
+    {
+      "name": "2.4 租约耗尽直接死信不再认领",
+      "state": "passed",
+      "evidence": {
+        "state": "dead_letter",
+        "attempts": 3,
+        "not_reclaimed": true
+      }
+    },
+    {
+      "name": "1.1/2.5 重启后无活句柄运行与取消请求投影未知而非成功",
+      "state": "passed",
+      "evidence": {
+        "visible_states": {
+          "fixture-outcome_unknown": "outcome_unknown",
+          "fixture-interrupted": "interrupted",
+          "fixture-failed": "failed",
+          "fixture-completed": "completed",
+          "fixture-cancel_requested": "outcome_unknown",
+          "fixture-running": "outcome_unknown"
+        },
+        "unknown_usage_preserved": true,
+        "no_database_terminal_rewrite": true,
+        "synthetic_index_only": true
+      }
+    },
+    {
+      "name": "1.1/2.5 无活句柄取消六类状态均409且不伪造终态",
+      "state": "passed",
+      "evidence": {
+        "responses": [
+          [
+            "running",
+            409
+          ],
+          [
+            "cancel_requested",
+            409
+          ],
+          [
+            "completed",
+            409
+          ],
+          [
+            "failed",
+            409
+          ],
+          [
+            "interrupted",
+            409
+          ],
+          [
+            "outcome_unknown",
+            409
+          ]
+        ],
+        "no_false_cancel_success": true,
+        "rows_unchanged": true
+      }
+    },
+    {
+      "name": "2.5 旧配置身份缺失身份与跨工程访问拒绝",
+      "state": "passed",
+      "evidence": {
+        "missing_or_stale_headers": [
+          400,
+          400,
+          409,
+          409
+        ],
+        "foreign_detail_trace": 404,
+        "foreign_cancel": 409,
+        "rows_unchanged": true
+      }
+    },
+    {
+      "name": "1.1/2.5 未绑定run不猜测房间轨迹且未知用量不补零",
+      "state": "passed",
+      "evidence": {
+        "detail_status": 200,
+        "unbound_trace_status": 409,
+        "trace_not_guessed_from_room": true,
+        "subtree_unknown_usage": true,
+        "rows_unchanged": true
+      }
+    },
+    {
+      "name": "2.4/2.5 再次强杀重启结果幂等无自动重放",
+      "state": "passed",
+      "evidence": {
+        "second_restart_idempotent": true,
+        "quick_check": {
+          "session": "ok",
+          "gateway": "ok"
+        },
+        "no_outbox_replay": true,
+        "no_execution_replay": true
+      }
+    }
+  ],
+  "processes": [
+    {
+      "pid": 27420,
+      "serial": 1,
+      "port": 29511,
+      "ready_seconds": 4.375,
+      "process_exited": true,
+      "exit_code": 1
+    },
+    {
+      "pid": 17772,
+      "serial": 2,
+      "port": 29511,
+      "ready_seconds": 7.225,
+      "process_exited": true,
+      "exit_code": 1
+    },
+    {
+      "pid": 32512,
+      "serial": 3,
+      "port": 29511,
+      "ready_seconds": 3.805,
+      "process_exited": true,
+      "exit_code": 1
+    },
+    {
+      "pid": 19168,
+      "serial": 4,
+      "port": 29511,
+      "ready_seconds": 4.994,
+      "process_exited": true,
+      "exit_code": 1
+    }
+  ],
+  "passed": 13,
+  "failed": 0,
+  "finished_at": "2026-10-16T16:30:30.277626+00:00"
+}

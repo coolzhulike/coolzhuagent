@@ -1503,7 +1503,31 @@ function Export-LoaderArtifact {
     -Architecture ([string]$export.architecture)
 
   $buildRootText = Join-Path $repoPath (([string]$export.build_root).Replace('{profile}', $profile))
+  # 允许根严格锚定 manifest 声明根经受控验收重定向后的确切 target/<profile>（与 package-all
+  # 其它路径走同一条 Resolve-AcceptanceOutputPath；未设置验收根时原样返回，等于声明根本身）。
+  if (Get-Command Resolve-AcceptanceOutputPath -ErrorAction SilentlyContinue) {
+    $buildRootText = Resolve-AcceptanceOutputPath -RepoPath $repoPath -Path $buildRootText
+  }
   $buildRoot = Resolve-LoaderRealPath $buildRootText
+  # Context.CargoTargetDir 是本构建入口实际 --target-dir（上游已经受控定向）：声明了真实 target
+  # 目录时必须与允许根一致（它就是 build_root 的父级 target 目录）；任意非空字符串——包括验收
+  # 根下其它目录或仓外路径——都不能充当来源根。空值/'target' 回退表示入口未声明 --target-dir，
+  # 仅按声明根校验（与既有行为一致）。
+  $entryTargetDir = [string]$Context.CargoTargetDir
+  if (-not [string]::IsNullOrWhiteSpace($entryTargetDir) -and $entryTargetDir -ne 'target') {
+    $entryTargetCandidate = if ([System.IO.Path]::IsPathRooted($entryTargetDir)) { $entryTargetDir } else { Join-Path $repoPath $entryTargetDir }
+    $entryProfileRoot = Resolve-LoaderRealPath (Join-Path $entryTargetCandidate $profile)
+    if ($entryProfileRoot -ne $buildRoot) {
+      throw (New-LoaderFailureException `
+        -Category 'TARGET-ROOT-MISMATCH' `
+        -ArtifactId $artifactId `
+        -Target $target `
+        -Profile $profile `
+        -Candidates $producer.candidates `
+        -Detail "构建入口实际 target 目录与 manifest 声明根经受控定向后的允许根不一致：cargo_target_dir=$entryTargetDir resolved=$entryProfileRoot allowed=$buildRoot" `
+        -Remediation "确认该构建入口的 --target-dir 与 manifest export.build_root 指向同一目录（含验收定向结果）；不要用任意临时目录充当构建来源")
+    }
+  }
   $producerOutDir = Resolve-LoaderRealPath $producer.out_dir
   if (-not (Test-LoaderPathInside -Path $producerOutDir -Root $buildRoot)) {
     throw (New-LoaderFailureException `

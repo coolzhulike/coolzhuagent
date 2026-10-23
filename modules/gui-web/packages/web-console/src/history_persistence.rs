@@ -91,6 +91,9 @@ mod tests {
         assert_eq!(store.state.sessions[0].messages.len(),100);
         store.save().unwrap();
         assert_eq!(messages(&store.path,false,"history-agent").unwrap().len(),250);
+        store.save_legacy_json().unwrap();
+        let exported:PersistedSessionState=serde_json::from_slice(&std::fs::read(&store.legacy_json_path).unwrap()).unwrap();
+        assert_eq!(exported.sessions[0].messages.len(),250);
         let mut restored = SessionStore::load_from_paths(store.path.clone(),store.legacy_json_path.clone(),store.capacity);
         assert_eq!(messages(&restored.path,false,"history-agent").unwrap().len(),250);
         restored.reset_session("history-agent").unwrap();
@@ -155,4 +158,28 @@ mod tests {
         assert_eq!(last.deleted_attachments,0);
         assert!(directory.path().join(name).exists(), "GC 只读演练：最后消息引用消失也不删除磁盘对象");
     }
+    #[test]
+    fn unchanged_save_and_room_switch_do_not_rewrite_message_rows() {
+        let directory=tempfile::tempdir().unwrap();let mut store=fixture(directory.path());
+        let c=open_session_connection(&store.path).unwrap();
+        c.execute_batch("CREATE TABLE write_audit(kind TEXT); CREATE TRIGGER count_message_insert AFTER INSERT ON session_messages BEGIN INSERT INTO write_audit VALUES('insert'); END; CREATE TRIGGER count_message_update AFTER UPDATE ON session_messages BEGIN INSERT INTO write_audit VALUES('update'); END;").unwrap();
+        store.save().unwrap();store.state.sessions[0].name="已更名".into();store.save().unwrap();
+        assert_eq!(c.query_row("SELECT COUNT(*) FROM write_audit",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+        store.state.sessions[0].messages[0].content="只更新这一条".into();store.save().unwrap();
+        assert_eq!(c.query_row("SELECT COUNT(*) FROM write_audit",[],|r|r.get::<_,i64>(0)).unwrap(),1);
+        assert_eq!(messages(&store.path,false,"history-agent").unwrap().len(),250);
+    }
+
+    #[test]
+    fn full_access_requires_current_process_grant_and_is_revocable() {
+        let directory=tempfile::tempdir().unwrap();let store=fixture(directory.path());
+        set_chat_room_permission_profile_sqlite(&store.path,"room-permission",ROOM_PERMISSION_FULL_ACCESS).unwrap();
+        assert_eq!(chat_room_permission_profile_sqlite(&store.path,"room-permission").unwrap(),ROOM_PERMISSION_FULL_ACCESS);
+        room_full_access_grants().lock().unwrap().remove(&room_grant_key(&store.path,"room-permission"));
+        assert_eq!(chat_room_permission_profile_sqlite(&store.path,"room-permission").unwrap(),ROOM_PERMISSION_WORKSPACE_WRITE);
+        set_chat_room_permission_profile_sqlite(&store.path,"room-permission",ROOM_PERMISSION_FULL_ACCESS).unwrap();
+        set_chat_room_permission_profile_sqlite(&store.path,"room-permission",ROOM_PERMISSION_WORKSPACE_WRITE).unwrap();
+        assert_eq!(chat_room_permission_profile_sqlite(&store.path,"room-permission").unwrap(),ROOM_PERMISSION_WORKSPACE_WRITE);
+    }
+
 }

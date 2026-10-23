@@ -1,0 +1,111 @@
+{
+  "fallback": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\fallback.txt' -Value run; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\fallback.txt' -Value run; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792330429161,
+        "id": "goal-command-1792330428870-35288-3",
+        "reason": "",
+        "started_at_unix_ms": 1792330428870,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "fallback_line_count": 1,
+  "mismatch": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\mismatch.txt' -Value runtime; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\mismatch.txt' -Value runtime; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792330429780,
+        "id": "goal-command-1792330429483-35288-4",
+        "reason": "",
+        "started_at_unix_ms": 1792330429483,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "mismatch_line_count": 1,
+  "reused": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\reused.txt' -Value run; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\reused.txt' -Value run; exit 0",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792330428846,
+        "id": "tool-process-35288-1792330428846",
+        "reason": "复用模型诊断的真实宿主回执",
+        "started_at_unix_ms": 1792330428570,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  },
+  "reused_line_count": 1,
+  "tool": {
+    "assistantAutoBackgrounded": null,
+    "backgroundTaskId": null,
+    "backgroundedByUser": null,
+    "dangerouslyDisableSandbox": null,
+    "executionReceipt": {
+      "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh\\reused.txt' -Value run; exit 0",
+      "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpu6Efqh",
+      "exitCode": 0,
+      "finishedAtUnixMs": 1792330428846,
+      "id": "tool-process-35288-1792330428846",
+      "interrupted": false,
+      "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+      "startedAtUnixMs": 1792330428570,
+      "timeoutMs": 90000
+    },
+    "interrupted": false,
+    "isImage": null,
+    "noOutputExpected": true,
+    "persistedOutputPath": null,
+    "persistedOutputSize": null,
+    "rawOutputPath": null,
+    "returnCodeInterpretation": null,
+    "sandboxStatus": null,
+    "stderr": "",
+    "stdout": "",
+    "structuredContent": null
+  }
+}

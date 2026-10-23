@@ -6,10 +6,32 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import tomllib
 
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def inherited_license_root(metadata, package, component_root):
+    """只接受 Cargo 明示的本工作区许可证继承，不推测第三方父目录。"""
+    if (package["id"] not in metadata.get("workspace_members", [])
+            or package.get("source") is not None or not metadata.get("workspace_root")):
+        return None
+    try:
+        root = Path(metadata["workspace_root"]).resolve(strict=True)
+        component_root.relative_to(root)
+        local = tomllib.loads((component_root / "Cargo.toml").read_text(encoding="utf-8-sig"))
+        workspace = tomllib.loads((root / "Cargo.toml").read_text(encoding="utf-8-sig"))
+        declaration = local.get("package", {}).get("license")
+        declared = workspace.get("workspace", {}).get("package", {}).get("license")
+        if (root != component_root and isinstance(declaration, dict)
+                and declaration.get("workspace") is True and declared
+                and declared == package.get("license")):
+            return root
+    except (OSError, ValueError):
+        pass
+    return None
 
 
 def read_build_observations(path, package_ids):
@@ -68,12 +90,18 @@ def export(metadata_path, output_path, build_messages=None):
         if declared_file:
             candidates.add(root / declared_file)
         files, unresolved = [], []
-        for candidate in sorted(candidates, key=lambda path: str(path)):
-            # 拒绝逃出组件根的链接；不扫描父目录补造证据。
+        scoped_candidates = [(path, root, "component") for path in candidates]
+        inherited_root = inherited_license_root(metadata, package, root)
+        if inherited_root:
+            scoped_candidates.extend((path, inherited_root, "workspace-inherited")
+                for path in inherited_root.iterdir() if path.is_file()
+                and path.name.lower().startswith(("license", "licence", "copying", "copyright", "notice")))
+        for candidate, allowed_root, scope in sorted(scoped_candidates, key=lambda row: str(row[0])):
+            # 声明的组件文件仍严格限于组件根；继承文件另有明确的工作区依据。
             try:
-                relative = candidate.relative_to(root).as_posix()
+                relative = candidate.relative_to(allowed_root).as_posix()
                 resolved = candidate.resolve(strict=True)
-                resolved.relative_to(root)
+                resolved.relative_to(allowed_root)
                 if candidate.is_symlink() or not resolved.is_file():
                     raise ValueError("非普通组件内文件")
                 body = resolved.read_bytes()
@@ -81,7 +109,7 @@ def export(metadata_path, output_path, build_messages=None):
                     content, encoding = body.decode("utf-8"), "utf-8"
                 except UnicodeDecodeError:
                     content, encoding = base64.b64encode(body).decode("ascii"), "base64"
-                files.append({"path": relative, "bytes": len(body), "sha256": digest(body),
+                files.append({"path": relative, "scope": scope, "bytes": len(body), "sha256": digest(body),
                               "encoding": encoding, "content": content})
             except (OSError, ValueError):
                 unresolved.append({"path": candidate.name, "reason": "缺失、不可读或不在组件根内"})

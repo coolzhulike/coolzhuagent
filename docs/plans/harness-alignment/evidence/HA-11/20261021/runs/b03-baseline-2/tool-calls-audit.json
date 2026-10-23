@@ -1,0 +1,69 @@
+{
+ "run_id": "run-chat-90bcc5c464786b0b016480a3fae47eb1f9541bf4ebb83b0b",
+ "tool_executions": 9,
+ "rows": [
+  {
+   "tool_call_id": "tool-bb560b344694642ab92217dd57d6a00b5d4bcd43a2de6fd1bffe69ba74004481",
+   "tool_name": "glob_search",
+   "status": "completed",
+   "created_ms": 1792686201719,
+   "updated_ms": 1792686205242
+  },
+  {
+   "tool_call_id": "tool-e9d26c633301b9cb5ab5a85339637734255f87237ab4c60fd3237372fb8e8f95",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792686201814,
+   "updated_ms": 1792686205410
+  },
+  {
+   "tool_call_id": "tool-16300fdf26900e06cdc53bcae932a49dc2092259f4106119666f2dba66e97f6e",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686220203,
+   "updated_ms": 1792686225639
+  },
+  {
+   "tool_call_id": "tool-497695d6c7c5b2ec6ed64d9987d6d8f4596cf450c98212bcdc8c32f2174169b9",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686220588,
+   "updated_ms": 1792686225243
+  },
+  {
+   "tool_call_id": "tool-0df2897389908017c53c0432b33e23c45adb320f6a49dd6c18bc15f9a3b01271",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686220203,
+   "updated_ms": 1792686224720
+  },
+  {
+   "tool_call_id": "tool-1ef594909a10efee19536bad393f64dea5c853d0ef354358993afd4258038092",
+   "tool_name": "bash",
+   "status": "failed",
+   "created_ms": 1792686235961,
+   "updated_ms": 1792686249133
+  },
+  {
+   "tool_call_id": "tool-9a7a877727a9a518de21c8ce5b9e229ed9f54ce1497a455cc7d521be05e590f6",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792686267180,
+   "updated_ms": 1792686271040
+  },
+  {
+   "tool_call_id": "tool-5a56c7e115d3fde8070bc51f6060a3407ec11bd4aa85f24c69cefadc722251b4",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686280413,
+   "updated_ms": 1792686286270
+  },
+  {
+   "tool_call_id": "tool-076a6a653f32304e6eae1209a13b746ca664a2696ff16208f045c6001feb5bf3",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792686280644,
+   "updated_ms": 1792686303909
+  }
+ ]
+}

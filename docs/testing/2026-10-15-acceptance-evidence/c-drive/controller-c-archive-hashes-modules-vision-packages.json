@@ -1,0 +1,62 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\uia-resolver\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\uia-resolver\\Cargo.toml",
+    "sha256": "4be8e6147b85b758011119666f2a363459183de4c2aba5aeddba1149fd8d7c9c",
+    "archive_sha256": "4be8e6147b85b758011119666f2a363459183de4c2aba5aeddba1149fd8d7c9c"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\uia-resolver\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\uia-resolver\\src\\lib.rs",
+    "sha256": "45c58da6168135d7b7503477d7ab4641aa66ae197d9b5bce0bd0ee0a4961ba05",
+    "archive_sha256": "45c58da6168135d7b7503477d7ab4641aa66ae197d9b5bce0bd0ee0a4961ba05"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\uia-resolver\\src\\windows_impl.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\uia-resolver\\src\\windows_impl.rs",
+    "sha256": "aeeea2602e5d9d6125533388777a278e2c1ec39b09f9ef4e07146237b7d0d509",
+    "archive_sha256": "aeeea2602e5d9d6125533388777a278e2c1ec39b09f9ef4e07146237b7d0d509"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\uia-resolver\\src\\window_target.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\uia-resolver\\src\\window_target.rs",
+    "sha256": "881b34828a5881a56bd4829c58280f780ff3a2a2163d5d8921d0cf5bd92d586f",
+    "archive_sha256": "881b34828a5881a56bd4829c58280f780ff3a2a2163d5d8921d0cf5bd92d586f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\vision-service\\Cargo.toml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\vision-service\\Cargo.toml",
+    "sha256": "f84a09cd1d41bc331a46932e9a870c482afe1dd8d66672fd20b11694e5629d8f",
+    "archive_sha256": "f84a09cd1d41bc331a46932e9a870c482afe1dd8d66672fd20b11694e5629d8f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\vision-service\\src\\lib.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\vision-service\\src\\lib.rs",
+    "sha256": "93a775cc2a008291e21133293a7d12f8104986549987aa2c2790dcd74196f15f",
+    "archive_sha256": "93a775cc2a008291e21133293a7d12f8104986549987aa2c2790dcd74196f15f"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\vision-service\\src\\local_backend.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\vision-service\\src\\local_backend.rs",
+    "sha256": "cf34113e245ea06c1bcc2d64c72167621cfe6886e5d7d4af1d44160cfb63d4c8",
+    "archive_sha256": "cf34113e245ea06c1bcc2d64c72167621cfe6886e5d7d4af1d44160cfb63d4c8"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\vision-service\\src\\locate.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\vision-service\\src\\locate.rs",
+    "sha256": "af28540250236a011b21b582880dddf16dbc16ea8dabeee93fdc05a52ad67c3d",
+    "archive_sha256": "af28540250236a011b21b582880dddf16dbc16ea8dabeee93fdc05a52ad67c3d"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\vision-service\\src\\main.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\vision-service\\src\\main.rs",
+    "sha256": "e89ede11c9c3b86cb3857e7ebc414a6e36f7f2a9436845a2349082a44331da5a",
+    "archive_sha256": "e89ede11c9c3b86cb3857e7ebc414a6e36f7f2a9436845a2349082a44331da5a"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\modules\\vision\\packages\\vision-service\\src\\bin\\latest_desktop.rs",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\modules\\vision\\packages\\vision-service\\src\\bin\\latest_desktop.rs",
+    "sha256": "4cce28a1a58ebdeb0ad49a15f2acc6265f47ab0c422dc2bee9a58f18d1668ea3",
+    "archive_sha256": "4cce28a1a58ebdeb0ad49a15f2acc6265f47ab0c422dc2bee9a58f18d1668ea3"
+  }
+]

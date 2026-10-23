@@ -1,0 +1,118 @@
+{
+  "state": "completed",
+  "started_at": "2026-10-16T16:32:04.362478+00:00",
+  "boundary": "完整135发布服务真实HTTP、隔离Devin SWE-2本地对象；只读取人工文本验证FullAccess与pending自然过期，不代表模型调用、DSH冻结grant、在途撤权或正式页面完整验收",
+  "production_database_touched": false,
+  "external_model_calls": 0,
+  "external_message_sends": 0,
+  "source_modified": false,
+  "binary": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-web-console.exe",
+  "binary_sha256": "313cb9ece330628b03b40ad7ffb5b98b5fdf60927a9c2cce45925fcc9dda0f7c",
+  "cases": [
+    {
+      "name": "1.4 隔离对象最低权限读取与待审批基线",
+      "state": "passed",
+      "evidence": {
+        "outside": "require-approval",
+        "inside": "ok",
+        "output_outside": null,
+        "pending_registered": true
+      }
+    },
+    {
+      "name": "1.4 不完整确认不产生授权",
+      "state": "passed",
+      "evidence": {
+        "responses": [
+          400,
+          400
+        ],
+        "no_grant_created": true
+      }
+    },
+    {
+      "name": "1.4 最短TTL钳制与授权会话隔离及未知工具拒绝",
+      "state": "passed",
+      "evidence": {
+        "requested_ttl_secs": 1,
+        "actual_minimum_ttl_secs": 60,
+        "active_scope_read": "ok",
+        "other_session": "require-approval",
+        "unknown_tool": "rejected"
+      }
+    },
+    {
+      "name": "1.4 授权真实自然过期后恢复最低权限且零越界输出",
+      "state": "passed",
+      "evidence": {
+        "wall_elapsed_seconds": 61.245,
+        "active": false,
+        "outside_output": null,
+        "outside": "require-approval",
+        "inside": "ok",
+        "clock_modified": false
+      }
+    },
+    {
+      "name": "1.4 跨会话消费pending拒绝且原待办保留",
+      "state": "passed",
+      "evidence": {
+        "wrong_session_http": 404,
+        "original_pending_preserved": true,
+        "no_output": true
+      }
+    },
+    {
+      "name": "1.4 pending真实五分钟自然失效且旧审批不能执行",
+      "state": "passed",
+      "evidence": {
+        "wall_elapsed_seconds": 301.452,
+        "absent_from_pending": true,
+        "expired_approve_http": 404,
+        "no_execution_outcome": true,
+        "no_session_grant": true,
+        "clock_modified": false
+      }
+    },
+    {
+      "name": "1.4 重启不恢复临时授权或重放pending",
+      "state": "passed",
+      "evidence": {
+        "grant_not_persisted": true,
+        "pending_not_replayed": true,
+        "local_session_objects_preserved": true,
+        "post_restart_outside_output": null
+      }
+    }
+  ],
+  "processes": [
+    {
+      "pid": 24884,
+      "serial": 1,
+      "port": 29512,
+      "ready_seconds": 5.072,
+      "process_exited": true,
+      "exit_code": 1
+    },
+    {
+      "pid": 13212,
+      "serial": 2,
+      "port": 29512,
+      "ready_seconds": 5.513,
+      "process_exited": true,
+      "exit_code": 1
+    }
+  ],
+  "test_sessions": {
+    "provider": "Devin",
+    "model": "swe-2",
+    "local_objects_only": true,
+    "ids": [
+      "session-1792168329691",
+      "session-1792168331159"
+    ]
+  },
+  "passed": 7,
+  "failed": 0,
+  "finished_at": "2026-10-16T16:37:21.597487+00:00"
+}

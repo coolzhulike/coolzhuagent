@@ -1,0 +1,13 @@
+{
+ "run_id": "run-chat-863a5d55ffa799e8fad1f613c19df4f4151cdcdb050f3bcb",
+ "tool_executions": 1,
+ "rows": [
+  {
+   "tool_call_id": "tool-545e41532d16c75433e9e02b8b617622b839d19435f9ff3d0b5fe4a0eeb26bb1",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792689111060,
+   "updated_ms": 1792689228960
+  }
+ ]
+}

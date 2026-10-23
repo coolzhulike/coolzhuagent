@@ -1,0 +1,64 @@
+{
+  "evidence": {
+    "command_failures": [
+      "Command 验证 Failed：`exit 7` 失败（exit 7）：\n"
+    ],
+    "command_verification": {
+      "contract": {
+        "commands": [
+          "exit 7"
+        ],
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpqLIogO",
+        "timeout_ms": 90000,
+        "type": "Command"
+      },
+      "legacy_failures": null,
+      "reason": "`exit 7` 失败（exit 7）：\n",
+      "receipts": [
+        {
+          "command": "exit 7",
+          "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpqLIogO",
+          "exit_code": 7,
+          "finished_at_unix_ms": 1792331239957,
+          "id": "goal-command-1792331239743-24864-7",
+          "reason": "`exit 7` 失败（exit 7）：\n",
+          "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+          "started_at_unix_ms": 1792331239743,
+          "status": "failed",
+          "timeout_ms": 90000
+        }
+      ],
+      "state": "failed"
+    },
+    "text": "工作结果待宿主验证"
+  },
+  "gate": {
+    "contract": {
+      "commands": [
+        "exit 7"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpqLIogO",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "`exit 7` 失败（exit 7）：\n",
+    "receipts": [
+      {
+        "command": "exit 7",
+        "cwd": "\\\\?\\C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpqLIogO",
+        "exit_code": 7,
+        "finished_at_unix_ms": 1792331239957,
+        "id": "goal-command-1792331239743-24864-7",
+        "reason": "`exit 7` 失败（exit 7）：\n",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792331239743,
+        "status": "failed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "failed"
+  },
+  "status": "running",
+  "verdict": "fail"
+}

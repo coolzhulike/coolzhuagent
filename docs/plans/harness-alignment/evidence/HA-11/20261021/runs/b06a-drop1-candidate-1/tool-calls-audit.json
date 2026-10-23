@@ -1,0 +1,17 @@
+{
+ "case": "b06a-drop1",
+ "side": "candidate",
+ "run_id": "run-chat-61bb7f06de731ad7cb4c3ea99684e758b71b60e8d0fc60d6",
+ "tool_executions": 1,
+ "rows": [
+  {
+   "tool_call_id": "tool-6a7e06930216b9c64e15c412612f2d480c45383d9f750d722f954f33545bb050",
+   "tool_name": "PowerShell",
+   "status": "completed",
+   "created_ms": 1792692761028,
+   "updated_ms": 1792692793383,
+   "provider_call_id": "call_b06_1"
+  }
+ ],
+ "note": "tool_calls audit from isolated sqlite; exactly-once execution"
+}

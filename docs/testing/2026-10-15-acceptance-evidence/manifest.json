@@ -1,0 +1,579 @@
+{
+  "schema": 1,
+  "created_at_utc": "2026-10-15T22:28:16.251649+00:00",
+  "kind": "acceptance-evidence-not-package-or-sbom",
+  "git_seed_reference": "8a13551b037f5f673188802f2c9128984245fab8",
+  "installed_package": {
+    "version": "0.2.133",
+    "source_snapshot_digest": "e069dde16b0b9dc8fa707ecaa52d3d1f5e0b816bacc93a141d429a5e70a9aaca",
+    "backend_path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "backend_pid_at_check": 33632,
+    "backend_sha256": "6fec2863f595a6284a15ead7e3eff5b33f070d6d55ef7bc731b53fcb46311da7",
+    "workspace": {
+      "workspace": "D:\\coolzhuagent",
+      "workspace_id": "ws-8d17063fefe5c23c"
+    },
+    "session_db": "D:/tmp/.coolzhu\\web-sessions.sqlite3",
+    "goal_fix_included": false
+  },
+  "goal_candidate": {
+    "main_rs_sha256": "aeb17997621668388b99591a3b2cb0211529ade78a7b2fcfa34f50132eefdb09",
+    "binary_sha256": "4d51b1f61993bee3381dd0687d4a8e044493647b7e2ad83cbbb0a64ebce37e2a",
+    "real_tool_artifact_sha256": "b17d197b0d78ef1ba543f3e1638f26fe9555da86e3c3bbcbaae12c042e0fea51",
+    "model_decision_kind": "controlled-local-fixture",
+    "build_exit": 0,
+    "targeted_regression_passed": 1,
+    "http_chain_exit": 0
+  },
+  "full_tests": {
+    "profile": "test/debug",
+    "cargo_exit_code": 0,
+    "primary": {
+      "passed": 1488,
+      "failed": 0,
+      "ignored": 6,
+      "filtered": 26
+    },
+    "child_probes": {
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 4530
+    },
+    "all_invocations": {
+      "passed": 1491,
+      "failed": 0,
+      "ignored": 6,
+      "filtered": 4556
+    },
+    "wechat_exclusion": {
+      "filter": "wechat",
+      "count": 26,
+      "reason": "用户要求微信不改不测；子进程用例自身的精确筛选不计作微信排除",
+      "wechat_named_test_executed": false
+    }
+  },
+  "production_history": {
+    "tables": 11,
+    "rows_added_removed_changed": 0,
+    "configuration_unchanged": true,
+    "database_backup": {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\production-install-switch-backup-v3\\web-sessions.sqlite3",
+      "sha256": "59779e455cea6fc9bfdb00e95d79b43d37d05bd2d32af602d5cc52f04ebbe328"
+    }
+  },
+  "c_drive": {
+    "deletions": 0,
+    "reclaimed_bytes": 0,
+    "manual_candidate_allocated_bytes": 290115208
+  },
+  "remaining": [
+    "EX-03原生资源故障交接",
+    "历史身份/混合DPI完整矩阵",
+    "逐run正式UI接线与完整后代树",
+    "Goal修复新包/正式UI、生产模型与并行DAG/durable/unknown矩阵",
+    "完整引用图及安全GC",
+    "其余凭据、LSP/PTY、诊断/升级故障、硬件和签名/许可证门禁"
+  ],
+  "files": [
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-desktop-takeover-baseline.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-desktop-takeover-baseline.json",
+      "bytes": 14479,
+      "sha256": "55486e8c7468fde4b4430f6f23a8feb99f40b88078541873598e5a48db154dab"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-358-audit.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-358-audit.json",
+      "bytes": 1267,
+      "sha256": "bde891318e6e344f31baa34625698a684dcdb65c38aed72e2f382ce9f4859f72"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-359-audit.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-359-audit.json",
+      "bytes": 783,
+      "sha256": "25ebc7e7f576430ffba2a83b4bd9a1eab38781dee683754454069e081421e96f"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-360-audit.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-360-audit.json",
+      "bytes": 787,
+      "sha256": "d9c554927263bd1fe1d9ecbed10c8e7c53ca0defc02c4abece790d08d8d7a2de"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-static.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-static.json",
+      "bytes": 2196,
+      "sha256": "00342f24106345c1de80471aad07e7af505a087dca5ef6a891a3bbadd6ace7cb"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-static-retry1.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-static-retry1.json",
+      "bytes": 4515,
+      "sha256": "f1bb681248e8b23043063bebc394a8879a37c32f677ded7941401d685e5cc105"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-static-retry2.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-static-retry2.json",
+      "bytes": 7096,
+      "sha256": "cb7a0a79607bf269ff8d0d1558703712fedb368e20cb57a8a0d5556877f47e47"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-payload-files.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-payload-files.json",
+      "bytes": 375501,
+      "sha256": "47f0c881e1e8bb979f0cb3a4be46beec461349bc9b15c320c0f4ba76d0f24f2d"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-http-files.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-http-files.json",
+      "bytes": 95432,
+      "sha256": "92512faf4e905ae1cbb141219d8f8ddfefcb14e8620f8162a496fb2f88af7a97"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-native.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-native.json",
+      "bytes": 25584,
+      "sha256": "8588152dc5979ddea2d74bf8c967c29cd79b0e8e91a78d8445e0095c823d5693"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-native-followup.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-native-followup.json",
+      "bytes": 24740,
+      "sha256": "3a5add61b81c501259675fcfee2aa5720a2d89252b3c55587f4314451c3021e4"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-native-skip-ready.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-native-skip-ready.json",
+      "bytes": 6589,
+      "sha256": "16133e088b47dac382db6d55c341bba9f480186b4b8aeb96dfb92a574667fa2b"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-cold-start.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-start.json",
+      "bytes": 4573,
+      "sha256": "7e04cacfde05ebccfb5fdcf1dca02fd108a71189b8fc23ab94b1bea561e61b1b"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-launcher.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-launcher.log",
+      "bytes": 3051,
+      "sha256": "36412057c59567a5ee240d8d09733d0d24920e037de64a13c4f38dd8241ef002"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-first-cold-native.jsonl",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-cold-native.jsonl",
+      "bytes": 2042,
+      "sha256": "7df00a0a3619f4da100f466505399beb8589afbec44a8354f39e9a92178878f7"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-workspace-selection.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-workspace-selection.json",
+      "bytes": 2171,
+      "sha256": "061aeba214043812e454877f364485c71b685a40637745275f2502a1eac3bd5c"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-workspace-selection.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-workspace-selection.log",
+      "bytes": 82,
+      "sha256": "11018f67d7b2d753abd91c15bed11c5d8b65fc17f935d5a27031c917839525aa"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-cold-start-d-workspace.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-start-d-workspace.json",
+      "bytes": 9135,
+      "sha256": "4d1c0b02728a43372e1a67473fc993fb972fb0c916970c0c1ce74c9bae6ac202"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-launcher-d-workspace.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-launcher-d-workspace.log",
+      "bytes": 2990,
+      "sha256": "d8bab8f277ffa1b4969d0354779fe03147fb495071c69e85112c9ac59b3a0975"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-history-review.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-history-review.json",
+      "bytes": 2765,
+      "sha256": "ef0c604c883abfbc8324a980644b53bf5785d3aa7fc432afb7e29d32e101ebc9"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-history-after-tests.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-history-after-tests.json",
+      "bytes": 2792,
+      "sha256": "ca7572196b583e019ec53d1460c1b453b2a53ecf426b5c7fc5794f7bb6e435b9"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-first-09.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-09.png",
+      "bytes": 2926537,
+      "sha256": "f50c69fabb5c3d18e155f5a7c44a72c41b11e6e4b049b1b8eca7d4f4b13f1168"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-daily-04.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-04.png",
+      "bytes": 2923736,
+      "sha256": "65268a0f56bd2d05f7a0905f6de23a53bd2a1da03006a441bb5c96d4b3e34c24"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-cold-d-03.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-d-03.png",
+      "bytes": 4449132,
+      "sha256": "273abf3ee67503bf70baba687f81cf76abb9318ad4170b571071b090485daaf1"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-d-hydrated-console.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-d-hydrated-console.png",
+      "bytes": 2541125,
+      "sha256": "5319fb29548944961e5139c2f7ba79a754e9c56aaf1d1389ab2493af61b4397f"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-d-hydrated-console-capture.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-d-hydrated-console-capture.json",
+      "bytes": 4047,
+      "sha256": "21c84a05ad00ff13deb09804ddc92d254d12e001a590bee98091c844419fa197"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-real-trace-readonly-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-real-trace-readonly-20261015.json",
+      "bytes": 2124,
+      "sha256": "9d537c8b6ee179f5bd1685899e49f1cd07ff613d14dc6c6cc73bb95d277d846a"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-335-audit.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-335-audit.json",
+      "bytes": 1185,
+      "sha256": "efafb2074c39228eaf9e71dad99af83124a499c8bbae1cfd889794c328709042"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/console-full-335-receipt.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\console-full-335-receipt.json",
+      "bytes": 3774,
+      "sha256": "b9c0bae2f7716850641931333e044cddd11b4b168ca519f8d922bb5c8d724b99"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-goal-repair-chain-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-repair-chain-20261015.json",
+      "bytes": 96978,
+      "sha256": "3a5485979b83b2ec55f5fd9ab6e9cc1d149e6cb7e2706e1d3ea9cb1a41e90117"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-goal-repair-chain-fixed-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-repair-chain-fixed-20261015.json",
+      "bytes": 93151,
+      "sha256": "7e033f54f68037165a6f08b50c04fb76575d7098c16a730d56d2fbfe6bd36ec0"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-goal-fix-build-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-fix-build-20261015.json",
+      "bytes": 2055,
+      "sha256": "b509285c1958fbbfddc6dfb8b5613376f3c4b8ed740b865059789cd2f5cf4f9b"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-goal-fix-build-20261015.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-fix-build-20261015.log",
+      "bytes": 50267,
+      "sha256": "0a89db7fe788422d151d37149cedd6accc3d93695b21f1e25482d542c0b8a50f"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-goal-fix-goal-regression-20261015.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-goal-fix-goal-regression-20261015.log",
+      "bytes": 22452,
+      "sha256": "d28e60a0de2b2d56882fafcba0d2fe4b84c1b4b6a33fff952127b570c85b5cda"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-console-full-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-console-full-20261015.json",
+      "bytes": 3902,
+      "sha256": "5c04bc363db2504008b0eb5af30c13c74bfd56c59f1e67f91c001c8ed58d23eb"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-console-full-review-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-console-full-review-20261015.json",
+      "bytes": 4696,
+      "sha256": "5db9f79fbe6daaaea4dd0706993cdcf832d87688d561f1f9c4a979122d5f0b91"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/controller-console-full-20261015.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-console-full-20261015.log",
+      "bytes": 155120,
+      "sha256": "67945e52f2d59be022eab9fda343eb7102535821ccb382fe5a345a4cad02945c"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-readonly-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-readonly-20261015.json",
+      "bytes": 2574651,
+      "sha256": "3f984a25dc1b15d96eb14bfb57e2150b149e522c003edfcb1cd54ae2fe698911"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-reference-readonly-20261015.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-reference-readonly-20261015.json",
+      "bytes": 4899,
+      "sha256": "d3db67e6926681290cc1055f164ea97d9849bceb7582e2e2e39aeeda0e365566"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes--github.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes--github.json",
+      "bytes": 1131,
+      "sha256": "def5937b9384118f12904a3f800913b89e4590e9532ff718c835cf07d10c1a68"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes--playwright-cli.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes--playwright-cli.json",
+      "bytes": 23869,
+      "sha256": "4d3201c74216d0e18eada389f7cead7b31091e61c4534e00b5d3ec0b2095b1df"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-config.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-config.json",
+      "bytes": 3119,
+      "sha256": "5dfee0fe28349fd565b422f61444be0ba6d1d4b17800fb69844d15311b93829c"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-docs.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-docs.json",
+      "bytes": 1212049,
+      "sha256": "53fc5e39bc17f57235c7b8d81991723bb8e9472078cfddb6351c4acc15912a37"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-installer.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-installer.json",
+      "bytes": 359,
+      "sha256": "62b9ac3e33c33ce32ee2d34f932decb6484ac61d2c0758df7c91e02e5d2f9da3"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-packages.json",
+      "bytes": 3139,
+      "sha256": "66c5e17acd6eac7660804f1959309ac5df75db634fcc045e51b2a16ca92369bf"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-scripts.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-scripts.json",
+      "bytes": 13881,
+      "sha256": "29fba902998336f42ead781b9eb685eed10ab5067c69bbabe7f46b88f1262552"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-skills.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-skills.json",
+      "bytes": 2471,
+      "sha256": "b6558410accf94982835ea72229e7914eb53a19f3b0dfe12cd54781df3e03bb7"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-src.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-src.json",
+      "bytes": 337,
+      "sha256": "35805dae42e577de0886a4bacf6ef1c0f6ae75be2c97d10a934150a315248e86"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-tests.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-tests.json",
+      "bytes": 1899,
+      "sha256": "f8f7063c4f864ebda1af27a05f4f92b5e6b7cfa79e6a744264621d94b009293a"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-cli-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-cli-packages.json",
+      "bytes": 4567,
+      "sha256": "0b7bca0c30dc6e1eab81f2b6a6b2bfd3e2c7dee8825d85773042047d972a7fee"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-computer-use-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-computer-use-packages.json",
+      "bytes": 6727,
+      "sha256": "a6043ba603e263be671afcdc4c4e31a229526876c0d93fc38ce968ce4966e7b0"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-core-runtime-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-core-runtime-packages.json",
+      "bytes": 23331,
+      "sha256": "cfa32e8354c1cd0975d556dc92494f4554bd816a846af529f9b57098cdfe8103"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-diagnostics-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-diagnostics-packages.json",
+      "bytes": 2131,
+      "sha256": "a73e8daf99057baae8ecff08b5818bf7ad327358780eac5e4b8fd4cb7abd7961"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-gui-desktop-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-gui-desktop-packages.json",
+      "bytes": 206177,
+      "sha256": "0f4e109a32f7b5f903a3853a2b4f27e8d33b30c8115551be1f43900003a6c919"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-gui-web-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-gui-web-packages.json",
+      "bytes": 793827,
+      "sha256": "c289ad031566afeeffef8b99b26609186eb552644a7d9eda19bc5b09ad3e5068"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-llm-adapter-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-llm-adapter-packages.json",
+      "bytes": 11511,
+      "sha256": "0797c0faca1b5bbb5cc5b301d0543d79bb8a9794a278b73789811bdea30c6502"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-tooling-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-tooling-packages.json",
+      "bytes": 160337,
+      "sha256": "6f5a50872280eac73f3fea330b8ea4bbafba86ddbe6e71af4ca09560abae891a"
+    },
+    {
+      "scope": "c-drive",
+      "path": "c-drive/controller-c-archive-hashes-modules-vision-packages.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-c-archive-hashes-modules-vision-packages.json",
+      "bytes": 4263,
+      "sha256": "7fa4371923c47c009ba90d3a1759b60d53baefece7b073943d94d718de55e33b"
+    },
+    {
+      "scope": "goal-candidate",
+      "path": "goal-candidate/implementer-repaired-artifact.txt",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\desktop-goal-repair-chain-fixed\\implementer-repaired-artifact.txt",
+      "bytes": 116,
+      "sha256": "b17d197b0d78ef1ba543f3e1638f26fe9555da86e3c3bbcbaae12c042e0fea51"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/startup-lifecycle-snapshots.json",
+      "source": "已冻结JSON收据中的生命周期，未改写历史失败",
+      "bytes": 36671,
+      "sha256": "8e392f2f4d34e15a904a178fc5862c89c4f95a712268b0d7e852ab357bcee98a"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-click-button.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-button.json",
+      "bytes": 9287,
+      "sha256": "edaad1eac5b9e8d5e38af673885fe7ffad7939cace9c03750ebadbd0ce4088da"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-launcher-click-button.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-launcher-click-button.log",
+      "bytes": 2990,
+      "sha256": "ada3446f3eab2702b3c629c650823e8eb21eeb6ea03a733d6354f82e33be741e"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-click-button-03.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-button-03.png",
+      "bytes": 4446919,
+      "sha256": "c24ae689e75eefef0384cc64fa2daf4f13efb129761d4be96816b3b655028f0d"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-click-button-console.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-button-console.png",
+      "bytes": 3118619,
+      "sha256": "ac045c2c5767c456e76e52bbf43be0b022eeb5d05b3f10377db87aa59b088b28"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-click-area.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area.json",
+      "bytes": 9265,
+      "sha256": "0fd73dfbcb952b24710df3539d760e0796b51bae0dd6e0bb1ca26e211795a0b6"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-launcher-click-area.log",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-launcher-click-area.log",
+      "bytes": 2987,
+      "sha256": "02aa79b597f25515f079f17a6324494dd62b0e6ad80eaea0cad2dbdea6cf5099"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-click-area-03.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-03.png",
+      "bytes": 4443932,
+      "sha256": "8a89f5784063e727809156ce6fba03d56a5af5dbe53789ea4d10de583864df3f"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-click-area-console.png",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-click-area-console.png",
+      "bytes": 3135331,
+      "sha256": "deefb78b98b27a99856fb294bc969946e2114da7e826bc4a3de90638cf8bcf1c"
+    },
+    {
+      "scope": "installed-0.2.133",
+      "path": "installed-0.2.133/controller-installed-133-history-after-clicks.json",
+      "source": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-history-after-clicks.json",
+      "bytes": 2795,
+      "sha256": "1349b9faa86c2432697b733b1fb927b80d2de4a3ef850d175adc9b5a6f1a7c70"
+    }
+  ],
+  "last_verified_runtime": {
+    "backend_pid": 35284,
+    "tauri_pid": 7140,
+    "backend_path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-web-console.exe",
+    "tauri_path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+    "workspace": {
+      "workspace": "D:\\coolzhuagent",
+      "workspace_id": "ws-8d17063fefe5c23c"
+    },
+    "history_after_clicks_unchanged": true,
+    "native_skip_paths_verified": [
+      "Escape",
+      "skip_button",
+      "presentation_area"
+    ]
+  }
+}

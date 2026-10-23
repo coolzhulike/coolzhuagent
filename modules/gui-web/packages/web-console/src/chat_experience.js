@@ -29,6 +29,8 @@ window.CoolzhuChatExperience = (() => {
   const scopeMatches = scope => scope.room === activeChatRoomId && scope.workspace === workspaceKey() && scope.version === state.scopeVersion;
   async function changeEnvironment(action) {
     if (state.switching) return;
+    if (state.modelSettings?.canLeave && !state.modelSettings.canLeave()) return;
+    saveComposerDraft();
     if (state.avatarSaving) { report("正在保存头像，请稍后切换环境。"); return; }
     if (activeChatAbortController) { report("本轮正在运行，请等待结束或中止后再切换环境。"); return; }
     state.switching = true;
@@ -96,12 +98,46 @@ window.CoolzhuChatExperience = (() => {
       const selectedWorkspace = qs("overview-workspace-name")?.dataset.workspacePath || "";
       const current = selectedWorkspace || qs("chat-workspace-path")?.title || "";
       const selectedWorkspaceKey = workspaceKey();
-      let recent = [];
-      try { recent = JSON.parse(localStorage.getItem("coolzhu.recent-workspaces") || "[]"); } catch { /* 首次使用 */ }
-      const paths = [...new Set([current, ...(Array.isArray(recent) ? recent : [])].filter(Boolean))].slice(0, 8);
-      const input = document.createElement("input"); input.value = current; input.placeholder = "输入工程目录完整路径"; input.setAttribute("aria-label", "工程目录路径");
+      const paths = [current].filter(Boolean);
+      const recentList=document.createElement("div"); recentList.className="workspace-recents"; panel.append(recentList);
+      void requestJson("/api/workspaces").then(data=>{
+        if(!panel.isConnected) return;
+        if(data.notice) recentList.append(note(data.notice));
+        for(const project of data.projects || []) {
+          if(!paths.includes(project.path)) paths.push(project.path);
+          const row=document.createElement("div"); row.className="workspace-recent-row";
+          row.append(button(`${project.current ? "● " : ""}${workspaceDisplayPath(project.path)}`,()=>void apply(project.path)));
+          if(project.protected) { const label=note("默认工程 · 保留"); label.className="workspace-reserved-label"; row.append(label); }
+          if(!project.current && !project.protected) row.append(button("移除",async()=>{
+            if(!window.confirm("从最近工程中移除？工程文件与聊天历史会保留。"))return;
+            try { await requestJson("/api/workspaces/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:project.path})}); row.remove(); }
+            catch(error){errorNode.textContent=error.message;}
+          }));
+          if(!project.current && !project.protected && project.available) row.append(button("删除磁盘工程…",async()=>{
+            try {
+              const prepared=await requestJson("/api/workspaces/recycle/prepare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:project.path})});
+              if(!window.confirm(`删除工程 ${prepared.name}？\n${workspaceDisplayPath(prepared.path)}\n\n${prepared.impact}`))return;
+              const name=window.prompt(`再次确认：请输入工程名「${prepared.name}」。取消不会删除文件。`,"");
+              if(name===null)return;
+              if(name!==prepared.name)throw new Error("工程名称不匹配，未删除文件。");
+              const result=await requestJson("/api/workspaces/recycle/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:prepared.token,name,confirmed_twice:true})});
+              row.remove();paths.splice(0,paths.length,...paths.filter(path=>path!==project.path));
+              try{localStorage.setItem("coolzhu.workspace-recent",JSON.stringify(paths));}catch{}
+              errorNode.textContent=result.warning||"工程已移入系统回收站。";
+            } catch(error){errorNode.textContent=error.message;}
+          }));
+          recentList.append(row);
+        }
+      }).catch(error=>{errorNode.textContent=error.message;});
+      const input = document.createElement("input"); input.value = workspaceDisplayPath(current); input.placeholder = "工程完整路径"; input.setAttribute("aria-label", "工程目录路径");
       const apply = async path => {
         if (!path.trim()) return;
+        if (selectedWorkspace && workspaceDisplayPath(path) === workspaceDisplayPath(selectedWorkspace) && !state.switching
+          && workspaceKey() === selectedWorkspaceKey
+          && qs("overview-workspace-name")?.dataset.workspacePath === selectedWorkspace) {
+          closePopup(true);
+          return;
+        }
         await changeEnvironment(async () => {
           try {
             const response = await requestJson("/api/workspace", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:path.trim()})});
@@ -111,18 +147,14 @@ window.CoolzhuChatExperience = (() => {
         });
       };
       const errorNode = note(""); errorNode.setAttribute("role", "alert");
-      paths.forEach(path => panel.append(button(path, () => {
-        // 仅当前已选工程生成的快捷项可免重载；旧弹层或尚未取得真实路径时走原切换流程。
-        if (selectedWorkspace && path === selectedWorkspace && !state.switching
-          && workspaceKey() === selectedWorkspaceKey
-          && qs("overview-workspace-name")?.dataset.workspacePath === selectedWorkspace) {
-          closePopup(true);
-          return;
-        }
-        void apply(path);
-      })));
       input.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); void apply(input.value); } });
-      panel.append(input, button("切换目录", () => void apply(input.value)), errorNode);
+      panel.append(input, button("切换目录", () => void apply(input.value)), button("新建工程",async()=>{
+        try {
+          if(!input.value.trim())throw new Error("请填写新工程的完整路径。");
+          const created=await requestJson("/api/workspaces",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:input.value.trim()})});
+          await apply(created.path);
+        } catch(error){errorNode.textContent=error.message;}
+      }), errorNode, note("默认工程保留。移除保留文件；删除子工程需二次确认，文件与历史移入回收站。"));
       const browse = button("浏览当前工程文件…", () => { closePopup(); openChatToolWindow("project"); });
       browse.disabled = !selectedWorkspace;
       panel.append(browse);
@@ -231,6 +263,7 @@ window.CoolzhuChatExperience = (() => {
     hide("chat-return-latest"); hide("chat-history-more");
     qs("chat-history-results")?.replaceChildren();
     qs("chat-usage-list")?.replaceChildren();
+    usageVersion++; if(qs("chat-usage-meter"))qs("chat-usage-meter").textContent="用量加载中";
     for (const role of ["chat-turn-time", "chat-history-count", "chat-usage-note"]) { const node = qs(role); if (node) node.textContent = ""; }
     const label = qs("chat-activity-label"); if (label) label.textContent = "就绪";
     // 即使历史面板已打开，也不能保留上一房间的点击目标。
@@ -255,6 +288,46 @@ window.CoolzhuChatExperience = (() => {
       meta.textContent = parts.join(" · ");
     });
   }
+
+  let usageVersion=0;
+  const countText=value=>value==null?"未知":Number(value).toLocaleString("zh-CN",{maximumFractionDigits:1});
+  async function refreshUsage() {
+    const scope=scopeSnapshot(),version=++usageVersion,room=activeChatRoomId; if(!room)return;
+    const current=()=>scopeMatches(scope)&&version===usageVersion;
+    const meter=qs("chat-usage-meter"),list=qs("chat-usage-list");
+    try {
+      const filter=qs("usage-scope")?.value||"room",hours=qs("usage-period")?.value||"0";
+      const query=new URLSearchParams({hours}); if(filter==="room")query.set("room_id",room);
+      const paths=[`/api/usage?${query}`]; if(filter!=="room"||hours!=="0")paths.push(`/api/usage?room_id=${encodeURIComponent(room)}`);
+      const results=await Promise.all(paths.map(path=>requestJson(path))); if(!current())return;
+      const data=results[0],total=(results[1]||data).summary;
+      if(meter) {
+        const mode=localStorage.getItem("coolzhu.usage-meter")||"both";meter.hidden=mode==="hidden";
+        const token=total?`${countText(total.total_tokens)} token`:"暂无用量";
+        const rate=total?.tokens_per_second==null?"平均 — tok/s":`平均 ${countText(total.tokens_per_second)} tok/s`;
+        meter.textContent=mode==="total"?token:mode==="rate"?rate:`${token} · ${rate}`;
+        meter.title=total?.unknown_requests?`${total.unknown_requests} 次请求用量未完整上报；已知部分 ${countText(total.known_total_tokens)} token` : data.note;
+      }
+      if(!list)return;list.replaceChildren();
+      for(const media of data.media||[]) list.append(note(`工程${media.kind==="image"?"图像":"视频"}生成：${media.jobs} 次 · ${media.units} 个产物 · 时长 ${media.duration_seconds??"—"} 秒 · 厂商已报告费用 ${media.reported_cost??"—"}（${media.known_cost_jobs} 次有费用回执）；与对话 token 分开。`));
+      if(!data.summary){list.append(note("所选范围暂无对话用量记录。"));return;}
+      const summary=data.summary;
+      list.append(note(`总 token ${countText(summary.total_tokens)} · 已知部分 ${countText(summary.known_total_tokens)} · 请求 ${summary.requests} · 失败 ${summary.failed||0} · 未完整上报 ${summary.unknown_requests}`));
+      list.append(note(`平均解码速率 ${countText(summary.tokens_per_second)} tok/s · 首 token 均值 ${countText(summary.ttft_ms)} ms · 有效计时 ${summary.timed_requests} 次`));
+      const chart=document.createElement("div");chart.className="usage-bars";chart.setAttribute("aria-label","按模型的已知 token 用量");
+      const max=Math.max(1,...data.models.map(row=>row.known_total_tokens||0));
+      for(const row of data.models) {
+        const label=document.createElement("div");label.textContent=`${row.key} · ${countText(row.known_total_tokens)} token · ${row.requests} 次`;
+        const bar=document.createElement("span");bar.style.width=`${100*(row.known_total_tokens||0)/max}%`;bar.className="usage-bar";label.append(bar);chart.append(label);
+      }list.append(chart);
+      const table=document.createElement("table");table.className="usage-table";
+      const heading=document.createElement("tr");for(const label of ["会话 / UTC 时段","请求","输入","输出","缓存读","缓存写","平均 tok/s"]){const th=document.createElement("th");th.textContent=label;heading.append(th);}table.append(heading);
+      const rows=qs("usage-group")?.value==="time"?data.series:data.sessions;
+      for(const row of rows){const tr=document.createElement("tr");const name=sessionRegistry.sessions?.find(item=>item.id===row.key)?.display_name||row.key;for(const value of [name,row.requests,countText(row.input_tokens),countText(row.output_tokens),countText(row.cache_read_tokens),countText(row.cache_write_tokens),countText(row.tokens_per_second)]){const td=document.createElement("td");td.textContent=value;tr.append(td);}table.append(tr);}list.append(table);
+      qs("chat-usage-note").textContent=data.note;
+    }catch(error){if(current()){if(list)list.textContent=`用量读取失败：${error.message}`;if(meter)meter.textContent="用量读取失败 · 点击重试";}}
+  }
+
   async function refreshInsights() {
     const room = activeChatRoomId; if (!room) return;
     const scope = scopeSnapshot();
@@ -263,19 +336,7 @@ window.CoolzhuChatExperience = (() => {
       const response = await requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/insights?message_ids=${encodeURIComponent(ids.join(","))}`);
       if (!scopeMatches(scope)) return;
       state.timings = response.timings || {}; state.indices = response.indices || {}; annotate();
-      const list = qs("chat-usage-list"); if (!list) return;
-      const rows = response.usage || [];
-      list.replaceChildren();
-      const sums = rows.reduce((sum, row) => ({input:sum.input + row.input_tokens, output:sum.output + row.output_tokens, requests:sum.requests + row.requests}), {input:0,output:0,requests:0});
-      const knownTotal = (field, sum) => rows.some(row => row[field] != null) ? sum.toLocaleString() : "未知";
-      list.append(note(rows.length ? `已知输入 ${knownTotal("input_tokens", sums.input)} · 已知输出 ${knownTotal("output_tokens", sums.output)} token · ${sums.requests} 次请求` : "暂无接口用量记录"));
-      for (const row of rows) {
-        const name = sessionRegistry.sessions?.find(session => session.id === row.session_id)?.display_name || row.session_id;
-        const tokens = value => value == null ? "未知" : Number(value).toLocaleString();
-        list.append(note(`${name}：输入 ${tokens(row.input_tokens)} / 输出 ${tokens(row.output_tokens)}；缓存读取 ${tokens(row.cache_read_tokens)} / 写入 ${tokens(row.cache_write_tokens)}`));
-        list.append(note(`请求 ${row.requests || 0} · 已知网络尝试 ${row.attempts || 0} · 失败或中断 ${row.failed_attempts || 0} · 进行中 ${row.pending_attempts || 0} · 未发送 ${row.not_sent_attempts || 0} · 结果未知 ${row.unknown_outcome_attempts || 0} · 派发未知 ${row.unknown_dispatch_attempts || 0} · 用量未完整提供 ${row.partial_usage_attempts || 0}${row.legacy_records ? ` · 旧版用量记录 ${row.legacy_records}` : ""}`));
-      }
-      qs("chat-usage-note").textContent = response.note;
+      void refreshUsage();
     } catch (error) { const list = qs("chat-usage-list"); if (scopeMatches(scope) && list) list.textContent = `用量加载失败：${error.message}`; }
   }
   async function search(append = false) {
@@ -315,9 +376,10 @@ window.CoolzhuChatExperience = (() => {
           upsertMessage(message);
         }
         messagePaging = {roomId:room, hasMore:response.has_older, nextBefore:response.messages[0]?.id};
-        updateLoadOlderButton(); qs("chat-return-latest").hidden = false;
+        updateLoadOlderButton();
         article = list.querySelector(`[data-message-id="${CSS.escape(id)}"]`);
       }
+      if (article) qs("chat-return-latest").hidden = false;
       annotate(); article?.scrollIntoView({block:"center",behavior:"smooth"}); article?.classList.add("is-located-message");
       setTimeout(() => article?.classList.remove("is-located-message"), 2200);
     } catch (error) { if (scopeMatches(scope) && version === state.locateVersion) report(error); }
@@ -327,18 +389,7 @@ window.CoolzhuChatExperience = (() => {
   }
   function openHistory() { openChatToolWindow("history"); void search(); }
   function describeRecipientEditor(targetIds = getSelectedAgentIds()) {
-    const note = qs("unified-model-settings")?.querySelector('[data-ms="target-note"]');
-    if (!note) return;
-    const editor = state.modelSettings;
-    const selected = sessionRegistry.sessions?.find(session => session.id === editor?.sessionId);
-    const editorName = selected?.display_name || selected?.name || (editor?.sessionId ? "当前会话" : "新会话");
-    const targetNames = targetIds.map(id => sessionRegistry.sessions?.find(session => session.id === id)?.display_name || id);
-    if (!targetIds.length) note.textContent = `尚未选择发送对象；当前编辑：${editorName}。保存配置不会改变发送对象。`;
-    else if (targetIds.length === 1) {
-      note.textContent = editor?.dirty && editor?.sessionId !== targetIds[0]
-        ? `当前发送给 ${targetNames[0]}；${editorName} 有未保存的草稿，已保留。请先保存或明确切换下方编辑会话。`
-        : `当前发送给 ${targetNames[0]}；当前编辑：${editorName}。`;
-    } else note.textContent = `当前发送给 ${targetNames.join("、")}；当前只编辑 ${editorName}，保存不会批量修改其他发送对象。可用上方列表选择编辑会话。`;
+    state.modelSettings?.setSending?.(targetIds);
   }
   function recipientTargetsChanged(targetIds = getSelectedAgentIds()) {
     if (!state.initialized || !state.modelSettings) return;
@@ -424,7 +475,10 @@ window.CoolzhuChatExperience = (() => {
       try { await loadChatRoomMessages(scope.room); if (scopeMatches(scope)) qs("chat-return-latest").hidden = true; }
       catch (error) { if (scopeMatches(scope)) report(error); }
     });
-    qs("chat-usage-refresh")?.addEventListener("click", () => void refreshInsights());
+    qs("chat-usage-refresh")?.addEventListener("click", () => void refreshUsage());
+    qs("chat-usage-meter")?.addEventListener("click", () => {openChatToolWindow("usage");void refreshUsage();});
+    for(const role of ["usage-scope","usage-period","usage-group"])qs(role)?.addEventListener("change",()=>void refreshUsage());
+    const meterMode=qs("usage-meter-mode"); if(meterMode){meterMode.value=localStorage.getItem("coolzhu.usage-meter")||"both";meterMode.addEventListener("change",()=>{localStorage.setItem("coolzhu.usage-meter",meterMode.value);void refreshUsage();});}
     document.addEventListener("pointerdown", event => { if (state.popup && !state.popup.contains(event.target) && !state.trigger?.contains(event.target)) closePopup(); });
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && state.popup) { event.preventDefault(); closePopup(true); }

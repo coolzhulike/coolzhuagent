@@ -1,0 +1,10 @@
+﻿{
+    "room_id":  "room-1792639107260",
+    "case":  "b05",
+    "elapsed_ms":  211682,
+    "prompt":  "当前工作区（目录 D:\\coolzhuagent\\tmp\\ha11-run\\candidate\\ws）是一个 Rust crate。请只在该目录内操作，实际运行一次 `cargo test --offline`（其中有一个测试会 sleep 约 75 秒，属于正常现象，请耐心等待它结束，不要重复启动或中途杀掉），并据真实结果简短汇报测试是否通过。",
+    "side":  "candidate",
+    "first_turn_end_ms":  1792639319043,
+    "round":  2,
+    "http":  200
+}

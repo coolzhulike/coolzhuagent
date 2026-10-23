@@ -1,0 +1,139 @@
+{
+  "started_at_utc": "2026-10-15T18:52:23.047690+00:00",
+  "state": "failed",
+  "exit_code": 1,
+  "frames": [
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-00.png",
+      "sha256": "1a61d08dae3026ba181db25998107cd0b02f7685b5d3d03698239364701e421c",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3409864,
+      "at_utc": "2026-10-15T18:52:30.951619+00:00",
+      "window": {
+        "hwnd": 3409864,
+        "pid": 29576,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 7.307185000012396
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-01.png",
+      "sha256": "4d8dfdeaf8a5a865410ac8f5b571cfa361502854be37ddde0c95eb2f487cbca8",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3409864,
+      "at_utc": "2026-10-15T18:52:31.788731+00:00",
+      "window": {
+        "hwnd": 3409864,
+        "pid": 29576,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 8.310592399997404
+    },
+    {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-02.png",
+      "sha256": "c42507496710820254be5798f9332e5851962c15b3f7e999a1667f52cd7d1a23",
+      "size": [
+        2182,
+        1357
+      ],
+      "foreground_hwnd": 3409864,
+      "at_utc": "2026-10-15T18:52:32.907738+00:00",
+      "window": {
+        "hwnd": 3409864,
+        "pid": 29576,
+        "title": "COOLZHU",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          200,
+          12,
+          2382,
+          1369
+        ],
+        "dpi": 144
+      },
+      "since_launcher_seconds": 9.334155799995642
+    }
+  ],
+  "esc_sent": true,
+  "command": [
+    "C:\\Program Files\\CoolzhuAgent\\COOLZHU-AGENT.exe",
+    "--no-error-dialog"
+  ],
+  "explicit_environment": {
+    "COOLZHU_LOG_DIR": "C:\\Users\\zhupu\\AppData\\Local\\CoolzhuAgent\\logs\\installed-133-acceptance-20261015"
+  },
+  "launcher_sha256": "57ba8e0bf8feb6988a182e744761f7251f587f001320d93bbc4d350302be65b8",
+  "installed_web_sha256": "6fec2863f595a6284a15ead7e3eff5b33f070d6d55ef7bc731b53fcb46311da7",
+  "launcher_pid": 28244,
+  "foreground_verified": true,
+  "console_frame": {
+    "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-cold-console.png",
+    "sha256": "ef8dc1e603fbb447618156a46c4c328271e0fbbb3cac9a14abaa2e6b5e94ad84",
+    "size": [
+      2182,
+      1355
+    ],
+    "foreground_hwnd": 4195338,
+    "at_utc": "2026-10-15T18:52:34.000051+00:00",
+    "window": {
+      "hwnd": 4195338,
+      "pid": 29576,
+      "title": "COOLZHU AGENT 控制台",
+      "class": "Tauri Window",
+      "visible": true,
+      "minimized": false,
+      "bounds": [
+        189,
+        12,
+        2371,
+        1367
+      ],
+      "dpi": 144
+    }
+  },
+  "tauri_pid": 29576,
+  "tauri_path": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe",
+  "launcher_exit_code": 0,
+  "workspace": {
+    "workspace": "C:\\Users\\zhupu\\coolzhuagent",
+    "workspace_id": "ws-992cca993bc1a1a0"
+  },
+  "health_paths": {
+    "workspace": "C:\\Users\\zhupu\\coolzhuagent",
+    "session_db": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.sqlite3",
+    "legacy_session_json": "\\\\?\\C:\\Users\\zhupu\\coolzhuagent\\.coolzhu\\web-sessions.json",
+    "latest_capture": "C:\\Users\\zhupu\\.coolzhu\\vision\\desktop-capture\\desktop-latest.png",
+    "desktop_pet_exe": "C:\\Program Files\\CoolzhuAgent\\bin\\coolzhu-tauri-shell.exe"
+  },
+  "error": "AssertionError()",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\coolzhuagent\\tmp\\analysis-installed-cold-start-20261015.py\", line 206, in main\n    assert os.path.samefile(workspace[\"workspace\"], preflight[\"workspace\"])\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+  "finished_at_utc": "2026-10-15T18:52:34.498053+00:00"
+}

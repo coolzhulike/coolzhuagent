@@ -1,0 +1,997 @@
+{
+  "schemaVersion": 2,
+  "goal": "32WBS 与控制台完整测试、C 盘清理统一验收",
+  "createdAtUtc": "2026-10-13T09:09:57.135878-07:00",
+  "temporaryRoot": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013",
+  "execution": "当前主会话直接推进任务、执行测试并审核；仅测试用例需要CoolzhuAgent会话对象时使用Devin SWE-2。不拆分监督或执行会话，不创建监督定时任务。",
+  "blockedRule": "只有已确认的外部条件或用户明确手工处置才列blocked；代码缺口/关键证据不足列pending_evidence。既有安全反例不因缩减矩阵销项。",
+  "currentReview": {
+    "date": "2026-10-16",
+    "workLog": "docs/work-logs/2026-10-16-acceptance-takeover.md",
+    "rounds358To360": [
+      "controller-358-audit.json",
+      "controller-359-audit.json",
+      "controller-360-audit.json"
+    ],
+    "baseline": "controller-desktop-takeover-baseline.json",
+    "evidenceRule": "latestEvidence 是本轮补充；evidence 保留历史，不用本轮后续结果改写历史失败。",
+    "baselineFullTest": "335轮1517 passed/0 failed/6 ignored、exit0，历史基线保留。",
+    "completedBuildReceipt": "controller-goal-fix-build-20261015.json",
+    "fullTestReview": "controller-current-full-20261016.json",
+    "fullTestResult": "既有生产源码完整测试1492过/0败/6忽略仅保留历史通过；本轮新增hook生产修复只运行八个新增定点检查和实际build，没有重复原完整套件，不将旧源码全量证据外推当前候选。",
+    "activeBuildReceipt": "controller-hook-budget-build-20261016.json",
+    "installedRuntime": "最近已验证：正式8765来自D盘完整0.2.135包；C机器安装仍0.2.134。见controller-package135-live-20261016.json；本次仅重新审核证据，没有重启或切换。",
+    "candidateBoundary": "C机器级安装仍0.2.134；完整0.2.135包已在正式8765完成两条真实逐回复UI和默认启动验证，MSI覆盖权限受阻，整项矩阵仍开放。",
+    "release134": "controller-release-134-build.json / controller-release-134-identity.json / controller-release-134-runtime.json；MSI SHA256=37982448b49574c59af24ec973b656f3e1c2b5b1cdfb340daf3060c93ea256ea，源码快照ec6c7c043a2bbcf04d515059d300f448203c4064ba171ad01a4646302e1138e7。",
+    "historyReview": "controller-installed-133-history-after-tests.json及controller-installed-133-history-after-clicks.json：11张历史表逐行无增删改，配置字节不变，历史unknown锁未清除。",
+    "evidenceArchive": "docs/testing/2026-10-16-acceptance-evidence",
+    "evidenceArchiveSha256": "dc1b6eb0d0bb013e7977d56366fa1fff2f673d90baab3a51c801b93989779cbc",
+    "itemAudit": "controller-35-item-review-20261016.json",
+    "takeoverRule": "豁免项不进入执行计划；阻塞项留证后转其他可执行项；不改旧失败为成功。",
+    "activePlan": {
+      "current": [
+        "0.2",
+        "3.4",
+        "5.4",
+        "1.4",
+        "2.3",
+        "4.3",
+        "6.1",
+        "1.3",
+        "2.4",
+        "2.5",
+        "3.2",
+        "4.4",
+        "4.5",
+        "5.2",
+        "5.5",
+        "6.4"
+      ],
+      "excludeStatuses": [
+        "accepted",
+        "waived",
+        "blocked"
+      ],
+      "rule": "默认一个关键正例及必要安全负例；复用历史证据，已过不重跑；仅具体新缺陷或代码变更追加测试。",
+      "externalBlocked": [
+        "0.3",
+        "3.1",
+        "6.2",
+        "6.3",
+        "EX-02"
+      ]
+    },
+    "bindingObserved": "buttercup-pink（恢复启动前已存在）；本轮未改绑、未派发Devin。",
+    "executionPolicy": "当前主会话直接推进任务、执行测试并审核；仅测试用例需要CoolzhuAgent会话对象时使用Devin SWE-2。不拆分监督或执行会话，不创建监督定时任务。",
+    "supervisionAutomations": {
+      "d": "deleted",
+      "d-coolzhuagent": "deleted",
+      "method": "official automation_update mode=delete"
+    },
+    "replyUiReview": "controller-reply-ui-20261016.json",
+    "formalReplyHttpReview": "controller-reply-formal135-20261016.json",
+    "startupReview": "controller-package135-live-20261016.json",
+    "releaseReview": "controller-release135-20261016.json",
+    "upgradeBlocker": "controller-switch135-20261016.json：1730/1603，机器级MSI升级需管理员权限，安装仍0.2.134",
+    "remainingMatrixReview": "controller-remaining-matrix-review-20261016.json",
+    "remainingMatrixArchive": "docs/testing/2026-10-16-reply-startup-matrix-evidence",
+    "runtimeContractMatrices": {
+      "writer": "controller-writer-live-matrix-20261016.json",
+      "recovery": "controller-recovery-contract-matrix-20261016.json",
+      "permission": "controller-permission-expiry-matrix-20261016.json"
+    },
+    "runtimeContractArchive": "docs/testing/2026-10-16-runtime-contract-evidence",
+    "hookBudgetReview": "controller-hook-budget-review-20261016.json",
+    "hookBudgetArchive": "docs/testing/2026-10-16-hook-budget-evidence",
+    "keyAcceptanceReview": "controller-key-acceptance-review-20261016.json",
+    "acceptanceMode": "key_functional",
+    "scopeChange": "用户要求改为关键功能验收，缩小冗余测试；原严格状态保存在每项strictReviewBeforeRescope及独立快照。"
+  },
+  "items": [
+    {
+      "id": "0.1",
+      "item": "身份与证据",
+      "status": "accepted",
+      "latestEvidence": "134/135完整出包身份和1222个载荷核验已有证据；MSI覆盖与CI分别归6.2/0.3，不再重复阻断身份项。 证据：controller-release135-20261016.json、controller-package135-live-20261016.json。扩展限制：只证明已核候选；不把后续dirty源码、尚未打包的hook修复或远端CI算进旧包。",
+      "acceptance": "能追溯本次候选源码、完整载荷和实际运行程序身份。",
+      "evidence": "controller-175-audit.json：原 island-kayak/SWE-2 max 第175轮 HTTP completed、attempt terminal/drained；受监督 Windows Job rustc→link 探针 completed/exit0，统一临时根与现有 unstable 保留已核。但所选 VS 安装仍枚举多个工具链版本，实际 linker 对应未证明；本机原先已全部 unstable，本轮标记0，stable→mark→clear/异常恢复未实测；正式整包/安装身份未重验。暂搁置并继续其他项，不作为0.1通过。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "将后续候选独立冻结、正常出包并逐文件核对；记录其实际源码、载荷及运行身份。",
+        "latestEvidence": "0.2.134正常release出包与MSI exit0，源码快照ec6c7c04…前后不变；1222载荷逐项匹配、注册安装及全新进程身份通过。当前web EXE SHA7e678c39…已包含Goal修复并从安装目录复验。358失败和0.2.133证据独立保留；该段为0.2.134历史，本轮0.2.135冻结补证见后，CI与工具链剩余门禁不关闭。 controller-release135-20261016.json：后续0.2.135已独立冻结、正常全量release/MSI出包，源码前后不变，1222载荷逐文件一致；controller-package135-live-20261016.json记录完整包正式8765实际进程、默认配置和原历史一致。MSI覆盖1730/1603权限阻塞，C安装仍134；不把D包运行冒充机器级升级。CI/全工具链剩余门禁未关闭。",
+        "updatedAtUtc": "2026-10-16T15:47:46.282899+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "能追溯本次候选源码、完整载荷和实际运行程序身份。",
+        "conclusion": "134/135完整出包身份和1222个载荷核验已有证据；MSI覆盖与CI分别归6.2/0.3，不再重复阻断身份项。",
+        "next": "已关关键功能，不重跑。",
+        "receipts": [
+          "controller-release135-20261016.json",
+          "controller-package135-live-20261016.json"
+        ],
+        "deferred": "只证明已核候选；不把后续dirty源码、尚未打包的hook修复或远端CI算进旧包。"
+      }
+    },
+    {
+      "id": "0.2",
+      "item": "基线",
+      "status": "pending_evidence",
+      "acceptance": "长工具输出可以按result_id连续续读，读取完整内容且不重复执行命令。",
+      "evidence": "主控审核 controller-159-audit.json：原 island-kayak/SWE-2 max 单次运行 82KB 长输出工具，约29952ms 后宿主 cancelled/failed，未返回 result_id，模型实际读取0字节，8192→69632 连续分页未证实。执行者主动报告且 HTTP/attempt 终态已核；按用户规则留证搁置，转其他项。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "由当前支持的执行链补长输出8192→69632连续分页和完整读取证据；保留旧失败，不以恢复Devin为前置。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-13T11:37:24.349807-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "长工具输出可以按result_id连续续读，读取完整内容且不重复执行命令。",
+        "conclusion": "82KB输出旧轮被约30秒宿主时限中断，没有result_id、实际读取0字节；连续分页仍缺关键证明。",
+        "next": "用当前支持执行链生成一次有首尾哨兵的长输出，连续读到尾并核总量/哈希；失败仅修续读或时限接线。",
+        "receipts": [
+          "controller-159-audit.json"
+        ],
+        "deferred": "取消重跑长程原Devin的前置条件；不做不同模型/所有输出大小穷举。"
+      },
+      "latestEvidence": "82KB输出旧轮被约30秒宿主时限中断，没有result_id、实际读取0字节；连续分页仍缺关键证明。 证据：controller-159-audit.json。扩展限制：取消重跑长程原Devin的前置条件；不做不同模型/所有输出大小穷举。"
+    },
+    {
+      "id": "0.3",
+      "item": "CI与假成功",
+      "status": "blocked",
+      "acceptance": "最终交付源码有对应CI结果，失败不显示为通过。",
+      "evidence": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\wbs-0-3-ci-current-head-audit.json：2026-10-13 GitHub Actions 最新成功运行对应 4880955，当前本地 HEAD 8a13551 无对应运行；最终源码/文档尚未进入 CI，旧绿灯不能用于验收。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "对最终交付源码与文档分别查实际 CI、PR 和发布状态；不能沿用旧冻结提交绿灯。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-13T09:29:58.783841-07:00"
+      },
+      "keyAcceptance": {
+        "status": "blocked",
+        "criterion": "最终交付源码有对应CI结果，失败不显示为通过。",
+        "conclusion": "已有远端绿灯对应旧提交；最终本地未提交修改没有对应CI，不能沿用旧绿灯。",
+        "next": "到最终交付时，按届时有效发布授权提交最终变更并取得该版本CI；当前不擅自push，也不重复本地编译冒充CI。",
+        "receipts": [
+          "wbs-0-3-ci-current-head-audit.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      },
+      "latestEvidence": "已有远端绿灯对应旧提交；最终本地未提交修改没有对应CI，不能沿用旧绿灯。 证据：wbs-0-3-ci-current-head-audit.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "1.1",
+      "item": "身份/终态契约",
+      "status": "accepted",
+      "latestEvidence": "正式成功/失败链、公开回复与工具记录，及恢复后unknown保留均已有证据。 证据：controller-283-installed-ui-audit.json、controller-289-dom-audit.json、controller-runtime-history-20261016.json、controller-recovery-contract-matrix-20261016.json。扩展限制：恢复矩阵为人工索引隔离HTTP；未外推全部模型和全部入口。当前已观察绑定为buttercup-pink，不再误称island-kayak。",
+      "acceptance": "真实执行的输入、工具、回复归属同一轮；失败/未知不冒充成功。",
+      "evidence": "controller-207/208-audit.json 既有22项局部通过。controller-284-audit.json 第284轮core-runtime 60过0败、web组未完成且异常终止，不计整项。controller-285-audit.json：原Devin第285轮HTTP completed、ACP terminal/drained1、官方queue一次；主控核预编译EX-01同一二进制SHA、5组日志35过0败0忽略、源码与第283轮验收hash一致。仍缺本地聊天室→run→tool→ACP远端→终态落库真实贯通链、正式8765可见状态及cancelled/unknown呈现矩阵，1.1整项不关闭。 controller-285-live-chain-audit.json 进一步以正式SQLite只读核出第283轮原Devin聊天输入1条→chat_turn运行completed→6个同run/attempt作用域工具completed→ACP terminal/drained1→公开回复和运行记录落库；这是单条真实链，仍未覆盖所有入口、取消/unknown/子任务，整项继续进行。 controller-285-failed-chain-audit.json 只读核第282/284轮真实失败run均落库failed；第284轮ACP unknown/drained1、50工具完成1失败且无assistant回复，未被误写为completed。正式UI全部终态及其他入口仍缺。 controller-286-audit.json：宿主连接重置后正式启动恢复将run标orphaned，界面保留本轮用户输入与部分运行记录，ACP submitted/drained0与工具dispatched保留，未伪造公开最终回复；取消/异常恢复合同仍不完整。 controller-289-audit.json：原Devin第289轮HTTP completed、ACP terminal/drained1、10工具完成、主动官方queue一次；主控独立以正式DB和8765只读接口核286 orphaned/unknown无伪回复、287 failed/not_sent仅fallback、288/289 completed有公开回复。Goal阶段、其他入口、工具行级DOM和正式前端可视层仍待验，整项继续进行。 controller-289-dom-audit.json：主控在正式8765原聊天室亲见第289轮公开回复，展开运行轨迹显示已完成、10条带真实调用ID的工具行，非终态行0；历史思考独立存档入口可见。仅该轮DOM验收，其他入口和Goal阶段仍待证。 controller-296-audit.json：第296轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控确认残留 assistant-partial 上下文过滤生产代码已存在且离线普通 build exit0，但新增回归测试编译 E0277（context.rs:472 unwrap_err 成功值缺 Debug），未跑测试、未部署，整项仍进行中。 controller-297-audit.json：第297轮原Devin仅修测试编译E0277，HTTP completed/ACP terminal/drained1、主动queue一次；主控复测三项中2过1败，失败为夹具在旧unknown未解锁时直接claim被生产安全锁拒绝。未部署，整项继续进行。 controller-298-audit.json：第298轮原Devin HTTP completed/ACP terminal/drained1、报告哈希和官方queue一次核对；测试夹具按正式stop_drained_run→rotate_idle_context释放旧unknown发送锁，旧unknown保持。主控独立复跑第3项1过0败；连同第297轮另2项通过，新增回归3/3。尚未发布至8765或实测正式崩溃重连，整项继续进行。 controller-298-release-audit.json：当前正式程序占用统一target的release EXE，离线发布构建在最终覆盖时Access denied exit101；受控结束旧8765进程的操作被自动审批审查拒绝，未执行切换。旧服务首页200、原island-kayak绑定保持，正式发布验证仍未完成。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "所有已支持入口的运行、请求、工具及聊天终态身份矩阵一致。",
+        "latestEvidence": "controller-runtime-history-20261016.json只读全行多重集核验：冷启动前后11表逐行一致，2336消息/6060工具/828运行/1352 ACP attempts等均保留，quick_check ok。当前工作区ws-8d17063fefe5c23c中原agent_id的remote_session_id实际为buttercup-pink，已不同于早期island-kayak；差异在本轮启动前已有，不能宣称本轮仍绑定island-kayak。用户现要求主会话独立执行，本轮不改绑、不派发；完整入口/终态/未知矩阵仍缺。 controller-recovery-contract-matrix-20261016.json：完整发布服务隔离execution_index重启矩阵通过：running/cancel_requested无活句柄只投影outcome_unknown，既有completed/failed/interrupted/unknown保留；无句柄取消六类均409、不改库，未绑定run的trace409不猜房间，未知用量保持null。人工索引不是实际模型执行链，正式入口全矩阵仍开放。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "真实执行的输入、工具、回复归属同一轮；失败/未知不冒充成功。",
+        "conclusion": "正式成功/失败链、公开回复与工具记录，及恢复后unknown保留均已有证据。",
+        "next": "已关关键功能，不重跑。",
+        "receipts": [
+          "controller-283-installed-ui-audit.json",
+          "controller-289-dom-audit.json",
+          "controller-runtime-history-20261016.json",
+          "controller-recovery-contract-matrix-20261016.json"
+        ],
+        "deferred": "恢复矩阵为人工索引隔离HTTP；未外推全部模型和全部入口。当前已观察绑定为buttercup-pink，不再误称island-kayak。"
+      }
+    },
+    {
+      "id": "1.2",
+      "item": "输入事实/回执",
+      "status": "accepted",
+      "acceptance": "输入回执区分未投递、已投递和已释放；执行失败不能抹掉已发生输入。",
+      "evidence": "controller-181-audit.json：原 island-kayak/SWE-2 max 第181轮 HTTP completed、attempt terminal/drained；本地 computer-use-core 默认线程全量 job 40bae2115f8844219b97500bf1fe1b38 completed/exit0，145过0败。许可读取/解析、命令行长度、重复取消及新增T6-D/E本轮均通过；第177/179/180失败历史不抹除。真实桌面丢/迟回执、不同输入来源及已投递/释放矩阵未完整证明，整项继续待证。 controller-300-audit.json：原Devin第300轮HTTP completed、ACP terminal/drained1、主动官方queue一次；主控复核缓存二进制新于该crate源码、日志SHA及10+36+2+1=49过0败0忽略。桌面实际丢/迟回执、浏览器/ACP多来源及正式8765输入链仍未证，整项保留pending_evidence。 注意第300轮公开回复报告哈希写成752fd5c8…，与文件和官方queue共同确认的0384f5c9…不符；以主控复核值为准。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "丢回执、迟到及不同输入来源下的零投递/已投递事实与释放记录一致。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T18:58:23.0750513-07:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "输入回执区分未投递、已投递和已释放；执行失败不能抹掉已发生输入。",
+        "conclusion": "原生生命周期49项与实机344/345正负例可复用：未命中0输入，实际点击有投递/释放事实，验证失败不篡改输入事实。",
+        "next": "已关当前关键链，不重跑。",
+        "receipts": [
+          "controller-300-audit.json",
+          "controller-344-audit.json",
+          "controller-345-audit.json"
+        ],
+        "deferred": "多来源真实丢/迟回执组合留作加强；相关负向库测试有效，不宣称已完成实机丢包注入。"
+      },
+      "latestEvidence": "原生生命周期49项与实机344/345正负例可复用：未命中0输入，实际点击有投递/释放事实，验证失败不篡改输入事实。 证据：controller-300-audit.json、controller-344-audit.json、controller-345-audit.json。扩展限制：多来源真实丢/迟回执组合留作加强；相关负向库测试有效，不宣称已完成实机丢包注入。"
+    },
+    {
+      "id": "1.3",
+      "item": "broker/lease",
+      "status": "pending_evidence",
+      "acceptance": "输入租约的第二持有者被拒绝，异常持有者退出后安全接管且unknown不擦除。",
+      "evidence": "controller-183-audit.json：windows-process-guard隔离子进程测试67过0败4忽略；controller-184-audit.json：web-console input_safety_store隔离库测试13过0败，epoch冲突、重启对账不删行、缺库和unknown来源拒绝均通过。正式两控制台同库、异构旧helper及生产历史Unknown保留未有实测，整项待证。 controller-286-audit.json：隔离双实例实测同一SQLite第二实例被writer lock拒绝，独立库第二实例可启动；旧helper/崩溃恢复未完成。宿主HTTP ConnectionResetError，无执行者报告；正式8765由安装版launcher恢复、D工作区与原会话/原island-kayak绑定保留，但本轮run orphaned、ACP submitted/drained0、末工具dispatched，未假称排空或解锁。继续阻塞留证。 controller-286-pause-receipt.json：第286轮正式宿主断连，原run orphaned、ACP submitted/drained0、工具dispatched未知；主控只完成候选修复与隔离证明，正式DB未归档、原绑定锁仍在island-kayak，按用户要求暂停待PC重启后恢复。 controller-288-audit.json：原 island-kayak 重载后同一绑定/同一agent正常完成第288轮，ACP terminal/drained1，7工具完成并主动queue一次；主控独立核286夹具同库写者拒绝、独立库启动、两库quick_check ok。lease/epoch/unknown行前后、旧helper及断线退出码仍缺，整项继续阻塞。 controller-291-unknown-archive.json：第291轮正式服务异常退出后，仅精确原run/attempt/tool以结果未知归档并备份，原island-kayak绑定保留；远端取消与末工具结果均未确认，恢复后的下一轮解锁尚待验证。 controller-292-audit.json：第292轮原绑定探针HTTP failed、ACP not_sent/drained1，错误为Devin上下文消息已被删除；旧island-kayak发送锁已释放但远端未收到任务，不计验收。第291轮残留partial消息在旧备份中存在、当前库中消失；当前上下文预览被选历史均在库，属于疑似一次性持久化不一致，因果仍待新轮验证。 controller-293-audit.json：原 island-kayak 第293轮恢复探针HTTP completed、正式run completed、ACP terminal/drained1/end_turn、工具完成、官方queue一次且报告SHA一致；旧291 unknown和292 not_sent历史不变，原绑定保持且锁释放。仅证实原绑定继续执行，不覆盖旧helper/正式升级及第291轮Goal失败。 controller-295-audit.json：第295轮因总体时限失败、无执行者报告，ACP unknown/drained1，末read_file timed_out_outcome_unknown；主控核停残留临时编译树、离线备份并精确归档未知结果，正式8765同一候选程序恢复首页200与原绑定。源码只留下未验证回归测试，未计修复/构建通过。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "两实例、崩溃及旧 helper 的正式所有权隔离；历史 unknown 不被擦除。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T17:48:40.389952-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "输入租约的第二持有者被拒绝，异常持有者退出后安全接管且unknown不擦除。",
+        "conclusion": "会话数据库单写者已验证，输入broker/lease尚缺同一输入安全库的真实双进程接管；二者不能混为一项证据。",
+        "next": "复用input_safety_store测试，只补一个双进程租约竞争→持有者退出→接管的闭环，核旧unknown记录不变。",
+        "receipts": [
+          "controller-183-audit.json",
+          "controller-184-audit.json",
+          "controller-writer-live-matrix-20261016.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      },
+      "latestEvidence": "会话数据库单写者已验证，输入broker/lease尚缺同一输入安全库的真实双进程接管；二者不能混为一项证据。 证据：controller-183-audit.json、controller-184-audit.json、controller-writer-live-matrix-20261016.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "1.4",
+      "item": "权限",
+      "status": "pending_evidence",
+      "acceptance": "已支持执行入口继承最小权限，撤权后旧子任务不能继续借旧授权执行。",
+      "evidence": "controller-281-permission-audit.json：原Devin第281轮HTTP completed、ACP terminal/drained1、官方queue一次；主控核报告SHA及permission_gate离线定点测试24过0败，4个新增测试只覆盖evaluate_permission隔离入参。真实调度/子任务冻结、FullAccess正式入口、撤权在途硬件输入未证明，整项待证。 controller-309-audit.json：原Devin第309轮HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核隔离HTTP dry-run已有工作区文件200/executed=false、越界403、未知工具404、PowerShell预览400。legacy /api/tools/execute四次422为schema失败，semantic dispatch两个200均no-op，不得算正式执行门控。runtime-execute/DSH冻结grant/FullAccess越界/撤权在途未验，1.4继续待证。 controller-310-audit.json：第310轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核正式/api/tools/runtime-execute：工作区文件读取ok/allow-auto/output非空，越界只读dry-run-only/require-approval/output=null进入pending，未知工具rejected/deny/output=null；隔离夹具拒批后pending 1→0且审计记录拒绝。DSH父轮冻结grant、FullAccess与撤权在途、正式8765入口未验，1.4仍待证。 controller-311-audit.json：原Devin第311轮HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核release测试日志1过0败1忽略。只证明缺provider身份时真实派发入口在DB注册前拒绝；完整DSH允许→撤权→过期审批测试被ignored且缺DSH_DISPATCH_PROBE_ROOT及固定源码，未实跑。冻结grant源码非运行证据，1.4仍待证，暂转其他项。 controller-318-audit.json：第318轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次且报告SHA一致；主控核隔离真实HTTP FullAccess激活后未知工具仍deny/零输出，授权越界读取可执行，撤权后同请求恢复待审批/零输出，跨会话pending消费404。在途异步工具迟到结果、DSH/chat冻结grant、TTL及正式8765未证，1.4不关闭。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "普通工具允许/拒绝/FullAccess撤销/自然过期已过；DSH或子任务冻结授权关键链仍有ignored而未实际执行。 证据：controller-311-audit.json、controller-318-audit.json、controller-permission-expiry-matrix-20261016.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "调度和子任务入口使用冻结最低权限；未知输入拒绝不可因完全访问绕过。",
+        "latestEvidence": "controller-permission-expiry-matrix-20261016.json：完整135服务、隔离Devin SWE-2本地对象及人工文本七项全过；缺确认授权400不生效；FullAccess最短TTL60秒真实自然过期后越界read重新require-approval且output=null，工作区内read仍可；未知工具仍拒绝、另一会话不继承授权；pending真实五分钟自然失效，过期approve404零执行，跨会话消费404不删除原待办；重启不恢复临时grant或重放pending、本地对象保留。未改系统时钟、未调模型、未动正式权限；DSH/chat冻结grant、在途撤权及正式UI门禁仍开放。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "已支持执行入口继承最小权限，撤权后旧子任务不能继续借旧授权执行。",
+        "conclusion": "普通工具允许/拒绝/FullAccess撤销/自然过期已过；DSH或子任务冻结授权关键链仍有ignored而未实际执行。",
+        "next": "只补一个已支持子任务入口：父授权冻结→撤权→下一有副作用工具被拒，核零副作用；不再跑普通读取和TTL矩阵。",
+        "receipts": [
+          "controller-311-audit.json",
+          "controller-318-audit.json",
+          "controller-permission-expiry-matrix-20261016.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "1.5",
+      "item": "取消/预算",
+      "status": "accepted",
+      "acceptance": "聊天/Goal在途取消停止后续动作；受控工具超时回收且迟到结果不变成成功。",
+      "evidence": "controller-196-audit.json：cancel串行过滤34过0败，第187轮失败消除；并发模式与正式8765真实取消矩阵仍待证。 controller-312-audit.json：第312轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核隔离DB run.started→run.stop_requested→run.interrupted，真实聊天send在mock模型HTTP延迟期间调用取消接口200/interrupt_requested，send终态interrupted仅1条用户消息；mock迟到写回ConnectionAbortedError 10053。单目标在途provider取消通过；工具/后代树、execution、Goal、多目标和正式重启恢复未验，1.5继续待证。 controller-313-audit.json：第313轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核隔离Goal在真实模型HTTP在途时取消200，goal/phase cancelled、runtime interrupted，事件goal-phase-dispatched→goal-cancelled→run-interrupted-needs-review；迟到mock写回ConnectionAbortedError 10053，再run-next无派发。仅单阶段在途取消通过，工具子进程、多阶段、完成竞争、正式恢复未验，整项继续。 controller-322-audit.json：原Devin第322轮HTTP completed/ACP terminal-drained1/官方queue一次；主控复跑release Job Object kill-on-close及socket非继承各1过0败。隔离runtime-execute bash停在require-confirm，没有在途工具进程；试探3个工具取消路径均405，不能外推系统全部取消面。工具后代树产品级取消与迟到结果未证，1.5不关闭。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "聊天与Goal真实HTTP在途取消已过；hook根预算、前后取消、回收与迟到零写入新增8项和实际构建通过。 证据：controller-312-audit.json、controller-313-audit.json、controller-hook-budget-review-20261016.json。扩展限制：hook新增修复尚未部署；外部Provider和所有工具后代组合留后续，授权在途变化仍由1.4跟进。",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "授权变化、在途 HTTP/工具与后代树清理的真实取消及迟到结果矩阵。",
+        "latestEvidence": "controller-hook-budget-review-20261016.json：补hook在途取消与超时的真实cmd/子进程验证；先证实进程存活，再核停止与迟到文件未写，前置中止阻止目标、后置中止保留目标既成效果；直接丢弃服务派发future后受控进程退出，非真实HTTP断连演练。仅该执行链通过；授权在途变化、外部HTTP/真实模型及所有工具后代矩阵仍待证，不计整项关闭。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "聊天/Goal在途取消停止后续动作；受控工具超时回收且迟到结果不变成成功。",
+        "conclusion": "聊天与Goal真实HTTP在途取消已过；hook根预算、前后取消、回收与迟到零写入新增8项和实际构建通过。",
+        "next": "关键链通过；hook新源码随下一批正式交付，不为本项单独打包。",
+        "receipts": [
+          "controller-312-audit.json",
+          "controller-313-audit.json",
+          "controller-hook-budget-review-20261016.json"
+        ],
+        "deferred": "hook新增修复尚未部署；外部Provider和所有工具后代组合留后续，授权在途变化仍由1.4跟进。"
+      }
+    },
+    {
+      "id": "2.1",
+      "item": "SessionConfig",
+      "status": "accepted",
+      "acceptance": "配置提交有版本冲突保护，重启后会话、模型与参数一致。",
+      "evidence": "controller-229-audit.json 与 controller-230-audit.json：原 Devin 发现旧 model-limit 错误形状请求会误写零值；第230轮定点修复拒绝未知字段并按 expected_revision 检查版本。受监督全量 test-console 1494主测试+8库测试+1浏览器宿主测试通过、0失败、6忽略，候选构建和正式8765切换成功。主控独立验证错误形状422、旧版本409、配置内容未再变化；误写的 mario-demo 零值已精确删除，配置版本60，原 island-kayak 绑定、公开回复与页面可见。跨实例/崩溃恢复与新平台真实wire仍待证明，2.1不关闭。 controller-341-audit.json：原Devin第341轮HTTP completed、ACP terminal/drained1、官方queue一次，原工具筛选恢复日志测试exit0；主控用当前源码对应发布测试程序独立复跑exit0、7过0败0忽略并存日志哈希。含真实子进程exit71故障注入、提交前后恢复/重复恢复及服务写入触发回滚；两个env-gated父进程项目本身为空运行。正式8765首页200、原绑定无锁。无隔离HTTP全链、正式DB文件前后哈希、OS断电及新平台真实wire，2.1继续进行。 controller-342-audit.json：原Devin第342轮HTTP completed/ACP terminal-drained/官方queue一次。隔离release服务真实HTTP创建会话、组合提交后revision0→1、旧revision409且零误写；重启后相同会话/模型/参数/版本保留。主控独立核隔离SQLite quick_check ok、会话行与配置版本1一致、恢复日志0行，原绑定无锁、正式8765首页200，两个隔离PID退出且端口关闭。第341轮已通过进程exit71的提交边界注入。新平台真实凭据wire和OS断电仍未证，按阻塞规则搁置转其他项。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "跨资源配置提交的崩溃/恢复与完整服务边界；新平台实际 wire 需各自凭据。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-15T12:04:26.045274+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "配置提交有版本冲突保护，重启后会话、模型与参数一致。",
+        "conclusion": "完整服务HTTP提交revision0→1、旧revision拒绝和重启读回已过；提交前后中断恢复也有证据。",
+        "next": "已关当前关键配置，不重跑。",
+        "receipts": [
+          "controller-341-audit.json",
+          "controller-342-audit.json"
+        ],
+        "deferred": "新平台真实凭据接入和物理断电不是本次配置保存的前置；未对未连接平台宣称可用。"
+      },
+      "latestEvidence": "完整服务HTTP提交revision0→1、旧revision拒绝和重启读回已过；提交前后中断恢复也有证据。 证据：controller-341-audit.json、controller-342-audit.json。扩展限制：新平台真实凭据接入和物理断电不是本次配置保存的前置；未对未连接平台宣称可用。"
+    },
+    {
+      "id": "2.2",
+      "item": "历史/usage",
+      "status": "accepted",
+      "latestEvidence": "11历史表逐行对账、实际模型协议用量41/7/13/2与insights一致、unknown为null；迟到归属隔离HTTP有证据。 证据：controller-installed-133-history-review.json、controller-315-audit.json、controller-320-audit.json、controller-remaining-matrix-review-20261016.json。扩展限制：真实外部账单及真实多后代并发全链未验；不将mock数值说成提供商实际计费。",
+      "acceptance": "历史可恢复；已知用量归属正确，未知用量显示未知而非0。",
+      "evidence": "controller-190-audit.json：原Devin隔离用量12过0败。controller-225-audit.json：正式room+workspace /insights 按session汇总，来源ACP journal，主控在Edge见未知token如实显示；原Devin只读SQL对照629逻辑请求及unknown状态，单独usage筛选11过1败（疑似正式库写者锁）不计全过。真正后代树、已知token迟到分账、生产外部请求及计费UI仍待证，整项不计通过。 controller-314-audit.json：第314轮原Devin宿主时限失败、无执行者报告、主控异常通知一次并暂停监督；主控只读核隔离真实mock聊天HTTP200、runtime completed，journal归属同一workspace/session/room/run，已知token input41/output7/cache_read13/cache_write2，另一记录unknown mask0不可当零；未完成insights/API对账、后代树和迟到分账，整项仍待证。 controller-315-audit.json：原Devin HTTP completed/ACP terminal-drained1/官方queue一次；主控独立核隔离真实GET /api/chat/rooms/main-room/insights 200与只读DB对账，session已知41/7/13/2精确一致，mask0 pending/remote_unknown单列，mask3未知缓存API为null。后代树、终态后迟到、并发及跨房间正式账单未证，2.2维持pending_evidence。 controller-319-audit.json：原Devin第319轮HTTP completed、ACP terminal/drained1、官方queue一次且哈希一致；主控独立复跑release筛选测试5/5。真实mock HTTP迟于CU planner阶段预算，测试断言超时后原call/room有usage行、请求仍1次且零新动作。测试未逐列核run/session/workspace、临时DB已清，chat/send迟到、后代树与并发/跨房间仍未证，2.2不关闭。 controller-320-audit.json：第320轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核隔离chat/send模型HTTP确发1次后interrupt，run interrupted、mock迟到写入连接中止，usage同run/session/room/workspace为remote_unknown/mask0，insights不伪填token、无成功回复。本轮未拿到迟到token，不能宣称chat路径迟到用量落库；并发与后代树仍未证。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "后代树真实用量、迟到分账及未知用量保留；SQL 聚合回归不是外部请求验收。",
+        "latestEvidence": "controller-installed-133-history-after-tests.json：2336聊天室消息、6060工具、828运行、9130运行事件、1352ACP attempts等11表在安装冷启动和测试前后逐行一致。controller-real-trace-readonly-20261015.json用第360轮真实run核对接口及2工具身份，跨房间/工程/缺失run均404；后代树usage与并发/迟到矩阵仍未证。",
+        "updatedAtUtc": "2026-10-14T21:46:18.970323-07:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "历史可恢复；已知用量归属正确，未知用量显示未知而非0。",
+        "conclusion": "11历史表逐行对账、实际模型协议用量41/7/13/2与insights一致、unknown为null；迟到归属隔离HTTP有证据。",
+        "next": "已关关键历史/计量，不重跑。",
+        "receipts": [
+          "controller-installed-133-history-review.json",
+          "controller-315-audit.json",
+          "controller-320-audit.json",
+          "controller-remaining-matrix-review-20261016.json"
+        ],
+        "deferred": "真实外部账单及真实多后代并发全链未验；不将mock数值说成提供商实际计费。"
+      }
+    },
+    {
+      "id": "2.3",
+      "item": "工具派发",
+      "status": "pending_evidence",
+      "acceptance": "一次工具只派发一次，权限闸有效；声明支持的hook有可用配置和独立授权入口。",
+      "evidence": "controller-245-audit.json：原island-kayak第245轮修正真实冻结权限拒绝测试，HTTP completed、attempt terminal/drained、主动报告哈希已核对；主控独立复测dispatch_hook_wire六项全过。当前源码全量控制台测试主程序1500过0败6忽略，库8过、浏览器宿主1过；但生产Hook配置/独立授权来源缺失，同步pre/post运行未纳入根时限与取消控制，实际调用入口全链尚未通过，2.3维持进行中。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "普通派发及hook取消/预算已测；默认生产HookRunner仍缺配置和独立授权材料来源，测试override不等于用户可用。 证据：controller-245-audit.json、controller-hook-budget-review-20261016.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "重复派发路径和 hook 语义收敛；按全部实际调用入口验证同一闸门。",
+        "latestEvidence": "controller-hook-budget-review-20261016.json：Windows完整shell命令误用CRT转义导致带引号路径失效，已改为独立授权后的原样shell传递；新增中文/空格/&路径及exit0/2语义用例1/1通过。控制台前后hook接入既有根预算、取消和受控进程回收，七个服务用例通过（前/后超时、前/后在途取消、等待丢弃、较长冻结父预算不延长当前截止、正常正对照），目标真实写入效果与进程存活/退出均核对。实际core-runtime/web-console离线build exit0。仅受影响链定点验证，正式hook配置/独立授权材料来源与全调用入口矩阵仍缺，未发布安装新包。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "一次工具只派发一次，权限闸有效；声明支持的hook有可用配置和独立授权入口。",
+        "conclusion": "普通派发及hook取消/预算已测；默认生产HookRunner仍缺配置和独立授权材料来源，测试override不等于用户可用。",
+        "next": "补最小正式hook配置与独立授权接线，再用一个前置hook→目标→后置hook闭环及未授权拒绝验收；不重跑8项预算用例。",
+        "receipts": [
+          "controller-245-audit.json",
+          "controller-hook-budget-review-20261016.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "2.4",
+      "item": "单写者/outbox/epoch",
+      "status": "pending_evidence",
+      "acceptance": "单写者和epoch拒绝旧写入；同轮通知崩溃恢复后只投递一次。",
+      "evidence": "controller-232/246/247-audit.json：原island-kayak第247轮HTTP completed、ACP terminal/drained1、主动官方queue一次；主控核报告SHA，并在独立在线备份副本直跑同一已编译测试程序，A持锁ready、B跨进程拒绝exit0、精确杀A后C取得锁exit0；副本quick_check ok、epoch38未变，正式库只读epoch38。第246轮副本outbox重开持久化与单次认领、旧epoch拒写独立复测1过0败。上述只证明隔离正式数据副本上的进程锁/持久化局部矩阵；正式双实例全栈、旧版本混用与在线保存epoch栅栏仍待证，2.4整项不关闭。 controller-294-audit.json：原Devin第294轮HTTP completed、ACP terminal/drained1，官方queue一次且报告SHA匹配；主控独立核291 transport_error→controller_queued一次、292 not_sent/failed→controller_queued一次、293 completed→executor_queued一次，按轮收据未见双通道重复。正式metadata.session_writer_epoch确实存在，执行者报告“无epoch表/只锁文件”不准确；锁文件存在也不足以证明独占持有。跨版本混用、生产双写者和UI积压清理未证，2.4不关闭。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "135/134同库竞争和epoch八项已过；通知outbox的崩溃窗口与已出现的UI积压尚未形成最后闭环。 证据：controller-writer-live-matrix-20261016.json、controller-246-audit.json、controller-294-audit.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "跨实例与旧版本混用、outbox、崩溃恢复和权威 epoch 的完整正式矩阵。",
+        "latestEvidence": "controller-writer-live-matrix-20261016.json：完整135/已安装134二进制、隔离共享库与真实HTTP八项全过：同版与新旧双向竞争均启动前拒绝，强杀后134接管再回135，epoch逐次增加；在线注入权威epoch后两次保存409、数据库与读取缓存无幽灵记录，重启恢复。补核范围发现微信不测约定，controller-recovery-contract-matrix-20261016.json内八项Clawbot本地outbox检查已标范围外，不计本轮验收、不再继续。主控通知outbox崩溃窗口、UI积压、正式生产双写/更旧不遵锁helper仍缺，整项保持进行中。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "单写者和epoch拒绝旧写入；同轮通知崩溃恢复后只投递一次。",
+        "conclusion": "135/134同库竞争和epoch八项已过；通知outbox的崩溃窗口与已出现的UI积压尚未形成最后闭环。",
+        "next": "仅用隔离接收端核一条通知落盘→发送中断→恢复去重，保留同轮唯一送达证据；不向主会话反复发测试消息。",
+        "receipts": [
+          "controller-writer-live-matrix-20261016.json",
+          "controller-246-audit.json",
+          "controller-294-audit.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "2.5",
+      "item": "共享异步TurnRunner",
+      "status": "pending_evidence",
+      "acceptance": "已支持共享运行入口创建、取消、恢复使用同一执行身份，不自动重放未知副作用。",
+      "evidence": "controller-193-audit.json：原Devin单次提交execution_service隔离测试10过0败；第186轮并发失败仍开放，正式8765、安装版调度/子Agent、真实拒绝和重启恢复待证。 controller-299-audit.json：原Devin第299轮HTTP completed/ACP terminal/drained1、主动queue一次；主控独立核三组已编译测试日志hash及10+4+3=17过0败（execution_service、host_child_agent、scheduled_delivery），正式8765入口/生产库崩溃恢复/安装版调度仍未证，整项继续待证。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "execution_service局部17项及索引unknown恢复已过；真实运行worker到恢复的共享入口闭环仍缺。 证据：controller-299-audit.json、controller-recovery-contract-matrix-20261016.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "各已支持入口冻结、反馈、取消、恢复的真实验收；Devin Goal/接力/子Agent 仍明确拒绝。",
+        "latestEvidence": "controller-recovery-contract-matrix-20261016.json：完整135服务真实HTTP、隔离人工execution_index补重启恢复五项通过：无句柄running/cancel_requested显示unknown而非完成、六类取消409且不伪造终态；缺身份/旧配置scope400或409、跨工程详情和trace404；无run轨迹409、未知用量null；再次强杀重启无自动重放且两库quick_check ok。没有创建调度任务或调用外部模型；真实在途worker取消、生产崩溃/正式调度及子Agent入口全链仍缺。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "已支持共享运行入口创建、取消、恢复使用同一执行身份，不自动重放未知副作用。",
+        "conclusion": "execution_service局部17项及索引unknown恢复已过；真实运行worker到恢复的共享入口闭环仍缺。",
+        "next": "选一个已支持的隔离共享入口运行→取消/重启→查询，核同ID和无自动重放；不启Devin接力或另建执行会话。",
+        "receipts": [
+          "controller-299-audit.json",
+          "controller-recovery-contract-matrix-20261016.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "3.1",
+      "item": "Frame/DPI",
+      "status": "blocked",
+      "acceptance": "多屏/混合DPI下截图坐标与实际目标一致。",
+      "evidence": "controller-236-audit.json：主控已独立核对当前真实硬件仅1个显示器，虚拟桌面(0,0) 1707x960，没有负坐标或混合DPI。3.1要求的真实多屏/混合DPI/负坐标输入映射不能在本机完整验收；保留原有证据，暂搁置并继续其他可执行项，不将单屏测试外推为通过。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "混合 DPI、负坐标、真实多屏环境中的原生帧与输入映射。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T11:35:12.470564-07:00"
+      },
+      "keyAcceptance": {
+        "status": "blocked",
+        "criterion": "多屏/混合DPI下截图坐标与实际目标一致。",
+        "conclusion": "当前证据只含单显示器，缺真实多屏、混合DPI和负坐标硬件条件。",
+        "next": "有相应显示环境后合并3.1/6.3做一次截图→定位→输入；当前不再反复测试单屏。",
+        "receipts": [
+          "controller-236-audit.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      },
+      "latestEvidence": "当前证据只含单显示器，缺真实多屏、混合DPI和负坐标硬件条件。 证据：controller-236-audit.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "3.2",
+      "item": "UIA/语义动作",
+      "status": "pending_evidence",
+      "acceptance": "声明支持的原生UIA语义动作能操作实际控件，缺目标时不误操作。",
+      "evidence": "controller-279-audit.json：第279轮原island-kayak/Devin正常完成并主动报告，attempt terminal/drained1；主控独立只读UIA复核StartButton可解析、虚构AutomationId不命中，退出0。computer_use_perform因input_safety_root_not_injected在intent_guard拦下、零次输入，原生语义动作链未完成，3.2整项留阻塞并转其他项。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "旧输入安全根漏接线已修；现有桌面点击/目标正负证据不充分证明UIA pattern动作本身。 证据：controller-279-audit.json、controller-344-audit.json、controller-345-audit.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "Windows 控件 pattern 能力表与正负实机证据，不能外推 Browser 成功。",
+        "latestEvidence": "旧279轮input_safety_root_not_injected为历史失败，后续343已补接线、344原生输入有界纠正及345严格nativeTarget正负例通过；不再把旧输入根注入故障列为当前阻塞。完整Windows控件pattern正负实机能力表仍缺，整项保留blocked。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "声明支持的原生UIA语义动作能操作实际控件，缺目标时不误操作。",
+        "conclusion": "旧输入安全根漏接线已修；现有桌面点击/目标正负证据不充分证明UIA pattern动作本身。",
+        "next": "只补一个实际UIA控件的Invoke或Value动作及缺目标拒绝，核控件值/效果；取消完整Windows控件能力表穷举。",
+        "receipts": [
+          "controller-279-audit.json",
+          "controller-344-audit.json",
+          "controller-345-audit.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "3.3",
+      "item": "有界反馈/验证",
+      "status": "accepted",
+      "acceptance": "动作验证失败可有界纠正，达到上限停止，不以点击已发送判成功。",
+      "evidence": "D:\\coolzhuagent\\docs\\analysis\\2026-10-10-integration-32wbs-current-gates.md controller-316-audit.json：原Devin HTTP completed/ACP terminal-drained1/官方queue一次；主控独立核7组release命令共9测试过0败，输入纠正上限/递归watchdog/规划后取消/控制器丢弃/验证失败终态/已证未投递后重规划的局部回归通过。原报告称8项，与日志9项不符；以日志为准。真实桌面端到端纠正轨迹、分页、并发重规划和自然导航误判仍待验，整项保持pending_evidence。 controller-343-audit.json：原Devin第343轮HTTP completed/ACP terminal-drained、官方queue一次；真实computer_use_perform在intent_guard因input_safety_root_not_injected失败，正式CU run零登记、动作零投递；原报告离线筛选5过不能替代桌面实测。主控查339直接启动脚本遗漏launcher环境变量，既有用户级输入安全库windows-session-1为safe/accepts_new_input=1；接线修正及再次CU验收待做。 controller-344-audit.json：补正式8765输入安全根后，原Devin在隔离Tk窗口真实CU运行succeeded；两次click均已投递并释放，首次有意失配1/3、第二次纠正达3/3，截图显示计数1/未命中1；HTTP completed、ACP terminal/drained、官方queue一次、原绑定解锁。分页、迟到取消、子目标重规划等仍待验。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "真实桌面首次验证失败→第二次纠正3/3通过，次数上限和验证失败终态9项已有回归证据。 证据：controller-316-audit.json、controller-344-audit.json。扩展限制：复杂分页/并发子目标重规划和自然导航误判泛化不在本次关项范围；未宣称所有任务均能自动纠正。",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "完整纠正次数、取消迟到、分页及子目标重规划；原自然导航误判继续保留。",
+        "latestEvidence": "controller-344-audit.json真实隔离桌面两步纠正通过：第1步已投递/已释放但验证失败，第2步已投递/已释放且3/3视觉通过。仅该链通过；完整次数上限、分页、取消迟到、子目标重规划及自然导航误判矩阵仍待验。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "动作验证失败可有界纠正，达到上限停止，不以点击已发送判成功。",
+        "conclusion": "真实桌面首次验证失败→第二次纠正3/3通过，次数上限和验证失败终态9项已有回归证据。",
+        "next": "已关关键纠正功能，不重跑。",
+        "receipts": [
+          "controller-316-audit.json",
+          "controller-344-audit.json"
+        ],
+        "deferred": "复杂分页/并发子目标重规划和自然导航误判泛化不在本次关项范围；未宣称所有任务均能自动纠正。"
+      }
+    },
+    {
+      "id": "3.4",
+      "item": "失配/settle",
+      "status": "pending_evidence",
+      "acceptance": "目标或页面失配时不投递输入，过期目标不能借用新页面。",
+      "evidence": "D:\\coolzhuagent\\docs\\analysis\\2026-10-10-integration-32wbs-current-gates.md controller-317-audit.json：原Devin HTTP completed/ACP terminal-drained1/官方queue一次；主控独立重跑真实扩展content_script.js的Node vm假DOM文档替换夹具（旧doc拒绝、新doc假BODY零keydown、目标成对keydown/up）及合同测试6过0败。假DOM没有原生冒泡/isTrusted，不能复验0.2.127正式WebView未知BODY keydown；旧失败仍保留。严格nativeTarget/commit、在途撤销/HRESULT和误拒率未证，3.4不关闭。 controller-345-audit.json：原Devin真实桌面错窗口负例target_not_found、0动作/0投递；正确窗口正例1次click已投递释放，视觉2/2且截图计数1。主控复跑相关release测试5过0败，HTTP completed/ACP terminal-drained/官方queue一次/原绑定解锁。跨来源正式DOM/native commit、在途撤销/HRESULT与原BODY keydown失败仍待验。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "latestEvidence": "原生目标正负例通过；旧WebView未知BODY收到keydown的反例只有假DOM修复证据，缺真实负例复验。 证据：controller-317-audit.json、controller-345-audit.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "strictReviewBeforeRescope": {
+        "status": "pending_evidence",
+        "acceptance": "严格 nativeTarget/跨来源 commit、在途撤销/HRESULT 及非目标误拒率；127 未知 BODY keydown 负例仍失败。",
+        "latestEvidence": "controller-345-audit.json：严格原生目标正负例通过；未命中时0输入，正例已投递/释放且视觉2/2。真实跨来源commit、在途撤销/HRESULT及误拒率仍缺，旧BODY keydown负例失败保留。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "目标或页面失配时不投递输入，过期目标不能借用新页面。",
+        "conclusion": "原生目标正负例通过；旧WebView未知BODY收到keydown的反例只有假DOM修复证据，缺真实负例复验。",
+        "next": "只复验原BODY keydown负例及一个明确目标正例；失败定位实际页面提交/目标判定，不穷举所有HRESULT。",
+        "receipts": [
+          "controller-317-audit.json",
+          "controller-345-audit.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "3.5",
+      "item": "Paint实验",
+      "status": "waived",
+      "acceptance": "用户已免除整套 Paint 绘画验收；不再作为阻塞，也不宣称未验优化完成。",
+      "evidence": "用户既有豁免；docs\\analysis\\2026-10-10-integration-32wbs-current-gates.md",
+      "updatedAtUtc": "2026-10-13T09:17:20.984235-07:00"
+    },
+    {
+      "id": "4.1",
+      "item": "前端模块/面板",
+      "status": "accepted",
+      "latestEvidence": "安装入口和完整发布包正式页面均已有可见证据，图标/头像资源及冷启动历史保留已核。 证据：controller-283-installed-ui-audit.json、controller-installed-133-http-files.json、controller-installed-133-cold-start-d-workspace.json、controller-reply-ui-20261016.json。扩展限制：混合DPI并到3.1/6.3；全部自定义身份组合移加强。C安装134与正式D135差异明确保留。",
+      "acceptance": "正式控制台能显示会话/公开回复/头像/运行面板，重开后历史保留。",
+      "evidence": "controller-271-installed-ui.png及controller-271-audit.json：主控通过已安装的COOLZHU AGENT程序恢复可见窗口，原Devin第271轮公开进度在聊天室显示；亲自打开“思考与运行记录”面板，显示30条历史轮次及当前运行记录。历史卡身份交互、混合DPI和重启持久化矩阵未完整实测，整项继续进行。；controller-283-installed-ui-audit.json：主控用已安装窗口独立看到原Devin绑定、D盘工程、第283轮公开回复，展开运行轨迹显示工具名/状态/耗时；历史身份、重启、混合DPI或完整执行树等剩余矩阵仍待证。 controller-299-installed-ui-audit.json：已安装桌面程序启动可见，原Devin工作区与第299轮公开回复可见，思考与运行记录面板显示工具名、状态及耗时；当前房间健康异常未核，混合DPI/重启矩阵仍待验。 controller-299-installed-ui-audit.json 增补：安装版前端关窗重开后原工作区、SWE-2对象和第299轮公开回复保留；运行记录面板可再次打开。后端未重启，不等同跨系统重启验收。 controller-301-audit.json：原Devin第301轮HTTP completed/ACP terminal+drained、queue一次；主控实时API与app.js复核，系统健康红灯实际是0/3 Agent凭据元数据就绪，任务异常红灯由未请求/未运行但检测模型资源缺失的合成vision任务failed触发，并非第300轮失败。仍需前端分类修复、构建与正式UI复验。 controller-302-audit.json：原Devin第302轮HTTP completed、ACP terminal/drained1、官方queue一次，主控复测Node定点6过0败、cargo build exit0；从未请求的视觉资源缺口已在候选源码改为pending，健康文案改为Agent就绪。但已请求且资源缺失仍显示running，index.html初始aria/title仍为系统健康，审核仅部分通过。正式8765仍旧版，整项不关闭。 controller-303-audit.json：原Devin第303轮HTTP completed、ACP terminal/drained1、官方queue一次，主控复测Node 7过0败、离线build exit0；候选源码已修正已请求缺资源=failed、未请求预留=pending及初始aria/title。但正式8765仍旧内嵌前端，未做部署后UI验收，整项继续进行。 controller-339-ui-audit.json：安装版 Tauri 实见原 island-kayak 公开回复，运行记录右栏显示30轮及已完成/失败/orphaned和真实工具ID去重；当前8765为临时当前源码调试版，健康告警和完整UI/并发/跨项目矩阵仍待验，不计整项通过。 controller-339-ui-reload.json：Tauri旧内存页面经Ctrl+R后实际加载当前8765新版Agent就绪文案，原D盘工作区/会话/消息保留；凭据未就绪与其余UI矩阵继续开放。 controller-339-audit.json：原Devin第339轮HTTP completed/ACP terminal-drained，早到报告仅记running；固定受监督release构建后续completed/exit0，当前源码发布exe哈希83f87e5b…；主控备份原库并受控切换8765，首页/app.js200、原island-kayak绑定及安装版公开回复/运行轨迹可见。该项剩余矩阵仍开放。 controller-340-audit.json：原Devin第340轮正式release切换后单次受监督只读烟测exit0，本地4入口HTTP均200且exe哈希与339切换审计一致；主控独立核HTTP completed、ACP terminal/drained、真实工具调用完成、官方queue一次、原island-kayak绑定无锁。历史/故障矩阵仍开放。 controller-346-audit.json：原Devin第346轮HTTP completed/ACP terminal-drained/官方queue一次；主控核安装版截图及API，344/345历史作者与当前发送对象一致；自动滚动因approval_required零投递，卡片像素未验。主控另发现当前正式8765三类图标/头像HTTP 404，截图多处破图；启动脚本空静态根导致资源仅核心文件可回退，执行者报告defect none被驳回。待修正资源接线并正式复验。 controller-346-static-repair.json：主控确认正式静态根漏素材导致图标/头像404，从安装包补齐472个同hash素材后原8765 PID未变且资源200；仅重开可见Tauri壳，图标/头像/背景恢复，原绑定及公开回复保留。当前仍依赖统一验收目录，正式持久化交付待做。 controller-347-audit.json：原Devin第347轮HTTP completed、ACP terminal/drained、官方queue一次、原绑定保持；主控逐文件核494个候选资源与源码SHA一致、正式HTTP四项200且字节一致。候选仍在tmp，暂存包49个资产过期；持久启动/正式包/重启复验未完成。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "新头像、历史模型/自定义身份、重启及混合 DPI 正式界面；已有小窗口证据不代替新功能验收。",
+        "latestEvidence": "安装载荷1222项匹配；独立安装EXE 513/513 HTTP资源匹配，重启测试会话ID/模型/头像字段保留。controller-installed-133-cold-start-d-workspace.json已证正式后台来自安装目录，4类资源重启后匹配，不依赖tmp静态根。controller-installed-133-d-hydrated-console.png可见原第360轮gpt-6-luna-max公开回复、头像及权限文案；仅该冷启动/历史案例，历史身份全矩阵和混合DPI仍开放。",
+        "updatedAtUtc": "2026-10-15T12:53:36.829599+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "正式控制台能显示会话/公开回复/头像/运行面板，重开后历史保留。",
+        "conclusion": "安装入口和完整发布包正式页面均已有可见证据，图标/头像资源及冷启动历史保留已核。",
+        "next": "已关当前单屏关键界面，不重跑。",
+        "receipts": [
+          "controller-283-installed-ui-audit.json",
+          "controller-installed-133-http-files.json",
+          "controller-installed-133-cold-start-d-workspace.json",
+          "controller-reply-ui-20261016.json"
+        ],
+        "deferred": "混合DPI并到3.1/6.3；全部自定义身份组合移加强。C安装134与正式D135差异明确保留。"
+      }
+    },
+    {
+      "id": "4.2",
+      "item": "轨迹/统计/FTS",
+      "status": "accepted",
+      "latestEvidence": "正式135可见两条回复各自run和原提问4项、HTTP6项、新页/重载2项通过；FTS及并发/隔离补证可复用。 证据：controller-300-installed-search-audit.json、controller-reply-ui-20261016.json、controller-reply-formal135-20261016.json、controller-reply-browser-reload-20261016.json、controller-remaining-matrix-review-20261016.json。扩展限制：正式生产库没有真实后代对象，真实后代树UI/外部模型时序留后续，不称已实测。",
+      "acceptance": "每条公开回复能定位自身唯一运行及原提问；搜索可定位，未知统计不伪填。",
+      "evidence": "controller-224-audit.json、controller-224-search-audit.json、controller-225-audit.json：定位与FTS正式Edge局部实测已通过。第225轮原Devin HTTP completed/ACP terminal+drained，官方queue一次；正式统计面板截图 controller-225-edge-insights.jpg 和主控读源码核验：/insights 明确仅当前room+workspace按session分组，输入/输出token未知如实显示，不能冒充后代树汇总。原Devin独立usage筛选11过1败（疑似正式库写者锁）保留，不计该筛选全过。执行树正式UI、真实重连迟到、跨工程和生产并发写入仍待验，整项不计通过。；controller-283-installed-ui-audit.json：主控用已安装窗口独立看到原Devin绑定、D盘工程、第283轮公开回复，展开运行轨迹显示工具名/状态/耗时；历史身份、重启、混合DPI或完整执行树等剩余矩阵仍待证。 controller-289-dom-audit.json：主控在正式8765原聊天室亲见第289轮公开回复，展开运行轨迹显示已完成、10条带真实调用ID的工具行，非终态行0；历史思考独立存档入口可见。仅该轮DOM验收，其他入口和Goal阶段仍待证。 controller-299-installed-ui-audit.json：已安装桌面程序启动可见，原Devin工作区与第299轮公开回复可见，思考与运行记录面板显示工具名、状态及耗时；当前房间健康异常未核，混合DPI/重启矩阵仍待验。 controller-299-installed-ui-audit.json 增补：安装版前端关窗重开后原工作区、SWE-2对象和第299轮公开回复保留；运行记录面板可再次打开。后端未重启，不等同跨系统重启验收。 controller-300-installed-search-audit.json：主控通过已安装前端搜索第300与289轮均返回2条，点击第289轮回复后主聊天视图直接定位到历史公开回复；跨工程、真实run ID定位、后代汇总和并发/迟到矩阵仍待验。 controller-301-audit.json：原Devin第301轮HTTP completed/ACP terminal+drained、queue一次；主控实时API与app.js复核，系统健康红灯实际是0/3 Agent凭据元数据就绪，任务异常红灯由未请求/未运行但检测模型资源缺失的合成vision任务failed触发，并非第300轮失败。仍需前端分类修复、构建与正式UI复验。 controller-302-audit.json：原Devin第302轮HTTP completed、ACP terminal/drained1、官方queue一次，主控复测Node定点6过0败、cargo build exit0；从未请求的视觉资源缺口已在候选源码改为pending，健康文案改为Agent就绪。但已请求且资源缺失仍显示running，index.html初始aria/title仍为系统健康，审核仅部分通过。正式8765仍旧版，整项不关闭。 controller-303-audit.json：原Devin第303轮HTTP completed、ACP terminal/drained1、官方queue一次，主控复测Node 7过0败、离线build exit0；候选源码已修正已请求缺资源=failed、未请求预留=pending及初始aria/title。但正式8765仍旧内嵌前端，未做部署后UI验收，整项继续进行。 controller-317-ui-observation.json：主控用已安装Tauri控制台实看当前workspace/原Devin聊天室，打开运行轨迹并刷新，30轮可见；展开317真实run-chat-418deed0…，可见独立tool call ID，点击“定位本轮提问”后页面滚到D-BROWSER-UNKNOWN-INPUT-317消息。仅同聊天室单轮直接定位通过，后代汇总、跨工程、重连迟到与并发写入未证，4.2仍进行中。 controller-339-ui-audit.json：安装版 Tauri 实见原 island-kayak 公开回复，运行记录右栏显示30轮及已完成/失败/orphaned和真实工具ID去重；当前8765为临时当前源码调试版，健康告警和完整UI/并发/跨项目矩阵仍待验，不计整项通过。 controller-339-ui-reload.json：Tauri旧内存页面经Ctrl+R后实际加载当前8765新版Agent就绪文案，原D盘工作区/会话/消息保留；凭据未就绪与其余UI矩阵继续开放。 controller-339-audit.json：原Devin第339轮HTTP completed/ACP terminal-drained，早到报告仅记running；固定受监督release构建后续completed/exit0，当前源码发布exe哈希83f87e5b…；主控备份原库并受控切换8765，首页/app.js200、原island-kayak绑定及安装版公开回复/运行轨迹可见。该项剩余矩阵仍开放。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "真实 run 直接定位、后代汇总的正式 UI；重连迟到、跨工程与并发写入矩阵。",
+        "latestEvidence": "controller-remaining-matrix-review-20261016.json：4.2隔离HTTP九项（含64并发读取与24次提交、后代环路/共享run去重、跨工程与房间隔离、迟到usage未知补全、断线重连正文/工具终态重读）通过；前端九项覆盖跨工程同ID、会话ABA与较早请求迟到、刷新去重。controller-reply-browser-reload-20261016.json：正式8765完整135包新浏览页/重载后两条既有回复各唯一run，历史CU失败及未知用量如实显示，2/2；此前Tauri逐回复/原提问4/4、正式HTTP6/6保留。首次夹具失败单独保留。生产execution_index=0，真实后代UI与真实模型并发/断线迟到全链仍缺；MSI管理员权限阻塞，C安装仍134，不计整项关闭。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "每条公开回复能定位自身唯一运行及原提问；搜索可定位，未知统计不伪填。",
+        "conclusion": "正式135可见两条回复各自run和原提问4项、HTTP6项、新页/重载2项通过；FTS及并发/隔离补证可复用。",
+        "next": "已关逐回复定位，不重跑；MSI覆盖归6.2。",
+        "receipts": [
+          "controller-300-installed-search-audit.json",
+          "controller-reply-ui-20261016.json",
+          "controller-reply-formal135-20261016.json",
+          "controller-reply-browser-reload-20261016.json",
+          "controller-remaining-matrix-review-20261016.json"
+        ],
+        "deferred": "正式生产库没有真实后代对象，真实后代树UI/外部模型时序留后续，不称已实测。"
+      }
+    },
+    {
+      "id": "4.3",
+      "item": "文件/附件",
+      "status": "pending_evidence",
+      "acceptance": "长文件/附件可完整读取；清理不会删除仍被会话或任务引用的内容。",
+      "evidence": "controller-252/253-audit.json：原island-kayak第253轮HTTP completed、attempt terminal/drained1；attachment筛选18/18、主控独立复跑18/18。工具原文spill与读回已验，但main.rs附件GC仍dry-run/deleted=0；Goal/导出/待发送及独立ClawBot outbox、tool-results文本引用未纳入完整引用图，不能安全开启删除。超长GUI操作、模型编辑和有效引用保留全矩阵仍待证；先留证搁置，转其他项。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "超长单行 GUI 分页、模型编辑、spill/GC 与有效引用保留的完整演练。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T07:10:26.476992-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "长文件/附件可完整读取；清理不会删除仍被会话或任务引用的内容。",
+        "conclusion": "spill读回和18项引用检查已过，但GC只有dry-run/deleted=0，Goal/导出/待发送/文本引用保护不完整。",
+        "next": "与0.2共用长内容读回证据；补最小有效引用保护后在隔离目录只删一份无引用对象、保留一份有引用对象。",
+        "receipts": [
+          "controller-252-audit.json",
+          "controller-253-audit.json"
+        ],
+        "deferred": "微信不改不测；任何尚未识别的引用类别采取保守保留，不据此开启全目录GC。"
+      },
+      "latestEvidence": "spill读回和18项引用检查已过，但GC只有dry-run/deleted=0，Goal/导出/待发送/文本引用保护不完整。 证据：controller-252-audit.json、controller-253-audit.json。扩展限制：微信不改不测；任何尚未识别的引用类别采取保守保留，不据此开启全目录GC。"
+    },
+    {
+      "id": "4.4",
+      "item": "SKILL/记忆",
+      "status": "pending_evidence",
+      "acceptance": "记忆/SKILL能实际召回供模型使用；清理不破坏仍在使用的资料。",
+      "evidence": "controller-251/252/253-audit.json：隔离memory 36/36、images 9/9及主控复跑通过；第253轮attachment筛选18/18且主控复跑同样通过，但大预览/附件GC因Goal、导出、待发送、ClawBot outbox与工具结果文本引用图不完整，只能dry-run、deleted=0。生产模型记忆召回、衰减排序与真实浏览器记忆UI仍待证；实际GC不可验，先留证搁置转其他项。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "污染与多模态、压缩图像、召回/GC；模型实际读取完整分页内容。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T07:10:26.680503-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "记忆/SKILL能实际召回供模型使用；清理不破坏仍在使用的资料。",
+        "conclusion": "memory36/images9局部测试通过，实际模型召回/使用闭环未证；共享附件GC缺口归4.3修一次。",
+        "next": "选一个无敏感信息的记忆样例，保存后由产品会话召回并核引用/实际读取；必要时只用Devin SWE-2作测试对象。",
+        "receipts": [
+          "controller-251-audit.json",
+          "controller-253-audit.json"
+        ],
+        "deferred": "多模态压缩/全排序矩阵后续加强；不重复4.3引用保护测试，不把外部材料当系统指令。"
+      },
+      "latestEvidence": "memory36/images9局部测试通过，实际模型召回/使用闭环未证；共享附件GC缺口归4.3修一次。 证据：controller-251-audit.json、controller-253-audit.json。扩展限制：多模态压缩/全排序矩阵后续加强；不重复4.3引用保护测试，不把外部材料当系统指令。"
+    },
+    {
+      "id": "4.5",
+      "item": "Goal/调度",
+      "status": "pending_evidence",
+      "latestEvidence": "安装134实际工具执行的失败→修复→复验闭环已过；durable调度任务的恢复仍缺一条运行证据。 证据：controller-goal-release-134-installed.json、controller-313-audit.json、controller-299-audit.json。扩展限制：模型决策使用受控协议夹具，真实HTTP/工具/确定性门控有效；外部模型自主规划与并行DAG复杂矩阵后续加强。",
+      "acceptance": "Goal失败回退后能修复并复验成功；已支持调度任务重启后不会丢失或重发。",
+      "evidence": "controller-237-audit.json 与 controller-238-audit.json：原 island-kayak 第238轮 HTTP completed、attempt terminal/drained、执行者官方队列一次、监督静默。测试专用会话库覆盖修复了上一轮重规划用例误触正式库的隔离失败；受监督全量控制台测试1494过0败6忽略，原失败用例通过；主控显式注入正式库路径独立复测1过0败；隔离 release 离线构建退出0。正式8765的Goal在途取消、异常重启恢复及完整失败回退矩阵仍待证明，整项继续进行中。 controller-290-audit.json：原Devin第290轮HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核报告SHA、当前预编译测试程序SHA、15组日志中37个互不重复测试均过0败0忽略。隔离库覆盖implementer受阻回planner、verifier拒绝回implementer、累计超限暂停与不伪报完成。公开回复误写36/36，权威日志为37/37。正式8765真实LLM端到端Goal、UI和并行DAG仍待证，整项不关闭。 controller-291-isolated-salvage.json：原Devin第291轮HTTP连接重置、无终态报告，不通过；隔离库实际HTTP create_goal/set_plan=200，错误mock解码触发两次模型执行失败、重试1/1后phase blocked/goal paused，暂停后派发被400拒绝；后续驱动手动重置与异常，无法证明成功LLM/回规划/验证回退。正式服务与隔离服务均异常退出，根因未确认。 controller-292-audit.json：第292轮原绑定探针HTTP failed、ACP not_sent/drained1，错误为Devin上下文消息已被删除；旧island-kayak发送锁已释放但远端未收到任务，不计验收。第291轮残留partial消息在旧备份中存在、当前库中消失；当前上下文预览被选历史均在库，属于疑似一次性持久化不一致，因果仍待新轮验证。 controller-306-audit.json：原Devin第306轮HTTP completed、ACP terminal/drained1、官方queue一次；独立29261/29299、独立SQLite quick_check ok，主控只读核真实mock模型调用后goal-phase-dispatched→implementer blocked-needs-replan→goal-phase-retry，p1 pending/retry_count=1/route_hint=planner。旧291 mock缺必需model字段导致解码失败。后续planner派发因角色会话heartbeat缺失被拒，verifier回退、正式UI及重启恢复仍未验，4.5整项继续进行。 controller-307-audit.json：原Devin第307轮HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核角色心跳/重assign均走HTTP、隔离SQLite quick_check ok、mock真实planner调用、goal-phase-dispatched→goal-phase-replanned，p1 pending/retry_count=1/route_hint=implementer。单纯心跳不能恢复被清空的assigned_session_id，需HTTP重绑。verifier拒绝链、二次派发及正式UI未验，4.5仍进行中。 controller-308-audit.json：第308轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核隔离mock真实implementer调用、Command门控实际exit 3、goal-phase-command-gate-failed及retry，p1 running/retry_count=1/route_hint=implementer，二次run-next 409在途防护。仅确定性门控拒绝回退通过，独立verifier模型审查、后续修复、正式Goal UI及异常恢复未验，整项继续。 controller-313-audit.json：第313轮原Devin HTTP completed、ACP terminal/drained1、官方queue一次；主控独立核隔离Goal在真实模型HTTP在途时取消200，goal/phase cancelled、runtime interrupted，事件goal-phase-dispatched→goal-cancelled→run-interrupted-needs-review；迟到mock写回ConnectionAbortedError 10053，再run-next无派发。仅单阶段在途取消通过，工具子进程、多阶段、完成竞争、正式恢复未验，整项继续。 controller-321-audit.json：原Devin第321轮HTTP completed/ACP terminal-drained1/官方queue一次；主控独立核隔离Goal模型先goal-verifier再goal-implementer，第一次FilesExist拒绝回implementer，第二次仍缺文件、retry_count=2但phase仍running。后续process_restart产生run-interrupted-needs-review并暂停；报告误称max_retries=1且因触顶暂停，权威DB为2，不能采信该归因。verifier模型fail→修复→复验pass链未证，4.5不关闭。 controller-336-audit.json：第336轮误触旧321隔离驱动后宿主连接重置，原run orphaned，末工具实际效果未知、无执行者报告；主控精确归档unknown并保留原island-kayak绑定。verifier模型fail→implementer修复→verifier pass未证，不计通过。 controller-337-audit.json：旧发布版未送达模型，上下文瞬时消息校验失败；已切当前源码调试版。 controller-338-audit.json：当前版原Devin正常完成/terminal-drained、官方queue一次；隔离真实Goal HTTP/mock verifier往返后门控fail并回implementer(retry_count=1)，但30秒工具树回收使完整修复→复验pass未发生；模型文本verdict并非当前产品判定入口，FilesExist/Command是确定性门。整项不计通过，留阻塞转其他项。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "真实在途取消/重规划、durable job、running 未知恢复及失败回退完整矩阵。",
+        "latestEvidence": "Goal防环修复已进入0.2.134。controller-goal-release-134-staged.json及controller-goal-release-134-installed.json分别对包内release/安装目录EXE完成FilesExist拒绝→implementer真实write_file→原verifier pass→Goal completed，retry仍1、exit0；未SQL改状态、driver未代写产物。模型决定仍是受控夹具；生产模型、并行DAG、durable job、unknown恢复与正式UI完整矩阵仍开放。",
+        "updatedAtUtc": "2026-10-15T11:25:21.574596+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "Goal失败回退后能修复并复验成功；已支持调度任务重启后不会丢失或重发。",
+        "conclusion": "安装134实际工具执行的失败→修复→复验闭环已过；durable调度任务的恢复仍缺一条运行证据。",
+        "next": "复用Goal修复证据，只补隔离一次性job落盘→重启→执行一次→终态；不创建主会话监督定时任务。",
+        "receipts": [
+          "controller-goal-release-134-installed.json",
+          "controller-313-audit.json",
+          "controller-299-audit.json"
+        ],
+        "deferred": "模型决策使用受控协议夹具，真实HTTP/工具/确定性门控有效；外部模型自主规划与并行DAG复杂矩阵后续加强。"
+      }
+    },
+    {
+      "id": "5.1",
+      "item": "凭据",
+      "status": "accepted",
+      "acceptance": "本机凭据加密保存可读回，坏密文被拒绝，诊断不泄漏秘密。",
+      "evidence": "controller-234-audit.json：原 island-kayak 第234轮 HTTP completed、attempt terminal/drained、执行者官方queue一次、监督静默。主控独立用假凭据在统一临时根复测 credential 8过0败、secret 5过0败，验证本机DPAPI往返、损坏密文拒绝、旧明文配置迁移后加载值不变及诊断脱敏；日志与SHA保留，未读取真实密钥值。跨设备DPAPI密文不可移植，真实重新输入/恢复流程、迁移中途故障回滚、全部来源迁移和一个非DPAPI引用类别仍待证，整项不计通过。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "中途失败、换设备恢复及全来源迁移；不得借用其它平台凭据补环境。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T02:21:13.674195-07:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "本机凭据加密保存可读回，坏密文被拒绝，诊断不泄漏秘密。",
+        "conclusion": "本机DPAPI、旧明文迁移、损坏拒绝和诊断脱敏13项通过，均用假凭据且未读取真实密钥。",
+        "next": "已关本机关键凭据存储，不重跑。",
+        "receipts": [
+          "controller-234-audit.json"
+        ],
+        "deferred": "换设备需重新认证，不能搬用DPAPI密文；跨设备恢复与全来源迁移组合留专项。"
+      },
+      "latestEvidence": "本机DPAPI、旧明文迁移、损坏拒绝和诊断脱敏13项通过，均用假凭据且未读取真实密钥。 证据：controller-234-audit.json。扩展限制：换设备需重新认证，不能搬用DPAPI密文；跨设备恢复与全来源迁移组合留专项。"
+    },
+    {
+      "id": "5.2",
+      "item": "隔离/监督",
+      "status": "pending_evidence",
+      "acceptance": "执行进程受生命周期约束，并有实际可证的OS权限隔离边界。",
+      "evidence": "controller-235-audit.json：原 island-kayak 第235轮 HTTP completed、attempt terminal/drained、执行者官方queue一次、监督静默。主控独立复测监听socket不可继承、Job关闭杀直接子进程及4个后代未排空时拒绝假成功案例，共6过0败。原执行者后代树组1过1败（启动标记3秒前置条件失败），Windows进程守护全量因超时取消，均不计通过。现有Job对象证明生命周期监督，尚无受限令牌/低完整性/AppContainer隔离的实测；ConPTY后代可逃逸范围、全句柄继承与完整逃逸矩阵待证，独立进程不等于OS沙箱，整项不计通过。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "OS 沙箱边界、逃逸与句柄继承矩阵；独立进程不等于隔离完成。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T02:25:42.721906-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "执行进程受生命周期约束，并有实际可证的OS权限隔离边界。",
+        "conclusion": "Job杀子树和socket不继承已有证据；受限令牌/低完整性/AppContainer隔离没有实证，独立进程不等于沙箱。",
+        "next": "先定位实际启用的隔离机制；若不存在则记实现缺口并修，若存在只做一次受限资源访问拒绝和正常工作区正例。",
+        "receipts": [
+          "controller-235-audit.json"
+        ],
+        "deferred": "取消全逃逸手法穷举，但不能删掉OS边界本身的验收标准。"
+      },
+      "latestEvidence": "Job杀子树和socket不继承已有证据；受限令牌/低完整性/AppContainer隔离没有实证，独立进程不等于沙箱。 证据：controller-235-audit.json。扩展限制：取消全逃逸手法穷举，但不能删掉OS边界本身的验收标准。"
+    },
+    {
+      "id": "5.3",
+      "item": "MCP",
+      "status": "accepted",
+      "acceptance": "既定stdio MCP能连接、调用和关闭，命名冲突/权限有保护。",
+      "evidence": "第173轮std​io生命周期与权限套件18过0败；第198轮原Devin官方Everything Server真实stdio互通两项均过、作业exit0，见controller-173-audit.json及controller-198-audit.json。范围只含stdio；transport/OAuth仍延期。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "accepted",
+        "acceptance": "按既定 stdio 范围验证生命周期与命名碰撞；已延期 transport/OAuth 不冒充已交付。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-13T18:54:31.250876-07:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "既定stdio MCP能连接、调用和关闭，命名冲突/权限有保护。",
+        "conclusion": "官方Everything Server真实stdio互通及既有生命周期/权限证据已通过，保持原已验收结论。",
+        "next": "已关，不重跑。",
+        "receipts": [
+          "controller-173-audit.json",
+          "controller-198-audit.json"
+        ],
+        "deferred": "只含stdio；延期transport/OAuth不列入本次计划，不冒充已交付。"
+      },
+      "latestEvidence": "官方Everything Server真实stdio互通及既有生命周期/权限证据已通过，保持原已验收结论。 证据：controller-173-audit.json、controller-198-audit.json。扩展限制：只含stdio；延期transport/OAuth不列入本次计划，不冒充已交付。"
+    },
+    {
+      "id": "5.4",
+      "item": "LSP/PTY",
+      "status": "pending_evidence",
+      "acceptance": "代码导航能返回实际位置，终端能启动/输出/结束。",
+      "evidence": "controller-203-audit.json：原 island-kayak 第203轮 HTTP failed（整体执行时限到）、ACP terminal/process_drained=1；无执行者报告、无产品修改，异常由监督通道反馈。隔离rust-analyzer 150秒存活、可出诊断，scratch-lsp-203 的临时文件导航为空（unlinked-file），不能解释或覆盖第202轮正式服务导航502。5.4正式导航/权限剩余矩阵未通过，留证暂搁；转4.2聊天室进度保存故障。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "跨工作区/权限剩余矩阵；保留历史正式退出、重启、Unicode 和 ABA 证据。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-13T19:48:37.157229-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "代码导航能返回实际位置，终端能启动/输出/结束。",
+        "conclusion": "PTY已有退出/Unicode证据；正式LSP导航502没有复验关闭，隔离unlinked-file空结果不能证明成功。",
+        "next": "只用当前仓库一个真实Rust符号走正式导航取文件行号；失败定位LSP项目初始化/路由，已有终端测试不重跑。",
+        "receipts": [
+          "controller-202-audit.json",
+          "controller-203-audit.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      },
+      "latestEvidence": "PTY已有退出/Unicode证据；正式LSP导航502没有复验关闭，隔离unlinked-file空结果不能证明成功。 证据：controller-202-audit.json、controller-203-audit.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+    },
+    {
+      "id": "5.5",
+      "item": "连接器",
+      "status": "pending_evidence",
+      "acceptance": "适用语音连接器能接收真实音频，停止后不再产生旧轮输出。",
+      "evidence": "D:\\coolzhuagent\\docs\\analysis\\2026-10-10-integration-32wbs-current-gates.md controller-324-audit.json：324轮在ACP旧宿主工具发送锁处失败，无新attempt、无语音执行或验收信用；主控按323精确worker排空与证据哈希归档旧unknown工具，原island-kayak绑定保留。 controller-325-audit.json：原会话HTTP completed/ACP terminal-drained/end_turn/官方queue一次；主控复跑语音捕获契约1/1。隔离console的realtime start/stop/status HTTP200且新旧audio session ID不同；无真实音频/在途取消/双room迟到响应，5.5仅局部协议证据。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "各适用连接器共享取消身份；微信按用户要求不改不测。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T23:28:52.691251-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "适用语音连接器能接收真实音频，停止后不再产生旧轮输出。",
+        "conclusion": "只有start/stop/status协议成功和session ID隔离，尚无真实音频处理证据；这属于未补关键测试，不冒称已证环境不可用。",
+        "next": "先核可用语音后端，选一段本地无敏感测试音频做开始→处理→停止；若缺模型/设备再记录确切条件并转其他项。",
+        "receipts": [
+          "controller-325-audit.json"
+        ],
+        "deferred": "微信按既有要求不改不测；不做所有连接器组合穷举。"
+      },
+      "latestEvidence": "只有start/stop/status协议成功和session ID隔离，尚无真实音频处理证据；这属于未补关键测试，不冒称已证环境不可用。 证据：controller-325-audit.json。扩展限制：微信按既有要求不改不测；不做所有连接器组合穷举。"
+    },
+    {
+      "id": "6.1",
+      "item": "运维/诊断",
+      "status": "pending_evidence",
+      "acceptance": "日志有总量上限、不写穿目录、可脱敏导出，旧进程退出不会永久耗尽额度。",
+      "evidence": "controller-277-audit.json：第277轮HTTP failed/attempt unknown/drained1且无执行者终报；已对遗留构建进程收尾后独立核验diagnostics build exit0、58 passed/0 failed、web-console build exit0，恢复可编译状态。全局配额尚未接入生产写者且安全边界残余限制未验收，6.1留阻塞并转其他项目。 controller-323-audit.json：323轮HTTP failed（整体时限到），ACP attempt unknown/cancelled/drained1；异常已按attempt去重通知主控，监督已暂停；无执行者报告，源码基线未变，编译日志0字节。共享全局配额生产接入及安全边界仍未验收。 controller-323-audit.json更正：323轮rolling_file.rs/quota.rs于执行中被修改，原基线只采lib.rs/main.rs；未知工具归档不代表源码无变更或验收通过。主控独立构建测试待结果。 controller-323-audit.json复核：原Devin在异常轮次实际修改rolling_file.rs与quota.rs；主控独立离线build exit0、diagnostics测试60过0败0忽略，日志与收据见controller-323-diagnostics-test-receipt.json。源码共享表SHARED_QUOTAS仅为进程内OnceLock，同目录不同进程各登记自己的文件族，现有同进程测试不能证明跨进程总额；故障及完整脱敏导出亦未完成，6.1仍blocked。 controller-326-audit.json：原Devin HTTP completed/ACP terminal-drained/end_turn、官方queue一次；主控复测build exit0、diagnostics 60过0败1忽略，并以两个独立进程证实600+600/1000预算时第二写者被拒绝。但隔离硬链接反例证明.diag-quota.members可被替换成根外文件硬链接，登记实际写入根外哨兵；清单安全边界及跨进程淘汰/完整导出未过，6.1仍blocked。 controller-327-audit.json：原Devin HTTP completed/ACP terminal-drained/end_turn及官方queue一次；主控独立build0、diagnostics 62过0败1忽略，双进程预算拒写仍生效；326硬链接根外写穿反例现被拒、根外哨兵不变。跨进程旧属主成员回收、无界append-only清单、符号链接实测及6.1完整故障/脱敏导出仍缺，整项继续blocked。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "子进程有界采集、全局配额、故障及完整脱敏导出；新输出边界修补尚未正式验收。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-15T06:53:50.755954+00:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "日志有总量上限、不写穿目录、可脱敏导出，旧进程退出不会永久耗尽额度。",
+        "conclusion": "跨进程总额和硬链接拒绝已过；配额成员清单仍可无限追加，旧属主退出后可能长期占额，另缺完整脱敏导出。",
+        "next": "只修成员清单上限和安全回收，共用一条双进程退出/接管用例，再核一个含假密钥的导出脱敏结果。",
+        "receipts": [
+          "controller-327-audit.json"
+        ],
+        "deferred": "保留已通过预算/硬链接例，不重复全量诊断测试；符号链接环境限制单列。"
+      },
+      "latestEvidence": "跨进程总额和硬链接拒绝已过；配额成员清单仍可无限追加，旧属主退出后可能长期占额，另缺完整脱敏导出。 证据：controller-327-audit.json。扩展限制：保留已通过预算/硬链接例，不重复全量诊断测试；符号链接环境限制单列。"
+    },
+    {
+      "id": "6.2",
+      "item": "迁移/升级",
+      "status": "blocked",
+      "latestEvidence": "启动120秒期限、正式135新进程12.837秒和迁移恢复已过；机器MSI覆盖被1730/1603管理员权限拦下，C仍134。 证据：controller-package135-live-20261016.json、controller-remaining-matrix-review-20261016.json、controller-switch135-20261016.json。扩展限制：物理断电/盘满、所有慢机器长尾退出当前计划；SQLite FULL和强杀恢复已有证据。",
+      "acceptance": "默认启动不超时，升级保留原数据并实际替换机器安装版本。",
+      "evidence": "controller-233-audit.json：原 island-kayak 第233轮 HTTP completed、attempt terminal/drained、执行者官方queue一次、监督静默；原执行者没有启动第二正式进程。主控使用同一已编译测试程序在统一临时根独立复测迁移11过0败、回滚5过0败，包含迁移中途失败不宣称版本升级、重开不丢历史与回滚一致性；日志和SHA保留。正式候选启动失败记录及回退、旧版库升级、断电/磁盘满恢复、安装版版本预期仍缺，整项不计通过。 controller-286-audit.json：正式后台中断后通过已安装launcher恢复HTTP 200，工作区D:/coolzhuagent、D:/tmp/.coolzhu原库及原Devin SWE-2 max配置仍在；但孤儿run/ACP锁未自动结账，升级/崩溃恢复整项仍缺。 第286恢复：正式C盘Program Files安装目录复制候选exe被拒，原安装文件哈希未变；当前8765由D盘候选exe提供，重载后第288轮原绑定通过。安装覆盖/版本持久化仍待验。 controller-293-audit.json：原 island-kayak 第293轮恢复探针HTTP completed、正式run completed、ACP terminal/drained1/end_turn、工具完成、官方queue一次且报告SHA一致；旧291 unknown和292 not_sent历史不变，原绑定保持且锁释放。仅证实原绑定继续执行，不覆盖旧helper/正式升级及第291轮Goal失败。 controller-295-audit.json：第295轮因总体时限失败、无执行者报告，ACP unknown/drained1，末read_file timed_out_outcome_unknown；主控核停残留临时编译树、离线备份并精确归档未知结果，正式8765同一候选程序恢复首页200与原绑定。源码只留下未验证回归测试，未计修复/构建通过。 controller-298-release-audit.json：当前正式程序占用统一target的release EXE，离线发布构建在最终覆盖时Access denied exit101；受控结束旧8765进程的操作被自动审批审查拒绝，未执行切换。旧服务首页200、原island-kayak绑定保持，正式发布验证仍未完成。 controller-339-audit.json：原Devin第339轮HTTP completed/ACP terminal-drained，早到报告仅记running；固定受监督release构建后续completed/exit0，当前源码发布exe哈希83f87e5b…；主控备份原库并受控切换8765，首页/app.js200、原island-kayak绑定及安装版公开回复/运行轨迹可见。该项剩余矩阵仍开放。 controller-340-audit.json：原Devin第340轮正式release切换后单次受监督只读烟测exit0，本地4入口HTTP均200且exe哈希与339切换审计一致；主控独立核HTTP completed、ACP terminal/drained、真实工具调用完成、官方queue一次、原island-kayak绑定无锁。历史/故障矩阵仍开放。 controller-346-static-repair.json：主控确认正式静态根漏素材导致图标/头像404，从安装包补齐472个同hash素材后原8765 PID未变且资源200；仅重开可见Tauri壳，图标/头像/背景恢复，原绑定及公开回复保留。当前仍依赖统一验收目录，正式持久化交付待做。 controller-347-audit.json：原Devin第347轮HTTP completed、ACP terminal/drained、官方queue一次、原绑定保持；主控逐文件核494个候选资源与源码SHA一致、正式HTTP四项200且字节一致。候选仍在tmp，暂存包49个资产过期；持久启动/正式包/重启复验未完成。 controller-348-audit.json：原Devin第348轮打包触发整轮时限，HTTP failed、ACP terminal/cancelled/drained1，受监督job cancelled（exit0非成功），仅三个bin部分产物；异常通知按attempt仅一次，原绑定保留。增量重跑后再验包。 controller-349-audit.json：原Devin第349轮HTTP completed、ACP terminal/drained、官方queue一次、原绑定保持；受监督package-candidate-172单job 72bd53855b654cc1a761374c3527b474提交后模型正常结束，主控接手等待构建和包内校验。 controller-349-build-audit.json：第349轮单job独立完成但state=failed/exit1；失败隔离报告release_eligible=false，根因tauri-shell Cargo.lock与当前依赖不符，--locked离线构建拒绝更新。完整包未验，转原Devin定点修复。 controller-350-audit.json：原Devin仅修tauri-shell子项目Cargo.lock四行，补coolzhu-diagnostics的sha2/winapi-util；主控独立cargo metadata --locked --offline exit0。此轮HTTP failed、ACP terminal/drained，执行者报告已queue但旧策略另发异常告警；主控已修host通知去重。独立release build尚未终态，不计包通过。 controller-350-build-audit.json：独立Tauri release离线构建通过，计划任务Ready/LastTaskResult0，exe哈希已留证；完整package仍需重试和逐项验收。 controller-351-audit.json：原Devin一次提交package-candidate-172独立job并正常回报，原绑定保留、报告仅入队一次；完整包尚未验收。 controller-351-build-audit.json：完整包失败(exit1)，Tauri构建通过但WebView2Loader允许根仍指默认target、实际构建在统一临时target；失败报告release_eligible=false，不可安装。 controller-352-audit.json：原Devin补丁五个定点用例可复现，但主控追加任意target负例显示允许根校验过宽（SOURCE-MISSING而非OUTSIDE-ALLOWED-ROOT），暂拒绝打包，需收紧路径身份。 controller-353-audit.json：路径允许根收紧且任意target负例独立通过，原绑定和唯一queue有效；WebView2完整套件36过3败，整包重试/正式安装待验。按用户指示先插入开机动画。 controller-357-audit.json：原Devin修静态页夹具/空资源失败门；主控核39过0败4条件跳过、计划任务退出0、原绑定与官方queue一次，完整生产包仍待验。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "in_progress",
+        "acceptance": "候选启动失败记录/升级版本期望正式复验；断电、磁盘满及旧版迁移矩阵。",
+        "latestEvidence": "controller-remaining-matrix-review-20261016.json：完整135发布服务隔离迁移八项全过：v12旧Goal复合同名阶段→v29中文记录与备份逐行保留、重启幂等、134兼容二进制回退再启135、最终metadata写入失败/备份目录被文件占用的拒绝及恢复、超前版本拒绝。新增Rust迁移故障四项全过（含SQLITE_FULL配额回滚与事务中强杀后恢复），cargo test及实际cargo build exit0。此前默认期限120秒、启动器75项及完整包正式新进程12.837秒、11历史表/绑定一致仍有效。合成历史DDL不是生产旧库，进程强杀不是断电，SQLITE_FULL不是物理盘满；真实OS冷启动长尾、备份盘满、物理断电、MSI升级/安装降级仍缺；整项保持进行中。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "blocked",
+        "criterion": "默认启动不超时，升级保留原数据并实际替换机器安装版本。",
+        "conclusion": "启动120秒期限、正式135新进程12.837秒和迁移恢复已过；机器MSI覆盖被1730/1603管理员权限拦下，C仍134。",
+        "next": "操作系统安装权限条件具备时做一次最终包覆盖→确认注册版本/实际路径→原历史保留；不反复同权限重试，也不要求用户现在审批。",
+        "receipts": [
+          "controller-package135-live-20261016.json",
+          "controller-remaining-matrix-review-20261016.json",
+          "controller-switch135-20261016.json"
+        ],
+        "deferred": "物理断电/盘满、所有慢机器长尾退出当前计划；SQLite FULL和强杀恢复已有证据。"
+      }
+    },
+    {
+      "id": "6.3",
+      "item": "Windows矩阵",
+      "status": "blocked",
+      "acceptance": "Windows当前声明支持的多屏/DPI窗口与输入行为一致。",
+      "evidence": "controller-236-audit.json 只读枚举本机仅 DISPLAY1 一屏、1707x960、无负坐标，当前无真实双屏/混合DPI硬件可验；controller-283-installed-ui-audit.json 安装版单屏可见、原绑定与运行轨迹正常，但不能代替混合DPI、多屏位置和负坐标。按用户规则留证搁置，其他项继续。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "真实多屏/DPI、启动资源缺失与减弱动作路径；不使用 headless 替代。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T14:09:19.190146-07:00"
+      },
+      "keyAcceptance": {
+        "status": "blocked",
+        "criterion": "Windows当前声明支持的多屏/DPI窗口与输入行为一致。",
+        "conclusion": "与3.1共用同一硬件缺口；已有单屏144DPI和减少动态证据，不重复测试。",
+        "next": "真实多屏环境具备后与3.1合并一轮；其余单屏界面/启动结论分别复用4.1和EX-03。",
+        "receipts": [
+          "controller-236-audit.json",
+          "controller-installed-133-native.json"
+        ],
+        "deferred": "启动损坏资源注入属于加强项，不再额外卡住已正常的开机动画。"
+      },
+      "latestEvidence": "与3.1共用同一硬件缺口；已有单屏144DPI和减少动态证据，不重复测试。 证据：controller-236-audit.json、controller-installed-133-native.json。扩展限制：启动损坏资源注入属于加强项，不再额外卡住已正常的开机动画。"
+    },
+    {
+      "id": "6.4",
+      "item": "文档/交付",
+      "status": "pending_evidence",
+      "acceptance": "交付包组件与许可证/NOTICE一致，版本和交付说明可追溯。",
+      "evidence": "controller-281-wbs-6-4-audit.json：现有离线Cargo证据556组件中82缺本地许可证原文，compiled_component_mapping_verified=false、license_obligations_verified=false；0.2.132历史MSI未签名，正式NOTICE/发布索引及实际分发映射仍缺。整项留证阻塞，继续其他验收。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "完整组件许可证/NOTICE、签名、自动发布索引关联及 feature 映射；文件级 SBOM 明确不完整。候选已补原文导出、9 个 Cargo 入口回执配置、报告/消费端字节绑定及脱离原始临时引用的归档验证；解析/构建观察不等于实际分发，未定位原文与全量正式构建/安装证据仍开放。",
+        "latestEvidence": null,
+        "updatedAtUtc": "2026-10-14T13:18:35.69048-07:00"
+      },
+      "keyAcceptance": {
+        "status": "pending_evidence",
+        "criterion": "交付包组件与许可证/NOTICE一致，版本和交付说明可追溯。",
+        "conclusion": "最近许可证审计556组件中82缺本地原文，实际组件映射未确认；需要重核实际缺项，不是继续跑业务功能测试。",
+        "next": "按最终载荷去重核许可证缺项并补NOTICE/映射，签名与远端发布作为交付条件单列；不对未核组件声明已合规。",
+        "receipts": [
+          "controller-281-wbs-6-4-audit.json"
+        ],
+        "deferred": "缺签名证书不阻断本地功能验收，但保留最终发布限制；不未经授权对外发布。"
+      },
+      "latestEvidence": "最近许可证审计556组件中82缺本地原文，实际组件映射未确认；需要重核实际缺项，不是继续跑业务功能测试。 证据：controller-281-wbs-6-4-audit.json。扩展限制：缺签名证书不阻断本地功能验收，但保留最终发布限制；不未经授权对外发布。"
+    },
+    {
+      "id": "EX-01",
+      "item": "控制台完整测试",
+      "status": "accepted",
+      "latestEvidence": "已核源码完整测试1492过、0败、6忽略；本轮后续hook八项及实际build通过，保持原关项。 证据：controller-current-full-20261016.json、controller-hook-budget-review-20261016.json。扩展限制：旧全量证据只对其源码有效，不称当前hook修改已重跑完整套件；忽略不计通过。",
+      "acceptance": "适用控制台完整套件有真实完成结果，后续改动按影响范围补验。",
+      "evidence": "第283轮原源码完整发布版测试已验收（1501过0败6忽略）；第286轮主控对Devin ACP宿主断连的绑定接线作定点代码修复，当前源码变更后须重新完成全量离线发布版测试、核对退出码和日志，故暂重开EX-01，不沿用旧源码测试结论。 controller-286-pause-receipt.json：第286轮主控绑定接线代码已通过14个journal定点测试、发布版构建及隔离启动；新源码全量并行复测出现10项失败且异常拖长，受控低并发复测因编译期内存压力未进入测试，已停止并留完整日志。当前源码EX-01不能验收，用户要求重启后继续。 已恢复验收：当前源码单任务编译成功，全部离线发布版测试单线程运行；Cargo退出0，主程序1502过/0败/6忽略，总计1511过/0败/6忽略；隔离复测前次失败断言通过。完整日志及源码/测试程序SHA256见 controller-286-full-release-test-serial-receipt.json。 controller-302-audit.json：app.js及新增前端测试变更后，当前源码完整控制台测试需重跑；定点Node6过、离线build exit0不等于全量EX-01验收。 controller-305-ex01-audit.json：第304轮原Devin启动当前源码唯一发布版全量cargo test并在编译期间报告未完成；主控接续同一PID至TEST_EXIT=0，随后原Devin第305轮只读取证并官方queue一次。主控独立核完整日志SHA a1e9efd5...、七组逐项相加1517过/0败/6忽略、当前app.js/index.html/前端测试源码SHA与候选一致；此前第303轮Node定点7/7与离线build exit0。EX-01当前源码关闭，但正式8765仍旧内嵌前端，不将EX-01外推为部署UI验收。 controller-327-audit.json后重开EX-01：coolzhu-diagnostics生产写路径及quota.rs在323/326/327轮修改；该crate为web-console依赖，305轮完整发布版测试不覆盖当前最终源码，需重跑当前源码完整离线控制台测试并统计通过/失败/忽略。 controller-328-audit.json：原Devin第328轮HTTP completed/ACP terminal-drained、官方queue一次；单份受监督release全量测试job 1f048743...终态failed/exit101。已运行的主程序组1502过、3败、6忽略；失败为ACP真实宿主往返、可见性800ms节流及Goal HTTP重规划超时。Cargo未进入最终文档测试；EX-01不得验收，按真实断言定点定位后再复测。 controller-328-targeted-recheck.json：同一发布版测试二进制单独复核，ACP往返与Goal重规划各1过；可见性800ms节流1败（仍得到ab而期望a）。全量3失败事实不因定点通过而抹除，EX-01继续进行。 controller-329-audit.json：原Devin HTTP completed/ACP terminal-drained/官方queue一次；主控核对live测试计时起点修正和ACP失败体诊断两处，Goal未改；无编译/测试结果，本轮不验收。 controller-330-audit.json：原Devin一次提交、HTTP completed/ACP terminal-drained/queue一次；受监督固定脚本终态completed/exit0，主控核三日志哈希及过滤统计：ACP bridge 8过、live节流1过、Goal重规划1过，0失败。仅接受定点修复证据，328完整套件失败仍有效，EX-01未关闭。 controller-331-audit.json：原Devin第331轮HTTP完成、官方queue一次，同一受监督作业debug build exit0；完整发布版测试exit101，六组合计1516过/1败/6忽略，其中主程序1504过/1败/6忽略。唯一失败为ACP真实HTTP工具往返：执行器开始前判已取消或截止。Goal重规划在全量序列中通过，源码前后哈希一致；EX-01继续开放。 controller-332-audit.json：原Devin修正ACP测试夹具预算30→120秒，生产截止逻辑未改；HTTP completed、attempt terminal/drained、queue一次，受监督debug build exit0、发布版ACP bridge 8过0败，源码前后哈希一致。仍待全量测试复现验证，EX-01未关闭。 controller-333-audit.json：当前源码完整release离线单线程测试debug build exit0、cargo test exit101；六组合计1516过/1败/6忽略。唯一失败仍为ACP真实宿主工具在开始前已取消或截止；332夹具根预算延长未解，全量EX-01仍开放。 controller-334-audit.json：原Devin仅将ACP测试夹具会话绝对截止5→60秒，生产截止/权限不变；主控核HTTP completed、attempt terminal/drained1、官方queue一次，受监督debug build exit0及发布版ACP bridge 8过0败、源码前后哈希一致。5秒过期是路径推断，尚无实际计时证据；仍需当前源码全量测试，EX-01未关闭。 controller-335-audit.json：当前源码离线debug build exit0、release完整串行测试Cargo exit0；七组合计1517过/0败/6忽略，含前次失败ACP真实宿主往返通过；日志SHA、当前源码前后哈希、唯一作业及原会话HTTP/attempt/queue收据均核对。EX-01仅按当前源码完整测试验收，不外推正式8765部署。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "accepted",
+        "acceptance": "当前源码的 coolzhu-web-console 适用完整离线测试真实结束；遵守用户微信不改不测，明列该过滤范围及profile，统计passed/failed/ignored、子探针和退出码/日志。取消或编译成功不计测试通过。",
+        "latestEvidence": "controller-current-full-20261016.json：该收据对应的既有源码离线debug/test完整串行测试真实结束，Cargo exit0，主套件1489过、子探针3过，共1492过/0败/6忽略，微信26过滤；前端6项通过。源码全面哈希前后一致。仅关闭该源码的适用完整测试，不外推后续源码、发布版、安装版逐回复UI或35项整体验收。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "适用控制台完整套件有真实完成结果，后续改动按影响范围补验。",
+        "conclusion": "已核源码完整测试1492过、0败、6忽略；本轮后续hook八项及实际build通过，保持原关项。",
+        "next": "不再重跑已过全量；只有后续修改影响未覆盖行为时补定点测试。",
+        "receipts": [
+          "controller-current-full-20261016.json",
+          "controller-hook-budget-review-20261016.json"
+        ],
+        "deferred": "旧全量证据只对其源码有效，不称当前hook修改已重跑完整套件；忽略不计通过。"
+      }
+    },
+    {
+      "id": "EX-02",
+      "item": "C 盘旧仓库清理与空间回收",
+      "status": "blocked",
+      "latestEvidence": "按用户后续要求留待手动处理；16目录约276.7MiB已核可清，实际释放0。另9.28GB工作树含D归档缺失文件，不能直接删。 证据：controller-c-readonly-20261015.json、controller-c-reference-readonly-20261015.json、controller-gotdot-compare.json。扩展限制：全面组合矩阵保留为后续加强项，不以未执行代替通过。",
+      "acceptance": "只清理已确认可恢复且无占用的C盘旧数据，并核实际释放字节。",
+      "evidence": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\c-cleanup-blocked-20261013.json：路径、归档、无旧进程已核对；本轮自动审批再次以 blocked by policy 拒绝精确递归删除；目标仍在，空间回收 0 controller-old-project-sidebar-audit.json：Codex仍分别注册D:\\coolzhuagent与C:\\Users\\zhupu\\Desktop\\coolzhuagent两个同名项目；C旧仓库实体仍在，侧边栏按项目分组，旧C会话notLoaded。逐会话归档不等于项目移除；当前工具无项目归档/删除能力。未删除、C空间回收仍为0。 controller-c-inventory-audit.json：只读盘点C盘Codex目录，.codex/worktrees约9.28GB，其中db7f/gotdot约4.88GB、ab8e/gotdot约4.41GB，.git指向已不存在的Desktop元数据；两份含output/evidence等需核D归档后才能判可删。另sessions约7.71GB，LocalCache约4.04GB，Roaming/Codex/web约3.29GB；五个coolzhuagent入口及archived_sessions/backups为D盘junction，不计C盘回收。未删除、释放0字节，EX-02继续阻塞。 controller-gotdot-compare.json：与D:\\gotdot按相对路径/大小只读对比，两份C盘gotdot约9.28GB中13751+1509个文件在D:\\gotdot对应路径缺失（含视频与checkpoint），另各1个大小不同；不得把C副本视为已归档可删，待核其它D归档。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "先确认 D 盘归档包含须保留内容、无 C 盘旧进程；安全移除旧仓库可清部分并核对实际释放空间，保护安装版和当前工作区。",
+        "latestEvidence": "controller-c-readonly-20261015.json：16精确目录与D归档逐文件匹配，文件系统分配量290115208字节，手工清单见docs/testing/2026-10-15-c-drive-manual-cleanup.md，实际释放0。controller-c-reference-readonly-20261015.json核当前D worktree登记、旧C及归档残留登记、无旧C命令行进程引用、两处正式快捷方式均指安装目录。未知独有内容与junction目标继续保护；未改Codex数据库；历史自动拒绝不表示永久不可清理。",
+        "updatedAtUtc": "2026-10-15T04:34:40.7660502Z"
+      },
+      "keyAcceptance": {
+        "status": "blocked",
+        "criterion": "只清理已确认可恢复且无占用的C盘旧数据，并核实际释放字节。",
+        "conclusion": "按用户后续要求留待手动处理；16目录约276.7MiB已核可清，实际释放0。另9.28GB工作树含D归档缺失文件，不能直接删。",
+        "next": "收到实际手工清理结果后核空间；独有文件先归档再另判，junction指向D的数据不算C回收，不自动删除。",
+        "receipts": [
+          "controller-c-readonly-20261015.json",
+          "controller-c-reference-readonly-20261015.json",
+          "controller-gotdot-compare.json"
+        ],
+        "deferred": "全面组合矩阵保留为后续加强项，不以未执行代替通过。"
+      }
+    },
+    {
+      "id": "EX-03",
+      "item": "开机动画打坐运气替换",
+      "status": "accepted",
+      "latestEvidence": "安装版关键帧、首次/日常交接、减少动态与Esc/按钮/演出区跳过均已有实际证据；基本视觉需求通过。 证据：controller-installed-133-native.json、controller-installed-133-cold-start-d-workspace.json、controller-installed-133-click-button.json、controller-installed-133-click-area.json。扩展限制：资源损坏注入此前没有成功，仍未验证；本次移到故障加强，不把它伪写为通过。",
+      "acceptance": "去旧印章/舞剑，COOLZHU下方居中打坐；动画可跳过并正常进入控制台。",
+      "evidence": "controller-354-audit.json：首次派发超时，未产生代码或报告；原绑定释放，拆短轮次继续。 controller-355-audit.json：原Devin超时但落盘两份JS与新PNG；主控核素材SHA、Node语法及生命周期测试通过，仅为待验候选，剑脊装饰/比例/契约/视觉仍待完成。 controller-356-audit.json：原Devin第356轮HTTP completed/ACP terminal-drained/官方queue一次，主控核全部源码SHA、新人物PNG、Node语法与启动生命周期exit0、Tauri离线release build exit0；真实关键帧与正式安装可视验收未做，整项仍进行中。 controller-357-audit.json：主控在第356轮候选Tauri真实启动窗口观察到字标下方居中静坐且旧印章/舞剑未出现；安装版视觉与完整包仍待验。",
+      "updatedAtUtc": "2026-10-16T18:48:56.532244+00:00",
+      "strictReviewBeforeRescope": {
+        "status": "blocked",
+        "acceptance": "启动画面去掉‘酷朱’印章及左下角舞剑；人物在 COOLZHU logo 下方居中打坐运气，比例与留白合适；首次/日常、减少动态、跳过、资源失败和原生交接均经测试与关键帧视觉复核。",
+        "latestEvidence": "安装版首次/日常代表帧、正常交接、恢复不重播、减少动态及Esc/跳过按钮/演出区域退出已有通过证据。补核native-resource-fault-134/cdp.json：instrumentation_not_verified、exit1、attached=[]、blocked_requests=[]；未开放诊断端口，实际未注入人物图片失败，不能把最终窗口可见计作资源故障链通过。保留失败并先搁置，不重复同一无效注入。",
+        "updatedAtUtc": "2026-10-16T18:38:21.472034+00:00"
+      },
+      "keyAcceptance": {
+        "status": "accepted",
+        "criterion": "去旧印章/舞剑，COOLZHU下方居中打坐；动画可跳过并正常进入控制台。",
+        "conclusion": "安装版关键帧、首次/日常交接、减少动态与Esc/按钮/演出区跳过均已有实际证据；基本视觉需求通过。",
+        "next": "已关关键动画，不重跑。",
+        "receipts": [
+          "controller-installed-133-native.json",
+          "controller-installed-133-cold-start-d-workspace.json",
+          "controller-installed-133-click-button.json",
+          "controller-installed-133-click-area.json"
+        ],
+        "deferred": "资源损坏注入此前没有成功，仍未验证；本次移到故障加强，不把它伪写为通过。"
+      }
+    }
+  ],
+  "acceptanceMode": "key_functional"
+}

@@ -1049,9 +1049,18 @@ fn default_holder_is_alive(pid: u32, creation_filetime: u64) -> bool {
     if pid == 0 || creation_filetime == 0 {
         return true;
     }
-    match windows_process_guard::capture_process_identity(pid) {
+    live_holder_result_matches(creation_filetime, windows_process_guard::capture_live_process_identity(pid))
+}
+
+fn live_holder_result_matches(
+    creation_filetime: u64,
+    probe: Result<windows_process_guard::ProcessIdentity, windows_process_guard::ProcessIdentityError>,
+) -> bool {
+    match probe {
         Ok(identity) => identity.creation_time_filetime() == creation_filetime,
-        Err(_) => false,
+        Err(windows_process_guard::ProcessIdentityError::NotFound { .. }) => false,
+        // 拒绝访问或其它查询错误不能证明原持有者已退出，必须保留租约。
+        Err(_) => true,
     }
 }
 
@@ -2280,6 +2289,8 @@ pub(crate) fn require_resource_accepts_new_input(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    include!("input_lease_process_acceptance_tests.rs");
 
     fn temp_root() -> tempfile::TempDir {
         tempfile::TempDir::new().expect("tempdir")

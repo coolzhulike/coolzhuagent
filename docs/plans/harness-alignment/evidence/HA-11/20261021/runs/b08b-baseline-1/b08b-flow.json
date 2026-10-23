@@ -1,0 +1,18 @@
+﻿{
+    "side":  "baseline",
+    "port":  8766,
+    "session":  "session-1792692377394-fdf97592656a5715",
+    "room":  null,
+    "assign_roles":  {
+                         "__error":  " Unable to connect to the remote server"
+                     },
+    "heartbeat":  {
+                      "__error":  " Unable to connect to the remote server"
+                  },
+    "goal_A_create":  null,
+    "goal_B_create":  null,
+    "goal_C_create":  null,
+    "goal_D_create":  null,
+    "goal_E_create":  null,
+    "mock_requests":  0
+}

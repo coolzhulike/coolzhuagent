@@ -1,0 +1,43 @@
+{
+  "at_utc": "2026-10-16T15:45:48.427Z",
+  "state": "completed",
+  "scope": "完整0.2.135发布包在正式8765的可见Tauri页面；C安装版仍0.2.134，MSI升级权限阻塞",
+  "window": {
+    "app": "process:D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\release-0.2.135\\package\\bin\\coolzhu-tauri-shell.exe",
+    "id": 11341678,
+    "title": "COOLZHU AGENT 控制台"
+  },
+  "cases": [
+    {
+      "case": "latest_reply_exact_run",
+      "passed": true,
+      "message_id": "msg-1792083075400-0",
+      "expected_run": "run-chat-48aec7c6a16a8d6378ddbcdbbd16e0e7e8051bf47d7d0645",
+      "observed": "正式8765页面单条回复入口展示唯一展开运行卡；截图状态已定位这条回复的运行记录，工具及轮次相符",
+      "evidence": "controller-reply-ui-latest-20261016.txt"
+    },
+    {
+      "case": "latest_reply_locate_question",
+      "passed": true,
+      "observed": "点击定位本轮提问后轨迹面板关闭，原始D-INSTALLED-STARTUP-VISUAL-360提问(#1496)定位可见",
+      "evidence": "controller-reply-ui-latest-question-20261016.txt"
+    },
+    {
+      "case": "previous_reply_exact_run",
+      "passed": true,
+      "message_id": "msg-1792082872685-0",
+      "expected_run": "run-chat-d3b77a88654dfa89adc342b46500e08d90005daad743adaf",
+      "observed": "正式8765页面另一历史回复显示唯一199.4秒运行卡，read_file等4工具，与最新回复run不同",
+      "evidence": "controller-reply-ui-previous-20261016.txt"
+    },
+    {
+      "case": "previous_reply_locate_question",
+      "passed": true,
+      "observed": "定位回D-GPT6-LUNA-MAX-SMOKE-359原始提问(#1494)，与360提问不同，未跳到最新回复",
+      "evidence": "controller-reply-ui-previous-question-20261016.txt"
+    }
+  ],
+  "passed": 4,
+  "failed": 0,
+  "no_model_request": true
+}

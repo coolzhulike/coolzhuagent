@@ -1,0 +1,630 @@
+--- before/modules/gui-web/packages/web-console/src/main.rs
++++ after/modules/gui-web/packages/web-console/src/main.rs
+@@ -105,8 +105,11 @@
+ mod tool_invocation_identity;
+ mod request_binding;
+ mod tool_loop_progress;
++mod tool_recovery;
+ #[cfg(test)]
+ mod ha05_tests;
++#[cfg(test)]
++mod ha06_tests;
+ #[cfg(test)]
+ mod ha04_tests;
+ mod chat_run_admission;
+@@ -27577,10 +27580,12 @@
+     let mut response = request_usage::observe(provider_client_for_agent(agent), &agent.id, None, current_turn_trace().as_deref(), None, "single_understanding")?
+         .send_message(&request)
+         .await?;
++    let mut execution_failed=false;
+     if model_text_requires_tool_recovery(&answer_text(&response.content), prompt)
+         || !model_tool_requests_from_blocks(&response.content).is_empty() {
+-        response = call_agent_model_text_recovery(agent, &assembly.system_prompt, &assembly.messages,
++        let (recovered,repaired) = call_agent_model_text_recovery(agent, &assembly.system_prompt, &assembly.messages,
+             prompt, "单次理解请求不允许执行工具，模型返回了未执行的工具调用", None, None, None, None).await?;
++        response=recovered;execution_failed=!repaired;
+     }
+     let policy = context_lifecycle_policy();
+     let context_usage = context_usage_snapshot_for_assembly_with_usage(
+@@ -27608,7 +27613,7 @@
+         stale_tool_denial_hits(&format!("{answer}\n{reasoning}")),
+     );
+     Ok(AgentModelResponse {
+-                    execution_failed: false,
++                    execution_failed,
+         answer_text: answer,
+         reasoning_text: reasoning,
+         tool_requests,
+@@ -27701,6 +27706,7 @@
+     summary_text: String,
+     tool_result_text: String,
+     is_error: bool,
++    recovery_stop: Option<String>,
+ }
+ 
+ /// PR-02B：工具调用的参数**摘要**（**不落原文**：工具参数里可能有凭据/隐私内容）。
+@@ -27750,6 +27756,7 @@
+     let semaphore = Arc::new(Semaphore::new(policy.max_concurrency));
+     let mut tasks = JoinSet::new();
+     let total = tool_requests.len();
++    let pending_calls = tool_requests.clone();
+     for (index, (tool_use_id, name, input)) in tool_requests.into_iter().enumerate() {
+         let semaphore = Arc::clone(&semaphore);
+         let caller_session_id = caller_session_id.clone();
+@@ -27774,12 +27781,14 @@
+                 host_scope.as_ref(),
+             );
+             // 子请求的观测仍属于本次响应；spawn 不会自动继承 task-local。
+-            let outcome = request_binding::with_collector(request_collector, async {
++            let (outcome, recovery_stop) = tool_recovery::capture(request_binding::with_collector(request_collector, async {
+                 match source_request_key {
+                     Some(source) => tool_invocation_identity::scope(source, dispatch).await,
+                     None => dispatch.await,
+                 }
+-            }).await;
++            })).await;
++            #[cfg(test)]
++            ha06_tests::maybe_lose_dispatch_receipt(&name);
+             let (summary_text, tool_result_text, is_error, route) = match &outcome {
+                 Ok(dispatch) => {
+                     diag!(
+@@ -27818,6 +27827,7 @@
+                     summary_text,
+                     tool_result_text,
+                     is_error,
++                    recovery_stop,
+                 },
+             )
+         });
+@@ -27831,7 +27841,13 @@
+             Err(error) => diag!("{log_prefix} tool task join failed: {error}"),
+         }
+     }
+-    ordered.into_iter().flatten().collect()
++    pending_calls.into_iter().zip(ordered).map(|((tool_use_id,name,input),result)| {
++        result.unwrap_or_else(|| {
++            let reason="status=blocked, error_code=worker_outcome_unknown：工具承载任务异常，结果未知。已停止追加尝试，请按原调用身份核查效果，不能自动重放。".to_string();
++            ModelToolDispatchResult {tool_use_id,name,input,route:"runtime-outcome-unknown".into(),
++                summary_text:reason.clone(),tool_result_text:reason.clone(),is_error:true,recovery_stop:Some(reason)}
++        })
++    }).collect()
+ }
+ 
+ /// JoinSet 边界的协作式取消包装：取消后不再接收任何已派发任务的结果，
+@@ -27991,6 +28007,9 @@
+ 
+     let max_tool_feedback_rounds = tool_execution_policy().max_feedback_rounds;
+     let mut failure_guard = tool_loop_progress::FailureGuard::default();
++    let mut parameter_repair_used = false;
++    let mut next_is_parameter_repair = false;
++    let mut repair_dispatch_pending = false;
+     let mut terminal_execution_failed = false;
+     let mut computer_use_terminal_failure: Option<String> = None;
+     let mut terminal_supervisor_answer: Option<String> = None;
+@@ -28040,7 +28059,7 @@
+             .or(Some(model_turn_scope.as_str()));
+         let usage_workspace = child_scope.as_ref().map(|child| (child.parent.workspace_id.as_str(), child.usage_db_path.as_path()));
+             let (provider, receipt) = request_usage::observe_bound_in_workspace_with_run(provider, usage_session,
+-                chat_room_id, usage_turn, usage_call, if child_scope.is_some() {"child_agent"} else if round == 0 {"chat"} else {"tool_feedback"},
++                chat_room_id, usage_turn, usage_call, if std::mem::take(&mut next_is_parameter_repair) {"parameter_repair"} else if child_scope.is_some() {"child_agent"} else if round == 0 {"chat"} else {"tool_feedback"},
+                 usage_workspace, parent.and_then(|context| context.parent_run_id.as_deref()), parent_request_id.as_deref())?;
+             let response = provider.send_message(&request).await?;
+             let sent = receipt.sent(request)?;
+@@ -28067,31 +28086,53 @@
+             events.status(agent, chat_room_id, key, &tool_requests, "requested", "正在校验工具请求");
+         }
+ 
+-        let recovery_reason = if model_text_requires_tool_recovery(&answer_text(&response.content), prompt) {
+-            Some("模型在正文中输出了未执行的工具调用标记".to_string())
+-        } else if tool_requests.iter().any(|(_, name, _)| !sent.exposes(name)) {
+-            Some("模型请求了本次未开放的工具，调用未执行".to_string())
+-        } else if tool_requests.iter().any(|(_, name, input)| is_computer_use_tool_request(name, input)) {
++        let terminal_reason = if tool_requests.iter().any(|(_, name, _)| !sent.exposes(name)) {
++            Some("status=blocked, error_code=tool_unavailable：模型请求了本次未开放的工具，调用未执行。".to_string())
++        } else if tool_requests.iter().any(|(_,name,input)|is_computer_use_tool_request(name,input)) {
+             computer_use_terminal_failure.as_deref().map(computer_use_recursive_call_blocked_feedback)
+-        } else { None };
+-        if let Some(reason) = recovery_reason {
+-            if let (Some(events), Some(key)) = (observer.as_ref(), event_turn_key.as_deref()) {
+-                events.status(agent, chat_room_id, key, &tool_requests, "not-executed", &reason);
++        } else {None};
++        if let Some(reason)=terminal_reason {
++            if let (Some(events),Some(key))=(observer.as_ref(),event_turn_key.as_deref()) {
++                events.status(agent,chat_room_id,key,&tool_requests,"not-executed",&reason);
+             }
+-            last_diagnostic = Some(reason.clone());
+-            match tool_invocation_identity::scope(sent.binding.request_id.clone(), call_agent_model_text_recovery(agent, &assembly.system_prompt,
+-                history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id, child_scope.as_deref(),
+-                parent.and_then(|context| context.parent_run_id.as_deref()), parent_model_snapshot.map(Arc::as_ref))).await {
+-                Ok(recovered) => {
+-                    remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
+-                    terminal_supervisor_answer = Some(answer_text(&recovered.content));
+-                }
+-                Err(error) => {
+-                    diag!("[TOOL-LOOP] text recovery failed: {error}");
+-                    terminal_supervisor_answer = Some(unfinished_tool_recovery_answer(prompt));
+-                }
++            terminal_execution_failed=true;last_diagnostic=Some(reason.clone());terminal_supervisor_answer=Some(reason);break;
++        }
++        // 正文协议错误没有可派发动作，只修复一次文本，不给恢复请求工具执行能力。
++        if model_text_requires_tool_recovery(&answer_text(&response.content),prompt) {
++            if parameter_repair_used {
++                terminal_execution_failed=true;
++                let reason="status=blocked, error_code=parameter_repair_limit：参数修复后仍返回未执行的工具协议，已停止追加修复。".to_string();
++                last_diagnostic=Some(reason.clone());terminal_supervisor_answer=Some(reason);break;
++            }
++            let reason="模型在正文中输出了未执行的工具调用标记";
++            last_diagnostic=Some(reason.into());
++            match tool_invocation_identity::scope(sent.binding.request_id.clone(),call_agent_model_text_recovery(agent,
++                &assembly.system_prompt,history.as_ref().unwrap_or(&base_history),prompt,reason,chat_room_id,child_scope.as_deref(),
++                parent.and_then(|context|context.parent_run_id.as_deref()),parent_model_snapshot.map(Arc::as_ref))).await {
++                Ok((recovered,repaired))=>{remember_largest_remote_usage(&mut best_remote_usage,&recovered.usage);
++                    terminal_execution_failed=!repaired;terminal_supervisor_answer=Some(answer_text(&recovered.content));},
++                Err(_)=>{terminal_execution_failed=true;terminal_supervisor_answer=Some(unfinished_tool_recovery_answer(prompt));},
+             }
+             break;
++        }
++        if let Some(reason)=tool_recovery::invalid_arguments(&sent.request,&tool_requests) {
++            if let (Some(events),Some(key))=(observer.as_ref(),event_turn_key.as_deref()) {
++                events.status(agent,chat_room_id,key,&tool_requests,"not-executed",&reason);
++            }
++            last_diagnostic=Some(reason.clone());
++            if parameter_repair_used || round>=max_tool_feedback_rounds {
++                terminal_execution_failed=true;terminal_supervisor_answer=Some(format!("status=blocked, error_code=parameter_repair_limit：{reason} 已停止追加修复。"));break;
++            }
++            parameter_repair_used=true;next_is_parameter_repair=true;repair_dispatch_pending=true;
++            let mut next=history.clone().unwrap_or_else(||base_history.clone());
++            next.push(InputMessage {role:"assistant".into(),content:response.content.iter().filter_map(|block|match block {
++                OutputContentBlock::ToolUse{id,name,input}=>Some(InputContentBlock::ToolUse{id:id.clone(),name:name.clone(),input:input.clone()}),
++                OutputContentBlock::Thinking{thinking,..}=>Some(InputContentBlock::Thinking{thinking:thinking.clone()}),_=>None,
++            }).collect()});
++            next.push(InputMessage {role:"user".into(),content:tool_requests.iter().map(|(id,_,_)|
++                InputContentBlock::ToolResult {tool_use_id:id.clone(),is_error:true,content:vec![ToolResultContentBlock::Text{
++                    text:format!("{reason} 仅允许一次针对参数的修复；本批包含的其他调用也未执行。请保留任务范围及已有结果，修正必要字段后继续。") }]}).collect()});
++            history=Some(next);continue;
+         }
+         if !tool_requests.is_empty() && round < max_tool_feedback_rounds {
+             diag!(
+@@ -28130,7 +28171,13 @@
+                     })
+                     .map(|dispatch| dispatch.summary_text.clone());
+             }
+-            let stop_reason = failure_guard.observe(&dispatches);
++            let repair_failed=repair_dispatch_pending && dispatches.iter().any(|dispatch|dispatch.is_error);
++            repair_dispatch_pending=false;
++            let repeated_failure = failure_guard.observe(&dispatches);
++            let stop_reason = dispatches.iter().find_map(|dispatch|dispatch.recovery_stop.clone())
++                .or_else(||computer_use_terminal_failure.as_deref().map(computer_use_recursive_call_blocked_feedback))
++                .or_else(||repair_failed.then(||"status=blocked, error_code=parameter_repair_failed：修复后的调用仍失败，已停止追加尝试；实际效果以宿主回执为准。".to_string()))
++                .or_else(||repeated_failure.clone());
+             let tool_result_blocks: Vec<InputContentBlock> = dispatches
+                 .into_iter()
+                 .map(|dispatch| InputContentBlock::ToolResult {
+@@ -28142,7 +28189,7 @@
+                 })
+                 .collect();
+             if let Some(reason) = stop_reason {
+-                HARNESS_L1_TRIGGERS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
++                if repeated_failure.is_some() { HARNESS_L1_TRIGGERS.fetch_add(1, std::sync::atomic::Ordering::Relaxed); }
+                 terminal_execution_failed = true;
+                 last_diagnostic = Some(reason.clone());
+                 terminal_supervisor_answer = Some(reason);
+@@ -28208,15 +28255,8 @@
+                 events.status(agent, chat_room_id, key, &tool_requests, "not-executed", &reason);
+             }
+             last_diagnostic = Some(reason.clone());
+-            final_answer = match tool_invocation_identity::scope(sent.binding.request_id.clone(), call_agent_model_text_recovery(agent, &assembly.system_prompt,
+-                history.as_ref().unwrap_or(&base_history), prompt, &reason, chat_room_id, child_scope.as_deref(),
+-                parent.and_then(|context| context.parent_run_id.as_deref()), parent_model_snapshot.map(Arc::as_ref))).await {
+-                Ok(recovered) => {
+-                    remember_largest_remote_usage(&mut best_remote_usage, &recovered.usage);
+-                    answer_text(&recovered.content)
+-                }
+-                Err(_) => unfinished_tool_recovery_answer(prompt),
+-            };
++            terminal_execution_failed=true;
++            final_answer=reason;
+         }
+         if final_answer.trim().is_empty() {
+             final_answer = tool_result_fallback_answer(&tool_result_summaries).unwrap_or_default();
+@@ -35614,7 +35654,7 @@
+     format!("本轮未能完成原请求：{}。模型未提供可用的最终答案；未执行的工具请求和正文中的工具调用标记均未执行。请调整会话模型的工具策略或重试。", compact_message_snippet(prompt, 360))
+ }
+ 
+-/// 工具协议错误或 UI 熔断只允许一次无工具恢复；保留原任务和已完成操作的结果。
++/// 仅正文协议错误允许一次无工具修复；明确终态不调用模型。
+ async fn call_agent_model_text_recovery(
+     agent: &AgentSessionDto,
+     system_prompt: &str,
+@@ -35625,7 +35665,7 @@
+     child_scope: Option<&host_child_agent::HostChildScope>,
+     run_id: Option<&str>,
+     parent_snapshot: Option<&host_child_agent::HostModelSnapshot>,
+-) -> Result<api::MessageResponse, api::ApiError> {
++) -> Result<(api::MessageResponse, bool), api::ApiError> {
+     if let Some(child) = child_scope {
+         child.validate_live().map_err(|message| api::ApiError::ConfigError {
+             path: "Agent".into(), message,
+@@ -35657,11 +35697,12 @@
+         })?;
+     }
+     let text = answer_text(&response.content);
+-    if text.trim().is_empty() || model_text_requires_tool_recovery(&text, prompt)
+-        || !model_tool_requests_from_blocks(&response.content).is_empty() {
++    let repaired=!(text.trim().is_empty() || model_text_requires_tool_recovery(&text, prompt)
++        || !model_tool_requests_from_blocks(&response.content).is_empty());
++    if !repaired {
+         response.content = vec![OutputContentBlock::Text { text: unfinished_tool_recovery_answer(prompt) }];
+     }
+-    Ok(response)
++    Ok((response,repaired))
+ }
+ 
+ fn computer_use_recursive_call_blocked_feedback(last_summary: &str) -> String {
+@@ -78136,7 +78177,7 @@
+     fn tool_result_fallback_reports_success_failure_mixed_and_unexecuted_without_task_completion() {
+         let dispatch = |route: &str, is_error, summary: &str| super::ModelToolDispatchResult {
+             tool_use_id: "call-test".into(), name: "read_file".into(), input: serde_json::json!({}),
+-            route: route.into(), summary_text: summary.into(), tool_result_text: String::new(), is_error,
++            route: route.into(), summary_text: summary.into(), tool_result_text: String::new(), is_error, recovery_stop: None,
+         };
+         let success = super::ToolFallbackSummary::from_dispatch(&dispatch("runtime-executed", false, "已读取文件"));
+         let failure = super::ToolFallbackSummary::from_dispatch(&dispatch("computer-use-task-controller", true, "截图画布已变化，需重新观察后规划笔画；诊断中含成功一词"));
+--- before/modules/gui-web/packages/web-console/src/tool_dispatch_service.rs
++++ after/modules/gui-web/packages/web-console/src/tool_dispatch_service.rs
+@@ -20,6 +20,11 @@
+     pub chat_room_id: Option<&'a str>,
+     pub parent: Option<&'a FrozenParentContext>,
+     pub host_scope: Option<&'a host_child_agent::HostToolScope>,
++}
++
++fn terminal_error(error: (StatusCode, axum::Json<super::ErrorResponse>)) -> (StatusCode, axum::Json<super::ErrorResponse>) {
++    super::tool_recovery::terminal(format!("status=blocked：{}；已停止自动追加尝试，已有或未知效果须按原调用核查。",error.1.error));
++    error
+ }
+ 
+ pub(super) struct ToolDispatchService;
+@@ -89,10 +94,10 @@
+     let hook_input = input.to_string();
+     let mut outcome = {
+         match run_dispatch_hook(hooks.clone(), name, &hook_input, None, budget.as_ref(), &cancellation).await {
+-        Err(error) => Err(error),
++        Err(error) => Err(terminal_error(error)),
+         Ok(pre) if pre.is_denied() => {
+-            Err(api_error(StatusCode::FORBIDDEN, &format!(
+-                "pre_tool_use hook 拒绝 `{name}`，目标未执行：{}", pre.messages().join("；"))))
++            Err(terminal_error(api_error(StatusCode::FORBIDDEN, &format!(
++                "pre_tool_use hook 拒绝 `{name}`，目标未执行：{}", pre.messages().join("；")))))
+         }
+         Ok(_) => {
+             // pre 若真正运行过（executed_commands>0），旧批准不复用：目标仍须原样通过
+@@ -102,12 +107,12 @@
+                 source.as_ref().map(|source| source.provider_tool_call_id.as_str()), &mut settlement));
+             let controlled = async {
+                 super::await_chat_turn(&cancellation, run).await
+-                    .map_err(|_|api_error(StatusCode::CONFLICT,"执行已停止等待，可能发生的效果须核查轨迹"))?
++                    .map_err(|_|terminal_error(api_error(StatusCode::CONFLICT,"执行已停止等待，可能发生的效果须核查轨迹")))?
+             };
+             if let Some(budget) = &budget {
+                 match root_execution_budget::scope(budget.clone(), budget.run_cancellable(controlled, || { cancellation.request_timeout(); })).await {
+                     Ok(result) => result,
+-                    Err(error) => Err(api_error(StatusCode::REQUEST_TIMEOUT, &error.to_string())),
++                    Err(error) => Err(terminal_error(api_error(StatusCode::REQUEST_TIMEOUT, &error.to_string()))),
+                 }
+             } else { controlled.await }
+         }
+@@ -120,24 +125,26 @@
+                 tool_loop_coordinator::terminal_status_is_error(&result.status))),
+             budget.as_ref(), &cancellation).await;
+         match post {
+-            Err(error) => outcome = Err(error),
++            Err(error) => outcome = Err(terminal_error(error)),
+             Ok(post) if post.is_denied() => {
+-                outcome = Err(api_error(StatusCode::FORBIDDEN, &format!(
+-                    "post_tool_use hook 拒绝 `{name}`，目标回执已生成，不可自动重试：{}", post.messages().join("；"))));
++                outcome = Err(terminal_error(api_error(StatusCode::FORBIDDEN, &format!(
++                    "post_tool_use hook 拒绝 `{name}`，目标回执已生成，不可自动重试：{}", post.messages().join("；")))));
+             }
+             Ok(_) => {}
+         }
+     }
+-    let status = match &outcome {
++    let status = if cancellation.is_requested() {
++        if budget.as_ref().is_some_and(|budget|budget.is_expired()) {"timed_out_outcome_unknown"} else {"cancelled_outcome_unknown"}
++    } else { match &outcome {
+         Ok(result) if name.starts_with(dsh_execution::PREFIX)
+             && result.route == "runtime-dry-run"
+             && result.dispatch_plan.as_ref().is_some_and(|plan| plan.audit.requires_human_confirmation) => "awaiting_approval",
+         Ok(result) if !tool_loop_coordinator::terminal_status_is_error(&result.status) => "completed",
+         _ => "failed",
+-    };
++    }};
+     if !settlement.is_settled() {
+-        settlement.finish(status).map_err(|error| api_error(StatusCode::INTERNAL_SERVER_ERROR,
+-            &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试")))?;
++        settlement.finish(status).map_err(|error| terminal_error(api_error(StatusCode::INTERNAL_SERVER_ERROR,
++            &format!("工具已结束等待，但终态记录未确认：{error}；不可自动重试"))))?;
+     }
+     // ACP 由外层桥对完整结构化回执投影一次，避免内层先截断或重复保存带提示的原文。
+     if devin_acp::bridge::current().is_none() {
+--- before/modules/gui-web/packages/web-console/src/tool_loop_progress.rs
++++ after/modules/gui-web/packages/web-console/src/tool_loop_progress.rs
+@@ -40,7 +40,7 @@
+     fn result(error: bool, stamp: u32) -> ModelToolDispatchResult {
+         ModelToolDispatchResult {tool_use_id:format!("provider-{stamp}"),name:"read_file".into(),
+             input:serde_json::json!({"path":"status.json"}),route:"runtime-executed".into(),
+-            summary_text:format!("timestamp={stamp}"),tool_result_text:format!("timestamp={stamp}"),is_error:error}
++            summary_text:format!("timestamp={stamp}"),tool_result_text:format!("timestamp={stamp}"),is_error:error,recovery_stop:None}
+     }
+     #[test]
+     fn timestamps_do_not_renew_failure_limit_but_success_resets_it() {
+--- before/modules/gui-web/packages/web-console/src/host_child_agent.rs
++++ after/modules/gui-web/packages/web-console/src/host_child_agent.rs
+@@ -700,9 +700,10 @@
+             }
+             drop(bodies);
+             if parent_execution {
+-                let recovered = crate::call_agent_model_text_recovery(&agent, "冻结恢复测试", &[], prompt,
++                let (recovered,repaired) = crate::call_agent_model_text_recovery(&agent, "冻结恢复测试", &[], prompt,
+                     "未开放的工具", Some("shared-room"), None, Some(&run),
+                     parent.host_model_snapshots.get(&agent.id).map(Arc::as_ref)).await.unwrap();
++                assert!(repaired);
+                 assert_eq!(crate::answer_text(&recovered.content), "两文件读取完成");
+             }
+             server.abort();
+--- /dev/null
++++ after/modules/gui-web/packages/web-console/src/tool_recovery.rs
+@@ -0,0 +1,65 @@
++//! 恢复决策只消费宿主事实；工具正文不能赋予重放资格。
++use std::{cell::RefCell, future::Future};
++use crate::JsonValue;
++
++tokio::task_local! { static TERMINAL: RefCell<Option<String>>; }
++pub(crate) async fn capture<F:Future>(future:F)->(F::Output,Option<String>) {
++    TERMINAL.scope(RefCell::new(None),async {
++        let output=future.await;
++        let reason=TERMINAL.with(|cell|cell.borrow_mut().take());
++        (output,reason)
++    }).await
++}
++pub(crate) fn terminal(reason: impl Into<String>) {
++    let reason=reason.into();
++    let _=TERMINAL.try_with(|cell| {cell.borrow_mut().get_or_insert(reason);});
++}
++
++/// 只核对最终已发送schema明确声明的必要字段/基础类型，不猜测业务语义。
++/// 校验发生在整批派发之前，因此此类错误的目标工具进入数确定为0。
++pub(crate) fn invalid_arguments(request:&api::MessageRequest,calls:&[(String,String,JsonValue)])->Option<String> {
++    for (_,name,input) in calls {
++        let Some(definition)=request.tools.as_ref().and_then(|tools|tools.iter().find(|tool|tool.name==*name)) else {continue;};
++        if let Some(reason)=invalid(&definition.input_schema,input,"$",0) {
++            return Some(format!("工具 `{name}` 参数不符合本次声明：{reason}。本批目标工具均未派发。"));
++        }
++    }
++    None
++}
++fn invalid(schema:&JsonValue,value:&JsonValue,path:&str,depth:u8)->Option<String> {
++    if depth>6 {return None;}
++    if let Some(kind)=schema["type"].as_str() {
++        let valid=match kind {"object"=>value.is_object(),"array"=>value.is_array(),"string"=>value.is_string(),
++            "boolean"=>value.is_boolean(),"number"=>value.is_number(),"integer"=>value.as_i64().is_some()||value.as_u64().is_some()||value.as_f64().is_some_and(|n|n.is_finite()&&n.fract()==0.0),"null"=>value.is_null(),_=>true};
++        if !valid {return Some(format!("{path} 必须为{kind}"));}
++    }
++    if let Some(object)=value.as_object() {
++        if let Some(required)=schema["required"].as_array() {
++            for field in required.iter().filter_map(JsonValue::as_str) {
++                if !object.contains_key(field) {return Some(format!("{path} 缺少必要字段 {field}"));}
++            }
++        }
++        if let Some(properties)=schema["properties"].as_object() {
++            for (field,subschema) in properties {
++                if let Some(v)=object.get(field) {
++                    if let Some(reason)=invalid(subschema,v,&format!("{path}.{field}"),depth+1) {return Some(reason);}
++                }
++            }
++        }
++    }
++    None
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn only_declared_structural_errors_are_repairable() {
++        let schema=serde_json::json!({"type":"object","required":["path"],"properties":{"path":{"type":"string"}}});
++        assert!(invalid(&schema,&serde_json::json!({}),"$",0).is_some());
++        assert!(invalid(&schema,&serde_json::json!({"path":3}),"$",0).is_some());
++        assert!(invalid(&schema,&serde_json::json!({"path":"","unknown":"retained"}),"$",0).is_none());
++        assert!(invalid(&serde_json::json!({"type":["string","null"]}),&JsonValue::Null,"$",0).is_none());
++        assert!(invalid(&serde_json::json!({"type":"integer"}),&serde_json::json!(1.0),"$",0).is_none());
++    }
++}
+--- /dev/null
++++ after/modules/gui-web/packages/web-console/src/ha06_tests.rs
+@@ -0,0 +1,185 @@
++//! HA06本地协议与真实隔离工具故障；结果保留原身份和实际效果。
++use super::*;
++use axum::response::IntoResponse;
++use http_body_util::BodyExt;
++static LOSE_RECEIPT:std::sync::atomic::AtomicBool=std::sync::atomic::AtomicBool::new(false);
++pub(crate) fn maybe_lose_dispatch_receipt(name:&str){
++    if name=="bash" && LOSE_RECEIPT.swap(false,std::sync::atomic::Ordering::SeqCst){panic!("HA06_EXPECTED_WORKER_RECEIPT_LOSS");}
++}
++struct LostReceiptGuard;
++impl Drop for LostReceiptGuard{fn drop(&mut self){LOSE_RECEIPT.store(false,std::sync::atomic::Ordering::SeqCst);}}
++fn save(name:&str,value:JsonValue) {
++    if let Ok(dir)=std::env::var("COOLZHU_HARNESS_EVIDENCE_DIR") {
++        std::fs::write(Path::new(&dir).join(format!("ha06-{name}.json")),serde_json::to_vec_pretty(&value).unwrap()).unwrap();
++    }
++}
++fn prepare(room:&str,tools:&[&str]) {
++    let mut config=workspace_config().lock().unwrap();config.model.enable_real_llm=true;config.model.enable_llm_tools=true;
++    config.model.llm_tool_exposure=Some("all".into());config.tool.execution.max_feedback_rounds=6;
++    config.session_model_limits.entry("target-text".into()).or_default().tool_allowlist=Some(tools.iter().map(|v|v.to_string()).collect());drop(config);
++    let mut store=session_store().lock().unwrap();store.state.chat_rooms.push(PersistedChatRoom{id:room.into(),name:room.into(),created_at:1,updated_at:1,messages:vec![]});
++    store.state.active_chat_room_id=Some(room.into());store.save().unwrap();drop(store);
++    set_chat_room_permission_profile_sqlite(&default_session_sqlite_path(),room,ROOM_PERMISSION_FULL_ACCESS).unwrap();
++}
++async fn send(room:&str,stream:bool)->String {
++    let payload=serde_json::from_value(json!({"target_agent_ids":["target-text"],"session_id":"target-text","chat_room_id":room,"text":format!("{room}：执行工具完成当前指定任务，仅按真实回执判断。")})).unwrap();
++    if stream {
++        let response=Box::pin(api_chat_send_stream(Json(payload))).await.unwrap().into_response();
++        String::from_utf8(response.into_body().collect().await.unwrap().to_bytes().to_vec()).unwrap()
++    } else {let Json(response)=Box::pin(api_chat_send(Json(payload))).await.unwrap();serde_json::to_string(&response).unwrap()}
++}
++fn response(request:&JsonValue,call:Option<(&str,JsonValue)>,text:&str)->Json<JsonValue> {
++    let finish=if call.is_some(){"tool_calls"}else{"stop"};
++    let message=match call {Some((name,input))=>json!({"role":"assistant","content":null,"tool_calls":[{"id":"ha06-call","type":"function","function":{"name":name,"arguments":input.to_string()}}]}),None=>json!({"role":"assistant","content":text})};
++    Json(json!({"id":"ha06","object":"chat.completion","model":request["model"],"choices":[{"index":0,"message":message,"finish_reason":finish}],"usage":{"prompt_tokens":10,"completion_tokens":3}}))
++}
++struct Hooks(Option<runtime::HookRunner>);
++impl Drop for Hooks {fn drop(&mut self){*tool_dispatch_service::DISPATCH_HOOK_RUNNER_OVERRIDE.lock().unwrap()=self.0.take();}}
++fn hooks(pre:Vec<String>,post:Vec<String>)->Hooks {
++    let runner=runtime::HookRunner::new(runtime::RuntimeHookConfig::new(pre,post)).with_authorization(
++        runtime::PermissionPolicy::new(runtime::PermissionMode::DangerFullAccess)
++            .with_tool_requirement(runtime::HOOK_CAPABILITY_PRE_TOOL_USE,runtime::PermissionMode::DangerFullAccess)
++            .with_tool_requirement(runtime::HOOK_CAPABILITY_POST_TOOL_USE,runtime::PermissionMode::DangerFullAccess));
++    Hooks(tool_dispatch_service::DISPATCH_HOOK_RUNNER_OVERRIDE.lock().unwrap().replace(runner))
++}
++#[derive(Clone,Copy,Debug)]
++enum Case {MissingTool,ParamFixed,ParamInvalid,ParamProtocol,ParamExecutionFailure,ParamTimeout,ProtocolFixed,ProtocolInvalid,Cap,PostDenied,SettlementFailed,JoinLostReceipt}
++async fn loop_case(case:Case) {
++    let calls=Arc::new(Mutex::new(Vec::<JsonValue>::new()));let seen=calls.clone();
++    let router=Router::new().route("/v1/chat/completions",post(move |Json(request):Json<JsonValue>|{
++        let seen=seen.clone();async move {
++            let index={let mut seen=seen.lock().unwrap();seen.push(request.clone());seen.len()-1};assert!(index<8);
++            if matches!(case,Case::ParamTimeout) && index==1 {tokio::time::sleep(Duration::from_secs(15)).await;}
++            let path=active_workspace_path().join("input.txt");
++            if matches!(case,Case::ProtocolFixed|Case::ProtocolInvalid) || (matches!(case,Case::ParamProtocol)&&index>0) {
++                return response(&request,None,if index==0||matches!(case,Case::ProtocolInvalid|Case::ParamProtocol){"<tool_call>{\"name\":\"read_file\"}</tool_call>"}else{"HA06_REPAIRED"});
++            }
++            let call=match case {
++                Case::MissingTool|Case::PostDenied|Case::SettlementFailed|Case::JoinLostReceipt=>Some(("bash",json!({"command":"echo effect>>effects.txt","cwd":active_workspace_path(),"timeout":10}))),
++                Case::ParamInvalid=>Some(("read_file",json!({}))),
++                Case::ParamProtocol|Case::ParamTimeout=>Some(("read_file",json!({}))),
++                Case::ParamExecutionFailure if index==0=>Some(("read_file",json!({}))),
++                Case::ParamExecutionFailure=>Some(("read_file",json!({"path":active_workspace_path().join("does-not-exist.txt")}))),
++                Case::ParamFixed if index==0=>Some(("read_file",json!({}))),
++                Case::ParamFixed if index==1=>Some(("read_file",json!({"path":path}))),
++                Case::Cap=>Some(("read_file",json!({"path":path}))),
++                _=>None,
++            };response(&request,call,"HA06_DONE")
++        }
++    }));
++    let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();let url=format!("http://{}",listener.local_addr().unwrap());
++    let server=tokio::spawn(async move {axum::serve(listener,router).await.unwrap();});
++    let _isolated=multimodal_input::tests::IsolatedState::install(&url);let room=format!("ha06-{case:?}");
++    prepare(&room,if matches!(case,Case::PostDenied|Case::SettlementFailed|Case::JoinLostReceipt){&["read_file","bash"]}else{&["read_file"]});
++    let _lost=matches!(case,Case::JoinLostReceipt).then(||{LOSE_RECEIPT.store(true,std::sync::atomic::Ordering::SeqCst);LostReceiptGuard});
++    std::fs::write(active_workspace_path().join("input.txt"),"fixture").unwrap();
++    if matches!(case,Case::Cap){workspace_config().lock().unwrap().tool.execution.max_feedback_rounds=1;}
++    let _hook=matches!(case,Case::PostDenied).then(||hooks(vec![],vec!["echo HA06_POST_DENIED 1>&2 & exit /b 2".into()]));
++    let db=open_session_connection(&default_session_sqlite_path()).unwrap();
++    computer_use_store::ComputerUseRunStore::open(&default_session_sqlite_path()).unwrap();
++    if matches!(case,Case::SettlementFailed){db.execute_batch("CREATE TRIGGER ha06_fail_settlement BEFORE UPDATE ON tool_calls WHEN NEW.status='completed' BEGIN SELECT RAISE(FAIL,'HA06_STORAGE_FAULT'); END;").unwrap();}
++    let budget=root_execution_budget::RootExecutionBudget::establish(if matches!(case,Case::ParamTimeout){8_000}else{30_000});let deadline=budget.deadline_unix_ms();let began=Instant::now();
++    let output=tokio::time::timeout(Duration::from_secs(35),root_execution_budget::scope(budget,send(&room,false))).await.unwrap();
++    let raw=calls.lock().unwrap().clone();let effect=std::fs::read_to_string(active_workspace_path().join("effects.txt")).unwrap_or_default().lines().count();
++    let rows:Vec<(String,String,String)>=db.prepare("SELECT tool_call_id,status,source_request_key FROM tool_calls ORDER BY created_at_unix_ms").unwrap().query_map([],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).unwrap().collect::<Result<_,_>>().unwrap();
++    let purposes:Vec<(String,String,Option<String>)>=db.prepare("SELECT request_kind,logical_request_id,json_extract(request_binding_json,'$.parent_request_id') FROM chat_usage_events WHERE dispatched=1 ORDER BY id").unwrap().query_map([],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).unwrap().collect::<Result<_,_>>().unwrap();
++    let humans:i64=db.query_row("SELECT count(*) FROM chat_room_messages WHERE role='user' AND room_id=?1",[&room],|r|r.get(0)).unwrap();
++    save(&format!("{case:?}"),json!({"requests":raw,"host_response":output,"effects":effect,"tool_rows":rows,"purposes":purposes,"root_deadline_ms":deadline,"elapsed_ms":began.elapsed().as_millis(),"human_input_count":humans}));
++    assert_eq!(humans,1);
++    let expected=match case {Case::MissingTool|Case::PostDenied|Case::SettlementFailed|Case::JoinLostReceipt=>1,Case::ParamFixed=>3,_=>2};
++    assert_eq!(raw.len(),expected,"{case:?}: {output}");
++    match case {
++        Case::MissingTool=>{assert_eq!(effect,0);assert!(rows.is_empty());assert!(output.contains("tool_unavailable"));},
++        Case::ParamFixed=>{assert_eq!(rows.len(),1);assert_eq!(rows[0].1,"completed");assert!(output.contains("HA06_DONE"));},
++        Case::ParamInvalid|Case::ParamProtocol=>{assert!(rows.is_empty());assert!(output.contains("parameter_repair_limit"));},
++        Case::ParamExecutionFailure=>{assert_eq!(rows.len(),1);assert_eq!(rows[0].1,"failed");assert!(output.contains("parameter_repair_failed"));},
++        Case::ParamTimeout=>{assert!(rows.is_empty());assert!(began.elapsed()<Duration::from_secs(12));assert!(!output.contains("HA06_DONE"));},
++        Case::ProtocolFixed=>{assert!(rows.is_empty());assert!(output.contains("HA06_REPAIRED"));},
++        Case::ProtocolInvalid=>{assert!(rows.is_empty());assert!(output.contains("未能完成原请求"));},
++        Case::Cap=>{assert_eq!(rows.len(),1);assert!(!output.contains("HA06_DONE"));},
++        Case::PostDenied=>{assert_eq!(effect,1);assert_eq!(rows.len(),1);assert_ne!(rows[0].1,"completed");assert!(output.contains("不可自动重试"));},
++        Case::SettlementFailed=>{assert_eq!(effect,1);assert_eq!(rows.len(),1);assert_eq!(rows[0].1,"cancelled_outcome_unknown");assert!(output.contains("终态记录未确认"));},
++        Case::JoinLostReceipt=>{assert_eq!(effect,1);assert_eq!(rows.len(),1);assert_eq!(rows[0].1,"completed");assert!(output.contains("worker_outcome_unknown"));assert!(!output.contains("HA06_DONE"));},
++    }
++    if matches!(case,Case::ParamFixed|Case::ParamInvalid|Case::ParamProtocol|Case::ParamExecutionFailure|Case::ParamTimeout){assert_eq!(purposes.iter().filter(|p|p.0=="parameter_repair").count(),1);assert_eq!(purposes.iter().filter(|p|p.0=="text_recovery").count(),0);}
++    if matches!(case,Case::ProtocolFixed|Case::ProtocolInvalid){assert_eq!(purposes.iter().filter(|p|p.0=="text_recovery").count(),1);}
++    if raw.len()>1 {assert_ne!(purposes[0].1,purposes[1].1);assert_eq!(purposes[1].2.as_ref(),Some(&purposes[0].1));}
++    server.abort();
++}
++#[tokio::test]
++async fn terminal_and_pre_effect_repairs_have_exact_request_limits(){let _guard=tests::config_test_guard();for case in [Case::MissingTool,Case::ParamFixed,Case::ParamInvalid,Case::ParamProtocol,Case::ParamExecutionFailure,Case::ParamTimeout,Case::ProtocolFixed,Case::ProtocolInvalid,Case::Cap]{loop_case(case).await;}}
++#[tokio::test]
++async fn post_hook_and_settlement_faults_preserve_one_effect_without_resampling(){let _guard=tests::config_test_guard();for case in [Case::PostDenied,Case::SettlementFailed,Case::JoinLostReceipt]{loop_case(case).await;}}
++
++#[tokio::test]
++async fn lost_receipt_same_identity_cannot_replay_by_changing_parameters_or_tool(){
++    let _guard=tests::config_test_guard();let _isolated=multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");prepare("ha06-identity",&["bash","write_file"]);
++    let root=active_workspace_path();let mut parent=FrozenParentContext::new("ha06-identity",&workspace_identity(&root),None,None,None,None).unwrap();parent.runtime_db_path=Some(default_session_sqlite_path());
++    let input=json!({"command":"echo effect>>identity.txt","cwd":root,"timeout":10});
++    async fn invoke(parent:&FrozenParentContext,source:&str,name:&str,input:&JsonValue)->ApiResult<ToolDispatchResponse>{
++        tool_invocation_identity::scope(source.into(),run_model_tool_dispatch_for_session_with_identity(name,input,Some("target-text"),Some("same-id"),Some("ha06-id-turn"),Some("ha06-identity"),Some(parent),None)).await
++    }
++    // 原回执故意丢弃；已发生效果仍由原持久身份保护。
++    drop(invoke(&parent,"request-1","bash",&input).await.unwrap());
++    let original=computer_use_store::ComputerUseRunStore::open(&default_session_sqlite_path()).unwrap();
++    let identity=tool_invocation_identity::ModelToolIdentity::from_source(None,"request-1","same-id").unwrap();
++    let before=original.tool_call_record(&identity.execution_id).unwrap().unwrap().status;
++    let changed=json!({"command":"echo changed>>identity.txt","cwd":root,"timeout":10});
++    let write=json!({"path":root.join("identity.txt"),"content":"replacement"});
++    let mut refusals=vec![];
++    for (name,input) in [("bash",&input),("bash",&changed),("write_file",&write)] {
++        let error=invoke(&parent,"request-1",name,input).await.err().expect("同一身份必须拒绝");refusals.push(error.1.error.clone());}
++    assert_eq!(std::fs::read_to_string(root.join("identity.txt")).unwrap().lines().count(),1);
++    assert_eq!(original.tool_call_record(&identity.execution_id).unwrap().unwrap().status,before);
++    invoke(&parent,"request-2","bash",&input).await.unwrap();
++    let effects=std::fs::read_to_string(root.join("identity.txt")).unwrap();assert_eq!(effects.lines().count(),2);
++    save("identity",json!({"original_id":identity.execution_id,"original_status":before,"same_identity_refusals":refusals,"effects_after_distinct_request":effects.lines().count()}));
++}
++
++#[tokio::test]
++async fn stream_failure_before_complete_response_has_zero_tool_effects(){
++    let _guard=tests::config_test_guard();let calls=Arc::new(Mutex::new(Vec::<JsonValue>::new()));let seen=calls.clone();
++    let router=Router::new().route("/v1/chat/completions",post(move|Json(request):Json<JsonValue>|{let seen=seen.clone();async move{
++        seen.lock().unwrap().push(request.clone());
++        // 工具参数尚未闭合且没有完成标记，真实HTTP响应已结束，不能按完整调用执行。
++        let body="data: {\"id\":\"cut\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"cut-call\",\"type\":\"function\",\"function\":{\"name\":\"bash\",\"arguments\":\"{\"}}]}}]}\n\n";
++        ([(header::CONTENT_TYPE,"text/event-stream")],body).into_response()
++    }}));
++    let listener=tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();let url=format!("http://{}",listener.local_addr().unwrap());let server=tokio::spawn(async move{axum::serve(listener,router).await.unwrap();});
++    let _isolated=multimodal_input::tests::IsolatedState::install(&url);prepare("ha06-cut",&["bash"]);
++    let output=tokio::time::timeout(Duration::from_secs(15),send("ha06-cut",true)).await.unwrap();
++    let db=open_session_connection(&default_session_sqlite_path()).unwrap();let tools:i64=db.query_row("SELECT COUNT(*) FROM tool_calls",[],|r|r.get(0)).unwrap();
++    save("stream-cut",json!({"requests":calls.lock().unwrap().clone(),"host_response":output,"tool_registrations":tools,"effects":0}));
++    assert_eq!(tools,0);assert!(output.contains("event: error")||output.contains("parameter_repair_limit"));server.abort();
++}
++
++#[test]
++fn post_hook_process_probe(){
++    let Some(dir)=std::env::var_os("COOLZHU_HA06_POST_PROBE") else{return;};let dir=PathBuf::from(dir);
++    std::fs::write(dir.join("ha06-post.pid"),std::process::id().to_string()).unwrap();
++    std::thread::sleep(Duration::from_secs(10));std::fs::write(dir.join("ha06-post-late.txt"),"late").unwrap();
++}
++#[tokio::test]
++async fn consumer_disconnect_after_effect_preserves_unknown_and_drains_hook(){
++    let _guard=tests::config_test_guard();let _isolated=multimodal_input::tests::IsolatedState::install("http://127.0.0.1:1");prepare("ha06-drop",&["bash"]);
++    let root=active_workspace_path();let mut parent=FrozenParentContext::new("ha06-drop",&workspace_identity(&root),None,None,None,None).unwrap();parent.runtime_db_path=Some(default_session_sqlite_path());
++    let command=format!("set \"COOLZHU_HA06_POST_PROBE={}\" && \"{}\" --exact ha06_tests::post_hook_process_probe --nocapture",root.display(),std::env::current_exe().unwrap().display());
++    let _hooks=hooks(vec![],vec![command]);let input=json!({"command":"echo effect>>drop-effects.txt","cwd":root,"timeout":10});
++    let began=Instant::now();
++    let mut dispatch=Box::pin(tool_invocation_identity::scope("ha06-drop-source".into(),run_model_tool_dispatch_for_session_with_identity("bash",&input,Some("target-text"),Some("drop-id"),Some("ha06-drop-turn"),Some("ha06-drop"),Some(&parent),None)));
++    let started=root.join("ha06-post.pid");
++    tokio::select!{
++        result=&mut dispatch=>panic!("后置屏障前意外结束：{result:?}"),
++        ()=async{tokio::time::timeout(Duration::from_secs(8),async{while !started.exists(){tokio::time::sleep(Duration::from_millis(15)).await;}}).await.unwrap();}=>{}
++    }
++    let pid:u32=std::fs::read_to_string(&started).unwrap().parse().unwrap();assert!(windows_process_guard::capture_live_process_identity(pid).is_ok());
++    assert_eq!(std::fs::read_to_string(root.join("drop-effects.txt")).unwrap().lines().count(),1);
++    drop(dispatch);
++    tokio::time::timeout(Duration::from_secs(4),async{while windows_process_guard::capture_live_process_identity(pid).is_ok(){tokio::time::sleep(Duration::from_millis(30)).await;}}).await.expect("后置hook必须真实清理");
++    let store=computer_use_store::ComputerUseRunStore::open(&default_session_sqlite_path()).unwrap();
++    let id=tool_invocation_identity::ModelToolIdentity::from_source(None,"ha06-drop-source","drop-id").unwrap();let state=store.tool_call_record(&id.execution_id).unwrap().unwrap().status;
++    assert_eq!(state,"cancelled_outcome_unknown");assert!(!root.join("ha06-post-late.txt").exists());
++    let duplicate=tool_invocation_identity::scope("ha06-drop-source".into(),run_model_tool_dispatch_for_session_with_identity("bash",&input,Some("target-text"),Some("drop-id"),Some("ha06-drop-turn"),Some("ha06-drop"),Some(&parent),None)).await;
++    assert!(duplicate.is_err());assert_eq!(std::fs::read_to_string(root.join("drop-effects.txt")).unwrap().lines().count(),1);
++    save("drop-after-effect",json!({"execution_id":id.execution_id,"state":state,"effects":1,"hook_pid":pid,"hook_drained":true,"late_effect":false,"elapsed_ms":began.elapsed().as_millis(),"replay_refused":true}));
++}

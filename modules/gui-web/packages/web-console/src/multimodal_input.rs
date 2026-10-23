@@ -253,7 +253,7 @@ pub(crate) mod tests {
         assert!(requests[1].to_string().contains("SYNTHETIC-EVIDENCE"));
         assert!(requests[1].to_string().contains("ORIGINAL-TASK"));
 
-        let (_stream, _) = stream_agent_model(&target, "流式 ORIGINAL-TASK", &images, &[], None, "image-turn", None, None, None).await.unwrap();
+        let (_stream, _, _) = stream_agent_model(&target, "流式 ORIGINAL-TASK", &images, &[], None, "image-turn", None, None, None).await.unwrap();
         let requests = std::mem::take(&mut *captured.lock().unwrap());
         assert_eq!(requests.len(), 2);
         assert!(has_wire_image(&requests[0]));

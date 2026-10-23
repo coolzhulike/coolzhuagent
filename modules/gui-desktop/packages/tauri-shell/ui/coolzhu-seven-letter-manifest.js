@@ -17,12 +17,9 @@
     version: 3,
     canvas: { width: 1680, height: 900 },
     background: { source: { src: "assets/p83-coolzhu/scroll-shanhe-v1.png", width: 1672, height: 941 } },
-    // 四个动作取自同一透明原图，各帧按真实透明间隙裁样并保留原始长宽比。
+    // 静坐人物：透明原图按真实 alpha 间隙裁样，锚点取形体下缘中心。
     actor: { frames: [
-      {src:"assets/p83-coolzhu/actors/swordsman-four-poses-v2.png",sourceRect:{x:32,y:108,width:462,height:544},anchor:{x:212,y:499}},
-      {src:"assets/p83-coolzhu/actors/swordsman-four-poses-v2.png",sourceRect:{x:577,y:64,width:444,height:652},anchor:{x:217,y:631}},
-      {src:"assets/p83-coolzhu/actors/swordsman-four-poses-v2.png",sourceRect:{x:1098,y:116,width:531,height:527},anchor:{x:297,y:507}},
-      {src:"assets/p83-coolzhu/actors/swordsman-four-poses-v2.png",sourceRect:{x:1641,y:204,width:504,height:464},anchor:{x:260,y:416}},
+      {src:"assets/p83-coolzhu/actors/meditating-actor-v1.png",sourceRect:{x:158,y:139,width:969,height:977},anchor:{x:485,y:977}},
     ] },
     completeEvent: "coolzhu-seven-letter-startup-internal",
     letters: [..."COOLZHU"].map(glyph=>({

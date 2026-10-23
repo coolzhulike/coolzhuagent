@@ -1,0 +1,45 @@
+{
+  "state": "completed",
+  "action": "test",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.EXE",
+    "test",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+    "--bin",
+    "coolzhu-web-console",
+    "long_result_http_acceptance_reads_once_and_resumes_complete_payload",
+    "--",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "source_before": {
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "c3815cee41d728a53125a7fce7fc97ca40ab26ddb00a36ee455c9b53e401384e",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge_paging_acceptance_tests.rs": "084a8db31dc455d01256c0dc5017c36d413c3f74742eb1f0a02406bb198783da",
+    "modules/gui-web/packages/web-console/src/devin_acp/result_pages.rs": "08d1724a58b8af63f2f5ed9ca453ccffbb5a7982fe7d1d4845629a59bfe4d051"
+  },
+  "started_at_utc": "2026-10-16T19:12:47.523036+00:00",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-long-result-test-corrected-20261016.log",
+  "exit_code": 0,
+  "elapsed_seconds": 630.887,
+  "source_after": {
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "c3815cee41d728a53125a7fce7fc97ca40ab26ddb00a36ee455c9b53e401384e",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge_paging_acceptance_tests.rs": "084a8db31dc455d01256c0dc5017c36d413c3f74742eb1f0a02406bb198783da",
+    "modules/gui-web/packages/web-console/src/devin_acp/result_pages.rs": "08d1724a58b8af63f2f5ed9ca453ccffbb5a7982fe7d1d4845629a59bfe4d051"
+  },
+  "source_unchanged": true,
+  "log_sha256": "87d9575f0f2b255409826e313a921b468096f355a678641fb6d2b1440d2c2f64",
+  "test_results": [
+    [
+      "1",
+      "0",
+      "0"
+    ]
+  ],
+  "finished_at_utc": "2026-10-16T19:23:18.504105+00:00"
+}

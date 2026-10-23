@@ -1467,10 +1467,11 @@ if($r.two_phase_helper){
  function DenyStrokeInput($e){if($progress){$progress.Report('final',$false,0,$false,$false,$true)};throw $e}
  if(!$q -or !$m -or !$n -or !$r.input_deadline_unix_ms){DenyStrokeInput 'rejected_permit: missing handshake fields'}
  [IO.File]::WriteAllText($q+'.tmp',(@{type='ready';helper_protocol_version=1;nonce=$n;pid=$PID;timestamp_unix_ms=[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()}|ConvertTo-Json -Compress));[IO.File]::Move($q+'.tmp',$q)
- while($true){
+ for($readErr=0;;){
   if((Test-Path -LiteralPath ([string]$r.cancel_file)) -or [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() -ge [long]$r.input_deadline_unix_ms){DenyStrokeInput 'stroke_cancelled: awaiting permit'}
   if(Test-Path -LiteralPath $m){
-   try{$v=[IO.File]::ReadAllText($m)|ConvertFrom-Json}catch{DenyStrokeInput 'rejected_permit: invalid JSON'}
+   try{$x=[IO.File]::ReadAllText($m)}catch{if(++$readErr -ge 10){DenyStrokeInput 'rejected_permit: unreadable'}Start-Sleep -Milli 20;continue}
+   try{$v=$x|ConvertFrom-Json}catch{DenyStrokeInput 'rejected_permit: invalid JSON'}
    if($v.type -cne 'execute' -or $v.nonce -cne $n -or [string]::IsNullOrWhiteSpace($v.permit_id) -or [string]::IsNullOrWhiteSpace($v.attempt_id) -or [string]::IsNullOrWhiteSpace($v.executor_instance_id)){DenyStrokeInput 'rejected_permit: invalid session'}
    if(!$v.expires_at_unix_ms){DenyStrokeInput 'rejected_permit: missing expiry'}
    [CoolzhuStroke.Deadline]::At=[Math]::Min([long]$r.input_deadline_unix_ms,[long]$v.expires_at_unix_ms);[CoolzhuStroke.Deadline]::Check()

@@ -1,0 +1,62 @@
+{
+  "atUtc": "2026-10-16T19:54:03.254400+00:00",
+  "decision": "key_functional_pass",
+  "items": {
+    "4.5": "复用已通过Goal失败→修复→复验链；新增隔离产品HTTP一次性调度：保存后重启，模型实际请求一次并完成，终态重启后同run_id查询且run-due不重放。",
+    "2.5": "隔离真实共享调度worker已经进入模型请求；通过执行API取消，迟到回包未提交到执行结果或聊天室，状态interrupted；重启后同execution_id/run_id且不自动重放。"
+  },
+  "receipt": "controller-scheduled-worker-key-retry-20261016.json",
+  "receiptSha256": "2f3f0cba0a3465738282744d1de85b5e015a64995d7f4466001cdbcbdd8a674b",
+  "executions": [
+    {
+      "id": "scheduled:schedule-1792180206171-35b67d9cc59b3c9a:1792180221145",
+      "state": "completed",
+      "run_id": "run-chat-86d2044d90e40554ca5861b07ca3479e64e498acc4b9f4a6",
+      "result": "ISOLATED_SCHEDULE_WORKER_OK\n\n---\nContext usage: 0.0% (8/64000 input tokens; source=remote). Local estimate: 1236 tokens; local prompt budget: 1236/30976 tokens; history truncated: false.\nContext turn: 000000000000000118df1a70009a37c4; Context snapshot: ctx-dca41951d70413ec; history source: chat_room.messages; history loaded: 0; memory revision: mem-91c5ca0d688cae84",
+      "error": null
+    },
+    {
+      "id": "scheduled:schedule-1792180294602-40882bd02c2739cd:1792180294602",
+      "state": "interrupted",
+      "run_id": "run-chat-2ce89772ed21a6c9f5dc4a2a4e9929042822beed8caf2ea8",
+      "result": null,
+      "error": "定时会话已中断，未按成功推进计划；请查看原聊天室运行轨迹，不自动重试"
+    }
+  ],
+  "lateMessageRows": 0,
+  "boundary": "隔离真实HTTP服务、调度和worker；本机确定性模型协议夹具，不是外部模型自主行为或正式GUI",
+  "modelRequests": [
+    {
+      "index": 1,
+      "path": "/v1/chat/completions",
+      "stream": false,
+      "model": "isolated-worker-model"
+    },
+    {
+      "index": 2,
+      "path": "/v1/chat/completions",
+      "stream": false,
+      "model": "isolated-worker-model"
+    }
+  ],
+  "processes": [
+    {
+      "pid": 23252,
+      "exited": true
+    },
+    {
+      "pid": 33540,
+      "exited": true
+    },
+    {
+      "pid": 34384,
+      "exited": true
+    },
+    {
+      "pid": 25096,
+      "exited": true
+    }
+  ],
+  "priorFailure": "controller-scheduled-worker-key-20261016.json",
+  "priorFailureInterpretation": "首次70秒等待在真实上下文装配中结束；本次有界240秒等待完成。未改变生产超时或调度语义。"
+}

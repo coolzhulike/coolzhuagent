@@ -1,0 +1,103 @@
+{
+  "job_id": "console-full-80f8e2ed6be74ad4905afed7828f87b4",
+  "started_at_utc": "2026-10-15T19:08:24.716438+00:00",
+  "state": "completed",
+  "command": [
+    "C:\\Users\\zhupu\\.cargo\\bin\\cargo.exe",
+    "test",
+    "-p",
+    "coolzhu-web-console",
+    "--offline",
+    "-j",
+    "1",
+    "--target-dir",
+    "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\cargo-target",
+    "--",
+    "--test-threads=1",
+    "--skip",
+    "wechat"
+  ],
+  "profile": "test/debug",
+  "log": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-console-full-20261015.log",
+  "exit_code": 0,
+  "source_hashes_before": {
+    "modules/gui-web/packages/web-console/src/main.rs": "aeb17997621668388b99591a3b2cb0211529ade78a7b2fcfa34f50132eefdb09",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "8838e769775c091f02602b800d7bf48790846af9b2c85244a226647b27ca55eb",
+    "modules/gui-web/packages/web-console/src/runtime_tool_supervision.rs": "046c879961c5891ba0f24b8e66c469a9aced7295dcef3ffda5dd85976775ef34",
+    "modules/gui-web/packages/web-console/src/root_execution_budget.rs": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985",
+    "modules/diagnostics/packages/diagnostics/src/quota.rs": "85785c07f41d01447d991a38528d444c4ed6bca40e851e24f84911d2519eedc8",
+    "modules/gui-web/packages/web-console/src/app.js": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+    "modules/gui-web/packages/web-console/index.html": "d58af71116263a3ee51db01638a81dbdc1f9e22733f331496a06ecad5a83cebb",
+    "Cargo.lock": "82647ca80a79666f366126695d69a11317610d16a1dd89bbdefdd5d54e7bea5b"
+  },
+  "excluded": {
+    "filter": "wechat",
+    "reason": "用户明确要求微信不改不测",
+    "count": 4556
+  },
+  "pid": 23936,
+  "cargo_exit_code": 0,
+  "seconds": 2164.418,
+  "log_sha256": "67945e52f2d59be022eab9fda343eb7102535821ccb382fe5a345a4cad02945c",
+  "log_bytes": 155120,
+  "groups": [
+    {
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    },
+    {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    },
+    {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 1510
+    },
+    {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 1510
+    },
+    {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 1510
+    },
+    {
+      "passed": 1479,
+      "failed": 0,
+      "ignored": 6,
+      "filtered": 26
+    },
+    {
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    }
+  ],
+  "passed": 1491,
+  "failed": 0,
+  "ignored": 6,
+  "wechat_test_executed": false,
+  "source_hashes_after": {
+    "modules/gui-web/packages/web-console/src/main.rs": "aeb17997621668388b99591a3b2cb0211529ade78a7b2fcfa34f50132eefdb09",
+    "modules/gui-web/packages/web-console/src/devin_acp/bridge.rs": "8838e769775c091f02602b800d7bf48790846af9b2c85244a226647b27ca55eb",
+    "modules/gui-web/packages/web-console/src/runtime_tool_supervision.rs": "046c879961c5891ba0f24b8e66c469a9aced7295dcef3ffda5dd85976775ef34",
+    "modules/gui-web/packages/web-console/src/root_execution_budget.rs": "3f4cc7f7bcd010d467a2b605f5248de0d8bfbdebd07ce10253c78e6e8b41c985",
+    "modules/diagnostics/packages/diagnostics/src/quota.rs": "85785c07f41d01447d991a38528d444c4ed6bca40e851e24f84911d2519eedc8",
+    "modules/gui-web/packages/web-console/src/app.js": "95c9a87e233c06d62b56547e71cb8485f57cd7e9ddab2386e82ee4119520f903",
+    "modules/gui-web/packages/web-console/index.html": "d58af71116263a3ee51db01638a81dbdc1f9e22733f331496a06ecad5a83cebb",
+    "Cargo.lock": "82647ca80a79666f366126695d69a11317610d16a1dd89bbdefdd5d54e7bea5b"
+  },
+  "source_unchanged": true,
+  "finished_at_utc": "2026-10-15T19:44:29.366180+00:00"
+}

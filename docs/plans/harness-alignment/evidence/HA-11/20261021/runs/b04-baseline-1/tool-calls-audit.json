@@ -1,0 +1,97 @@
+{
+ "run_id": "run-chat-0fafcc65d16a02cfb290d0a630b92835dc4d1da556738792",
+ "tool_executions": 13,
+ "rows": [
+  {
+   "tool_call_id": "tool-9e7f7cc05438a09c7ee7ee6786f0230e90df77ed2fa3ad050a3ac565e7c2e6e7",
+   "tool_name": "glob_search",
+   "status": "completed",
+   "created_ms": 1792686928026,
+   "updated_ms": 1792686934418
+  },
+  {
+   "tool_call_id": "tool-5dfef94bba7e9ab6c6698dadd64dc47b9f6458ac9c35337bb93bbee7007fce1e",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792686929151,
+   "updated_ms": 1792686935147
+  },
+  {
+   "tool_call_id": "tool-0173063f39e76a96222fad47da58679ef7ebefe36eebe0da4dd4bcbb22035609",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686943742,
+   "updated_ms": 1792686945501
+  },
+  {
+   "tool_call_id": "tool-ef693a5ea7f33a477d5eff6b625d6b576f60b0647a37f1389aa1fe252861b1c7",
+   "tool_name": "bash",
+   "status": "failed",
+   "created_ms": 1792686944067,
+   "updated_ms": 1792686961112
+  },
+  {
+   "tool_call_id": "tool-5b18f0904de5bbed66d2c96cc7bce87518ed1883ac70c4daf3c3775b94e7594f",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686944284,
+   "updated_ms": 1792686946081
+  },
+  {
+   "tool_call_id": "tool-1efec85234f74e55159fa2175b8da10bc8919161e1696925b73f02c4cddee554",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686943990,
+   "updated_ms": 1792686947251
+  },
+  {
+   "tool_call_id": "tool-e16e194fdfe56a70b0c35301e30fa14953e51926c85eebb649e8d615ccbc3e3b",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686974803,
+   "updated_ms": 1792686977278
+  },
+  {
+   "tool_call_id": "tool-947cd628e82a3e91b39c3cb5b8c1831b4eb147cd658849a436e4b4b76db89218",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686975242,
+   "updated_ms": 1792686977634
+  },
+  {
+   "tool_call_id": "tool-56a82384a62e95412e09bb155568380338c9bbbe0354b53e1b9326c8876ea6f2",
+   "tool_name": "read_file",
+   "status": "completed",
+   "created_ms": 1792686975255,
+   "updated_ms": 1792686978308
+  },
+  {
+   "tool_call_id": "tool-5cd32734d29959d0b0f4834bf145878b9a89eb47b6f59cbe2da1097ff1b2f2cb",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792686997039,
+   "updated_ms": 1792686999369
+  },
+  {
+   "tool_call_id": "tool-89d8e2026f6e28ec6bb4e2ba94ce1c711b1a8fbca38cedf9815966b934173ff0",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792686997352,
+   "updated_ms": 1792686999369
+  },
+  {
+   "tool_call_id": "tool-ac0ab5dec8379a3b0162502a0c4a65d3669d68bb668e2e5a89f4fbd516f1afc0",
+   "tool_name": "edit_file",
+   "status": "completed",
+   "created_ms": 1792686997355,
+   "updated_ms": 1792686999895
+  },
+  {
+   "tool_call_id": "tool-3772c79e3cae5e6e0f719b8ed32e3aa64cf07d87d51243befd8166f3336dc2ac",
+   "tool_name": "bash",
+   "status": "completed",
+   "created_ms": 1792687010084,
+   "updated_ms": 1792687024126
+  }
+ ]
+}

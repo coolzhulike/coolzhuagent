@@ -1,0 +1,29 @@
+{
+  "cancelled": {
+    "command": "Set-Content -LiteralPath child.pid -Value $PID; Start-Sleep -Seconds 20; Set-Content -LiteralPath late.txt late",
+    "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp79DfH5",
+    "exit_code": 0,
+    "finished_at_unix_ms": 1792367004907,
+    "id": "goal-command-1792367004635-33776-13",
+    "reason": "`Set-Content -LiteralPath child.pid -Value $PID; Start-Sleep -Seconds 20; Set-Content -LiteralPath late.txt late` 已取消；所属进程已回收",
+    "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+    "started_at_unix_ms": 1792367004635,
+    "status": "cancelled",
+    "timeout_ms": 30000
+  },
+  "child_drained": true,
+  "child_pid": 516,
+  "late_effect": false,
+  "timeout": {
+    "command": "Start-Sleep -Seconds 10; Set-Content -LiteralPath late.txt late",
+    "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp79DfH5",
+    "exit_code": 0,
+    "finished_at_unix_ms": 1792367004634,
+    "id": "goal-command-1792367004364-33776-12",
+    "reason": "`Start-Sleep -Seconds 10; Set-Content -LiteralPath late.txt late` 超时；所属进程已回收",
+    "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+    "started_at_unix_ms": 1792367004364,
+    "status": "timed_out",
+    "timeout_ms": 250
+  }
+}

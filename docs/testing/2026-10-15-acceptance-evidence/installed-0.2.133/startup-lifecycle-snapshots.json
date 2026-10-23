@@ -1,0 +1,1221 @@
+{
+  "first_and_daily": [
+    {
+      "mode_requested_by_profile": "first",
+      "pid": 23036,
+      "frames": [
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-00.png",
+          "sha256": "3bfb8bff115055ad3f9858b3eed3b96f1fe65c06d37b396c3f47095e7269d955",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:23.427459+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 2.314
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-01.png",
+          "sha256": "c8990e0c9bb56c4ee37ec7255d94b4bfac398e5a83b42029c4b5d6e6b203c7ff",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:23.735291+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 3.221
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-02.png",
+          "sha256": "c8990e0c9bb56c4ee37ec7255d94b4bfac398e5a83b42029c4b5d6e6b203c7ff",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:24.785400+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 3.902
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-03.png",
+          "sha256": "c8990e0c9bb56c4ee37ec7255d94b4bfac398e5a83b42029c4b5d6e6b203c7ff",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:25.049551+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 4.574
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-04.png",
+          "sha256": "c8990e0c9bb56c4ee37ec7255d94b4bfac398e5a83b42029c4b5d6e6b203c7ff",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:25.764568+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 5.26
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-05.png",
+          "sha256": "c8990e0c9bb56c4ee37ec7255d94b4bfac398e5a83b42029c4b5d6e6b203c7ff",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:26.371562+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 5.933
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-06.png",
+          "sha256": "ed2aedc8b03bae634d024e69e470126f3dc81ee662595953cf975c1bc4f7a13c",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:27.145123+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 6.586
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-07.png",
+          "sha256": "030acbf0141602ae8278edbc1f7fb9c1ffd36f2331465f399ca326450859714a",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:29.211979+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 7.27
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-08.png",
+          "sha256": "cecdd457dbe5b3a93b16caba3ed1eae646d8f86b4ee351a8ff54df4d3c44f5a5",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:31.880831+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 9.001
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-09.png",
+          "sha256": "f50c69fabb5c3d18e155f5a7c44a72c41b11e6e4b049b1b8eca7d4f4b13f1168",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:34.679751+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 11.669
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-10.png",
+          "sha256": "82f4ef67a7defd435ab8242713b91c6517bedc9b00e151bb6a41038154242ffb",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:35.392031+00:00",
+          "window": {
+            "hwnd": 2492192,
+            "pid": 23036,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 14.469
+        }
+      ],
+      "started_at_utc": "2026-10-15T17:26:20.223083+00:00",
+      "animation_first_seen_seconds": 2.3141546999977436,
+      "dpi": 144,
+      "bounds": [
+        200,
+        12,
+        2382,
+        1369
+      ],
+      "animation_hidden_seconds": 15.181008599989582,
+      "console_frame": {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-first-console.png",
+        "sha256": "ec421c9fd6c7492c7688f9bed16ae36ec2e2d5ad8019995aac8365ef20dc5f8c",
+        "size": [
+          2182,
+          1355
+        ],
+        "foreground_hwnd": 13634834,
+        "at_utc": "2026-10-15T17:26:38.198687+00:00",
+        "window": {
+          "hwnd": 13634834,
+          "pid": 23036,
+          "title": "COOLZHU AGENT 控制台",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            189,
+            12,
+            2371,
+            1367
+          ],
+          "dpi": 144
+        }
+      },
+      "console_seen_seconds": 17.946758700010832,
+      "restore": {
+        "forwarder_exit": 0,
+        "same_process_alive": true,
+        "new_visible_animation": false
+      },
+      "close_exit_code": 0
+    },
+    {
+      "mode_requested_by_profile": "daily",
+      "pid": 6300,
+      "frames": [
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-00.png",
+          "sha256": "b1a7e7f64d5d10d10c5ccac56fd33db51c35eced8c6bbd8dbf5b58c5b149039b",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:45.636047+00:00",
+          "window": {
+            "hwnd": 11142972,
+            "pid": 6300,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 1.602
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-01.png",
+          "sha256": "ed25fbf893b92a8efb91babc895bd51ddd38bec5d008f60aa4b903db84d90360",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:46.061171+00:00",
+          "window": {
+            "hwnd": 11142972,
+            "pid": 6300,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 2.378
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-02.png",
+          "sha256": "d3f45547e0eada19c9354b8e0c123bdf7ee25d3f2284aa4bebea5111d283c656",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:47.126182+00:00",
+          "window": {
+            "hwnd": 11142972,
+            "pid": 6300,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 3.057
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-03.png",
+          "sha256": "e1d11be9071e59bdb70611dee7028a5eddbcf66a685180f9dda8b2eaa4036144",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:49.384268+00:00",
+          "window": {
+            "hwnd": 11142972,
+            "pid": 6300,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 3.868
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-04.png",
+          "sha256": "65268a0f56bd2d05f7a0905f6de23a53bd2a1da03006a441bb5c96d4b3e34c24",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:26:52.591055+00:00",
+          "window": {
+            "hwnd": 11142972,
+            "pid": 6300,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 6.126
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-05.png",
+          "sha256": "50ae49a032685903e00403a339895cc69d9e58e887d5c3ffc7d087a908a49d07",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 9309082,
+          "at_utc": "2026-10-15T17:26:53.357389+00:00",
+          "window": {
+            "hwnd": 11142972,
+            "pid": 6300,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 9.332
+        }
+      ],
+      "started_at_utc": "2026-10-15T17:26:43.203310+00:00",
+      "animation_first_seen_seconds": 1.601870099984808,
+      "dpi": 144,
+      "bounds": [
+        200,
+        12,
+        2382,
+        1369
+      ],
+      "animation_hidden_seconds": 10.099893699982204,
+      "console_frame": {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-daily-console.png",
+        "sha256": "c32151c01b859ac1b7cfdec48ac3395897d6c9b2164299d53c07923e0f2ccd95",
+        "size": [
+          2182,
+          1355
+        ],
+        "foreground_hwnd": 9309082,
+        "at_utc": "2026-10-15T17:26:55.699732+00:00",
+        "window": {
+          "hwnd": 9309082,
+          "pid": 6300,
+          "title": "COOLZHU AGENT 控制台",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            189,
+            12,
+            2371,
+            1367
+          ],
+          "dpi": 144
+        }
+      },
+      "console_seen_seconds": 12.400411699985852,
+      "close_exit_code": 0
+    },
+    {
+      "mode_requested_by_profile": "escape",
+      "pid": 34692,
+      "frames": [
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-00.png",
+          "sha256": "ed39bada0e9a8d1004e21a5df1387b72494fa31afd1545072a4bc4c082633f99",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:27:01.670478+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 1.508
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-01.png",
+          "sha256": "e4be17c539b1903f0dbd8a31dcd219dff622d7539f3fd52a323be60166fa898d",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:27:02.078244+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 2.223
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-02.png",
+          "sha256": "e4be17c539b1903f0dbd8a31dcd219dff622d7539f3fd52a323be60166fa898d",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:27:02.712109+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 2.915
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-03.png",
+          "sha256": "e164e8fa81dd0f0263652f2a35f018918f10c6e5ef381566f21102661ade62c1",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:27:03.667969+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 3.579
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-04.png",
+          "sha256": "6a417c94d17344977afa19780eac16025317b48e2a7f79f270d0020577877820",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:27:05.982085+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 4.261
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-05.png",
+          "sha256": "d67026ec1bd6477f7e047f4d950be3965142d7ec4631ce02445697c5baf65ea5",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 723790,
+          "at_utc": "2026-10-15T17:27:08.120149+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 6.533
+        },
+        {
+          "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-06.png",
+          "sha256": "47a3041cb893f797e1bc5fece1d5b67934d57f32271f6827cd51f6d249fdd4fe",
+          "size": [
+            2182,
+            1357
+          ],
+          "foreground_hwnd": 1444356,
+          "at_utc": "2026-10-15T17:27:10.340573+00:00",
+          "window": {
+            "hwnd": 2820184,
+            "pid": 34692,
+            "title": "COOLZHU",
+            "class": "Tauri Window",
+            "visible": true,
+            "minimized": false,
+            "bounds": [
+              200,
+              12,
+              2382,
+              1369
+            ],
+            "dpi": 144
+          },
+          "since_process_seconds": 8.671
+        }
+      ],
+      "started_at_utc": "2026-10-15T17:26:59.417795+00:00",
+      "animation_first_seen_seconds": 1.5079256000171881,
+      "dpi": 144,
+      "bounds": [
+        200,
+        12,
+        2382,
+        1369
+      ],
+      "escape": {
+        "sent": false,
+        "reason": "前台归属未确认，未发送键盘输入"
+      },
+      "animation_hidden_seconds": 10.89156190000358,
+      "console_frame": {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-escape-console.png",
+        "sha256": "218a5a23f3a715cdb8f892a5096c0d2b01a54a120de763579fcb15f5b686ab0e",
+        "size": [
+          2182,
+          1355
+        ],
+        "foreground_hwnd": 1444356,
+        "at_utc": "2026-10-15T17:27:12.640325+00:00",
+        "window": {
+          "hwnd": 1444356,
+          "pid": 34692,
+          "title": "COOLZHU AGENT 控制台",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            189,
+            12,
+            2371,
+            1367
+          ],
+          "dpi": 144
+        }
+      },
+      "console_seen_seconds": 13.1510346000141,
+      "close_exit_code": 0
+    }
+  ],
+  "reduced_motion": {
+    "mode_requested_by_profile": "reduced-motion",
+    "pid": 29376,
+    "frames": [
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-00.png",
+        "sha256": "3d4fcfbef6a6940bab4da02f1ddf62532db578f4c682f0bc6bfaa6c14e683976",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:50.650372+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 1.698
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-01.png",
+        "sha256": "82a452b84746fdce81354c27d8bde079ae7c1e7f90357d4adb50bed872b3a61b",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:53.100269+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 2.582
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-02.png",
+        "sha256": "b7a9aa99d2646335aee342f095829109e1dbdcf6952479a7b9ccf0a8cb3f9b39",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:53.879421+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 5.031
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-03.png",
+        "sha256": "5431d67efad710f8c47801ffa7ec7c24e8024ac1bce884238270e01e4b89aab1",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:55.064260+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 5.81
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-04.png",
+        "sha256": "5431d67efad710f8c47801ffa7ec7c24e8024ac1bce884238270e01e4b89aab1",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:55.762663+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 6.995
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-05.png",
+        "sha256": "5431d67efad710f8c47801ffa7ec7c24e8024ac1bce884238270e01e4b89aab1",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:56.514231+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 7.693
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-06.png",
+        "sha256": "5431d67efad710f8c47801ffa7ec7c24e8024ac1bce884238270e01e4b89aab1",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:57.571129+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 8.444
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-07.png",
+        "sha256": "5431d67efad710f8c47801ffa7ec7c24e8024ac1bce884238270e01e4b89aab1",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 8389204,
+        "at_utc": "2026-10-15T17:53:58.176870+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 9.502
+      },
+      {
+        "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-08.png",
+        "sha256": "5431d67efad710f8c47801ffa7ec7c24e8024ac1bce884238270e01e4b89aab1",
+        "size": [
+          2182,
+          1357
+        ],
+        "foreground_hwnd": 5310320,
+        "at_utc": "2026-10-15T17:53:58.704433+00:00",
+        "window": {
+          "hwnd": 8389204,
+          "pid": 29376,
+          "title": "COOLZHU",
+          "class": "Tauri Window",
+          "visible": true,
+          "minimized": false,
+          "bounds": [
+            200,
+            12,
+            2382,
+            1369
+          ],
+          "dpi": 144
+        },
+        "since_process_seconds": 10.19
+      }
+    ],
+    "started_at_utc": "2026-10-15T17:53:48.076091+00:00",
+    "animation_first_seen_seconds": 1.6981629999936558,
+    "dpi": 144,
+    "bounds": [
+      200,
+      12,
+      2382,
+      1369
+    ],
+    "animation_hidden_seconds": 10.635071900003823,
+    "console_frame": {
+      "path": "D:\\coolzhuagent\\tmp\\goal-32wbs-acceptance-20261013\\controller-installed-133-reduced-motion-console.png",
+      "sha256": "37767ac378d82876e904fa551293c4db199ec68f6f86bf7b22148fb83d6f45ae",
+      "size": [
+        2182,
+        1355
+      ],
+      "foreground_hwnd": 5310320,
+      "at_utc": "2026-10-15T17:54:03.433230+00:00",
+      "window": {
+        "hwnd": 5310320,
+        "pid": 29376,
+        "title": "COOLZHU AGENT 控制台",
+        "class": "Tauri Window",
+        "visible": true,
+        "minimized": false,
+        "bounds": [
+          189,
+          12,
+          2371,
+          1367
+        ],
+        "dpi": 144
+      }
+    },
+    "console_seen_seconds": 15.323246300016763,
+    "close_exit_code": 0,
+    "native_lifecycle": [
+      {
+        "ts_ms": 1792086828142,
+        "level": "INFO",
+        "app": "coolzhu-tauri-shell",
+        "module": "diagnostics",
+        "event": "diagnostics.ready",
+        "message": "结构化诊断文件已就绪"
+      },
+      {
+        "ts_ms": 1792086830129,
+        "level": "INFO",
+        "app": "coolzhu-tauri-shell",
+        "module": "tauri-shell",
+        "event": "startup_performance_window_created",
+        "message": "Startup performance window was created",
+        "fields": {
+          "pid": "29376"
+        }
+      },
+      {
+        "ts_ms": 1792086833070,
+        "level": "INFO",
+        "app": "coolzhu-tauri-shell",
+        "module": "tauri-shell",
+        "event": "startup_performance_phase",
+        "message": "Startup performance lifecycle report",
+        "fields": {
+          "phase": "started",
+          "mode": "daily",
+          "reason": "",
+          "reduced_motion": "true",
+          "page_elapsed_ms": "0",
+          "host_elapsed_ms": "3308",
+          "frame_count": "0",
+          "performance_visible": "true"
+        }
+      },
+      {
+        "ts_ms": 1792086836047,
+        "level": "INFO",
+        "app": "coolzhu-tauri-shell",
+        "module": "tauri-shell",
+        "event": "startup_performance_phase",
+        "message": "Startup performance lifecycle report",
+        "fields": {
+          "phase": "finished",
+          "mode": "daily",
+          "reason": "reduced-motion",
+          "reduced_motion": "true",
+          "page_elapsed_ms": "130",
+          "host_elapsed_ms": "6285",
+          "frame_count": "0",
+          "performance_visible": "true"
+        }
+      },
+      {
+        "ts_ms": 1792086838433,
+        "level": "INFO",
+        "app": "coolzhu-tauri-shell",
+        "module": "tauri-shell",
+        "event": "startup_performance_handoff",
+        "message": "Startup performance handed off to console",
+        "fields": {
+          "route": "reported-finish",
+          "console_visible": "true"
+        }
+      }
+    ],
+    "finished_events": [
+      {
+        "phase": "finished",
+        "mode": "daily",
+        "reason": "reduced-motion",
+        "reduced_motion": "true",
+        "page_elapsed_ms": "130",
+        "host_elapsed_ms": "6285",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    ]
+  },
+  "normal_d_startup": [
+    {
+      "ts_ms": 1792090765858,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_window_created",
+      "message": "Startup performance window was created",
+      "fields": {
+        "pid": "34004"
+      }
+    },
+    {
+      "ts_ms": 1792090766094,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "started",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "0",
+        "host_elapsed_ms": "687",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792090766113,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "assets_ready",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "192",
+        "host_elapsed_ms": "707",
+        "frame_count": "0",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792090766271,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "first_frame",
+        "mode": "daily",
+        "reason": "",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "363",
+        "host_elapsed_ms": "864",
+        "frame_count": "1",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792090771270,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_phase",
+      "message": "Startup performance lifecycle report",
+      "fields": {
+        "phase": "finished",
+        "mode": "daily",
+        "reason": "skipped",
+        "reduced_motion": "false",
+        "page_elapsed_ms": "5364",
+        "host_elapsed_ms": "5864",
+        "frame_count": "1132",
+        "performance_visible": "true"
+      }
+    },
+    {
+      "ts_ms": 1792090771316,
+      "level": "INFO",
+      "app": "coolzhu-tauri-shell",
+      "module": "tauri-shell",
+      "event": "startup_performance_handoff",
+      "message": "Startup performance handed off to console",
+      "fields": {
+        "route": "reported-finish",
+        "console_visible": "true"
+      }
+    }
+  ]
+}

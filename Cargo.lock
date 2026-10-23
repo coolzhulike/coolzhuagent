@@ -809,6 +809,7 @@ dependencies = [
  "coolzhu-command-router",
  "coolzhu-compatibility-harness",
  "coolzhu-core-runtime",
+ "coolzhu-diagnostics",
  "coolzhu-llm-adapter",
  "coolzhu-plugin-system",
  "coolzhu-tool-registry",
@@ -903,6 +904,10 @@ dependencies = [
 [[package]]
 name = "coolzhu-diagnostics"
 version = "0.2.0"
+dependencies = [
+ "sha2",
+ "winapi-util",
+]
 
 [[package]]
 name = "coolzhu-docgen"
@@ -937,6 +942,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "sha2",
  "tokio",
 ]
 
@@ -1018,6 +1024,7 @@ dependencies = [
  "async-stream",
  "axum",
  "base64",
+ "coolzhu-app-launcher",
  "coolzhu-computer-use-core",
  "coolzhu-core-runtime",
  "coolzhu-diagnostics",

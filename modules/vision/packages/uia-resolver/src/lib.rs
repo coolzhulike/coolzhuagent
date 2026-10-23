@@ -30,6 +30,8 @@ pub struct UiaQuery {
 #[derive(Debug, Clone, PartialEq)]
 pub struct UiaElementSnapshot {
     pub reference: String,
+    /// UIA运行时身份；读取失败保持None，语义输入不能退回名称或坐标猜测。
+    pub runtime_id: Option<Vec<i32>>,
     pub process_id: u32,
     pub native_window_handle: isize,
     pub name: Option<String>,
@@ -381,6 +383,7 @@ mod tests {
             dpi: 120,
             elements: vec![UiaElementSnapshot {
                 reference: "uia-1".into(),
+                runtime_id: None,
                 process_id: 1200,
                 native_window_handle: 99,
                 name: Some("文本编辑器".into()),

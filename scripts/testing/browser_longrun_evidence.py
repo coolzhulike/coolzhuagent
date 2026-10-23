@@ -11,6 +11,8 @@ from pathlib import Path
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--navigate-when-armed", action="store_true",
+                        help="仅验收页：观察落库后由控制端写arm-navigation，触发真实跨来源导航")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     lock = threading.Lock()
@@ -36,7 +38,9 @@ def main():
             pass
 
         def do_GET(self):
-            if self.path == "/long-result":
+            if self.path == "/armed" and args.navigate_when_armed:
+                body, mime = json.dumps({"armed": (args.output / "arm-navigation").is_file()}).encode(), "application/json"
+            elif self.path == "/long-result":
                 body, mime = raw_payload, "text/plain;charset=utf-8"
             elif self.path in ("/old", "/new"):
                 role = self.path[1:]
@@ -60,12 +64,15 @@ addEventListener('pagehide',e=>report('pagehide',e));addEventListener('load',e=>
 target.addEventListener('click',e=>{if(e.isTrusted){effect.textContent='收到可信click';report('effect',e);}});
 if('ROLE'==='old')target.addEventListener('pointerdown',e=>{if(e.isTrusted){report('navigation-requested',e);location.replace('DESTINATION');}});
 report('document-script-start');</script>'''
+                if args.navigate_when_armed and role == "old":
+                    html += "<script>setInterval(async()=>{try{if((await(await fetch('/armed')).json()).armed){location.replace('DESTINATION')}}catch{}},100);</script>"
                 body = html.replace("ROLE", role).replace("DESTINATION", destination).encode()
                 mime = "text/html;charset=utf-8"
             else:
                 self.send_error(404)
                 return
-            record({"kind": "http-get", "port": self.server.server_port, "path": self.path})
+            if self.path != "/armed":
+                record({"kind": "http-get", "port": self.server.server_port, "path": self.path})
             self.send_response(200)
             self.send_header("Content-Type", mime)
             self.send_header("Cache-Control", "no-store")

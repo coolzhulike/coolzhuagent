@@ -21,6 +21,7 @@ use serde_json::{json, Value};
 
 pub mod launch_paths;
 pub mod service_identity;
+pub mod instance_restart;
 
 pub use launch_paths::{
     ActionOutcome, CandidateSource, ConfigSnapshot, DataPathBinding, ExplicitSelection,
@@ -844,35 +845,7 @@ where
         notes: notes.to_vec(),
     };
 
-    if let Err(e) = poll_health(
-        &config.health_url,
-        config.health_timeout,
-        config.health_poll_interval,
-        probe,
-        now_fn,
-        sleep_fn,
-    ) {
-        let cleanup_error = spawner.terminate_process(web_pid).err();
-        let error_text = match cleanup_error {
-            Some(cleanup) => format!("{e}; web console cleanup failed: {cleanup}"),
-            None => e.to_string(),
-        };
-        let payload = failed_payload(error_text, Some(web_pid), None);
-        let _ = write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload);
-        return Err(e);
-    }
-
-    // 健康就绪：回读后台实际使用的路径（只打印配置值不足以证明生效）。
-    let observed = observe();
-    let resolved = match &observed {
-        Some(observed) => resolved.with_observations(observed),
-        None => resolved.clone(),
-    };
-    eprintln!("package-launcher: 解析结果快照");
-    for line in resolved.display_lines() {
-        eprintln!("  {line}");
-    }
-
+    // 本地启动动画不依赖服务/历史就绪，先创建窗口再等待健康检查。
     let tauri_args = build_tauri_args(web_pid, &config.tauri.args);
     let tauri_log_file = config.log_dir.join("tauri.stdout.log");
     let tauri_pid = match spawner.spawn_tauri(&config.tauri, &tauri_args, &resolved, &tauri_log_file) {
@@ -888,6 +861,38 @@ where
             return Err(e);
         }
     };
+
+
+    if let Err(e) = poll_health(
+        &config.health_url,
+        config.health_timeout,
+        config.health_poll_interval,
+        probe,
+        now_fn,
+        sleep_fn,
+    ) {
+        let cleanup_error = spawner.terminate_process(web_pid).err();
+        let error_text = match cleanup_error {
+            Some(cleanup) => format!("{e}; web console cleanup failed: {cleanup}"),
+            None => e.to_string(),
+        };
+        let _ = spawner.terminate_process(tauri_pid);
+        let payload = failed_payload(error_text, Some(web_pid), Some(tauri_pid));
+        let _ = write_selfcheck(&config.selfcheck_file, &config.log_dir, &payload);
+        return Err(e);
+    }
+
+    // 健康就绪：回读后台实际使用的路径（只打印配置值不足以证明生效）。
+    let observed = observe();
+    let resolved = match &observed {
+        Some(observed) => resolved.with_observations(observed),
+        None => resolved.clone(),
+    };
+    eprintln!("package-launcher: 解析结果快照");
+    for line in resolved.display_lines() {
+        eprintln!("  {line}");
+    }
+
 
     let payload = SelfcheckPayload {
         ok: true,
@@ -1696,6 +1701,40 @@ mod tests {
         assert_eq!(v["resolution_notes"][0], "[test] note");
     }
 
+    /// 大历史库的冷启动可超过旧30秒期限；消费真实随包配置，避免测试自造宽松期限。
+    #[test]
+    fn packaged_launch_allows_slow_database_startup_before_showing_ui() {
+        let log_dir = temp_dir_unique("packaged-slow-start");
+        let mut cfg = LauncherConfig::from_json_with_env(
+            include_str!("../../../config/package-launcher.json"),
+            Path::new("."),
+            |_| Some(log_dir.clone().into_os_string()),
+        ).unwrap();
+        cfg.web_console.path = touch_executable("slow-start-web");
+        cfg.tauri.path = touch_executable("slow-start-tauri");
+        cfg.log_dir = log_dir.clone();
+        cfg.selfcheck_file = log_dir.join("package-selfcheck-last.json");
+        let resolved = workspace_for("slow-start-workspace");
+        let mut spawner = FakeSpawner::new(555, 666);
+        let clock = std::cell::Cell::new(Duration::ZERO);
+        let ready_at = Duration::from_secs(45);
+        let mut probe = || {
+            if clock.get() >= ready_at { ProbeOutcome::Ready } else { ProbeOutcome::Transient }
+        };
+        let result = launch(
+            &cfg, &resolved, &mut spawner, &mut probe,
+            || clock.get(), |d| clock.set(clock.get() + d),
+            7, &mut no_observation, &[],
+        );
+        assert!(result.is_ok(), "慢启动不应被旧30秒期限提前回收：{result:?}");
+        assert_eq!(clock.get(), ready_at);
+        assert_eq!(spawner.web_calls, 1);
+        assert_eq!(spawner.tauri_calls, 1);
+        assert!(spawner.terminated_pids.is_empty());
+        let persisted: Value = serde_json::from_str(&fs::read_to_string(&cfg.selfcheck_file).unwrap()).unwrap();
+        assert_eq!(persisted["ok"], true);
+    }
+
     #[test]
     fn launch_writes_failed_selfcheck_on_health_timeout() {
         let web = touch_executable("web-timeout");
@@ -1721,14 +1760,14 @@ mod tests {
 
         assert!(matches!(res, Err(LaunchError::HealthTimeout { .. })));
         assert_eq!(spawner.web_calls, 1);
-        assert_eq!(spawner.tauri_calls, 0);
-        assert_eq!(spawner.terminated_pids, vec![555]);
+        assert_eq!(spawner.tauri_calls, 1, "健康等待期间已显示本地启动动画");
+        assert_eq!(spawner.terminated_pids, vec![555, 666]);
 
         let v: Value =
             serde_json::from_str(&fs::read_to_string(&cfg.selfcheck_file).unwrap()).unwrap();
         assert_eq!(v["ok"], false);
         assert_eq!(v["web_console_pid"], 555);
-        assert_eq!(v["tauri_pid"], Value::Null);
+        assert_eq!(v["tauri_pid"], 666);
         assert!(v["error"].as_str().unwrap().contains("timed out"));
         assert_eq!(v["timestamp_ms"], 7);
     }

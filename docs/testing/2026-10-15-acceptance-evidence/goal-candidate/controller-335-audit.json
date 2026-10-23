@@ -1,0 +1,61 @@
+{
+  "stage": "d-console-full-after-deadline-335",
+  "atUtc": "2026-10-15T10:54:48.119941+00:00",
+  "decision": "EX-01-accepted-current-source",
+  "httpStatus": "completed",
+  "attempt": {
+    "id": "ebd831c0110c8565c67494730a9515e6fda00cfeecc51f82",
+    "state": "terminal",
+    "processDrained": 1
+  },
+  "executorQueue": "queued",
+  "reportSha256": "12098529b34d67a8ed5f74d41a770cc5b84a637b0f722ee781aae80e87cc4d12",
+  "jobId": "640059fc6af544efb92f75ca9b9372b0",
+  "jobState": "completed",
+  "jobExit": 0,
+  "buildExit": 0,
+  "fullTestExit": 0,
+  "groups": [
+    [
+      8,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      1505,
+      0,
+      6
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "passed": 1517,
+  "failed": 0,
+  "ignored": 6,
+  "fullLogSha256": "ec3dc7f305a30a26b70bb1340345012ca6ad5213d48c81ae0d6d979cffeae1e5",
+  "sourceUnchanged": true,
+  "scope": "当前工作区源码离线完整测试；不代表正式8765已部署最新程序或32WBS全部完成。"
+}

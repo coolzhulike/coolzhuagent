@@ -1,0 +1,42 @@
+{
+  "line_count": 1,
+  "prior": {
+    "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp2wOfy3\\repair-once.txt' -Value repair; exit 0",
+    "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp2wOfy3",
+    "exit_code": 0,
+    "finished_at_unix_ms": 1792340762048,
+    "id": "goal-command-1792340761740-14132-19",
+    "reason": "",
+    "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+    "started_at_unix_ms": 1792340761740,
+    "status": "passed",
+    "timeout_ms": 90000
+  },
+  "reused": {
+    "contract": {
+      "commands": [
+        "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp2wOfy3\\repair-once.txt' -Value repair; exit 0"
+      ],
+      "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp2wOfy3",
+      "timeout_ms": 90000,
+      "type": "Command"
+    },
+    "legacy_failures": null,
+    "reason": "",
+    "receipts": [
+      {
+        "command": "Add-Content -LiteralPath 'C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp2wOfy3\\repair-once.txt' -Value repair; exit 0",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp2wOfy3",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792340762048,
+        "id": "goal-command-1792340761740-14132-19",
+        "reason": "",
+        "shell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.EXE",
+        "started_at_unix_ms": 1792340761740,
+        "status": "passed",
+        "timeout_ms": 90000
+      }
+    ],
+    "state": "passed"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "at_utc": "2026-10-16T18:48:56.532244+00:00",
+  "files": [
+    {
+      "path": "acceptance-checklist.json",
+      "bytes": 126136,
+      "sha256": "7adf019f80ae20fc946e2dbce0775182886d894ab751a2c1c22d27ecfb93b698"
+    },
+    {
+      "path": "controller-key-acceptance-review-20261016.json",
+      "bytes": 37854,
+      "sha256": "64629ef51a92d4dde166841a8ac95030801e1e7123a4a301cda465620b483277"
+    },
+    {
+      "path": "controller-key-acceptance-review-20261016.py",
+      "bytes": 22411,
+      "sha256": "0e6d27b9eb9018f705b6cf16289781815173538085f498ecc1f4adb850cb13a5"
+    },
+    {
+      "path": "controller-key-ledger-render-20261016.py",
+      "bytes": 5504,
+      "sha256": "da124c3ae94b9bbf58b5a7a2137cba72b667667205737125abb7e6b7d7caea8b"
+    },
+    {
+      "path": "strict-checklist-before-rescope.json",
+      "bytes": 79456,
+      "sha256": "9b6864feecb2f1e24834c92a778e0bd504bb4a5e6f569500850395874117e29a"
+    },
+    {
+      "path": "strict-generator-before-rescope.py",
+      "bytes": 21970,
+      "sha256": "bf11c5464de55b4759f8bbb8ad744e435b8d63348b1507c24535d9bb60079002"
+    }
+  ]
+}

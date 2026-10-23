@@ -15,6 +15,12 @@
         </svg>
       </button>
     </main>
+    <div id="startup-backend-status" hidden style="position:fixed;inset:0;display:grid;place-content:center;gap:18px;text-align:center;background:#071710;color:#ead49a;font:18px system-ui;z-index:10">
+      <p id="startup-backend-message">正在载入工程与会话…</p>
+      <button id="startup-backend-retry" hidden onclick="this.hidden=true;window.__TAURI__.core.invoke('show_console_command')">重试连接</button>
+      <button onclick="window.__TAURI__.core.invoke('quit_app')">退出</button>
+    </div>
+    <style>#startup-backend-status[hidden]{display:none!important}</style>
     <!-- 同一幅卷轴展开，保留原COOLZHU字形与Q版整人姿态；不再逐字书写。 -->
     <script defer src="./scroll-startup-player.js"></script>
     <script defer src="./coolzhu-seven-letter-manifest.js"></script>

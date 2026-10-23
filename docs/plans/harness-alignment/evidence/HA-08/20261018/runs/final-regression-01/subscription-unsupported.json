@@ -1,0 +1,6 @@
+{
+  "child_entry": "OpenAI 订阅目前仅开放文本聊天；后台任务、子 Agent 和 Goal 尚未派发",
+  "http_native_tool_entry": "unsupported provider capability: OpenAI 订阅使用官方 CLI 聊天会话；当前未开放 Goal、工具或内部模型委派。",
+  "network_calls": 0,
+  "reason": "受影响入口在调用 provider 前返回 UnsupportedCapability；无账号及付费调用"
+}

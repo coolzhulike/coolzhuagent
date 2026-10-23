@@ -39,6 +39,8 @@ mod local_control;
 mod async_process;
 mod conpty;
 mod secret_protection;
+mod low_integrity;
+pub use low_integrity::create_low_integrity_workspace;
 pub use secret_protection::{protect_user_secret, unprotect_user_secret};
 pub use conpty::{ConPtyOutput, ManagedConPty};
 pub use local_control::{LocalProcessPeer, LocalRecoveryPipeServer, process_peer_identity,
@@ -795,6 +797,11 @@ impl ChildProcessJob {
         Self::spawn_managed_checked(command, |_| Ok(()))
     }
 
+    /// 显式低完整性写隔离；降低令牌成功后才恢复初始线程，无未隔离回退。
+    pub fn spawn_managed_low_integrity(command: &mut std::process::Command) -> io::Result<(Child, Self)> {
+        Self::spawn_managed_checked(command, low_integrity::lower_suspended_child)
+    }
+
     /// 子进程仍挂起且已纳入Job时检查调用方资格；拒绝则回收，不恢复业务线程。
     pub fn spawn_managed_checked(
         command: &mut std::process::Command,
@@ -868,6 +875,26 @@ impl ChildProcessJob {
             std::ptr::addr_of_mut!(info).cast(), std::mem::size_of::<JOBOBJECT_BASIC_ACCOUNTING_INFORMATION>() as u32, std::ptr::null_mut()) };
         if ok == 0 { return Err(io::Error::last_os_error()); }
         Ok(info.ActiveProcesses)
+    }
+
+    /// 查询 Job 中当前活跃进程的 PID 列表；**仅用于失败诊断**，不用于放行裁决。
+    /// `JobObjectBasicProcessIdList` 需要容量提示：按固定上界分配并截断标注，
+    /// 诊断用途不要求枚举所有实例，但绝不把截断后的数量当成真实总数。
+    pub fn active_process_ids(&self) -> io::Result<Vec<u32>> {
+        use windows_sys::Win32::System::JobObjects::{JobObjectBasicProcessIdList, QueryInformationJobObject, JOBOBJECT_BASIC_PROCESS_ID_LIST};
+        const CAPACITY: usize = 1024;
+        // ProcessIdList 是结构内柔性数组首元素：基址必须用 offset_of，
+        // 用 size_of 会越过首元素、把后续槽位/垃圾当 PID（实测读回 [0]）。
+        let header = std::mem::offset_of!(JOBOBJECT_BASIC_PROCESS_ID_LIST, ProcessIdList);
+        let mut buffer = vec![0_u8; header + CAPACITY * std::mem::size_of::<usize>()];
+        let ok = unsafe { QueryInformationJobObject(
+            self.handle as HANDLE, JobObjectBasicProcessIdList,
+            buffer.as_mut_ptr().cast(), buffer.len() as u32, std::ptr::null_mut()) };
+        if ok == 0 { return Err(io::Error::last_os_error()); }
+        let info = unsafe { &*(buffer.as_ptr() as *const JOBOBJECT_BASIC_PROCESS_ID_LIST) };
+        let count = (info.NumberOfProcessIdsInList as usize).min(CAPACITY);
+        let base = unsafe { buffer.as_ptr().add(header) } as *const usize;
+        Ok((0..count).map(|i| unsafe { *base.add(i) } as u32).collect())
     }
 
     /// 终止受管进程树并查询 Job 的活跃进程数。关闭句柄的意图不能当作排空回执。
@@ -1969,6 +1996,17 @@ pub fn terminate_owned_process(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn active_process_ids_lists_managed_descendant() {
+        let mut command = std::process::Command::new("powershell");
+        command.args(["-NoProfile", "-Command", "Start-Sleep -Seconds 30"]);
+        let (mut child, job) = ChildProcessJob::spawn_managed(&mut command).expect("managed spawn");
+        let ids = job.active_process_ids().expect("PID 列表查询");
+        assert!(ids.contains(&child.id()), "子进程必须在 Job PID 列表中: {ids:?}");
+        job.terminate_and_wait(Duration::from_secs(5)).expect("回收");
+        let _ = child.wait();
+    }
 
     #[test]
     fn owner_exit_while_child_suspended_rejects_before_business_code() {

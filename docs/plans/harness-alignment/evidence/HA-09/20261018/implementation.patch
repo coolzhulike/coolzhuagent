@@ -1,0 +1,580 @@
+--- before/modules/gui-web/packages/web-console/src/main.rs
++++ after/modules/gui-web/packages/web-console/src/main.rs
+@@ -116,6 +116,7 @@
+ mod video_job_budget;
+ mod video_job_control;
+ mod goal_command;
++mod goal_verification;
+ mod goal_execution_parent;
+ #[cfg(test)]
+ mod input_safety_harness;
+@@ -18051,7 +18052,7 @@
+                 tool_requests: Vec::new(), tool_write_executed: false, model_tool_calls_executed: true,
+                 turn_id: String::new(), used_real_model: false, diagnostic_note: Some(error.clone()),
+                 context_footer: None, context_usage: None };
+-            (response, Vec::new(), vec![error])
++            (response, Vec::new(), goal_verification::Result::unable(error))
+         }
+         Ok(goal_parent) => {
+     let root_budget = goal_parent.root_budget();
+@@ -18092,7 +18093,7 @@
+             tool_requests: Vec::new(), tool_write_executed: false, model_tool_calls_executed: true,
+             turn_id: String::new(), used_real_model: false, diagnostic_note: Some(error.clone()),
+             context_footer: None, context_usage: None,
+-        }, Vec::new(), vec![error]);
++        }, Vec::new(), goal_verification::Result::unable(error));
+     }
+     let model_response = agent_chat_response(
+         &run_context.agent,
+@@ -18126,7 +18127,7 @@
+     // 确定性命令门控：在不持 session_store 锁时异步执行（cargo build/test 等可能耗时数十秒），
+     // 失败证据作为参数传入 record，由其决定回退到 implementer 还是推进完成。
+     // 规划不执行原任务的构建/验证命令；仍受原根时限和token finalizer约束。
+-    let command_failures = if replanning { Vec::new() } else { run_goal_phase_command_gate(
++    let command_failures = if replanning { goal_verification::Result::not_required("重规划不执行原验证合同") } else { run_goal_phase_command_gate(
+         &run_context.db_path,
+         &workspace_id,
+         &run_context.goal_id,
+@@ -18134,7 +18135,7 @@
+     )
+     .await };
+     let mut command_failures = command_failures;
+-    if root_budget.is_expired() { command_failures.push(root_execution_budget::EXPIRED_REASON.to_string()); }
++    if root_budget.is_expired() { command_failures.force_unable(root_execution_budget::EXPIRED_REASON); }
+     (model_response, tool_messages, command_failures)
+     }).await
+         }
+@@ -18148,7 +18149,7 @@
+                 tool_requests: Vec::new(), tool_write_executed: false, model_tool_calls_executed: true,
+                 turn_id: String::new(), used_real_model: false, diagnostic_note: Some(reason.clone()),
+                 context_footer: None, context_usage: None,
+-            }, Vec::new(), vec![reason]),
++            }, Vec::new(), goal_verification::Result::unable(reason)),
+         }
+     } else { Box::pin(phase_work).await };
+     // 收尾独立于业务根时限，仍必须提交真实 run/claim 的终态。
+@@ -39881,7 +39882,7 @@
+         agent: &AgentSessionDto,
+         response: AgentModelResponse,
+         tool_messages: Vec<ChatMessageDto>,
+-        command_failures: Vec<String>,
++        command_failures: impl Into<goal_verification::Result>,
+     ) -> ApiResult<GoalPhaseRunResponse> {
+         // await 期间 workspace 可能已切换。旧结果不能写当前新 store；仅在 captured DB
+         // 上以自有 token 做 interrupted cleanup，失败则保持现场并返回 stale/409。
+@@ -39910,7 +39911,7 @@
+             agent,
+             response,
+             tool_messages,
+-            command_failures,
++            command_failures.into(),
+         )?;
+ 
+         // SQLite 已 commit；镜像失败不能伪造 rollback。只有 same-path 才能修改内存，
+@@ -39963,7 +39964,7 @@
+         agent: &AgentSessionDto,
+         response: AgentModelResponse,
+         tool_messages: Vec<ChatMessageDto>,
+-        command_failures: Vec<String>,
++        command_failures: impl Into<goal_verification::Result>,
+     ) -> ApiResult<GoalPhaseRunResponse> {
+         if self.path != expected_db_path {
+             return Err(api_error(
+@@ -39990,7 +39991,7 @@
+         agent: &AgentSessionDto,
+         response: AgentModelResponse,
+         mut tool_messages: Vec<ChatMessageDto>,
+-        command_failures: Vec<String>,
++        command_failures: impl Into<goal_verification::Result>,
+     ) -> ApiResult<GoalPhaseRunResponse> {
+         let goal = get_goal_sqlite(&self.path, workspace_id, goal_id)?;
+         let phase = goal
+@@ -39998,6 +39999,8 @@
+             .iter()
+             .find(|phase| phase.id == phase_id)
+             .ok_or_else(|| api_error(StatusCode::NOT_FOUND, "Goal phase does not exist."))?;
++        let command_result = command_failures.into();
++        let command_failures = command_result.blockers(phase.verification.as_ref(), false);
+         if phase.assigned_session_id.as_deref() != Some(agent.id.as_str()) {
+             return Err(api_error(
+                 StatusCode::BAD_REQUEST,
+@@ -46487,7 +46490,8 @@
+             depends_on: serde_json::from_str(&depends_on_json).unwrap_or_default(),
+             skills_required: serde_json::from_str(&skills_json).unwrap_or_default(),
+             output_artifacts: serde_json::from_str(&output_artifacts_json).unwrap_or_default(),
+-            verification: verification_json.and_then(|value| serde_json::from_str(&value).ok()),
++            verification: verification_json.map(|value| serde_json::from_str(&value).map_err(|error|
++                rusqlite::Error::FromSqlConversionFailure(8, rusqlite::types::Type::Text, Box::new(error)))).transpose()?,
+             retry_count,
+             max_retries: i64_to_u64(row.get::<_, i64>(12)?) as u32,
+             last_verdict,
+@@ -47049,6 +47053,9 @@
+         .as_ref()
+         .map(JsonValue::to_string)
+         .unwrap_or_else(|| "none".to_string());
++    let verification = if goal_verification::is_command(phase.verification.as_ref()) {
++        format!("{verification}\nCommand合同由runtime统一执行并保存宿主回执。不要仅为完成合同预跑相同命令；可按实际诊断需要执行其他检查。模型正文中的成功声明不能替代回执。")
++    } else { verification };
+     let shell_guidance = host_shell_tool_guidance();
+     let skill_guidance = load_goal_skill_guidance(&skill_names);
+     format!(
+@@ -47710,7 +47717,7 @@
+     agent: &AgentSessionDto,
+     response: AgentModelResponse,
+     tool_messages: Vec<ChatMessageDto>,
+-    command_failures: Vec<String>,
++    command_failures: goal_verification::Result,
+ ) -> ApiResult<GoalPhaseFinalizedResult> {
+     if !path.exists() {
+         return Err(stale_goal_phase_result_error());
+@@ -47833,6 +47840,9 @@
+     let missing_artifacts = goal_phase_missing_files(&phase);
+     let mut blocked_reason = goal_phase_implementer_blocked_reason(&response.answer_text);
+     let recovery_stage = stage_pin.stage();
++    let command_result = command_failures;
++    let command_failures = command_result.blockers(phase.verification.as_ref(),
++        recovery_stage == goal_phase_stage::PhaseStage::Replanning);
+     if recovery_stage == goal_phase_stage::PhaseStage::Replanning
+         || (recovery_stage == goal_phase_stage::PhaseStage::Repair && !response.execution_failed
+             && blocked_reason.is_none() && missing_artifacts.is_empty() && command_failures.is_empty()) {
+@@ -47888,7 +47898,7 @@
+     // pass：消息、pass verdict/evidence、phase 完成及 claim 清理、Goal 完成判定、
+     // runtime terminal 和事件全部共用这笔事务。
+     if !response.execution_failed && blocked_reason.is_none() && missing_artifacts.is_empty() && command_failures.is_empty() {
+-        let evidence_json = json!({ "text": evidence });
++        let evidence_json = json!({ "text": evidence, "command_verification": command_result });
+         insert_goal_phase_messages_transaction(&transaction, &session_id, &room_id, &base_messages)
+             .map_err(sqlite_api_error)?;
+         let now = unix_timestamp_millis();
+@@ -47984,7 +47994,7 @@
+     // 写消息、verdict/evidence/route、清理 claim、runtime failed 与 Goal 事件。
+     let (
+         reason,
+-        evidence_json,
++        mut evidence_json,
+         retry_status,
+         pause_goal_on_retry,
+         route_hint,
+@@ -48093,6 +48103,7 @@
+             summary,
+         )
+     };
++    evidence_json["command_verification"] = json!(command_result);
+     let mut messages = base_messages;
+     messages.push(ChatMessageDto {
+         id: format!("msg-goal-{}-{}-failure", unix_timestamp_millis(), phase_id),
+@@ -48207,67 +48218,22 @@
+     read_config(|c| c.tool.execution.command_gate_enabled)
+ }
+ 
+-/// Command 确定性门控：`phase.verification.type == "Command"` 时逐条跑命令，
+-/// 任一非零退出/超时/启动失败即未过门，返回结构化失败证据（命令 + exit + 尾部输出）。
+-/// 异步、独立执行——调用方必须在**不持 session_store 锁**时调用，避免长命令（cargo build）阻塞全局。
+-/// 非 Command 类型（FilesExist/UserConfirm/无）返回空，保持原行为，天然兼容视觉/语音/通用 phase。
+-async fn goal_phase_command_failures(phase: &GoalPhaseDto) -> Vec<String> {
+-    let Some(verification) = phase.verification.as_ref() else {
+-        return Vec::new();
+-    };
+-    let kind = verification
+-        .get("type")
+-        .or_else(|| verification.get("kind"))
+-        .and_then(JsonValue::as_str)
+-        .unwrap_or_default();
+-    if kind != "Command" {
+-        return Vec::new();
+-    }
+-    let commands = json_string_array(verification.get("commands"));
+-    if commands.is_empty() {
+-        return Vec::new();
+-    }
+-    let cwd = verification
+-        .get("cwd")
+-        .and_then(JsonValue::as_str)
+-        .filter(|value| !value.trim().is_empty())
+-        .map(PathBuf::from)
+-        .unwrap_or_else(active_workspace_path);
+-    let timeout_ms = verification
+-        .get("timeout_ms")
+-        .and_then(JsonValue::as_u64)
+-        .unwrap_or(600_000);
+-    let mut failures = Vec::new();
+-    for command in commands {
+-        if let Err(reason) = run_goal_gate_command(&command, &cwd, timeout_ms).await {
+-            failures.push(reason);
+-        }
+-    }
+-    failures
+-}
+-
+-/// 执行单条门控命令：Windows 用 PowerShell、其他用 sh；超时/非零退出/启动失败均返回失败原因。
+-/// stdout/stderr 用 decode_console_output 兜底中文 Windows 的 GBK 输出，只保留尾部若干行作证据。
++/// 不持session_store锁执行；所有未执行/未知状态均明确返回，消费端检查真实回执。
++async fn goal_phase_command_failures(phase: &GoalPhaseDto) -> goal_verification::Result {
++    goal_verification::evaluate(phase.verification.as_ref(), goal_command_gate_enabled(), &active_workspace_path()).await
++}
++
+ async fn run_goal_gate_command(command: &str, cwd: &Path, timeout_ms: u64) -> Result<(), String> {
+     goal_command::run(command, cwd, timeout_ms).await
+ }
+ 
+-/// 在不持 session_store 锁时执行 phase 的 Command 门控（异步），返回失败证据列表。
+-/// 由 run_goal_phase_once 在 record 之前调用，结果作为参数传入 record 决定回退/完成。
+-async fn run_goal_phase_command_gate(
+-    db_path: &Path,
+-    workspace_id: &str,
+-    goal_id: &str,
+-    phase_id: &str,
+-) -> Vec<String> {
+-    if !goal_command_gate_enabled() {
+-        return Vec::new();
+-    }
+-    let Ok(goal) = get_goal_sqlite(db_path, workspace_id, goal_id) else {
+-        return Vec::new();
++async fn run_goal_phase_command_gate(db_path: &Path, workspace_id: &str, goal_id: &str, phase_id: &str) -> goal_verification::Result {
++    let goal = match get_goal_sqlite(db_path, workspace_id, goal_id) {
++        Ok(goal) => goal,
++        Err(error) => return goal_verification::Result::unable(format!("读取Goal验证合同失败：{}", error.1.error)),
+     };
+     let Some(phase) = goal.phases.iter().find(|phase| phase.id == phase_id) else {
+-        return Vec::new();
++        return goal_verification::Result::unable("验证阶段不存在，未执行Command");
+     };
+     goal_phase_command_failures(phase).await
+ }
+@@ -59432,6 +59398,7 @@
+ 
+ #[cfg(test)]
+ pub(crate) mod tests {
++    include!("ha09_tests.rs");
+     /// 交互输入 broker 是进程级单例，并按真实 Windows 登录会话解析 scope。
+     /// 所有会真实取得输入所有权的测试必须共用这一把锁，否则并行执行时会把
+     /// 彼此的持有误判为 `input_owner_busy` 并提前终止。
+--- before/modules/gui-web/packages/web-console/src/goal_command.rs
++++ after/modules/gui-web/packages/web-console/src/goal_command.rs
+@@ -1,65 +1,75 @@
+-//! Goal 验证命令复用工具进程监督；等待者消失不会让命令失去取消与回收责任。
++//! Goal 命令的真实宿主回执；等待者消失仍保留取消及进程回收责任。
+ use std::{path::Path, process::Command, time::Duration};
+ use runtime::managed_process::{self, ExecutionControl, Interruption};
++use serde::Serialize;
+ 
++#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
++#[serde(rename_all="snake_case")]
++pub(crate) enum Status {Passed, Failed, TimedOut, Cancelled, Unable}
++#[derive(Clone, Debug, Serialize)]
++pub(crate) struct Receipt {
++    pub id:String,
++    pub command:String,
++    pub cwd:String,
++    pub timeout_ms:u64,
++    pub started_at_unix_ms:u64,
++    pub finished_at_unix_ms:u64,
++    pub status:Status,
++    pub exit_code:Option<i32>,
++    pub reason:String,
++}
++impl Receipt {
++    fn finish(mut self,status:Status,code:Option<i32>,reason:String)->Self {
++        self.status=status;self.exit_code=code;self.reason=reason;
++        self.finished_at_unix_ms=crate::unix_timestamp_millis();self
++    }
++}
+ struct CancelOnDrop(ExecutionControl);
+-impl Drop for CancelOnDrop {
+-    fn drop(&mut self) { self.0.cancel(); }
++impl Drop for CancelOnDrop {fn drop(&mut self){self.0.cancel();}}
++
++pub(crate) async fn run(command:&str,cwd:&Path,timeout_ms:u64)->Result<(),String> {
++    let result=run_receipt(command,cwd,timeout_ms).await;
++    if result.status==Status::Passed {Ok(())}else{Err(result.reason)}
+ }
+-
+-pub(crate) async fn run(command: &str, cwd: &Path, timeout_ms: u64) -> Result<(), String> {
+-    let timeout_ms = crate::root_execution_budget::limit_current_ms(timeout_ms);
+-    if timeout_ms == 0 {
+-        return Err("Goal 验证命令未启动：执行时限已到".into());
+-    }
+-    let external_cancel = crate::current_turn_trace().as_deref()
+-        .map(crate::tool_turn_cancellation_checker);
+-    let control = ExecutionControl::new(Some(Duration::from_millis(timeout_ms)), external_cancel);
+-    let _cancel_on_drop = CancelOnDrop(control.clone());
+-    let command = command.to_owned();
+-    let cwd = cwd.to_owned();
+-    let worker = tokio::task::spawn_blocking(move || {
++pub(crate) async fn run_receipt(command:&str,cwd:&Path,timeout_ms:u64)->Receipt {
++    static SEQUENCE:std::sync::atomic::AtomicU64=std::sync::atomic::AtomicU64::new(1);
++    let now=crate::unix_timestamp_millis();
++    let timeout_ms=crate::root_execution_budget::limit_current_ms(timeout_ms);
++    let receipt=Receipt {id:format!("goal-command-{now}-{}-{}",std::process::id(),SEQUENCE.fetch_add(1,std::sync::atomic::Ordering::Relaxed)),
++        command:command.into(),cwd:cwd.to_string_lossy().into_owned(),timeout_ms,started_at_unix_ms:now,finished_at_unix_ms:now,
++        status:Status::Unable,exit_code:None,reason:String::new()};
++    if timeout_ms==0{return receipt.finish(Status::Unable,None,"Goal 验证命令未启动：执行时限已到".into());}
++    let external_cancel=crate::current_turn_trace().as_deref().map(crate::tool_turn_cancellation_checker);
++    let control=ExecutionControl::new(Some(Duration::from_millis(timeout_ms)),external_cancel);
++    let _cancel_on_drop=CancelOnDrop(control.clone());
++    let fallback=receipt.clone();let lost=receipt.clone();
++    let worker=tokio::task::spawn_blocking(move || {
+         managed_process::with_execution_control(control, || {
+-            let mut process = if cfg!(windows) {
+-                let mut process = Command::new("powershell.exe");
+-                process.args(["-NoProfile", "-NonInteractive", "-Command", &command]);
+-                process
+-            } else {
+-                let mut process = Command::new("sh");
+-                process.args(["-c", &command]);
+-                process
+-            };
+-            process.current_dir(cwd);
+-            #[cfg(windows)] {
+-                use std::os::windows::process::CommandExt;
+-                process.creation_flags(0x08000000);
++            let mut process=if cfg!(windows){let mut p=Command::new("powershell.exe");p.args(["-NoProfile","-NonInteractive","-Command",&receipt.command]);p}
++                else{let mut p=Command::new("sh");p.args(["-c",&receipt.command]);p};
++            process.current_dir(&receipt.cwd);
++            #[cfg(windows)] {use std::os::windows::process::CommandExt;process.creation_flags(0x08000000);}
++            let result=match managed_process::output(&mut process,None){Ok(r)=>r,Err(e)=>{
++                let reason=format!("`{}` 未能完成：{e}",receipt.command);return receipt.finish(Status::Unable,None,reason);
++            }};
++            let code=result.output().status.code();
++            if let Some(interruption)=result.interruption(){
++                let (status,reason)=match interruption{Interruption::TimedOut=>(Status::TimedOut,"超时"),Interruption::Cancelled=>(Status::Cancelled,"已取消")};
++                let reason=format!("`{}` {reason}；所属进程已回收",receipt.command);return receipt.finish(status,code,reason);
+             }
+-            let result = managed_process::output(&mut process, None)
+-                .map_err(|error| format!("`{command}` 未能完成：{error}"))?;
+-            if let Some(reason) = result.interruption() {
+-                return Err(format!("`{command}` {}；所属进程已回收", match reason {
+-                    Interruption::TimedOut => "超时", Interruption::Cancelled => "已取消"
+-                }));
+-            }
+-            if result.output().status.success() { return Ok(()); }
+-            let code = result.output().status.code().unwrap_or(-1);
+-            let combined = format!("{}\n{}",
+-                managed_process::decode_console_output(&result.output().stderr),
+-                managed_process::decode_console_output(&result.output().stdout));
+-            let lines = combined.lines().collect::<Vec<_>>();
+-            let tail = lines[lines.len().saturating_sub(20)..].join("\n");
+-            Err(format!("`{command}` 失败（exit {code}）：\n{tail}"))
++            if result.output().status.success(){return receipt.finish(Status::Passed,code,String::new());}
++            let combined=format!("{}\n{}",managed_process::decode_console_output(&result.output().stderr),managed_process::decode_console_output(&result.output().stdout));
++            let lines=combined.lines().collect::<Vec<_>>();let tail=lines[lines.len().saturating_sub(20)..].join("\n");
++            let reason=format!("`{}` 失败（exit {}）：\n{tail}",receipt.command,code.map(|c|c.to_string()).unwrap_or_else(||"unknown".into()));
++            receipt.finish(Status::Failed,code,reason)
+         })
+     });
+-    let (sender, receiver) = tokio::sync::oneshot::channel();
+-    // 单独持有 JoinHandle，Goal/HTTP future 被取消时仍收取真实进程退出结果。
++    let (sender,receiver)=tokio::sync::oneshot::channel();
+     tokio::spawn(async move {
+-        let result = worker.await.unwrap_or_else(|error| Err(format!("Goal 验证 worker 异常：{error}")));
+-        if let Err(late) = sender.send(result) {
+-            tracing::info!(success = late.is_ok(), "Goal 验证命令在等待者结束后完成收尾");
+-        }
++        let result=worker.await.unwrap_or_else(|e|fallback.finish(Status::Unable,None,format!("Goal 验证 worker 异常：{e}")));
++        if let Err(late)=sender.send(result){tracing::info!(receipt_id=%late.id,status=?late.status,"Goal 验证命令在等待者结束后完成收尾");}
+     });
+-    receiver.await.map_err(|error| format!("Goal 验证监督回执丢失，结果未知：{error}"))?
++    receiver.await.unwrap_or_else(|e|lost.finish(Status::Unable,None,format!("Goal 验证监督回执丢失，结果未知：{e}")))
+ }
+ 
+ #[cfg(test)]
+--- /dev/null
++++ after/modules/gui-web/packages/web-console/src/goal_verification.rs
+@@ -0,0 +1,111 @@
++//! Command 验证结果不能以空失败列表表示成功；回执只来自宿主执行，不反序列化模型正文。
++use super::*;
++use serde::Serialize;
++
++#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
++#[serde(rename_all="snake_case")]
++pub(super) enum State { Passed, Failed, NotRequired, Skipped, Invalid, Unable }
++
++#[derive(Clone, Debug, Serialize)]
++pub(super) struct Result {
++    pub state: State,
++    pub reason: String,
++    contract: Option<JsonValue>,
++    pub receipts: Vec<goal_command::Receipt>,
++    legacy_failures: Option<Vec<String>>,
++}
++impl Result {
++    pub fn state(state:State, reason:impl Into<String>)->Self {
++        Self {state,reason:reason.into(),contract:None,receipts:vec![],legacy_failures:None}
++    }
++    pub fn unable(reason:impl Into<String>)->Self {Self::state(State::Unable,reason)}
++    pub fn not_required(reason:impl Into<String>)->Self {Self::state(State::NotRequired,reason)}
++    pub fn force_unable(&mut self,reason:impl Into<String>) {self.state=State::Unable;self.reason=reason.into();}
++    /// 旧空列表只表示无回执。只有非 Command 合同才可不适用，不能升级为 Command 成功。
++    pub fn blockers(&self,contract:Option<&JsonValue>,planning:bool)->Vec<String> {
++        if let Some(failures)=&self.legacy_failures {
++            if !failures.is_empty(){return failures.clone();}
++            if !is_command(contract)||planning{return vec![];}
++            return vec!["Command 验证 unable：旧结果没有可信执行回执".into()];
++        }
++        if planning && self.state==State::NotRequired {return vec![];}
++        if self.state==State::NotRequired && !is_command(contract){return vec![];}
++        if self.state==State::Passed && self.contract.as_ref()==contract && !self.receipts.is_empty()
++            && self.receipts.iter().all(|r|r.status==goal_command::Status::Passed && r.exit_code==Some(0)) {return vec![];}
++        vec![format!("Command 验证 {:?}：{}",self.state,if self.reason.is_empty(){"回执缺失或合同已变化"}else{&self.reason})]
++    }
++}
++impl From<Vec<String>> for Result {
++    fn from(failures:Vec<String>)->Self {Self {legacy_failures:Some(failures),..Self::unable("历史结果没有结构化回执")}}
++}
++pub(super) fn is_command(contract:Option<&JsonValue>)->bool {
++    contract.and_then(|v|v.get("type").or_else(||v.get("kind"))).and_then(JsonValue::as_str)==Some("Command")
++}
++pub(super) async fn evaluate(contract:Option<&JsonValue>,enabled:bool,workspace:&Path)->Result {
++    if contract.is_some_and(|v|v.get("type").or_else(||v.get("kind")).and_then(JsonValue::as_str).is_none()) {
++        return Result::state(State::Invalid,"验证合同缺少明确类型，不能视为未要求验证");
++    }
++    if !is_command(contract){return Result::not_required("当前合同未要求 Command；其他验收仍需独立判断");}
++    let contract=contract.unwrap();
++    let Some(values)=contract.get("commands").and_then(JsonValue::as_array) else {
++        return Result::state(State::Invalid,"Command 合同缺少 commands 数组");
++    };
++    if values.is_empty()||values.iter().any(|v|v.as_str().is_none_or(|s|s.trim().is_empty())) {
++        return Result::state(State::Invalid,"Command 合同必须包含非空命令，不能默默过滤无效项");
++    }
++    if !enabled{return Result::state(State::Skipped,"明确要求的 Command 门已禁用，合同尚未满足");}
++    let cwd=match contract.get("cwd") {
++        None=>workspace.to_path_buf(),
++        Some(JsonValue::String(s)) if !s.trim().is_empty()=>{let p=PathBuf::from(s);if p.is_absolute(){p}else{workspace.join(p)}},
++        _=>return Result::state(State::Invalid,"Command cwd 必须是非空路径"),
++    };
++    let timeout=match contract.get("timeout_ms") {
++        None=>600_000,
++        Some(value)=>match value.as_u64().filter(|n|*n>0){Some(n)=>n,None=>return Result::state(State::Invalid,"Command timeout_ms 必须大于0")},
++    };
++    let mut result=Result {contract:Some(contract.clone()),..Result::state(State::Passed,"")};
++    for command in values.iter().map(|v|v.as_str().unwrap()) {
++        let receipt=goal_command::run_receipt(command,&cwd,timeout).await;
++        let failed=receipt.status!=goal_command::Status::Passed;
++        if failed {result.state=if receipt.status==goal_command::Status::Failed{State::Failed}else{State::Unable};result.reason=receipt.reason.clone();}
++        result.receipts.push(receipt);
++        // 第一条未满足后停止后续命令，取消/超时不再发起新的进程。
++        if failed{break;}
++    }
++    result
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[tokio::test]
++    async fn non_execution_states_and_legacy_receipts_cannot_pass_command() {
++        let root=tempfile::tempdir().unwrap();let command=json!({"type":"Command","commands":["exit 0"]});
++        let absent=evaluate(None,false,root.path()).await;assert_eq!(absent.state,State::NotRequired);
++        let files=json!({"type":"FilesExist","paths":["artifact.txt"]});
++        assert_eq!(evaluate(Some(&files),false,root.path()).await.state,State::NotRequired);
++        assert_eq!(evaluate(Some(&command),false,root.path()).await.state,State::Skipped);
++        for commands in [json!([]),json!([""]),json!([3]),json!(["exit 0",null])]{
++            let bad=json!({"type":"Command","commands":commands});
++            let r=evaluate(Some(&bad),true,root.path()).await;assert_eq!(r.state,State::Invalid);assert!(!r.blockers(Some(&bad),false).is_empty());
++        }
++        let legacy=Result::from(Vec::<String>::new());assert!(!legacy.blockers(Some(&command),false).is_empty());assert!(legacy.blockers(Some(&files),false).is_empty());
++        assert!(!absent.blockers(Some(&command),false).is_empty());
++    }
++    #[tokio::test]
++    async fn real_receipts_and_contract_changes_control_consumption() {
++        let root=tempfile::tempdir().unwrap();let command=json!({"type":"Command","commands":["exit 0"],"timeout_ms":90_000});
++        let r=evaluate(Some(&command),true,root.path()).await;
++        assert_eq!(r.state,State::Passed,"{r:?}");assert_eq!(r.receipts.len(),1);assert_eq!(r.receipts[0].exit_code,Some(0));
++        assert!(r.blockers(Some(&command),false).is_empty());
++        let other=json!({"type":"Command","commands":["exit 1"]});assert!(!r.blockers(Some(&other),false).is_empty());
++        let failed=evaluate(Some(&other),true,root.path()).await;assert_eq!(failed.state,State::Failed);assert_eq!(failed.receipts[0].exit_code,Some(1));
++        assert_ne!(r.receipts[0].id,failed.receipts[0].id);
++        let invalid_cwd=json!({"type":"Command","commands":["exit 0"],"cwd":root.path().join("missing")});
++        let unstarted=evaluate(Some(&invalid_cwd),true,root.path()).await;
++        assert_eq!(unstarted.state,State::Unable);
++        if let Some(dir)=std::env::var_os("COOLZHU_HARNESS_EVIDENCE_DIR") {
++            std::fs::write(PathBuf::from(dir).join("ha09-command-receipts.json"),serde_json::to_vec_pretty(&json!({"passed":r,"failed":failed,"unable":unstarted})).unwrap()).unwrap();
++        }
++    }
++}
+--- /dev/null
++++ after/modules/gui-web/packages/web-console/src/ha09_tests.rs
+@@ -0,0 +1,83 @@
++// 由main::tests包含，复用真实Goal claim/finalizer夹具；不手工伪造命令成功。
++fn ha09_save(name:&str,value:serde_json::Value) {
++    if let Some(dir)=std::env::var_os("COOLZHU_HARNESS_EVIDENCE_DIR") {
++        std::fs::write(std::path::PathBuf::from(dir).join(format!("ha09-{name}.json")),serde_json::to_vec_pretty(&value).unwrap()).unwrap();
++    }
++}
++
++#[tokio::test]
++async fn ha09_phase_consumption_requires_actual_command_receipts() {
++    let _serial=config_test_guard();
++    for name in ["Passed","Failed","Disabled","Empty","Legacy","Absent","FilesExist"] {
++        let temp=tempfile::tempdir().unwrap();let workspace=format!("ha09-{name}");
++        let (mut store,context)=token_finalizer_fixture_with_role(&temp,&workspace,"implementer");
++        let contract=match name {
++            "Absent"=>None,
++            "FilesExist"=>{let file=temp.path().join("real.txt");std::fs::write(&file,"actual artifact").unwrap();Some(json!({"type":"FilesExist","paths":[file]}))},
++            "Empty"=>Some(json!({"type":"Command","commands":[]})),
++            _=>Some(json!({"type":"Command","cwd":temp.path(),"timeout_ms":90_000,"commands":[if name=="Failed"{"exit 7"}else{"exit 0"}]})),
++        };
++        super::open_session_connection(&context.db_path).unwrap().execute(
++            "UPDATE goal_phases SET verification_json=?1 WHERE goal_id=?2 AND id=?3",
++            super::params![contract.as_ref().map(serde_json::Value::to_string),context.goal_id,context.phase_id]).unwrap();
++        let result=if name=="Legacy" {super::goal_verification::Result::from(Vec::<String>::new())}
++            else{super::goal_verification::evaluate(contract.as_ref(),name!="Disabled",temp.path()).await};
++        let value=serde_json::to_value(&result).unwrap();
++        let finalized=store.record_goal_phase_model_result_at_path_with_claim(&context.db_path,&workspace,&context.goal_id,&context.phase_id,&context.run_id,&context.claim_token,&context.agent,
++            token_finalizer_response("工作结果待宿主验证"),Vec::new(),result).unwrap();
++        let phase=finalized.status.goal.phases.iter().find(|p|p.id==context.phase_id).unwrap();
++        ha09_save(name,json!({"gate":value,"status":phase.status,"verdict":phase.last_verdict,"evidence":phase.last_evidence}));
++        let expected=matches!(name,"Passed"|"Absent"|"FilesExist");
++        assert_eq!(phase.status=="completed",expected,"{name}: {:?}",phase.last_evidence);
++        if name=="Passed" {assert_eq!(phase.last_evidence.as_ref().unwrap()["command_verification"]["receipts"][0]["exit_code"],0);}
++        if !expected{assert_ne!(phase.last_verdict.as_deref(),Some("pass"));}
++        if matches!(name,"Absent"|"FilesExist"){assert_eq!(value["state"],"not_required");assert!(value["receipts"].as_array().unwrap().is_empty());}
++    }
++}
++
++#[tokio::test]
++async fn ha09_missing_corrupt_contract_and_finalizer_storage_fault_are_not_passed() {
++    let _serial=config_test_guard();let temp=tempfile::tempdir().unwrap();let workspace="ha09-faults";
++    let (mut store,c)=token_finalizer_fixture_with_role(&temp,workspace,"implementer");
++    let mut facts=Vec::new();
++    for (goal,phase) in [("missing",c.phase_id.as_str()),(c.goal_id.as_str(),"missing")] {
++        let r=super::run_goal_phase_command_gate(&c.db_path,workspace,goal,phase).await;
++        assert_eq!(r.state,super::goal_verification::State::Unable);facts.push(serde_json::to_value(r).unwrap());
++    }
++    let db=super::open_session_connection(&c.db_path).unwrap();
++    db.execute("UPDATE goal_phases SET verification_json='broken json' WHERE goal_id=?1",[&c.goal_id]).unwrap();
++    let corrupt=super::run_goal_phase_command_gate(&c.db_path,workspace,&c.goal_id,&c.phase_id).await;
++    assert_eq!(corrupt.state,super::goal_verification::State::Unable);facts.push(serde_json::to_value(corrupt).unwrap());
++    let contract=json!({"type":"Command","commands":["exit 0"],"cwd":temp.path(),"timeout_ms":90_000});
++    db.execute("UPDATE goal_phases SET verification_json=?1 WHERE goal_id=?2",super::params![contract.to_string(),c.goal_id]).unwrap();
++    let r=super::goal_verification::evaluate(Some(&contract),true,temp.path()).await;
++    assert_eq!(r.state,super::goal_verification::State::Passed);
++    db.execute_batch("CREATE TRIGGER ha09_storage_fault BEFORE UPDATE ON goal_phases WHEN NEW.status='completed' BEGIN SELECT RAISE(FAIL,'HA09_EXPECTED_STORAGE_FAULT'); END;").unwrap();
++    let failed=store.record_goal_phase_model_result_at_path_with_claim(&c.db_path,workspace,&c.goal_id,&c.phase_id,&c.run_id,&c.claim_token,&c.agent,
++        token_finalizer_response("不能把存储失败说成完成"),Vec::new(),r);
++    assert!(failed.is_err());let persisted: (String,Option<String>)=db.query_row("SELECT status,last_verdict FROM goal_phases WHERE goal_id=?1",[&c.goal_id],|r|Ok((r.get(0)?,r.get(1)?))).unwrap();
++    assert_eq!(persisted.0,"running");assert_ne!(persisted.1.as_deref(),Some("pass"));
++    ha09_save("faults",json!({"unable_results":facts,"finalizer_error":failed.err().unwrap().1.error,"persisted_status":persisted.0,"persisted_verdict":persisted.1}));
++}
++
++#[tokio::test]
++#[cfg(windows)]
++async fn ha09_actual_cancel_and_timeout_have_receipts_and_no_late_effects() {
++    let _serial=config_test_guard();let temp=tempfile::tempdir().unwrap();
++    let timeout=super::goal_command::run_receipt("Start-Sleep -Seconds 10; Set-Content -LiteralPath late.txt late",temp.path(),250).await;
++    assert_eq!(timeout.status,super::goal_command::Status::TimedOut);assert!(!temp.path().join("late.txt").exists());
++    let token=std::sync::Arc::new(super::ChatTurnCancellation::new());let trace="ha09-actual-cancel";
++    let _scope=super::ToolTurnCancellationScope::install(trace,token.clone());
++    let mut pending=Box::pin(super::TURN_TRACE.scope(trace.into(),super::goal_command::run_receipt(
++        "Set-Content -LiteralPath child.pid -Value $PID; Start-Sleep -Seconds 20; Set-Content -LiteralPath late.txt late",temp.path(),30_000)));
++    let path=temp.path().join("child.pid");
++    tokio::select!{
++        r=&mut pending=>panic!("屏障前命令意外结束：{r:?}"),
++        ()=async{tokio::time::timeout(std::time::Duration::from_secs(10),async{while std::fs::read_to_string(&path).ok().and_then(|s|s.trim().parse::<u32>().ok()).is_none(){tokio::time::sleep(std::time::Duration::from_millis(20)).await;}}).await.unwrap();}=>{}
++    }
++    let pid:u32=std::fs::read_to_string(path).unwrap().trim().parse().unwrap();token.request();
++    let cancelled=tokio::time::timeout(std::time::Duration::from_secs(5),pending).await.unwrap();
++    assert_eq!(cancelled.status,super::goal_command::Status::Cancelled);
++    assert!(windows_process_guard::capture_live_process_identity(pid).is_err());assert!(!temp.path().join("late.txt").exists());
++    ha09_save("cancel-timeout",json!({"timeout":timeout,"cancelled":cancelled,"child_pid":pid,"child_drained":true,"late_effect":false}));
++}

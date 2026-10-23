@@ -34,7 +34,7 @@ $workspacePrefix = $workspacePath + [System.IO.Path]::DirectorySeparatorChar
 $reportRoot = if ($ReportRoot) {
   if ([System.IO.Path]::IsPathRooted($ReportRoot)) { [System.IO.Path]::GetFullPath($ReportRoot) } else { [System.IO.Path]::GetFullPath((Join-Path $workspacePath $ReportRoot)) }
 } else {
-  Join-Path $workspacePath ($script:PackageReportRoot -replace '/', '\')
+  Resolve-IdentityTmpPath -RepoPath $workspacePath -Relative $script:PackageReportRoot
 }
 $reportRoot = $reportRoot.TrimEnd('\', '/')
 if (-not $reportRoot.StartsWith($workspacePrefix, [System.StringComparison]::OrdinalIgnoreCase)) {

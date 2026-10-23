@@ -1,0 +1,298 @@
+{
+  "at_utc": "2026-10-18T11:26:31.267252+00:00",
+  "test_count": 121,
+  "run": "web-regression-02",
+  "cases": {
+    "Passed": {
+      "evidence": {
+        "command_verification": {
+          "contract": {
+            "commands": [
+              "exit 0"
+            ],
+            "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp0f5HYQ",
+            "timeout_ms": 90000,
+            "type": "Command"
+          },
+          "legacy_failures": null,
+          "reason": "",
+          "receipts": [
+            {
+              "command": "exit 0",
+              "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp0f5HYQ",
+              "exit_code": 0,
+              "finished_at_unix_ms": 1792322071467,
+              "id": "goal-command-1792322071236-18540-15",
+              "reason": "",
+              "started_at_unix_ms": 1792322071236,
+              "status": "passed",
+              "timeout_ms": 90000
+            }
+          ],
+          "state": "passed"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": {
+          "commands": [
+            "exit 0"
+          ],
+          "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp0f5HYQ",
+          "timeout_ms": 90000,
+          "type": "Command"
+        },
+        "legacy_failures": null,
+        "reason": "",
+        "receipts": [
+          {
+            "command": "exit 0",
+            "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp0f5HYQ",
+            "exit_code": 0,
+            "finished_at_unix_ms": 1792322071467,
+            "id": "goal-command-1792322071236-18540-15",
+            "reason": "",
+            "started_at_unix_ms": 1792322071236,
+            "status": "passed",
+            "timeout_ms": 90000
+          }
+        ],
+        "state": "passed"
+      },
+      "status": "completed",
+      "verdict": "pass"
+    },
+    "Failed": {
+      "evidence": {
+        "command_failures": [
+          "Command 验证 Failed：`exit 7` 失败（exit 7）：\n"
+        ],
+        "command_verification": {
+          "contract": {
+            "commands": [
+              "exit 7"
+            ],
+            "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp13Sxze",
+            "timeout_ms": 90000,
+            "type": "Command"
+          },
+          "legacy_failures": null,
+          "reason": "`exit 7` 失败（exit 7）：\n",
+          "receipts": [
+            {
+              "command": "exit 7",
+              "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp13Sxze",
+              "exit_code": 7,
+              "finished_at_unix_ms": 1792322072028,
+              "id": "goal-command-1792322071782-18540-16",
+              "reason": "`exit 7` 失败（exit 7）：\n",
+              "started_at_unix_ms": 1792322071782,
+              "status": "failed",
+              "timeout_ms": 90000
+            }
+          ],
+          "state": "failed"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": {
+          "commands": [
+            "exit 7"
+          ],
+          "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp13Sxze",
+          "timeout_ms": 90000,
+          "type": "Command"
+        },
+        "legacy_failures": null,
+        "reason": "`exit 7` 失败（exit 7）：\n",
+        "receipts": [
+          {
+            "command": "exit 7",
+            "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmp13Sxze",
+            "exit_code": 7,
+            "finished_at_unix_ms": 1792322072028,
+            "id": "goal-command-1792322071782-18540-16",
+            "reason": "`exit 7` 失败（exit 7）：\n",
+            "started_at_unix_ms": 1792322071782,
+            "status": "failed",
+            "timeout_ms": 90000
+          }
+        ],
+        "state": "failed"
+      },
+      "status": "running",
+      "verdict": "fail"
+    },
+    "Disabled": {
+      "evidence": {
+        "command_failures": [
+          "Command 验证 Skipped：明确要求的 Command 门已禁用，合同尚未满足"
+        ],
+        "command_verification": {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "明确要求的 Command 门已禁用，合同尚未满足",
+          "receipts": [],
+          "state": "skipped"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": null,
+        "legacy_failures": null,
+        "reason": "明确要求的 Command 门已禁用，合同尚未满足",
+        "receipts": [],
+        "state": "skipped"
+      },
+      "status": "running",
+      "verdict": "fail"
+    },
+    "Empty": {
+      "evidence": {
+        "command_failures": [
+          "Command 验证 Invalid：Command 合同必须包含非空命令，不能默默过滤无效项"
+        ],
+        "command_verification": {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "Command 合同必须包含非空命令，不能默默过滤无效项",
+          "receipts": [],
+          "state": "invalid"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": null,
+        "legacy_failures": null,
+        "reason": "Command 合同必须包含非空命令，不能默默过滤无效项",
+        "receipts": [],
+        "state": "invalid"
+      },
+      "status": "running",
+      "verdict": "fail"
+    },
+    "Legacy": {
+      "evidence": {
+        "command_failures": [
+          "Command 验证 unable：旧结果没有可信执行回执"
+        ],
+        "command_verification": {
+          "contract": null,
+          "legacy_failures": [],
+          "reason": "历史结果没有结构化回执",
+          "receipts": [],
+          "state": "unable"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": null,
+        "legacy_failures": [],
+        "reason": "历史结果没有结构化回执",
+        "receipts": [],
+        "state": "unable"
+      },
+      "status": "running",
+      "verdict": "fail"
+    },
+    "Absent": {
+      "evidence": {
+        "command_verification": {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "当前合同未要求 Command；其他验收仍需独立判断",
+          "receipts": [],
+          "state": "not_required"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": null,
+        "legacy_failures": null,
+        "reason": "当前合同未要求 Command；其他验收仍需独立判断",
+        "receipts": [],
+        "state": "not_required"
+      },
+      "status": "completed",
+      "verdict": "pass"
+    },
+    "FilesExist": {
+      "evidence": {
+        "command_verification": {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "当前合同未要求 Command；其他验收仍需独立判断",
+          "receipts": [],
+          "state": "not_required"
+        },
+        "text": "工作结果待宿主验证"
+      },
+      "gate": {
+        "contract": null,
+        "legacy_failures": null,
+        "reason": "当前合同未要求 Command；其他验收仍需独立判断",
+        "receipts": [],
+        "state": "not_required"
+      },
+      "status": "completed",
+      "verdict": "pass"
+    },
+    "faults": {
+      "finalizer_error": "HA09_EXPECTED_STORAGE_FAULT",
+      "persisted_status": "running",
+      "persisted_verdict": null,
+      "unable_results": [
+        {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "读取Goal验证合同失败：Goal 不存",
+          "receipts": [],
+          "state": "unable"
+        },
+        {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "验证阶段不存在，未执行Command",
+          "receipts": [],
+          "state": "unable"
+        },
+        {
+          "contract": null,
+          "legacy_failures": null,
+          "reason": "读取Goal验证合同失败：Conversion error from type Text at index: 8, expected value at line 1 column 1",
+          "receipts": [],
+          "state": "unable"
+        }
+      ]
+    },
+    "cancel-timeout": {
+      "cancelled": {
+        "command": "Set-Content -LiteralPath child.pid -Value $PID; Start-Sleep -Seconds 20; Set-Content -LiteralPath late.txt late",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpkZLAHd",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792322070275,
+        "id": "goal-command-1792322069990-18540-13",
+        "reason": "`Set-Content -LiteralPath child.pid -Value $PID; Start-Sleep -Seconds 20; Set-Content -LiteralPath late.txt late` 已取消；所属进程已回收",
+        "started_at_unix_ms": 1792322069990,
+        "status": "cancelled",
+        "timeout_ms": 30000
+      },
+      "child_drained": true,
+      "child_pid": 31176,
+      "late_effect": false,
+      "timeout": {
+        "command": "Start-Sleep -Seconds 10; Set-Content -LiteralPath late.txt late",
+        "cwd": "C:\\Users\\zhupu\\AppData\\Local\\Temp\\.tmpkZLAHd",
+        "exit_code": 0,
+        "finished_at_unix_ms": 1792322069989,
+        "id": "goal-command-1792322069730-18540-12",
+        "reason": "`Start-Sleep -Seconds 10; Set-Content -LiteralPath late.txt late` 超时；所属进程已回收",
+        "started_at_unix_ms": 1792322069730,
+        "status": "timed_out",
+        "timeout_ms": 250
+      }
+    }
+  },
+  "baseline_unchanged": true
+}

@@ -1,0 +1,14 @@
+{
+  "item": "1.3",
+  "atUtc": "2026-10-16T20:04:29.139821+00:00",
+  "decision": "key_functional_pass",
+  "conclusion": "真实双进程竞争同一输入安全库：第二持有者被拒，杀死本夹具持有者后epoch上升并安全接管；旧unknown与恢复记录保留、输入入口仍关闭。修正Windows退出进程句柄仍可查身份导致的误判，未知/拒绝访问仍保守不回收。新增定点1过0败0忽略，实际离线build通过。",
+  "parentPid": 4508,
+  "childPid": 35452,
+  "oldEpoch": 1,
+  "newEpoch": 2,
+  "testReceipt": "controller-input-lease-test-fixed-20261016.json",
+  "buildReceipt": "controller-key-batch-build-20261016.json",
+  "priorFailure": "controller-input-lease-test-20261016.json",
+  "boundary": "真实测试子进程与隔离输入安全库；没有对用户桌面发送输入，未修改正式输入安全库。"
+}

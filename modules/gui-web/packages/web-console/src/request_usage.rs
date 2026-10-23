@@ -6,6 +6,8 @@ use std::sync::{Arc, atomic::{AtomicU64, Ordering}};
 struct LedgerObserver {
     path: PathBuf, workspace: String, room: String, session: String,
     turn: Option<String>, run: Option<String>, call: Option<String>, kind: String, logical_id: String,
+    parent_request_id: Option<String>, receipt: request_binding::Receipt,
+    collector: Option<request_binding::Collector>,
 }
 
 pub(super) fn observe(
@@ -35,21 +37,33 @@ pub(super) fn observe_in_workspace_with_run(
     turn: Option<&str>, call: Option<&str>, kind: &str,
     frozen_workspace: Option<(&str, &Path)>, run: Option<&str>,
 ) -> Result<ProviderClient, api::ApiError> {
+    observe_bound_in_workspace_with_run(client, session, room, turn, call, kind, frozen_workspace,
+        run, tool_invocation_identity::current().as_deref()).map(|(client, _)| client)
+}
+
+pub(super) fn observe_bound_in_workspace_with_run(
+    client: Result<ProviderClient, api::ApiError>, session: &str, room: Option<&str>,
+    turn: Option<&str>, call: Option<&str>, kind: &str,
+    frozen_workspace: Option<(&str, &Path)>, run: Option<&str>, parent_request_id: Option<&str>,
+) -> Result<(ProviderClient, request_binding::Receipt), api::ApiError> {
     static SEQUENCE: AtomicU64 = AtomicU64::new(1);
     let (path, workspace) = frozen_workspace
         .map(|(workspace, path)| (path.to_path_buf(), workspace.to_string()))
         .unwrap_or_else(|| (default_session_sqlite_path(), workspace_identity(&active_workspace_path())));
+    let receipt = request_binding::Receipt::default();
     let observer=Arc::new(LedgerObserver {
         path,workspace,
         room:room.unwrap_or("").to_string(),session:session.to_string(),
         turn:turn.map(str::to_string),run:run.map(str::to_string),
         call:call.map(str::to_string),kind:kind.to_string(),
         logical_id:format!("request-{}-{}-{}",unix_timestamp_millis(),std::process::id(),SEQUENCE.fetch_add(1,Ordering::Relaxed)),
+        parent_request_id: parent_request_id.map(str::to_owned), receipt: receipt.clone(),
+        collector: request_binding::current_collector(),
     });
     use api::RequestObserver;
     observer.update(&api::RequestAttemptSnapshot::default());
     match client {
-        Ok(client)=>Ok(client.with_request_observer(observer)),
+        Ok(client)=>Ok((client.with_request_observer(observer), receipt)),
         Err(error)=>{
             observer.update(&api::RequestAttemptSnapshot {status:"configuration_error",terminal:true,..Default::default()});
             Err(error)
@@ -59,6 +73,13 @@ pub(super) fn observe_in_workspace_with_run(
 
 impl api::RequestObserver for LedgerObserver {
     fn update(&self, event:&api::RequestAttemptSnapshot) {
+        let binding = request_binding::RequestBinding::from_attempt(&self.logical_id,
+            self.parent_request_id.as_deref(), self.turn.as_deref().unwrap_or_default(), event);
+        if let Some(binding) = binding.as_ref() {
+            self.receipt.update(binding.clone());
+            request_binding::record(self.collector.as_ref(), binding);
+        }
+        let binding_json = binding.as_ref().and_then(|binding| serde_json::to_string(binding).ok());
         let result=(||->rusqlite::Result<()> {
             let connection=open_session_connection(&self.path)?;
             chat_insights::ensure_tables(&connection)?;
@@ -66,17 +87,20 @@ impl api::RequestObserver for LedgerObserver {
             let usage=event.usage;
             connection.execute("INSERT INTO chat_usage_events
                 (workspace_id,room_id,session_id,created_at,input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,
-                 turn_id,run_id,call_id,request_kind,logical_request_id,attempt_id,attempt_no,status,dispatched,usage_known_mask,http_status,finished_at)
-                VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)
+                 turn_id,run_id,call_id,request_kind,logical_request_id,attempt_id,attempt_no,status,dispatched,usage_known_mask,http_status,finished_at,model_snapshot,protocol_snapshot,started_at,first_token_at,request_binding_json)
+                VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25)
                 ON CONFLICT(attempt_id) DO UPDATE SET
                   input_tokens=MAX(input_tokens,excluded.input_tokens),output_tokens=MAX(output_tokens,excluded.output_tokens),
                   cache_read_tokens=MAX(cache_read_tokens,excluded.cache_read_tokens),cache_write_tokens=MAX(cache_write_tokens,excluded.cache_write_tokens),
                   status=excluded.status,dispatched=excluded.dispatched,usage_known_mask=usage_known_mask|excluded.usage_known_mask,
-                  http_status=excluded.http_status,finished_at=COALESCE(finished_at,excluded.finished_at)",
+                  http_status=excluded.http_status,finished_at=COALESCE(finished_at,excluded.finished_at),
+                  model_snapshot=COALESCE(model_snapshot,excluded.model_snapshot),protocol_snapshot=COALESCE(protocol_snapshot,excluded.protocol_snapshot),
+                  started_at=COALESCE(started_at,excluded.started_at),first_token_at=COALESCE(first_token_at,excluded.first_token_at),
+                  request_binding_json=COALESCE(excluded.request_binding_json,request_binding_json)",
                 params![self.workspace,self.room,self.session,timestamp,usage.input_tokens.unwrap_or(0),usage.output_tokens.unwrap_or(0),
                     usage.cache_read_tokens.unwrap_or(0),usage.cache_write_tokens.unwrap_or(0),self.turn,self.run,self.call,self.kind,self.logical_id,
                     format!("{}:{}",self.logical_id,event.attempt_no),event.attempt_no,event.status,event.dispatched,usage.known_mask(),
-                    event.http_status,event.terminal.then_some(timestamp)])?;
+                    event.http_status,event.terminal.then_some(timestamp),event.model,event.protocol,event.started_at_ms,event.first_token_at_ms,binding_json])?;
             Ok(())
         })();
         if let Err(error)=result { diag_log(&format!("[REQUEST-USAGE] 请求事实保存失败: {error}")); }
@@ -104,10 +128,12 @@ pub(super) fn migrate(connection:&Connection)->rusqlite::Result<()> {
     let columns=connection.prepare("PRAGMA table_info(chat_usage_events)")?.query_map([],|row|row.get::<_,String>(1))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     for (name,definition) in [
-        ("run_id","TEXT"),
+        ("run_id","TEXT"),("model_snapshot","TEXT"),("protocol_snapshot","TEXT"),
+        ("started_at","INTEGER"),("first_token_at","INTEGER"),
         ("logical_request_id","TEXT"),("attempt_id","TEXT"),("attempt_no","INTEGER"),
         ("status","TEXT NOT NULL DEFAULT 'legacy'"),("dispatched","INTEGER"),
         ("usage_known_mask","INTEGER"),("http_status","INTEGER"),("finished_at","INTEGER"),
+        ("request_binding_json","TEXT"),
     ] {
         if !columns.iter().any(|column|column==name) {
             if let Err(error)=connection.execute_batch(&format!("ALTER TABLE chat_usage_events ADD COLUMN {name} {definition}")) {
@@ -118,12 +144,13 @@ pub(super) fn migrate(connection:&Connection)->rusqlite::Result<()> {
         }
     }
     connection.execute_batch("CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_usage_attempt ON chat_usage_events(attempt_id);
-        CREATE INDEX IF NOT EXISTS idx_chat_usage_run ON chat_usage_events(run_id) WHERE run_id IS NOT NULL;")
+        CREATE INDEX IF NOT EXISTS idx_chat_usage_run ON chat_usage_events(run_id) WHERE run_id IS NOT NULL;
+        CREATE INDEX IF NOT EXISTS idx_chat_usage_time ON chat_usage_events(workspace_id,room_id,created_at);")
 }
 
 /// 同一attempt优先取ACP权威归属和状态，只从同作用域旧投影复用真实用量。
 /// 旧库没有ACP表时保持HTTP读取；损坏JSON/缺失身份显式失败，不能返回虚假零。
-fn facts_sql(connection: &Connection) -> rusqlite::Result<String> {
+pub(super) fn facts_sql(connection: &Connection) -> rusqlite::Result<String> {
     let http = "SELECT workspace_id,room_id,session_id,created_at,turn_id,run_id,call_id,request_kind,
         logical_request_id,attempt_id,status,dispatched,usage_known_mask,
         input_tokens,output_tokens,cache_read_tokens,cache_write_tokens,

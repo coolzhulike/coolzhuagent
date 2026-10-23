@@ -1,0 +1,38 @@
+[
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\skills\\coolzhu-goal-model-reasoning\\SKILL.md",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\skills\\coolzhu-goal-model-reasoning\\SKILL.md",
+    "sha256": "b144310a4e3f556fab45335d4e77374e05f659dd3845464892be4975a160757b",
+    "archive_sha256": "b144310a4e3f556fab45335d4e77374e05f659dd3845464892be4975a160757b"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\skills\\coolzhu-goal-model-reasoning\\agents\\openai.yaml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\skills\\coolzhu-goal-model-reasoning\\agents\\openai.yaml",
+    "sha256": "432ed5192b6fce8a33642dae316a44df1eddef8de26b32d8b4b260e102968527",
+    "archive_sha256": "432ed5192b6fce8a33642dae316a44df1eddef8de26b32d8b4b260e102968527"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\skills\\coolzhu-goal-session-chain\\SKILL.md",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\skills\\coolzhu-goal-session-chain\\SKILL.md",
+    "sha256": "b049d39543733044023d7b904e64bbc0fe8e08adcc77114bb04ab8bee2e58418",
+    "archive_sha256": "b049d39543733044023d7b904e64bbc0fe8e08adcc77114bb04ab8bee2e58418"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\skills\\coolzhu-goal-session-chain\\agents\\openai.yaml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\skills\\coolzhu-goal-session-chain\\agents\\openai.yaml",
+    "sha256": "8e19186fa01646efe97cb0ae7a26db6d5f7c0afccc5c4ff96c2690840d31e65a",
+    "archive_sha256": "8e19186fa01646efe97cb0ae7a26db6d5f7c0afccc5c4ff96c2690840d31e65a"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\skills\\coolzhu-goal-tool-execution\\SKILL.md",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\skills\\coolzhu-goal-tool-execution\\SKILL.md",
+    "sha256": "695990c13e16b9e27e316200e1f6ccf9d477f558b8f3a8b6310e1fe70f6ea3ff",
+    "archive_sha256": "695990c13e16b9e27e316200e1f6ccf9d477f558b8f3a8b6310e1fe70f6ea3ff"
+  },
+  {
+    "path": "C:\\Users\\zhupu\\Desktop\\coolzhuagent\\skills\\coolzhu-goal-tool-execution\\agents\\openai.yaml",
+    "archive": "D:\\old-repos\\coolzhuagent-c-desktop-20261012\\skills\\coolzhu-goal-tool-execution\\agents\\openai.yaml",
+    "sha256": "61904f8fd839df38f77a6e84c72cf72ddb012a21865dc046d269fe306cbdedf7",
+    "archive_sha256": "61904f8fd839df38f77a6e84c72cf72ddb012a21865dc046d269fe306cbdedf7"
+  }
+]

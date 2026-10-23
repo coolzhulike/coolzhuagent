@@ -13,6 +13,33 @@ spec.loader.exec_module(module)
 
 
 class LicenseEvidenceTests(unittest.TestCase):
+    def test_workspace_license_requires_member_inheritance_and_matching_declaration(self):
+        with tempfile.TemporaryDirectory(dir="tmp", prefix="license-inheritance-test-") as directory:
+            root = Path(directory).resolve()
+            package = root / "member"
+            package.mkdir()
+            (root / "Cargo.toml").write_text('[workspace.package]\nlicense="MIT"\n', encoding="utf-8")
+            (root / "LICENSE").write_bytes(b"Workspace original license\r\n")
+            manifest = package / "Cargo.toml"
+            manifest.write_text('[package]\nlicense.workspace=true\n', encoding="utf-8")
+            p = {"id": "local", "name": "member", "version": "1.0", "source": None,
+                 "license": "MIT", "license_file": "../LICENSE", "manifest_path": str(manifest)}
+            metadata = {"packages": [p], "workspace_root": str(root), "workspace_members": ["local"]}
+            path = root / "metadata.json"
+            path.write_text(json.dumps(metadata), encoding="utf-8")
+            evidence = module.export(path, root / "out.json")["components"][0]
+            self.assertEqual(len(evidence["files"]), 1)
+            self.assertEqual(evidence["files"][0]["scope"], "workspace-inherited")
+            self.assertEqual(evidence["files"][0]["content"], "Workspace original license\r\n")
+            self.assertEqual(len(evidence["unresolved"]), 1)  # 显式逃根路径依旧拒绝。
+            for n, override in enumerate(({"workspace_members": []}, {"packages": [{**p, "license": "Apache-2.0"}]},
+                                         {"packages": [{**p, "source": "registry+example"}]})):
+                path.write_text(json.dumps({**metadata, **override}), encoding="utf-8")
+                self.assertFalse(module.export(path, root / f"negative-{n}.json")["components"][0]["files"])
+            manifest.write_text('[package]\nlicense="MIT"\n', encoding="utf-8")
+            path.write_text(json.dumps(metadata), encoding="utf-8")
+            self.assertFalse(module.export(path, root / "not-inherited.json")["components"][0]["files"])
+
     def test_build_messages_require_complete_success_and_exact_component_scope(self):
         with tempfile.TemporaryDirectory(dir="tmp", prefix="license-build-test-") as directory:
             root = Path(directory)
