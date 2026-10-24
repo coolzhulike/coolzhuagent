@@ -7,6 +7,7 @@ mod compact;
 mod config;
 mod conversation;
 mod conditional_file;
+mod env_denylist;
 mod fact_store;
 mod file_ops;
 mod hooks;
@@ -54,7 +55,7 @@ pub use config::{
 };
 pub use conversation::{
     ApiClient, ApiRequest, AssistantEvent, ConversationRuntime, RuntimeError, StaticToolExecutor,
-    ToolError, ToolExecutor, TurnSummary,
+    ToolError, ToolExecutor, TurnEndReason, TurnSummary,
 };
 pub use action_evidence::{
     ActionEvidence, ActionSurface, EvidenceBasis, EvidenceReference, EvidenceReferenceKind,
@@ -113,8 +114,8 @@ pub use file_ops::{
 };
 pub use conditional_file::{file_content_version, lock_file_mutation, replace_file_if_version, FileContentVersion};
 pub use hooks::{
-    HookEvent, HookRunResult, HookRunner, HOOK_CAPABILITY_POST_TOOL_USE,
-    HOOK_CAPABILITY_PRE_TOOL_USE,
+    HookEvent, HookRunResult, HookRunner, HOOK_CAPABILITY_POST_TOOL_BATCH,
+    HOOK_CAPABILITY_POST_TOOL_USE, HOOK_CAPABILITY_PRE_TOOL_USE, HOOK_CAPABILITY_STOP,
 };
 pub use lsp::{
     FileDiagnostics, LspContextEnrichment, LspError, LspManager, LspServerConfig, SymbolLocation,

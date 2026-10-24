@@ -167,6 +167,8 @@ impl SystemPromptBuilder {
         sections.push(get_simple_system_section());
         sections.push(get_simple_doing_tasks_section());
         sections.push(get_actions_section());
+        sections.push(get_using_tools_section());
+        sections.push(get_tone_style_section());
         sections.push(SYSTEM_PROMPT_DYNAMIC_BOUNDARY.to_string());
         sections.push(self.environment_section());
         sections.push(render_agent_runtime_section(
@@ -229,9 +231,41 @@ impl SystemPromptBuilder {
                 self.os_name.as_deref().unwrap_or("unknown"),
                 self.os_version.as_deref().unwrap_or("unknown")
             ),
+            format!("Shell: {}", default_shell_description()),
+            "Language: 默认使用中文回复".to_string(),
         ]));
         lines.join("\n")
     }
+}
+
+/// 平台默认 shell 说明（env_info 对齐；不含任何环境变量值，确定性输出）。
+#[must_use]
+fn default_shell_description() -> &'static str {
+    if cfg!(windows) {
+        "cmd / PowerShell（Windows 语法；勿用 POSIX heredoc）"
+    } else {
+        "POSIX sh"
+    }
+}
+
+/// `Using your tools` 行为合同（对齐 Claude Code 同名节；只写宿主已实现的约束）。
+#[must_use]
+fn get_using_tools_section() -> String {
+    "# Using your tools\n\
+     - 优先使用专用工具（read_file/edit_file/grep_search），不要用 shell 做等效文件操作。\n\
+     - 工具调用由宿主派发；不要伪造工具调用、伪造输出或声称执行过未执行的命令。\n\
+     - 参数不合规被工具拒绝时，修正参数后重试一次；重复同一失败签名会被宿主熔断。"
+        .to_string()
+}
+
+/// `Tone and style` 行为合同。
+#[must_use]
+fn get_tone_style_section() -> String {
+    "# Tone and style\n\
+     - 简洁、直接、用事实说话；先给结论再给依据。\n\
+     - 引用具体文件路径与可复核的验证信号（退出码/测试结果），不空称已完成。\n\
+     - 用用户的语言回复（本工作区默认中文）。"
+        .to_string()
 }
 
 #[must_use]

@@ -218,6 +218,7 @@ fn prepare_command(
         let mut prepared = Command::new(launcher.program);
         prepared.args(launcher.args);
         prepared.current_dir(cwd);
+        crate::env_denylist::sanitize_command_env(&mut prepared);
         prepared.envs(launcher.env);
         return prepared;
     }
@@ -235,6 +236,7 @@ fn prepare_command(
         prepared
     };
     prepared.current_dir(cwd);
+    crate::env_denylist::sanitize_command_env(&mut prepared);
     if sandbox_status.filesystem_active {
         prepared.env("HOME", cwd.join(".sandbox-home"));
         prepared.env("TMPDIR", cwd.join(".sandbox-tmp"));
