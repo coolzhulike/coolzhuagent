@@ -581,6 +581,12 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("terminal-window-clear")?.addEventListener("click", terminalWindowClear);
   actionButtons.get("terminal-window-interrupt")?.addEventListener("click", terminalWindowInterrupt);
   actionButtons.get("terminal-window-close")?.addEventListener("click", terminalWindowClose);
+  // Enter 直接运行，Shift+Enter 换行；输入法组字中的回车不触发。
+  document.querySelector('[data-role="terminal-command"]')?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+    event.preventDefault();
+    void terminalWindowRunPowerShell();
+  });
   const terminalOutput = document.querySelector('[data-role="terminal-window-output"]');
   if (terminalOutput && typeof ResizeObserver === "function") {
     new ResizeObserver(() => terminalWindowResizeSoon()).observe(terminalOutput);
@@ -9053,7 +9059,7 @@ const WUXIA_ICON_ALLOW_LIST = new Set([
   "stop",
   "send", "refresh", "search", "browser", "terminal", "check", "file", "settings",
   "save", "plus", "upload", "package-crate", "crosshair", "shield", "tasks", "context-ring",
-  "maximize", "media", "vision", "diff", "link", "folder", "rename",
+  "maximize", "media", "vision", "diff", "link", "folder", "rename", "pause",
 ]);
 
 function wuxiaIconElement(name, className = "wuxia-inline-icon") {
@@ -9098,7 +9104,7 @@ function initializeIconControls() {
     "dsh-market-prev": ["chevron", "上一页"],
     "dsh-market-next": ["chevron", "下一页"],
     "app-update-check": ["refresh", "检查更新"],
-    "terminal-window-interrupt": ["stop", "中断当前命令"],
+    "terminal-window-interrupt": ["pause", "中断当前命令（Ctrl+C）"],
     "terminal-window-close": ["stop", "关闭终端"],
     "terminal-window-run": ["terminal", "运行命令"],
     "terminal-window-clear": ["delete", "清空终端显示"],
@@ -11236,6 +11242,8 @@ async function terminalWindowRunPowerShell() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...scope, text: `${command.replace(/\r?\n/g, "\r\n")}\r\n` }),
       });
+      const field = document.querySelector('[data-role="terminal-command"]');
+      if (field && field.value === command) field.value = "";
       terminalWindowSchedulePoll(50);
     } else {
       terminalWindowSchedulePoll();
