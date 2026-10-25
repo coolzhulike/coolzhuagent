@@ -4327,6 +4327,7 @@ async function respondToApproval(kind, scope) {
     || (!activeRecord && !listRecord)
     || (activeRecord && !approvalRecordMatchesScope(activeRecord, activeScope))
     || (listRecord && !approvalRecordMatchesScope(listRecord, activeScope))) {
+    window.alert("该审批所属会话或聊天室与当前上下文不匹配，未执行任何操作。");
     hideApprovalPanel();
     void refreshPendingApprovals();
     return;
@@ -4351,7 +4352,13 @@ async function respondToApproval(kind, scope) {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      console.warn("[tool-approval]", url, res.status);
+      let detail = `${res.status}`;
+      try {
+        const data = await res.json();
+        if (data && data.error) detail = data.error;
+      } catch { /* ignore */ }
+      console.warn("[tool-approval]", url, res.status, detail);
+      window.alert(`${kind === "approve" ? "批准" : "拒绝"}操作未完成：${detail}`);
       return;
     }
     const response = kind === "approve" ? await res.json() : null;
@@ -15040,6 +15047,7 @@ function isSpeakableAssistantReplyForTts(message) {
     "tool-call",
     "tool-summary",
     "tool-result",
+    "approval-result",
     "computer-use",
     "vision-computer-use",
     "goal-phase",
@@ -15459,6 +15467,9 @@ function kindForMessage(message) {
   }
   if (message.kind === "tool-call" || message.kind === "tool-summary" || message.kind === "computer-use" || message.kind === "vision-computer-use") {
     return `bot tool ${message.kind}`;
+  }
+  if (message.kind === "approval-result") {
+    return "bot tool approval-result";
   }
   if (message.kind === "vision") {
     return "bot vision";

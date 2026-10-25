@@ -3905,7 +3905,7 @@ fn preview_tool_permission(
 /// 30 min TTL（`SESSION_GRANT_TTL`）；超过则重新审批。
 const SESSION_GRANT_TTL: Duration = Duration::from_secs(30 * 60);
 /// `PendingApprovals` 单条记录的最大存活；超时视为 Deny。
-const PENDING_APPROVAL_TTL: Duration = Duration::from_secs(5 * 60);
+const PENDING_APPROVAL_TTL: Duration = Duration::from_secs(30 * 60);
 const FULL_ACCESS_GRANT_TOOL: &str = "*";
 // full access 改为长期（实际等同不限时，手动撤销）：用 1 年 TTL，既满足"不限时"体验又避免 Instant 溢出。
 const FULL_ACCESS_DEFAULT_TTL_SECS: u64 = 365 * 24 * 60 * 60;
@@ -7075,6 +7075,8 @@ async fn api_tools_approve(
         tool_name: Some(outcome.tool_name.clone()),
     });
 
+    spawn_approval_resume_turn(&record, false);
+
     Ok(Json(ApproveResponse {
         call_id: payload.call_id,
         scope,
@@ -7252,6 +7254,7 @@ async fn api_tools_reject(Json(payload): Json<RejectRequest>) -> ApiResult<Json<
         call_id: payload.call_id.clone(),
         reason: payload.reason.clone(),
     });
+    spawn_approval_resume_turn(&record, true);
     Ok(Json(RejectResponse {
         call_id: payload.call_id,
         reason: payload.reason,
@@ -25277,7 +25280,7 @@ fn append_tool_terminal_result_to_context(record: &PendingApprovalRecord, outcom
             outcome.summary_text,
             if outcome.status.is_error() { "" } else { "" }
         ),
-        kind: "tool-result".to_string(),
+        kind: "approval-result".to_string(),
         attachments: Vec::new(),
     };
     let mut changed = false;
@@ -25294,6 +25297,59 @@ fn append_tool_terminal_result_to_context(record: &PendingApprovalRecord, outcom
     if changed {
         let _ = store.save();
     }
+}
+
+/// 审批/拒绝的终态结果写入历史后，补发一条续跑指令让发起调用的 agent 开新回合：
+/// 模型拿到「工具审批终态」结果继续原任务，而不是停在上一轮的"未执行"收尾。
+/// 仅 LLM 回合里被拦截的调用才有可续跑的会话；WebUi 手动触发工具不触发模型。
+/// 续跑本身不保证成功（agent 可能已下线/工作区已切换），失败只记诊断日志，
+/// 不影响审批接口本身的响应。
+fn spawn_approval_resume_turn(record: &PendingApprovalRecord, rejected: bool) {
+    if record.invoke.caller != ToolCaller::Llm {
+        return;
+    }
+    let (Some(room_id), Some(agent_id)) =
+        (record.chat_room_id.clone(), record.session_id.clone())
+    else {
+        return;
+    };
+    let tool_name = record.tool_name.clone();
+    let call_id = record.call_id.clone();
+    let workspace_id = record.workspace_id.clone();
+    // 文本含 call_id：既是模型侧的去重线索，也保证幂等指纹不与历史请求撞车。
+    let text = if rejected {
+        format!(
+            "[审批续跑] 先前请求的工具调用 {tool_name}（call_id={call_id}）已被用户拒绝执行。\
+请在不使用该工具的前提下继续完成原任务，或如实说明无法完成的部分。"
+        )
+    } else {
+        format!(
+            "[审批续跑] 先前被权限拦截的工具调用 {tool_name}（call_id={call_id}）已获用户批准并完成执行，\
+结果见上方「工具审批终态」消息。请结合该结果继续完成原任务。"
+        )
+    };
+    tokio::spawn(async move {
+        let request = SendMessageRequest {
+            expected_workspace_id: Some(workspace_id),
+            native_browser_panel: false,
+            session_id: Some(agent_id.clone()),
+            chat_room_id: Some(room_id),
+            target_agent_ids: vec![agent_id],
+            text,
+            selected_message_ids: None,
+            attachments: None,
+        };
+        let prepared = match prepare_chat_dispatch(request) {
+            Ok(prepared) => prepared,
+            Err(error) => {
+                diag!("[APPROVAL-RESUME] prepare failed for {tool_name} {call_id}: {}", error.1.error);
+                return;
+            }
+        };
+        if let Err(error) = chat_run_admission::run_nonstream(prepared, false).await {
+            diag!("[APPROVAL-RESUME] resume turn failed for {tool_name} {call_id}: {}", error.1.error);
+        }
+    });
 }
 
 async fn api_tool_execute(
@@ -80281,7 +80337,7 @@ attach: last_assistant
             .and_then(|room| room.messages.last())
             .expect("room terminal message");
         assert_eq!(room_message.role, "assistant");
-        assert_eq!(room_message.kind, "tool-result");
+        assert_eq!(room_message.kind, "approval-result");
         assert!(room_message.content.contains("权限拒绝"));
         assert!(room_message.content.contains("用户拒绝测试"));
         let session_message = store.state.sessions[0]
