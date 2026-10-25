@@ -102,6 +102,7 @@
               <summary class="window-tab" data-window-icon="more-vertical" title="更多" aria-label="更多快捷功能" aria-controls="window-dock-secondary" aria-expanded="false"><img class="window-icon" src="./assets/icons-wuxia/more-vertical.svg" alt="" aria-hidden="true" /><span>更多</span></summary>
               <div id="window-dock-secondary" class="window-dock-secondary" role="group" aria-label="更多快捷功能">
                 <button class="window-tab" data-window-target="browser" data-window-icon="browser" type="button" title="浏览器" aria-label="浏览器" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/browser.svg" alt="" aria-hidden="true" /><span>浏览器</span></button>
+                <button class="window-tab" data-window-target="terminal" data-window-icon="terminal" type="button" title="终端" aria-label="终端" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/terminal.svg" alt="" aria-hidden="true" /><span>终端</span></button>
                 <button class="window-tab" data-window-target="skills" data-window-icon="skill-star" type="button" title="SKILL" aria-label="SKILL" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/skill-star.svg" alt="" aria-hidden="true" /><span>SKILL</span></button>
                 <button class="window-tab" data-window-target="plugin-market" data-window-icon="package-crate" type="button" title="插件市场" aria-label="插件市场" aria-pressed="false"><img class="window-icon" src="./assets/icons-wuxia/package-crate.svg" alt="" aria-hidden="true" /><span>插件市场</span></button>
               </div>
@@ -879,6 +880,9 @@
                   <button class="chat-right-footer-action" data-action="chat-handoff-manual" type="button" aria-label="转交当前任务" title="将当前任务转交给协作 Agent">
                     <img src="./assets/icons-wuxia/send.svg" alt="" aria-hidden="true" /><span>转交</span>
                   </button>
+                  <button class="chat-right-footer-action" data-action="chat-terminal-open" type="button" aria-label="在右栏打开终端" title="在右栏打开终端">
+                    <img src="./assets/icons-wuxia/terminal.svg" alt="" aria-hidden="true" /><span>终端</span>
+                  </button>
                   <button class="chat-right-footer-action" data-action="chat-right-rail-toggle" type="button" aria-controls="chat-right-rail" aria-expanded="true" aria-label="收起侧栏" title="收起侧栏">
                     <img src="./assets/icons-wuxia/chevron.svg" alt="" aria-hidden="true" /><span>收起侧栏</span>
                   </button>
@@ -932,6 +936,25 @@
             </div>
           </article>
 
+          <article class="workbench-window terminal-workbench-window" data-window-id="terminal" data-window-theme="reactor-console" aria-label="终端窗口">
+            <div class="terminal-console-shell">
+              <div class="window-panel terminal-window-panel">
+                <div class="terminal-window-toolbar">
+                  <span data-role="terminal-window-status">终端尚未启动</span>
+                  <div class="terminal-window-controls">
+                    <button class="mini-button" data-action="terminal-window-interrupt" type="button" title="中断当前命令">中断</button>
+                    <button class="mini-button" data-action="terminal-window-close" type="button" title="关闭终端">关闭</button>
+                  </div>
+                </div>
+                <pre class="terminal-window-output" data-role="terminal-window-output">启动后可在当前工程目录运行 PowerShell 命令。</pre>
+                <section class="terminal-window-command" aria-label="交互式 PowerShell 命令">
+                  <label class="terminal-command-input"><span>PS</span><textarea data-role="terminal-command" spellcheck="false" placeholder="输入 PowerShell 命令"></textarea></label>
+                  <button class="pixel-button wide is-primary-control" data-action="terminal-window-run" type="button"><img src="./assets/icons-wuxia/terminal.svg" alt="" />运行</button>
+                  <button class="mini-button terminal-clear-inline" data-action="terminal-window-clear" type="button" title="清空当前显示"><img src="./assets/icons-wuxia/delete.svg" alt="" /></button>
+                </section>
+              </div>
+            </div>
+          </article>
 
           <article class="workbench-window catalog-workbench-window" data-window-id="skills" aria-label="SKILL 目录">
             <div class="window-panel workspace-content-panel quick-catalog-panel">
