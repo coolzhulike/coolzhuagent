@@ -65,7 +65,7 @@
       : options.backendFilter === "llm_http" ? httpProtocols : [...httpProtocols, ["devin_acp", "Devin · 账号登录"], ["openai_subscription", "OpenAI / ChatGPT · 账号登录"]];
     container.classList.add("model-settings");
     container.innerHTML = `
-      <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2></div><div class="ms-heading-actions"><button type="button" data-ms-action="new" class="ms-secondary">＋ 新建会话</button><button type="button" data-ms="save" data-ms-action="save" class="ms-primary">保存配置</button></div></div>
+      <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2></div><div class="ms-heading-actions"><button type="button" data-ms-action="new" class="ms-secondary">＋ 新建会话</button><button type="button" data-ms="delete" data-ms-action="delete" class="ms-danger" title="删除当前选中的会话配置及其历史消息" disabled>删除会话</button><button type="button" data-ms="save" data-ms-action="save" class="ms-primary">保存配置</button></div></div>
       <label class="ms-session-picker">编辑配置的会话<select data-ms="session-select" aria-label="选择要编辑配置的会话"></select><span data-ms="dirty" hidden>● 未保存</span></label>
       <div class="ms-avatar-row"><img data-ms="avatar-preview" alt="会话头像" width="40" height="40"><span>会话头像</span><select data-ms="avatar" aria-label="选择品牌头像">${avatarChoices.map(item=>option(...item)).join("")}</select><label class="ms-upload">上传图片<input data-ms="avatar-upload" type="file" accept="image/png,image/webp"></label><details class="ms-avatar-library"><summary>从 Q 版头像库选择</summary><div class="ms-avatar-grid">${avatarChoices.slice(1).map(([path,label])=>`<button type="button" data-ms-avatar="${esc(path)}" aria-pressed="false"><img src="${esc(path)}" alt="" width="64" height="64"><span>${esc(label)}</span></button>`).join("")}</div></details></div>
       <div class="ms-effort-row"><label for="ms-effort-slider">思考程度<small>对下一次请求生效</small></label><div class="ms-effort-track"><input id="ms-effort-slider" data-ms="effort-slider" type="range" min="0" max="0" value="0" step="1" aria-label="思考程度"><div data-ms="effort-ticks"></div></div><output data-ms="effort-value">自动</output></div>
@@ -540,9 +540,9 @@
           updateDynamicFields(); resetDiscovery(); dirty = true;
           status("新连接草稿尚未保存。填写该平台凭据并获取模型，再保存；已有会话和密钥保持独立。");
         }
-        el("fields").disabled = false; el("save").disabled = false; return;
+        el("fields").disabled = false; el("save").disabled = false; el("delete").disabled = true; return;
       }
-      el("fields").disabled = true; el("save").disabled = true;
+      el("fields").disabled = true; el("save").disabled = true; el("delete").disabled = true;
       status("正在读取配置…");
       let loaded = false;
       try {
@@ -553,7 +553,7 @@
       } catch (error) {
         if (sequence === loadSequence && !disposed) status(`读取失败：${error.message}`, true);
       } finally {
-        if (sequence === loadSequence && !disposed) { el("fields").disabled = !loaded; el("save").disabled = !loaded; }
+        if (sequence === loadSequence && !disposed) { el("fields").disabled = !loaded; el("save").disabled = !loaded; el("delete").disabled = !loaded; }
       }
     }
 
@@ -627,7 +627,7 @@
       if (!subscription && ["image","video"].includes(session.model_type)) Object.assign(parameters,{context_window:0,max_output_tokens:0,temperature:null,top_p:null,reasoning_mode:"auto",thinking_budget:null,enable_llm_tools:false,computer_use_enabled:false,llm_tool_exposure:"whitelist",tool_allowlist:[]});
       if (openaiConnection()) Object.assign(parameters, {base_url:null,endpoint:null,context_window:0,max_output_tokens:0,temperature:null,top_p:null,reasoning_mode:"auto",thinking_budget:null,enable_llm_tools:false,computer_use_enabled:false,llm_tool_exposure:"whitelist",tool_allowlist:[]});
       if (el("clear-key").checked && !window.confirm("确认清除此会话保存的 API Key？")) return;
-      busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
+      busy = true; el("save").disabled = true; el("delete").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
       status("正在保存…");
       try {
         const creating=!selectedId;
@@ -644,8 +644,36 @@
       } catch (error) { if (!disposed) status(`保存失败：${error.message}`, true); }
       finally {
         busy = false;
-        if (!disposed) { el("save").disabled = false; el("fields").disabled = false; el("session-select").disabled = false; }
+        if (!disposed) { el("save").disabled = false; el("delete").disabled = !selectedId; el("fields").disabled = false; el("session-select").disabled = false; }
       }
+    }
+
+    async function removeSession() {
+      if (disposed || busy || effortSaving || !selectedId) return;
+      const sessionId = selectedId;
+      const target = sessions.find(s => s.id === sessionId);
+      const label = target?.display_name || target?.name || sessionId;
+      const sendingNote = sendingIds.has(sessionId) ? "\n该会话是当前发送对象，删除后需重新选择发送对象。" : "";
+      if (!window.confirm(`确认删除会话「${label}」？\n\n该会话的模型配置、历史消息与记忆会一并删除，且无法恢复。${sendingNote}`)) return;
+      busy = true; el("save").disabled = true; el("delete").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
+      status("正在删除…");
+      let deleted = false, note = `已删除会话「${label}」`, noteIsError = false;
+      try {
+        await request(`/api/sessions/${encodeURIComponent(sessionId)}`, {}, "DELETE");
+        deleted = true;
+        sessions = sessions.filter(s => s.id !== sessionId);
+        selectedId = null; dirty = false; dirtyBadge();
+        if (disposed) return;
+        try { await (options.onDeleted || options.onSaved)?.(null, { deleted: sessionId }); }
+        catch (error) { note = `会话已删除，但界面刷新失败：${error.message}`; noteIsError = true; }
+        if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-deleted", { bubbles: true, detail: { session_id: sessionId } }));
+      } catch (error) { if (!disposed) status(`删除失败：${error.message}`, true); }
+      finally {
+        busy = false;
+        if (!disposed) { el("save").disabled = false; el("delete").disabled = !selectedId; el("fields").disabled = false; el("session-select").disabled = false; }
+      }
+      // 删除后回落到激活会话；提示放在重新加载之后，避免被“正在读取配置”覆盖。
+      if (deleted && !disposed) { await refresh(null); if (!disposed) status(note, noteIsError); }
     }
 
     async function rebindDevin() {
@@ -731,6 +759,7 @@
       if (action === "save") void save(event);
       if (action?.startsWith("openai-")) void openaiAuth(action.slice(7));
       if (action === "new") void select(null);
+      if (action === "delete") void removeSession();
       if (action === "discover") void discoverModels();
       if (action === "refresh-plugins") void refreshPluginTools();
       if (action === "rebind-devin") void rebindDevin();

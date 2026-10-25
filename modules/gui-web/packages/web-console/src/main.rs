@@ -87652,6 +87652,23 @@ attach: last_assistant
     }
 
     #[test]
+    fn web_frontend_model_settings_can_delete_session_and_controls_share_gold_spec() {
+        let model_settings = include_str!("model_settings.js");
+        assert!(model_settings.contains("data-ms-action=\"delete\""));
+        assert!(model_settings.contains("async function removeSession()"));
+        assert!(model_settings.contains("request(`/api/sessions/${encodeURIComponent(sessionId)}`, {}, \"DELETE\")"));
+        assert!(model_settings.contains("if (action === \"delete\") void removeSession();"));
+        assert!(include_str!("chat_experience.js").contains("onDeleted: async"));
+        let jade = include_str!("jade_controls.css");
+        for token in ["--ui-control-h: 36px;", "--ui-gold-edge:", ".terminal-window-command > [data-action=\"terminal-window-run\"]", ".model-settings .ms-upload input"] {
+            assert!(jade.contains(token), "统一控件规格缺少：{token}");
+        }
+        assert!(WEB_APP_JS.contains("\"terminal-window-interrupt\": [\"pause\""));
+        assert!(WEB_APP_JS.contains("\"rename\", \"pause\","));
+        assert!(WEB_APP_JS.contains("if (event.key !== \"Enter\" || event.shiftKey || event.isComposing) return;"));
+    }
+
+    #[test]
     fn web_frontend_chat_media_terminal_browser_and_self_update_panels_are_wired() {
         assert!(WEB_INDEX_HTML.contains("data-role=\"composer-attachments\""));
         assert!(WEB_APP_JS.contains("function renderAttachments"));

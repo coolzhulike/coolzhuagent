@@ -95,3 +95,158 @@ body.ui-3d .ui-redesign .quick-catalog-actions { display: flex; flex-wrap: wrap;
   body.ui-3d { --jade-composer-control: 36px; }
   body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-main-column > .composer { padding: 8px; }
 }
+
+/* 2026-10-25 统一控件规格：文字按键与文本框同高、同圆角、同一金色描边，与 36px 玉石图标键对齐；
+   字号收敛为标题 16 / 小标题 14 / 正文 13 / 提示 12 四档。只作用于工具面板与独立工作窗。 */
+body.ui-3d {
+  --ui-control-h: 36px;
+  --ui-control-radius: 7px;
+  --ui-gold-edge: rgba(215, 179, 90, .55);
+  --ui-gold-edge-soft: rgba(215, 179, 90, .4);
+  --ui-gold-edge-hover: rgba(240, 210, 135, .92);
+  --ui-gold-strong: #e3cb8d;
+  --ui-fs-title: 16px;
+  --ui-fs-subtitle: 14px;
+  --ui-fs-body: 13px;
+  --ui-fs-hint: 12px;
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]))
+  button:not([data-icon-only="true"]):where(:not(.avatar-choice, .chat-media-preview-button, .chat-roster-chip, .composer-attachment-remove, .composer-reference-clear, .ide-outline-row, .ide-tab, .memory-window-bead-select, .message-trace-link, .project-directory-toggle, .project-tree-node, .session-option, .tool-detail-close, .chat-room-nav-item, .ms-avatar-grid button)) {
+  min-height: var(--ui-control-h);
+  padding: 6px 14px;
+  border: 1px solid var(--ui-gold-edge);
+  border-radius: var(--ui-control-radius);
+  color: #eef4ea;
+  background: linear-gradient(180deg, #24443a, #0f2a21);
+  box-shadow: inset 0 1px rgba(255, 240, 200, .08), 0 2px 5px rgba(0, 0, 0, .28);
+  font-size: var(--ui-fs-body);
+  font-weight: 600;
+  line-height: 1.4;
+  text-shadow: none;
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]))
+  button:not([data-icon-only="true"]):where(:not(.avatar-choice, .project-tree-node, .session-option, .chat-room-nav-item, .ide-tab, .ide-outline-row, .ms-avatar-grid button)):not(:disabled):hover {
+  border-color: var(--ui-gold-edge-hover);
+  color: #fff6dc;
+  filter: brightness(1.08);
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]))
+  button:not([data-icon-only="true"]):is(.is-active, [aria-selected="true"], [aria-pressed="true"]):where(:not(.avatar-choice, .project-tree-node, .session-option, .chat-room-nav-item, .ide-tab, .ide-outline-row, .ms-avatar-grid button)) {
+  border-color: var(--ui-gold-strong);
+  color: #f6e3a8;
+  background: linear-gradient(180deg, #35583f, #183626);
+  box-shadow: inset 0 0 0 1px rgba(227, 203, 141, .3), 0 2px 5px rgba(0, 0, 0, .28);
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]))
+  button:not([data-icon-only="true"]):is(.is-primary-control, .ms-primary) {
+  border-color: #d7b35a;
+  color: #fff3cf;
+  background: linear-gradient(180deg, #3f6a4b, #1d3d2b);
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]))
+  button:not([data-icon-only="true"]):is(.danger, .is-danger, .ms-danger) {
+  border-color: rgba(220, 145, 133, .75);
+  color: #ffd2c9;
+  background: linear-gradient(180deg, #4a2924, #2a1512);
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]), .workbench-window[data-window-theme="communication-bay"] .composer)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea) {
+  min-height: var(--ui-control-h);
+  border: 1px solid var(--ui-gold-edge-soft);
+  border-radius: var(--ui-control-radius);
+  color: #edf5ee;
+  background: linear-gradient(180deg, rgba(10, 32, 26, .96), rgba(6, 22, 18, .98));
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .38);
+  font-size: var(--ui-fs-body);
+  font-weight: 400;
+  line-height: 1.45;
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]), .workbench-window[data-window-theme="communication-bay"] .composer)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea):hover:not(:disabled) {
+  border-color: var(--ui-gold-edge);
+}
+body.ui-3d .ui-redesign :is(.chat-tool-host-content, .workbench-stage > .workbench-window:not([data-window-id="chat"]), .workbench-window[data-window-theme="communication-bay"] .composer)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea):focus-visible {
+  border-color: var(--ui-gold-strong);
+  outline: 2px solid rgba(227, 203, 141, .45);
+  outline-offset: 1px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .38), 0 0 12px rgba(227, 203, 141, .12);
+}
+body.ui-3d .ui-redesign .workbench-window[data-window-theme="communication-bay"] .composer input[data-role="message-input"] { font-size: 14px; }
+body.ui-3d .ui-redesign .chat-tool-host-content :is(input, select, textarea, button):disabled { cursor: not-allowed; }
+
+/* 标题与提示字号：同一面板内不再出现 21 / 19.2 / 18 / 16.38 等多种标题尺寸。 */
+body.ui-3d .ui-redesign .chat-tool-host-content :is(h2, .model-settings h2) { font-size: var(--ui-fs-title); font-weight: 650; line-height: 1.4; }
+body.ui-3d .ui-redesign .chat-tool-host-content :is(h3, .workspace-panel-toolbar > strong, .panel-title) { font-size: var(--ui-fs-subtitle); font-weight: 650; line-height: 1.45; }
+body.ui-3d .ui-redesign .chat-tool-host-content :is(.ms-hint, .quick-panel-intro, .ms-intro p, [role="status"]) { font-size: var(--ui-fs-hint); }
+body.ui-3d .ui-redesign .chat-tool-host-content summary { font-size: var(--ui-fs-body); }
+
+/* 终端：命令框占满一行，清空与运行两个 36px 键靠右并与输入框底边对齐；状态行左文右键。 */
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: var(--ui-control-h);
+}
+body.ui-3d .ui-redesign .terminal-workbench-window [data-role="terminal-window-status"] { font-size: var(--ui-fs-hint); color: var(--jade-muted, #b5cbbd); }
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-controls { display: flex; align-items: center; gap: 8px; }
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-output {
+  border: 1px solid rgba(215, 179, 90, .28); border-radius: 8px; font-size: var(--ui-fs-body);
+}
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-command {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) var(--ui-control-h) var(--ui-control-h) !important;
+  align-items: end; gap: 8px; padding: 8px;
+}
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-command > .terminal-command-input {
+  grid-column: 1 !important; display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0;
+}
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-command-input > span { flex: 0 0 auto; color: var(--ui-gold-strong); font-weight: 700; font-size: var(--ui-fs-body); }
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-command-input > textarea {
+  flex: 1 1 auto; min-width: 0; height: var(--ui-control-h); min-height: var(--ui-control-h); max-height: 120px;
+  padding: 7px 10px; resize: vertical; font: 13px/1.5 "Cascadia Code", Consolas, "Microsoft YaHei", monospace;
+}
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-command > [data-action="terminal-window-clear"] { grid-column: 2; grid-row: 1; justify-self: end; }
+body.ui-3d .ui-redesign .terminal-workbench-window .terminal-window-command > [data-action="terminal-window-run"] { grid-column: 3; grid-row: 1; justify-self: end; outline: 1px solid var(--ui-gold-strong); outline-offset: -2px; }
+
+/* 模型与会话：隐藏头像缺图时的替代文字；原生文件框改为与其它按键同规格的「上传图片」。 */
+body.ui-3d .model-settings .ms-avatar-row img { width: 40px; height: 40px; overflow: hidden; color: transparent; font-size: 0; }
+body.ui-3d .model-settings .ms-upload {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-height: var(--ui-control-h); padding: 6px 14px; border: 1px solid var(--ui-gold-edge); border-radius: var(--ui-control-radius);
+  color: #eef4ea; background: linear-gradient(180deg, #24443a, #0f2a21); font-size: var(--ui-fs-body); font-weight: 600; cursor: pointer;
+}
+body.ui-3d .model-settings .ms-upload:hover { border-color: var(--ui-gold-edge-hover); }
+body.ui-3d .model-settings .ms-upload input { position: absolute; inset: 0; width: 100%; max-width: none; height: 100%; opacity: 0; cursor: pointer; }
+body.ui-3d .model-settings .ms-heading-actions { gap: 8px; }
+body.ui-3d .model-settings .ms-providers > div { gap: 6px; }
+
+/* SKILL 目录：标题与搜索各占一行，按键按内容宽度换行，避免被挤成竖排文字。 */
+body.ui-3d .ui-redesign .chat-tool-host-content .quick-catalog-panel > .workspace-panel-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+body.ui-3d .ui-redesign .chat-tool-host-content .quick-catalog-panel > .workspace-panel-toolbar > strong { flex: 1 0 100%; }
+body.ui-3d .ui-redesign .chat-tool-host-content .quick-catalog-panel > .workspace-panel-toolbar > input { flex: 1 1 100%; width: 100%; }
+body.ui-3d .ui-redesign .chat-tool-host-content .quick-catalog-panel > .workspace-panel-toolbar > button:not([data-icon-only="true"]) { flex: 0 0 auto; white-space: nowrap; }
+
+/* 定时任务：表单不再套一层 260px 内滚动，底部按键与接力超时完整可见；勾选项与按键同一基线。 */
+body.ui-3d .ui-redesign .chat-tool-host-content .task-schedule-create { max-height: none; overflow: visible; }
+body.ui-3d .ui-redesign .chat-tool-host-content .task-schedule-permissions { display: flex; align-items: center; gap: 14px; }
+body.ui-3d .ui-redesign .chat-tool-host-content .task-schedule-permissions > label { display: inline-flex; align-items: center; gap: 6px; font-size: var(--ui-fs-body); }
+body.ui-3d .ui-redesign .chat-tool-host-content .task-schedule-actions { display: flex; align-items: center; gap: 8px; }
+
+/* 微信连接：右栏单列时各区块按内容展开，去掉区块内二级滚动导致的截断。 */
+body.ui-3d .chat-tool-host-content > .clawbot-workbench-window .clawbot-window-panel { align-content: start; }
+body.ui-3d .chat-tool-host-content > .clawbot-workbench-window .clawbot-window-panel > :is(.clawbot-side-rail, .clawbot-main-console, .clawbot-right-rail) { overflow: visible; min-height: auto; }
+
+/* 工程目录：图标键紧凑流式排列，图标恢复 20px，不再分散在四列里。 */
+body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+}
+body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-toolbar > .mini-button { flex: 0 0 auto; width: var(--ui-control-h); }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-toolbar > .mini-button > img { width: 20px; max-width: 20px; height: 20px; max-height: 20px; flex-basis: 20px; }
+body.ui-3d .chat-tool-host-content > .project-workbench-window .project-layout > .project-command-rail > .ide-toolbar > .ide-omni-search { flex: 1 1 100%; height: var(--ui-control-h); font-size: var(--ui-fs-body); }
+/* 插件市场：搜索框、分类与搜索键保持同一行，键与输入框底边对齐。 */
+body.ui-3d .ui-redesign .chat-tool-host-content [data-role="dsh-market-root"] > .dsh-market-controls { flex-wrap: nowrap; align-items: end; gap: 8px; }
+body.ui-3d .ui-redesign .chat-tool-host-content [data-role="dsh-market-root"] > .dsh-market-controls > label { flex: 1 1 0; min-width: 0; }
+body.ui-3d .ui-redesign .chat-tool-host-content [data-role="dsh-market-root"] > .dsh-market-controls > button { flex: 0 0 auto; }
+/* 目录树按 IDE 习惯显示为扁平行：平时无框，悬停淡金底，当前选中金色描边。 */
+body.ui-3d .ui-redesign .project-tree .project-tree-node { border-color: transparent; background: transparent; box-shadow: none; }
+body.ui-3d .ui-redesign .project-tree .project-tree-node:hover:not(:disabled) { border-color: rgba(215, 179, 90, .28); background: rgba(215, 179, 90, .07); }
+body.ui-3d .ui-redesign .project-tree .project-tree-node.is-active { border-color: var(--ui-gold-edge-soft); background: rgba(41, 72, 55, .85); color: #f6e9c2; }
+body.ui-3d .ui-redesign .chat-tool-host-content > .project-workbench-window :is(.project-command-rail small, .project-command-rail [role="status"]) { font-size: var(--ui-fs-hint); }

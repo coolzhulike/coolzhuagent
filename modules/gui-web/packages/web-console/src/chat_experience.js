@@ -417,6 +417,12 @@ window.CoolzhuChatExperience = (() => {
         try { await loadSessions(); await loadAgents(); await loadGoalRoles(); }
         catch (error) { report(`参数已保存，但界面刷新失败：${error.message}`); }
       },
+      onDeleted: async (_, { deleted } = {}) => {
+        if (deleted) document.querySelectorAll(`.message[data-session-id="${CSS.escape(deleted)}"]`).forEach(node => node.remove());
+        try { await loadSessions(); await loadAgents(); await loadGoalRoles(); }
+        catch (error) { report(`会话已删除，但界面刷新失败：${error.message}`); }
+        describeRecipientEditor();
+      },
     });
     describeRecipientEditor();
   }
