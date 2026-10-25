@@ -14,7 +14,7 @@ pub(super) enum Authentication { Unknown, Authenticated, Unauthenticated, Unavai
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
-enum Phase { Starting, Waiting, Checking, Cancelling, Completed, Failed, Cancelled, TimedOut, CleanupFailed }
+enum Phase { Starting, Waiting, Checking, Cancelling, Completed, Failed, Cancelled, TimedOut, CleanupFailed, PromptMismatch }
 
 impl Phase {
     fn message(self) -> &'static str {
@@ -28,6 +28,7 @@ impl Phase {
             Self::Cancelled => "登录流程已停止。取消不会注销已完成授权的账号。",
             Self::TimedOut => "等待授权已超时，可重新登录。",
             Self::CleanupFailed => "登录进程未确认退出，请重启应用后重试。",
+            Self::PromptMismatch => "未识别 Devin 登录选项；官方 CLI 菜单可能已变更。可手动运行 devin auth login 登录后刷新状态。",
         }
     }
 }
@@ -332,6 +333,7 @@ async fn windows_browser_login(binary: &Path, cwd: &Path, cancel: &CancellationT
         windows_process_guard::ManagedConPty::spawn_devin_browser_login(&binary, &cwd)).await else { return Phase::Failed; };
     started();
     let deadline = tokio::time::Instant::now() + timeout;
+    let started_at = tokio::time::Instant::now();
     let mut cursor = 0; let mut total = 0usize; let mut prompt = String::new(); let mut selected = false;
     let outcome = loop {
         if cancel.is_requested() { break Phase::Cancelled; }
@@ -345,6 +347,9 @@ async fn windows_browser_login(binary: &Path, cwd: &Path, cancel: &CancellationT
                 if terminal.write(b"\r").is_err() { break Phase::Failed; }
                 selected = true; prompt.clear();
             } else if prompt.len() > 16 * 1024 { break Phase::Failed; }
+            // CLI 已明显输出菜单但始终不符合预期格式时快速失败；无输出的直连
+            // 浏览器流程不受影响，仍等到统一时限。
+            else if total > 2048 && started_at.elapsed() > Duration::from_secs(45) { break Phase::PromptMismatch; }
         }
         match terminal.exit_code() {
             Ok(Some(0)) => break Phase::Completed,

@@ -143,18 +143,41 @@ window.CoolzhuChatExperience = (() => {
             const response = await requestJson("/api/workspace", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:path.trim()})});
             try { localStorage.setItem("coolzhu.recent-workspaces", JSON.stringify([...new Set([response.workspace,...paths])].slice(0,8))); } catch { /* 存储不可用时仍可切换 */ }
             closePopup(); await refreshWorkspaceBoundState(response.workspace); syncModelSession(activeSessionId, { force: true });
-          } catch (error) { errorNode.textContent = error.message; report(error); }
+          } catch (error) { showWorkspaceError(error, path.trim(), "switch"); report(error); }
         });
       };
       const errorNode = note(""); errorNode.setAttribute("role", "alert");
-      input.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); void apply(input.value); } });
-      panel.append(input, button("切换目录", () => void apply(input.value)), button("新建工程",async()=>{
+      const parentDir = p => { const t = String(p || "").trim().replace(/[\\/]+$/, ""); const i = Math.max(t.lastIndexOf("\\"), t.lastIndexOf("/")); return i > 2 ? t.slice(0, i) : ""; };
+      const showWorkspaceError = (error, grantPath, grantAction) => {
+        const message = error?.message || String(error);
+        const grantable = /不在允许/.test(message) && grantPath && !/^[A-Za-z]:[\\/]?$/.test(grantPath);
+        errorNode.textContent = grantable ? `${message}；也可点击「授权此目录」直接加入允许范围` : message;
+        authorizeButton.hidden = !grantable;
+        if (grantable) { authorizeButton.dataset.grantPath = grantPath; authorizeButton.dataset.grantAction = grantAction || "switch"; }
+      };
+      const authorizeButton = button("授权此目录", async () => {
+        const grantPath = authorizeButton.dataset.grantPath || "";
+        if (!grantPath) return;
+        if (!window.confirm(`授权后，本工程的工具可在该目录及其子目录内工作。\n\n授权目录：${workspaceDisplayPath(grantPath)}\n\n是否继续？`)) return;
+        authorizeButton.disabled = true;
+        try {
+          await requestJson("/api/tools/allowed-roots", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:grantPath})});
+          authorizeButton.hidden = true; errorNode.textContent = "";
+          if (authorizeButton.dataset.grantAction === "create") await createProject();
+          else await apply(grantPath);
+        } catch (error) { showWorkspaceError(error, grantPath, authorizeButton.dataset.grantAction); }
+        finally { authorizeButton.disabled = false; }
+      });
+      authorizeButton.hidden = true;
+      const createProject = async () => {
         try {
           if(!input.value.trim())throw new Error("请填写新工程的完整路径。");
           const created=await requestJson("/api/workspaces",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:input.value.trim()})});
           await apply(created.path);
-        } catch(error){errorNode.textContent=error.message;}
-      }), errorNode, note("默认工程保留。移除保留文件；删除子工程需二次确认，文件与历史移入回收站。"));
+        } catch(error){ showWorkspaceError(error, parentDir(input.value), "create"); }
+      };
+      input.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); void apply(input.value); } });
+      panel.append(input, button("切换目录", () => void apply(input.value)), button("新建工程",()=>void createProject()), errorNode, authorizeButton, note("默认工程保留。移除保留文件；删除子工程需二次确认，文件与历史移入回收站。"));
       const browse = button("浏览当前工程文件…", () => { closePopup(); openChatToolWindow("project"); });
       browse.disabled = !selectedWorkspace;
       panel.append(browse);

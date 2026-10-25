@@ -6,7 +6,7 @@
     container.__devinAuth?.destroy();
     container.innerHTML = `
       <p data-devin-auth="status" role="status" aria-live="polite">正在检查 Devin 登录状态…</p>
-      <p data-devin-auth="detail" class="ms-hint">在官方网页完成授权后，此处会自动更新。登录不会创建任务。</p>
+      <p data-devin-auth="detail" class="ms-hint">在官方网页完成授权后自动更新；登录不创建任务。</p>
       <div class="ms-discovery-actions">
         <button type="button" data-devin-auth="login" class="ms-secondary" data-icon-only="true" aria-label="登录 Devin" title="登录 Devin"><img class="wuxia-icon-only" src="./assets/icons-wuxia/link.svg" alt="" aria-hidden="true" /></button>
         <button type="button" data-devin-auth="cancel" class="ms-secondary" data-icon-only="true" aria-label="取消登录" title="取消登录" hidden><img class="wuxia-icon-only" src="./assets/icons-wuxia/stop.svg" alt="" aria-hidden="true" /></button>
@@ -14,7 +14,7 @@
       </div>`;
     const el = key => container.querySelector(`[data-devin-auth="${key}"]`);
     let disposed = false, visible = options.visible !== false, busy = false, sequence = 0;
-    let timer = null, controller = null, snapshot = null, previousAuthentication = null;
+    let timer = null, controller = null, snapshot = null, previousAuthentication = null, lastRefreshAt = 0;
     function stopPoll() { if (timer != null) clearTimeout(timer); timer = null; }
     function controls() {
       el("login").disabled = busy || !snapshot?.cli_available || snapshot?.login?.active === true || snapshot?.authentication === "authenticated";
@@ -28,7 +28,7 @@
       el("status").textContent = value.login?.active
         ? (value.login.phase === "cancelling" ? "正在取消 Devin 登录…" : value.login.phase === "cleanup_failed" ? value.login.message : "正在登录 Devin…")
         : value.message || labels[value.authentication] || labels.unknown;
-      el("detail").textContent = value.login?.message || "在官方网页完成授权后，此处会自动更新。登录不会创建任务。";
+      el("detail").textContent = value.login?.message || "在官方网页完成授权后自动更新；登录不创建任务。";
       controls(); stopPoll();
       if (visible && value.login?.active && value.login.phase !== "cleanup_failed") timer = setTimeout(() => { void refresh(); }, 2000);
       if (value.authentication === "authenticated" && previousAuthentication !== "authenticated") options.onAuthenticated?.();
@@ -41,8 +41,11 @@
       stopPoll(); controller?.abort(); controller = new AbortController();
       const requestController = controller;
       const current = ++sequence, signal = requestController.signal;
-      const requestTimeout = setTimeout(() => requestController.abort(), 25000);
+      // 状态核对要启动 CLI 子进程并访问远端，留足后端检查预算；点击先给出即时反馈。
+      const requestTimeout = setTimeout(() => requestController.abort(), 45000);
+      lastRefreshAt = Date.now();
       busy = true; controls();
+      if (body === undefined) el("status").textContent = "正在核对 Devin 登录状态…";
       try {
         const response = await fetch(path, body === undefined ? {signal} : {
           method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), signal,
@@ -67,6 +70,11 @@
     const cancel = () => snapshot?.login?.attempt_id ? send("/api/backends/devin/auth/cancel", {attempt_id:snapshot.login.attempt_id}) : refresh();
     const peerRefresh = event => { if (event.detail !== container && visible && !busy) void refresh(); };
     window.addEventListener("devin-account-changed", peerRefresh);
+    // 在官方网页或外部终端完成授权后回到窗口时自动核对；每次核对会拉起 CLI 子进程，节流 30 秒。
+    const maybeRefresh = () => { if (visible && !disposed && !busy && Date.now() - lastRefreshAt > 30000) void refresh(); };
+    const onVisible = () => { if (!document.hidden) maybeRefresh(); };
+    document.addEventListener?.("visibilitychange", onVisible);
+    window.addEventListener("focus", maybeRefresh);
     el("login").addEventListener("click", login);
     el("cancel").addEventListener("click", cancel);
     el("refresh").addEventListener("click", refresh);
@@ -81,6 +89,8 @@
         disposed = true; sequence++; stopPoll(); controller?.abort();
         el("login").removeEventListener("click", login); el("cancel").removeEventListener("click", cancel); el("refresh").removeEventListener("click", refresh);
         window.removeEventListener("devin-account-changed", peerRefresh);
+        document.removeEventListener?.("visibilitychange", onVisible);
+        window.removeEventListener("focus", maybeRefresh);
         // 关闭页面只停止页面轮询，不代替用户取消本机登录。
       },
     };

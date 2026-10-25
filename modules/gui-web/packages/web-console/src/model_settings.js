@@ -78,11 +78,11 @@
               <label>会话名称<input data-ms="name" required maxlength="32" placeholder="例如：日常助手"></label>
               <label>通信协议<select data-ms="protocol">${protocols.map(item => option(...item)).join("")}</select></label>
               <div class="ms-wide" data-ms="devin-auth" hidden></div><div class="ms-wide ms-account-card" data-ms="openai-auth" hidden><strong>OpenAI / ChatGPT</strong><p data-ms="openai-auth-status" role="status">读取中…</p><div class="ms-heading-actions"><button type="button" data-ms-action="openai-status">刷新状态</button><button type="button" data-ms-action="openai-login">登录</button><button type="button" data-ms-action="openai-cancel" hidden>取消登录</button><button type="button" data-ms-action="openai-logout">退出登录</button></div><a data-ms="openai-login-link" target="_blank" rel="noopener noreferrer" hidden>打开授权页</a><details data-ms="openai-auth-error" hidden><summary>错误详情</summary><pre data-ms="openai-auth-error-detail"></pre></details></div>
-              <small class="ms-wide" data-ms="devin-context" hidden>同一聊天室与模型配置继续发送时，会沿用远端会话，应用重启后也可恢复。重置上下文或切换模型后，会开始新的远端会话。</small>
-              <div class="ms-wide" data-ms="devin-rebind-row" hidden><button type="button" data-ms-action="rebind-devin" class="ms-secondary" aria-label="重新绑定 Devin 远端会话" title="重新绑定 Devin 远端会话">↻</button><small>如果已经清除了 Devin 远端会话，可重新绑定。保留本地聊天记录；下一轮发送时建立新连接。</small></div>
-              <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取、查找与内容搜索；不开放写入、命令、电脑操作或原生 Devin 工具。</small></label>
-              <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>通过宿主操作浏览器与桌面；规划和验收使用所选模型，图片需由 ACP 声明支持。</small></label>
-              <fieldset class="ms-wide" data-ms="devin-plugins-label" hidden><legend>允许的插件工具</legend><button type="button" data-ms="refresh-plugins" data-ms-action="refresh-plugins" class="ms-secondary" aria-label="刷新可选插件工具" title="刷新可选插件工具">↻</button><div data-ms="devin-plugin-tools"></div><small data-ms="devin-plugin-hint">仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。</small></fieldset>
+              <small class="ms-wide" data-ms="devin-context" hidden>继续发送会沿用远端会话，重启后仍可恢复；重置上下文或切换模型后建立新会话。</small>
+              <div class="ms-wide" data-ms="devin-rebind-row" hidden><button type="button" data-ms-action="rebind-devin" class="ms-secondary" aria-label="重新绑定 Devin 远端会话" title="重新绑定 Devin 远端会话">↻</button><small>远端会话被清除后点此重新绑定；本地聊天记录保留。</small></div>
+              <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取与搜索；不含写入、命令或电脑操作。</small></label>
+              <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>由宿主操作浏览器与桌面；图片需模型声明支持。</small></label>
+              <fieldset class="ms-wide" data-ms="devin-plugins-label" hidden><legend>允许的插件工具<button type="button" data-ms="refresh-plugins" data-ms-action="refresh-plugins" class="ms-secondary" aria-label="刷新可选插件工具" title="刷新可选插件工具">↻</button></legend><div data-ms="devin-plugin-tools"></div><small data-ms="devin-plugin-hint">仅勾选需要的已启用工具；缺少授权时本轮不执行。</small></fieldset>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
                 <div class="ms-discovery-actions"><button type="button" data-ms-action="discover" class="ms-secondary">获取模型</button><label class="ms-checkbox"><input type="checkbox" data-ms="discovery-no-key">此次查询不使用密钥</label></div>
@@ -170,7 +170,7 @@
         `<label class="ms-checkbox"><input type="checkbox" data-ms="devin-plugin" value="${esc(tool.name)}" ${selected.has(tool.name) ? "checked" : ""}><span>${esc(tool.description || tool.name)}<small>${esc(tool.name)}</small></span></label>`).join("")
         : "<p class=\"ms-hint\">暂无已启用的插件工具。请先在插件市场安装并启用，再刷新可选工具。</p>";
       el("devin-plugin-hint").textContent = data?.plugin_tools_error ? `插件工具读取失败：${data.plugin_tools_error}`
-        : "仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。";
+        : "仅勾选需要的已启用工具；缺少授权时本轮不执行。";
     }
 
     const devinConnection = () => value("protocol") === "devin_acp";

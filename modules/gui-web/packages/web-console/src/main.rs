@@ -11302,7 +11302,7 @@ async fn api_tools_allowed_roots_add(
     if !canonical.is_dir() {
         return Err(api_error(StatusCode::BAD_REQUEST, "授权对象必须是目录"));
     }
-    let dir = canonical.to_string_lossy().to_string();
+    let dir = display_path(&canonical);
     let config = mutate_workspace_config(|c| {
         if !c.workspace.allowed_roots.iter().any(|r| r.trim() == dir) {
             c.workspace.allowed_roots.push(dir.clone());
@@ -87666,6 +87666,24 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("\"terminal-window-interrupt\": [\"pause\""));
         assert!(WEB_APP_JS.contains("\"rename\", \"pause\","));
         assert!(WEB_APP_JS.contains("if (event.key !== \"Enter\" || event.shiftKey || event.isComposing) return;"));
+    }
+
+    #[test]
+    fn web_frontend_workspace_switch_offers_authorize_and_devin_panel_is_aligned() {
+        let experience = include_str!("chat_experience.js");
+        assert!(experience.contains("授权此目录"));
+        assert!(experience.contains("/api/tools/allowed-roots"));
+        assert!(experience.contains("showWorkspaceError"));
+        let model_settings = include_str!("model_settings.js");
+        assert!(model_settings.contains("data-ms-action=\"refresh-plugins\" class=\"ms-secondary\" aria-label=\"刷新可选插件工具\" title=\"刷新可选插件工具\">↻</button></legend>"));
+        assert!(model_settings.contains("缺少授权时本轮不执行。"));
+        let model_css = include_str!("model_settings.css");
+        for token in ["[data-ms=\"devin-plugin-tools\"] { display:grid", "[data-ms=\"devin-plugin-tools\"] label.ms-checkbox { display:flex", "[data-ms=\"devin-rebind-row\"] { display:flex"] {
+            assert!(model_css.contains(token), "Devin 区块对齐规则缺少：{token}");
+        }
+        let devin_auth = include_str!("devin_auth.js");
+        assert!(devin_auth.contains("正在核对 Devin 登录状态…"));
+        assert!(devin_auth.contains("requestController.abort(), 45000"));
     }
 
     #[test]

@@ -254,6 +254,14 @@ fn publish_to_consumer(
     publish_with_tools(event, tx, review)
 }
 
+/// 版本探测只用于错误文案；失败不阻塞原错误报告。
+async fn sandbox_probe_version(binary: &Path) -> Option<String> {
+    let sandbox = tempfile::tempdir().ok()?;
+    let output = super::transport::run_readonly(binary, &["--version"], sandbox.path(), Duration::from_secs(5)).await.ok()?;
+    let text = std::str::from_utf8(&output).ok()?.trim();
+    (!text.is_empty() && text.len() <= 256 && !text.chars().any(char::is_control)).then(|| text.to_string())
+}
+
 /// 聊天与内部请求共享实际 CLI 身份核对；模型资格由随后 ACP 配置回执确认。
 pub(super) async fn checked_binary(model: &str) -> Result<PathBuf, api::ApiError> {
     if model.trim().is_empty() { return Err(error("模型 ID 不能为空。")); }
@@ -270,7 +278,12 @@ pub(super) async fn checked_binary(model: &str) -> Result<PathBuf, api::ApiError
         .await
         .map_err(|_| error("无法核对固定 CLI 文件。"))?;
     if digest(&cli_bytes) != CLI_SHA256 {
-        return Err(error("Devin CLI 与已验证文件不同，需要重新验证后接入。"));
+        // 版本探测只为错误诊断；`auth status`/模型发现本来就会执行同一二进制。
+        let detected = sandbox_probe_version(&binary).await;
+        return Err(error(format!(
+            "Devin CLI 与已验证文件不同（检测到 {}），需要重新验证后接入。",
+            detected.as_deref().unwrap_or("未知版本")
+        )));
     }
     drop(cli_bytes);
     let sandbox = tempfile::tempdir().map_err(|_| error("无法准备模型核对目录。"))?;
@@ -283,7 +296,10 @@ pub(super) async fn checked_binary(model: &str) -> Result<PathBuf, api::ApiError
     .await
     .map_err(error)?;
     if std::str::from_utf8(&version).ok().map(str::trim) != Some(CLI_VERSION) {
-        return Err(error("Devin CLI 版本未通过文本会话验收。"));
+        let detected = std::str::from_utf8(&version).ok().map(str::trim).unwrap_or("未知");
+        return Err(error(format!(
+            "Devin CLI 版本未通过文本会话验收（检测到 {detected}，已验证 {CLI_VERSION}）。"
+        )));
     }
     // 获取完整目录只用于设置页发现模型。每次生成重复联网取目录会阻塞聊天和
     // CU 内部规划；SessionService 仍必须从远端配置选项选择精确 ID 并确认生效，
