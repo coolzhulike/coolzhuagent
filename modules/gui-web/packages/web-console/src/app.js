@@ -97,6 +97,12 @@ let activeSessionId = null;
 let activeChatRoomId = null;
 let chatHistorySync = null;
 let chatHistoryLoadVersion = 0;
+const terminalWindowState = {
+  handle: null, cursor: 0, scopeKey: "", pollTimer: 0, resizeTimer: 0,
+  busy: false, closed: false, epoch: 0, vtMode: "text", vtCsi: "",
+  vtLines: [], vtRow: 0, vtColumn: 0, vtEraseBlank: false, vtTruncated: false,
+  lastSize: "",
+};
 let activeChatRoomDiagnostics = { enabled: true, auto_refresh: false, show_stream_interrupts: true, show_details: true };
 let activeChatAbortController = null;
 let activeServerTurnId = null;
@@ -570,6 +576,18 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       browserWindowNavigate();
     }
+  });
+  actionButtons.get("terminal-window-run")?.addEventListener("click", terminalWindowRunPowerShell);
+  actionButtons.get("terminal-window-clear")?.addEventListener("click", terminalWindowClear);
+  actionButtons.get("terminal-window-interrupt")?.addEventListener("click", terminalWindowInterrupt);
+  actionButtons.get("terminal-window-close")?.addEventListener("click", terminalWindowClose);
+  const terminalOutput = document.querySelector('[data-role="terminal-window-output"]');
+  if (terminalOutput && typeof ResizeObserver === "function") {
+    new ResizeObserver(() => terminalWindowResizeSoon()).observe(terminalOutput);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) window.clearTimeout(terminalWindowState.resizeTimer);
+    else terminalWindowResizeSoon();
   });
   actionButtons.get("skills-catalog-refresh")?.addEventListener("click", () => refreshQuickCatalogWindow("skills"));
   actionButtons.get("plugin-market-refresh")?.addEventListener("click", () => refreshQuickCatalogWindow("plugin-market"));
@@ -4226,6 +4244,7 @@ function initializeChatLayout() {
   bindChatLayoutAction("chat-focus-layout", toggleChatFocusLayout);
   bindChatLayoutAction("chat-handoff-manual", () => void manualHandoffSelectedMessages());
   bindChatLayoutAction("chat-task-chain", openCurrentTaskChain);
+bindChatLayoutAction("chat-terminal-open", () => openChatToolWindow("terminal"));
   bindChatLayoutAction("top-chat-room", focusChatRoomSelector);
   initializeChatRightRailTabs();
   bindChatLayoutSeparator("left", elements.leftSeparator);
@@ -9079,6 +9098,11 @@ function initializeIconControls() {
     "dsh-market-prev": ["chevron", "上一页"],
     "dsh-market-next": ["chevron", "下一页"],
     "app-update-check": ["refresh", "检查更新"],
+    "terminal-window-interrupt": ["stop", "中断当前命令"],
+    "terminal-window-close": ["stop", "关闭终端"],
+    "terminal-window-run": ["terminal", "运行命令"],
+    "terminal-window-clear": ["delete", "清空终端显示"],
+    "chat-terminal-open": ["terminal", "在右栏打开终端"],
     "chat-history-open": ["search", "搜索聊天记录与消息索引"],
     "task-schedule-create": ["plus", "添加定时任务"],
     "task-schedule-run-due": ["send", "运行到期任务"],
@@ -9414,6 +9438,7 @@ async function loadChatRooms() {
     clearChatMessagesUi("暂无聊天室");
   }
   await refreshPendingApprovals();
+  void terminalWindowRestore();
 }
 
 function clearChatMessagesUi(label = "暂无聊天记录") {
@@ -10913,6 +10938,349 @@ async function runBrowserBridgeDiagnostic(action, button) {
 // 外站先尝试当前内容宿主；受站点嵌入策略限制时明确显示原因。
 // Static contract sample: browserWindowClassifyTarget("http://127.0.0.1:8765/health") === "iframePreview";
 
+function terminalWindowScope() {
+  if (!activeSessionId || !activeChatRoomId) return null;
+  return { session_id: activeSessionId, room_id: activeChatRoomId };
+}
+
+function terminalWindowScopeKey(scope) {
+  return scope ? `${activeWorkspaceKey}${scope.room_id}${scope.session_id}` : "";
+}
+
+function terminalWindowStatus(message) {
+  const status = document.querySelector('[data-role="terminal-window-status"]');
+  if (status) status.textContent = message;
+}
+
+function terminalWindowStopPolling() {
+  if (terminalWindowState.pollTimer) window.clearTimeout(terminalWindowState.pollTimer);
+  terminalWindowState.pollTimer = 0;
+}
+
+function terminalWindowReset(scopeKey = "") {
+  terminalWindowStopPolling();
+  if (terminalWindowState.resizeTimer) window.clearTimeout(terminalWindowState.resizeTimer);
+  terminalWindowState.resizeTimer = 0;
+  terminalWindowState.handle = null;
+  terminalWindowState.cursor = 0;
+  terminalWindowState.scopeKey = scopeKey;
+  terminalWindowState.closed = false;
+  terminalWindowResetProjection();
+  terminalWindowState.lastSize = "";
+  terminalWindowState.epoch += 1;
+  const output = document.querySelector('[data-role="terminal-window-output"]');
+  if (output) output.textContent = "启动后可在当前工程目录运行 PowerShell 命令。";
+  terminalWindowStatus("终端尚未启动");
+}
+
+function terminalWindowResetProjection() {
+  terminalWindowState.vtMode = "text";
+  terminalWindowState.vtCsi = "";
+  terminalWindowState.vtLines = [];
+  terminalWindowState.vtRow = 0;
+  terminalWindowState.vtColumn = 0;
+  terminalWindowState.vtEraseBlank = false;
+  terminalWindowState.vtTruncated = false;
+}
+
+function terminalWindowWriteCharacter(char) {
+  const state = terminalWindowState;
+  while (state.vtLines.length <= state.vtRow) state.vtLines.push([]);
+  const cells = state.vtLines[state.vtRow];
+  while (cells.length < state.vtColumn) cells.push(" ");
+  cells[state.vtColumn] = char;
+  state.vtColumn += 1;
+  state.vtEraseBlank = false;
+  if (cells.length > 110000) {
+    cells.splice(0, 20000);
+    state.vtColumn = Math.max(0, state.vtColumn - 20000);
+    state.vtTruncated = true;
+  }
+}
+
+function terminalWindowProjectCsi(command, parameters) {
+  const state = terminalWindowState;
+  const first = Number.parseInt(parameters.split(";")[0], 10);
+  if (command === "H" || command === "f") {
+    const parts = parameters.split(";");
+    state.vtRow = Math.min(1000, Math.max(0, (Number.parseInt(parts[0], 10) || 1) - 1));
+    state.vtColumn = Math.min(1000, Math.max(0, (Number.parseInt(parts[1], 10) || 1) - 1));
+    // PSReadLine 从首页重绘当前屏幕；旧屏幕的长输出和空白尾行不再属于本轮画面。
+    if (state.vtRow === 0 && state.vtColumn === 0) state.vtLines = [];
+    state.vtEraseBlank = false;
+  } else if (command === "J" && first === 2) {
+    state.vtLines = [];
+    state.vtRow = 0;
+    state.vtColumn = 0;
+    state.vtEraseBlank = false;
+  } else if (command === "K") {
+    const line = state.vtLines[state.vtRow];
+    if (line !== undefined) {
+      if (first === 2) line.length = 0;
+      else if (first === 1) line.fill(" ", 0, Math.min(state.vtColumn + 1, line.length));
+      else line.length = Math.min(line.length, state.vtColumn);
+    }
+    // PowerShell 用 K + CRLF 清理屏幕余下行；这些行不是新的命令输出。
+    state.vtEraseBlank = !state.vtLines[state.vtRow]?.length;
+  }
+}
+
+function terminalWindowProjectionText(text) {
+  // 只投影文字与基本光标/擦除操作；颜色、窗口标题等终端控制序列不显示。
+  const state = terminalWindowState;
+  for (const char of String(text || "")) {
+    const code = char.charCodeAt(0);
+    const mode = state.vtMode;
+    if (mode === "csi") {
+      if (code >= 0x40 && code <= 0x7e) {
+        terminalWindowProjectCsi(char, state.vtCsi);
+        state.vtCsi = "";
+        state.vtMode = "text";
+      } else if (state.vtCsi.length < 24) state.vtCsi += char;
+      continue;
+    }
+    if (mode === "string") {
+      if (char === "\x07") state.vtMode = "text";
+      else if (char === "\x1b") state.vtMode = "string-esc";
+      continue;
+    }
+    if (mode === "string-esc") {
+      state.vtMode = char === "\\" ? "text" : (char === "\x1b" ? "string-esc" : "string");
+      continue;
+    }
+    if (mode === "esc-one") { state.vtMode = "text"; continue; }
+    if (mode === "esc") {
+      state.vtMode = char === "[" ? "csi"
+        : "]_PX^".includes(char) ? "string"
+          : "()#".includes(char) ? "esc-one" : "text";
+      if (char === "[") state.vtCsi = "";
+      continue;
+    }
+    if (char === "\x1b") { state.vtMode = "esc"; continue; }
+    if (char === "\b") { state.vtColumn = Math.max(0, state.vtColumn - 1); continue; }
+    if (char === "\r") { state.vtColumn = 0; continue; }
+    if (char === "\n") {
+      state.vtRow += 1;
+      state.vtColumn = 0;
+      if (!state.vtEraseBlank) {
+        while (state.vtLines.length <= state.vtRow) state.vtLines.push([]);
+      }
+      state.vtEraseBlank = false;
+      if (state.vtLines.length > 6000) {
+        state.vtLines.splice(0, 1000);
+        state.vtRow = Math.max(0, state.vtRow - 1000);
+        state.vtTruncated = true;
+      }
+      continue;
+    }
+    if (char === "\t") {
+      do { terminalWindowWriteCharacter(" "); } while (state.vtColumn % 8);
+    } else if (code >= 0x20 && code !== 0x7f) terminalWindowWriteCharacter(char);
+  }
+  let length = state.vtLines.reduce((total, line) => total + line.length + 1, 0);
+  let drop = 0;
+  while ((state.vtLines.length - drop > 5000 || length > 100000)
+      && state.vtLines.length - drop > 1) {
+    length -= state.vtLines[drop].length + 1;
+    drop += 1;
+  }
+  if (drop) {
+    state.vtLines.splice(0, drop);
+    state.vtRow = Math.max(0, state.vtRow - drop);
+    state.vtTruncated = true;
+  }
+  if (state.vtLines.length === 1 && state.vtLines[0].length > 100000) {
+    const removed = state.vtLines[0].length - 100000;
+    state.vtLines[0].splice(0, removed);
+    state.vtColumn = Math.max(0, state.vtColumn - removed);
+    state.vtTruncated = true;
+  }
+  return `${state.vtTruncated ? "[较早输出已省略]\n" : ""}${state.vtLines.map((line) => line.join("")).join("\n")}`;
+}
+
+function terminalWindowResizeSoon() {
+  if (terminalWindowState.resizeTimer) window.clearTimeout(terminalWindowState.resizeTimer);
+  if (document.hidden || !terminalWindowState.handle || terminalWindowState.closed) return;
+  terminalWindowState.resizeTimer = window.setTimeout(() => { void terminalWindowResize(); }, 180);
+}
+
+async function terminalWindowResize() {
+  terminalWindowState.resizeTimer = 0;
+  const scope = terminalWindowScope();
+  const output = document.querySelector('[data-role="terminal-window-output"]');
+  if (!scope || !output || document.hidden || !output.getClientRects().length
+      || !terminalWindowState.handle || terminalWindowState.closed) return;
+  const cols = Math.max(40, Math.min(200, Math.floor(output.clientWidth / 8)));
+  const rows = Math.max(10, Math.min(80, Math.floor(output.clientHeight / 18)));
+  const size = `${cols}x${rows}`;
+  if (terminalWindowState.lastSize === size) return;
+  const handle = terminalWindowState.handle;
+  try {
+    await requestJson(`/api/terminal/${encodeURIComponent(handle)}/resize`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...scope, cols, rows }),
+    });
+    if (handle === terminalWindowState.handle) terminalWindowState.lastSize = size;
+  } catch (error) {
+    if (handle === terminalWindowState.handle && error.status === 409) terminalWindowReset(terminalWindowScopeKey(scope));
+  }
+}
+
+function terminalWindowApply(response, { replace = false } = {}) {
+  if (replace) terminalWindowResetProjection();
+  if (response?.handle) terminalWindowState.handle = response.handle;
+  if (Number.isSafeInteger(response?.next_cursor)) terminalWindowState.cursor = response.next_cursor;
+  terminalWindowState.closed = !!response?.closed;
+  const output = document.querySelector('[data-role="terminal-window-output"]');
+  if (output) {
+    const raw = typeof response?.text === "string" ? response.text : "";
+    if (replace || raw || response?.truncated) {
+      const wasAtBottom = output.scrollHeight - output.clientHeight - output.scrollTop <= 24;
+      if (response?.truncated) terminalWindowState.vtTruncated = true;
+      const projected = terminalWindowProjectionText(raw);
+      if (projected !== output.textContent) {
+        output.textContent = projected;
+        if (replace || wasAtBottom) output.scrollTop = output.scrollHeight;
+      }
+    }
+  }
+  terminalWindowStatus(response?.message || (response?.closed ? "终端已退出" : "终端正在运行"));
+  if (response?.closed) terminalWindowStopPolling();
+  else terminalWindowResizeSoon();
+}
+
+function terminalWindowSchedulePoll(delay = 450) {
+  terminalWindowStopPolling();
+  if (!terminalWindowState.handle) return;
+  terminalWindowState.pollTimer = window.setTimeout(() => { void terminalWindowPoll(); }, delay);
+}
+
+async function terminalWindowPoll() {
+  const scope = terminalWindowScope();
+  if (!scope || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey || !terminalWindowState.handle) {
+    terminalWindowReset(terminalWindowScopeKey(scope));
+    return;
+  }
+  const handle = terminalWindowState.handle;
+  const cursor = terminalWindowState.cursor;
+  const params = new URLSearchParams({ ...scope, cursor: String(cursor) });
+  try {
+    const response = await requestJson(`/api/terminal/${encodeURIComponent(handle)}/output?${params}`);
+    if (handle !== terminalWindowState.handle || cursor !== terminalWindowState.cursor
+        || terminalWindowScopeKey(scope) !== terminalWindowState.scopeKey) return;
+    terminalWindowApply(response);
+    // 退出只表示进程结束；已缓存的多页尾部仍需读至空页。
+    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
+  } catch (error) {
+    if (handle !== terminalWindowState.handle) return;
+    terminalWindowStatus(error.message || "终端连接中断");
+    if (error.status === 409) terminalWindowReset(terminalWindowScopeKey(scope));
+    else if (error.status !== 403) terminalWindowSchedulePoll(1500);
+  }
+}
+
+async function terminalWindowRestore() {
+  const scope = terminalWindowScope();
+  const scopeKey = terminalWindowScopeKey(scope);
+  if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
+  if (!scope) return;
+  // 已连接时继续读取增量；重新打开侧栏不重置正在投影的输出。
+  if (terminalWindowState.handle) {
+    if (!terminalWindowState.closed) terminalWindowSchedulePoll();
+    return;
+  }
+  if (terminalWindowState.busy) return;
+  const epoch = terminalWindowState.epoch;
+  try {
+    const params = new URLSearchParams(scope);
+    const response = await requestJson(`/api/terminal?${params}`);
+    // 初始化恢复、侧栏打开和用户启动可能重叠，迟到恢复不得覆盖新句柄。
+    if (epoch !== terminalWindowState.epoch || terminalWindowState.handle || terminalWindowState.busy) return;
+    if (!response.active || !response.handle) return;
+    terminalWindowApply(response, { replace: true });
+    if (!response.closed || response.text) terminalWindowSchedulePoll(response.closed ? 0 : 450);
+  } catch (error) {
+    if (epoch === terminalWindowState.epoch && !terminalWindowState.handle && !terminalWindowState.busy) {
+      terminalWindowStatus(error.message || "终端状态不可用");
+    }
+  }
+}
+
+async function terminalWindowRunPowerShell() {
+  if (terminalWindowState.busy) return;
+  const scope = terminalWindowScope();
+  if (!scope) { terminalWindowStatus("请先选择当前 Agent 和聊天室"); return; }
+  const scopeKey = terminalWindowScopeKey(scope);
+  if (scopeKey !== terminalWindowState.scopeKey) terminalWindowReset(scopeKey);
+  const command = document.querySelector('[data-role="terminal-command"]')?.value || "";
+  const button = actionButtons.get("terminal-window-run");
+  terminalWindowState.busy = true;
+  setBusy(button, true, "运行中");
+  try {
+    if (terminalWindowState.handle && terminalWindowState.closed) {
+      await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/close`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
+      });
+      terminalWindowReset(scopeKey);
+    }
+    if (!terminalWindowState.handle) {
+      const started = await requestJson("/api/terminal/start", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...scope, cols: 90, rows: 30 }),
+      });
+      if (scopeKey !== terminalWindowScopeKey(terminalWindowScope())) return;
+      terminalWindowApply(started, { replace: true });
+    }
+    if (command.trim()) {
+      await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/input`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...scope, text: `${command.replace(/\r?\n/g, "\r\n")}\r\n` }),
+      });
+      terminalWindowSchedulePoll(50);
+    } else {
+      terminalWindowSchedulePoll();
+    }
+  } catch (error) {
+    terminalWindowStatus(error.message || "终端运行失败");
+  } finally {
+    terminalWindowState.busy = false;
+    setBusy(button, false);
+  }
+}
+
+async function terminalWindowRun() { return terminalWindowRunPowerShell(); }
+
+async function terminalWindowInterrupt() {
+  const scope = terminalWindowScope();
+  if (!scope || !terminalWindowState.handle) return;
+  try {
+    await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/interrupt`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
+    });
+    terminalWindowStatus("正在中断当前命令…");
+    terminalWindowSchedulePoll(50);
+  } catch (error) { terminalWindowStatus(error.message || "中断失败"); }
+}
+
+async function terminalWindowClose() {
+  const scope = terminalWindowScope();
+  if (!scope || !terminalWindowState.handle) return;
+  terminalWindowStopPolling();
+  try {
+    await requestJson(`/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/close`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(scope),
+    });
+    terminalWindowReset(terminalWindowScopeKey(scope));
+    terminalWindowStatus("终端已关闭");
+  } catch (error) { terminalWindowStatus(error.message || "关闭失败"); }
+}
+
+function terminalWindowClear() {
+  const output = document.querySelector('[data-role="terminal-window-output"]');
+  terminalWindowResetProjection();
+  if (output) output.textContent = "";
+}
+
 function activateChatHistorySync() {
   if (!activeChatRoomId || !projectWorkspaceScope || !window.CoolzhuChatHistorySync || typeof EventSource === "undefined") return;
   if (!chatHistorySync) {
@@ -11152,7 +11520,8 @@ function refreshQuickWorkbenchWindow(windowId) {
   } else if (windowId === "app-update") {
     void refreshAppUpdateStatus();
   } else if (windowId === "terminal") {
-    }
+    void terminalWindowRestore();
+  }
 }
 
 function chatToolWindowNode(windowId) {
@@ -12604,8 +12973,12 @@ async function deleteSelectedChatRoom() {
       clearChatMessagesUi("暂无聊天室");
     }
     await refreshPendingApprovals();
+    // 删除完成后回到聊天界面，让用户立即看到回落后的激活房间。
+    window.CoolzhuChatExperience?.closePopup?.();
   } catch (error) {
     addMessage({ author: "聊天室", text: `删除聊天室失败：${error.message}`, kind: "thought", icon: "error-log" });
+    // 失败只写聊天消息时弹窗会挡住提示；用 alert 保证用户看到原因。
+    window.alert(`删除聊天室失败：${error.message}`);
   } finally {
     setBusy(button, false);
   }

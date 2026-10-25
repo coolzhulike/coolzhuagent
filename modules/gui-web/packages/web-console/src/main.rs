@@ -14,6 +14,13 @@ mod dsh_web;
 mod plugin_runtime;
 mod mcp_host;
 mod lsp_host;
+#[cfg(windows)]
+mod terminal_host;
+#[cfg(not(windows))]
+mod terminal_host {
+    pub(super) fn routes() -> axum::Router { axum::Router::new() }
+    pub(super) fn invalidate_scope() {}
+}
 mod host_child_agent;
 mod goal_replan;
 mod goal_phase_stage;
@@ -2286,6 +2293,7 @@ fn app() -> Router {
             "/api/computer-use/safe-drag-select",
             post(api_safe_drag_select_test),
         )
+        .merge(terminal_host::routes())
         .merge(extension_market::routes())
         .merge(native_browser_host::routes())
         .merge(computer_use_activity::routes())
@@ -3470,6 +3478,7 @@ fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
     workspace_projects::remember(&workspace)?;
     drop(next_writer);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     tools::set_project_config_root(Some(workspace.clone()));
 
     {
@@ -3492,6 +3501,7 @@ fn reload_workspace_scope(workspace: PathBuf) -> ApiResult<WorkspaceResponse> {
     }
 
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     mcp_host::invalidate_workspace();
     let mut response = workspace_response_from_path(&workspace);
     response.configuration_scope = Some(workspace_change.commit(&response.workspace_id)
@@ -13381,6 +13391,7 @@ async fn api_create_session(
     let session = store.create_session(payload)?;
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(SessionMutationResponse { session }))
 }
 
@@ -13407,6 +13418,7 @@ async fn api_delete_session(
     let response = store.session_list_response();
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(response))
 }
 
@@ -13419,6 +13431,7 @@ async fn api_reset_session(
     let session = store.reset_session(&session_id)?;
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(SessionMutationResponse { session }))
 }
 
@@ -13431,6 +13444,7 @@ async fn api_activate_session(
     let session = store.activate_session(&session_id)?;
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(SessionMutationResponse { session }))
 }
 
@@ -17272,6 +17286,7 @@ async fn api_update_chat_room_permission(
     let status = chat_room_permission_status(&room_id, room_name)?;
     append_chat_room_permission_audit_record(&status);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(status))
 }
 
@@ -17325,6 +17340,7 @@ async fn api_create_chat_room(
     let room = store.create_chat_room(payload)?;
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(ChatRoomMutationResponse { room }))
 }
 
@@ -17348,6 +17364,7 @@ async fn api_activate_chat_room(
     let room = store.activate_chat_room(&room_id)?;
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(ChatRoomMutationResponse { room }))
 }
 
@@ -17366,16 +17383,63 @@ async fn api_delete_chat_room(
     };
     drop(store);
     lsp_host::invalidate_workspace();
+    terminal_host::invalidate_scope();
     Ok(Json(response))
 }
 
 async fn api_chat_room_impact(
     AxumPath(room_id): AxumPath<String>,
 ) -> ApiResult<Json<ChatRoomImpactResponse>> {
-    let store = session_store()
-        .lock()
-        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
-    Ok(Json(store.chat_room_impact(&room_id)?))
+    // 影响预览只读 sqlite，不抢会话存储锁——模型回合持锁期间删除确认必须能弹出。
+    chat_room_impact_sqlite(&room_id).map(Json)
+}
+
+fn chat_room_impact_sqlite(room_id: &str) -> ApiResult<ChatRoomImpactResponse> {
+    let path = default_session_sqlite_path();
+    if !path.exists() {
+        return Err(api_error(StatusCode::NOT_FOUND, "聊天室不存在"));
+    }
+    let connection = open_session_connection(&path).map_err(sqlite_api_error)?;
+    let room_name: Option<String> = connection
+        .query_row(
+            "SELECT name FROM chat_rooms WHERE id=?1",
+            params![room_id],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(sqlite_api_error)?;
+    let Some(room_name) = room_name else {
+        return Err(api_error(StatusCode::NOT_FOUND, "聊天室不存在"));
+    };
+    let affected_messages: i64 = connection
+        .query_row(
+            "SELECT COUNT(*) FROM chat_room_messages WHERE room_id=?1",
+            params![room_id],
+            |row| row.get(0),
+        )
+        .map_err(sqlite_api_error)?;
+    let affected_beads: i64 = connection
+        .query_row(
+            "SELECT COUNT(*) FROM memory_beads WHERE origin_table='chat_room_messages'
+             AND origin_message_id IN (SELECT id FROM chat_room_messages WHERE room_id=?1)",
+            params![room_id],
+            |row| row.get(0),
+        )
+        .map_err(sqlite_api_error)?;
+    drop(connection);
+    let persisted_messages = history_persistence::messages(&path, true, room_id)?;
+    let affected_attachments = persisted_messages
+        .iter()
+        .flat_map(|message| message.attachments.iter())
+        .filter(|attachment| attachment_file_name_from_url(&attachment.url).is_some())
+        .count();
+    Ok(ChatRoomImpactResponse {
+        room_id: room_id.to_string(),
+        room_name,
+        affected_messages: affected_messages as usize,
+        affected_beads: affected_beads as usize,
+        affected_attachments,
+    })
 }
 
 async fn api_chat_room_roster(
@@ -40960,7 +41024,10 @@ impl SessionStore {
         }
         self.enforce_capacity();
         self.committed_state = Some(self.state.clone());
-        if let Err(error) = self.save_legacy_json() { warn!("删除已提交，兼容镜像写入失败：{:?}", error.0); }
+        // 与 save() 同一道门：兼容镜像只供显式导出，删除路径不再全量序列化整库。
+        if std::env::var_os("COOLZHU_EXPORT_LEGACY_SESSION_JSON").is_some() {
+            if let Err(error) = self.save_legacy_json() { warn!("删除已提交，兼容镜像写入失败：{:?}", error.0); }
+        }
         Ok(())
     }
 
@@ -82882,8 +82949,8 @@ attach: last_assistant
         );
         assert!(WEB_APP_JS.contains("[data-role=\"module-selfcheck\"]"));
         assert!(!WEB_INDEX_HTML.contains("browser-utility-drawer"));
-        assert!(!WEB_INDEX_HTML.contains("class=\"terminal-console-shell\""));
-        assert!(!WEB_INDEX_HTML.contains("data-window-target=\"terminal\""));
+        assert!(WEB_INDEX_HTML.contains("class=\"terminal-console-shell\""));
+        assert!(WEB_INDEX_HTML.contains("data-window-target=\"terminal\""));
     }
 
     #[test]
@@ -87593,10 +87660,14 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("webm: \"video/webm\""));
         assert!(!WEB_INDEX_HTML.contains("data-role=\"attachment-media-preview\""));
         assert!(!WEB_APP_JS.contains("mediaWindowOnPlaylistClick"));
-        assert!(!WEB_INDEX_HTML.contains("data-role=\"terminal-command\""));
-        assert!(!WEB_APP_JS.contains("function terminalWindowRunPowerShell"));
-        assert!(!WEB_APP_JS.contains("/api/terminal/start"));
-        assert!(!WEB_APP_JS.contains("/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/input"));
+        assert!(WEB_INDEX_HTML.contains("data-role=\"terminal-command\""));
+        assert!(WEB_INDEX_HTML.contains("data-window-target=\"terminal\""));
+        assert!(WEB_INDEX_HTML.contains("data-action=\"chat-terminal-open\""));
+        assert!(WEB_APP_JS.contains("function terminalWindowRunPowerShell"));
+        assert!(WEB_APP_JS.contains("function terminalWindowRestore"));
+        assert!(WEB_APP_JS.contains("/api/terminal/start"));
+        assert!(WEB_APP_JS.contains("/api/terminal/${encodeURIComponent(terminalWindowState.handle)}/input"));
+        assert!(WEB_APP_JS.contains("/api/terminal/${encodeURIComponent(handle)}/output"));
         assert!(!WEB_INDEX_HTML.contains("data-role=\"browser-proxy-config\""));
         assert!(!WEB_INDEX_HTML.contains("data-action=\"browser-proxy-save\""));
         assert!(WEB_INDEX_HTML.contains("data-action=\"browser-window-forward\""));
