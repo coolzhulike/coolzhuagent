@@ -202,6 +202,7 @@ mod tests {
             calls_tool: false,
             reference_context: crate::ChatReferenceContext::new(Vec::new(), Vec::new(), "r".into(), "", &[]),
             goal_trigger: None,
+            dedup_key: None,
         };
         let expired = RootExecutionBudget::from_started_at(1, 1);
         assert!(expired.is_expired());
