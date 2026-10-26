@@ -11,7 +11,7 @@ async fn real_swe2_basic_conversation() {
     let root = std::env::current_dir().unwrap().join("tmp").join(format!("devin-real-smoke-{}", crate::unix_timestamp_millis()));
     let cwd = root.join("workspace"); std::fs::create_dir_all(cwd.join(".devin")).unwrap();
     let version = super::transport::run_readonly(&binary, &["--version"], &cwd, Duration::from_secs(5)).await.unwrap();
-    assert_eq!(std::str::from_utf8(&version).unwrap().trim(), "devin 3000.10.48 (fcf7ba39)");
+    assert_eq!(std::str::from_utf8(&version).unwrap().trim(), super::chat::CLI_VERSION);
     let catalog = super::transport::run_readonly(&binary, &["models","list","--format","json"], &cwd, Duration::from_secs(30)).await.unwrap();
     let catalog: Value = serde_json::from_slice(&catalog).unwrap();
     let requested = "swe-2-medium";
@@ -58,7 +58,7 @@ async fn real_swe2_basic_conversation() {
             "resolved_model":result.model.resolved_model,"stop_reason":result.stop_reason,"reply":reply,
             "text_chunks":chunks,"load_replay_events":events.iter().filter(|e|e.replay).count(),
             "process_drained":journal.status(&claim).unwrap().process_drained,"passed":passed}));
-        std::fs::write(root.join("report.json"),serde_json::to_vec_pretty(&json!({"cli_version":"devin 3000.10.48 (fcf7ba39)",
+        std::fs::write(root.join("report.json"),serde_json::to_vec_pretty(&json!({"cli_version":super::chat::CLI_VERSION,
             "cost_tier":"Free","cost_source":"authenticated CLI catalog","tests":reports,
             "scope":"临时工程内真实 ACP 文本与跨进程恢复；未开放正式聊天路由或工具"})).unwrap()).unwrap();
         println!("真实 SWE-2：turn={} chunks={} restored={} passed={}",index+1,chunks,index>0,passed);

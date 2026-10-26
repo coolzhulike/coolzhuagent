@@ -215,7 +215,7 @@ impl Journal {
                     old_domain.starts_with("host-incremental-v3:") && old_domain==new_domain
                     && !old_model.is_empty() && !new_model.is_empty());
             if cli!=binding.cli_identity {
-                if cli!="devin 3000.10.48 (fcf7ba39)" || binding.cli_identity!=super::chat::CLI_VERSION
+                if cli!="devin 3000.10.67 (0b186d6e)" || binding.cli_identity!=super::chat::CLI_VERSION
                     || locked.is_some() || cwd!=binding.cwd || !same_domain {
                     return Err(fail("CLI 版本变化未通过闲置绑定兼容条件，未修改原绑定。"));
                 }
@@ -364,6 +364,37 @@ impl Journal {
         tx.execute("UPDATE devin_acp_bindings SET remote_session_id=NULL WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3",
             params![workspace,room,agent]).map_err(|_| fail("重新绑定提交失败。"))?;
         tx.commit().map_err(|_| fail("重新绑定提交未确认。"))
+    }
+
+    /// session/load 被远端拒绝后解除失效远端绑定；只归档并置空远端 ID，
+    /// 保留绑定行的上下文域与锁归属，本轮仍失败，重试时创建新远端会话。
+    /// 只有绑定仍指向同一远端会话且锁定执行就是当前 attempt 时才生效。
+    pub(super) fn retire_dead_remote(&self, scope: &ExecutionScope, remote: &str) -> Result<bool, String> {
+        let mut connection = self.connection()?;
+        let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)
+            .map_err(|_| fail("ACP 失效绑定锁失败。"))?;
+        let locked: Option<Option<String>> = tx.query_row(
+            "SELECT locked_attempt FROM devin_acp_bindings
+            WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4 AND remote_session_id=?5",
+            params![scope.workspace_id, scope.room_id, scope.agent_id, scope.lane, remote],
+            |row| row.get(0)).optional().map_err(|_| fail("ACP 失效绑定读取失败。"))?;
+        let Some(locked) = locked else { return Ok(false); };
+        if locked.as_deref().is_some_and(|attempt| attempt != scope.attempt_id) {
+            return Err(fail("ACP 失效绑定仍被其它执行锁定。"));
+        }
+        let archive: String = tx.query_row("SELECT json_object('workspace_id',workspace_id,'room_id',room_id,
+            'agent_id',agent_id,'lane',lane,'cwd',cwd,'cli_identity',cli_identity,'context_digest',context_digest,
+            'remote_session_id',remote_session_id,'locked_attempt',locked_attempt,'reason','session_load_rejected')
+            FROM devin_acp_bindings WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4 AND remote_session_id=?5",
+            params![scope.workspace_id, scope.room_id, scope.agent_id, scope.lane, remote],
+            |row| row.get(0)).map_err(|_| fail("ACP 失效绑定归档读取失败。"))?;
+        tx.execute("INSERT INTO devin_acp_retired_bindings(remote_session_id,binding_json) VALUES(?1,?2)",
+            params![remote, archive]).map_err(|_| fail("ACP 失效绑定归档失败。"))?;
+        tx.execute("UPDATE devin_acp_bindings SET remote_session_id=NULL WHERE workspace_id=?1 AND room_id=?2 AND agent_id=?3 AND lane=?4",
+            params![scope.workspace_id, scope.room_id, scope.agent_id, scope.lane])
+            .map_err(|_| fail("ACP 失效绑定解除失败。"))?;
+        tx.commit().map_err(|_| fail("ACP 失效绑定归档提交未确认。"))?;
+        Ok(true)
     }
 
     pub(super) fn check(connection: &Connection, scope: &ExecutionScope) -> Result<(), String> {
@@ -726,7 +757,7 @@ pub(super) mod tests {
     #[test]
     fn qualified_cli_upgrade_and_model_change_preserve_idle_remote_only() {
         let (_dir,journal,mut old)=setup();
-        old.cli_identity="devin 3000.10.48 (fcf7ba39)".into();
+        old.cli_identity="devin 3000.10.67 (0b186d6e)".into();
         old.context_digest="host-incremental-v3:Some(123):gpt-6-luna-max".into();
         let first=journal.claim(scope("before-upgrade"),&old).unwrap();
         journal.save_remote(&first,"same-existing-remote").unwrap();
@@ -764,6 +795,36 @@ pub(super) mod tests {
         journal.record_drained(&first).unwrap();
         assert!(journal.detach_remote_bindings("w","r","a",&expected).is_err());
         assert_eq!(journal.binding(&first).unwrap().remote_session_id.as_deref(),Some("active-chat"));
+    }
+
+    #[test]
+    fn rejected_session_load_retires_remote_only_for_the_same_scope() {
+        let (_dir,journal,binding) = setup();
+        let first = journal.claim(scope("stale"),&binding).unwrap();
+        journal.save_remote(&first,"stale-chat").unwrap();
+        journal.transition(&first,&["prepared"],"not_sent",None,false).unwrap();
+        journal.record_drained(&first).unwrap();
+        // 不匹配的远端或作用域不影响绑定。
+        let next = journal.claim(scope("retry"),&binding).unwrap();
+        assert!(!journal.retire_dead_remote(&next,"other-remote").unwrap());
+        assert_eq!(journal.binding(&next).unwrap().remote_session_id.as_deref(),Some("stale-chat"));
+        // 恢复被拒后：同域同会话归档并置空，绑定行与上下文域保留。
+        assert!(journal.retire_dead_remote(&next,"stale-chat").unwrap());
+        let updated = journal.binding(&next).unwrap();
+        assert!(updated.remote_session_id.is_none());
+        assert_eq!(updated.context_digest,binding.context_digest);
+        let reason:String = journal.connection().unwrap().query_row(
+            "SELECT json_extract(binding_json,'$.reason') FROM devin_acp_retired_bindings WHERE remote_session_id='stale-chat'",
+            [],|row|row.get(0)).unwrap();
+        assert_eq!(reason,"session_load_rejected");
+        // 已置空的远端不可重复归档；回合收尾后重试按新会话创建。
+        assert!(!journal.retire_dead_remote(&next,"stale-chat").unwrap());
+        journal.transition(&next,&["prepared"],"not_sent",None,false).unwrap();
+        journal.record_drained(&next).unwrap();
+        let third = journal.claim(scope("after-retire"),&binding).unwrap();
+        assert!(journal.binding(&third).unwrap().remote_session_id.is_none());
+        journal.save_remote(&third,"fresh-chat").unwrap();
+        assert_eq!(journal.binding(&third).unwrap().remote_session_id.as_deref(),Some("fresh-chat"));
     }
 
     #[test]

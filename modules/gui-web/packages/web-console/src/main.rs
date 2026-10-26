@@ -11302,7 +11302,7 @@ async fn api_tools_allowed_roots_add(
     if !canonical.is_dir() {
         return Err(api_error(StatusCode::BAD_REQUEST, "授权对象必须是目录"));
     }
-    let dir = canonical.to_string_lossy().to_string();
+    let dir = display_path(&canonical);
     let config = mutate_workspace_config(|c| {
         if !c.workspace.allowed_roots.iter().any(|r| r.trim() == dir) {
             c.workspace.allowed_roots.push(dir.clone());
@@ -19010,11 +19010,19 @@ async fn relay_dispatch(
 
 /// 两种 HTTP 传输共用持久运行接纳、取消和终态，接力只改变调度方式。
 async fn api_chat_send_relay(Json(payload): Json<SendMessageRequest>) -> ApiResult<Json<SendMessageResponse>> {
-    chat_run_admission::run_nonstream(prepare_chat_dispatch(payload)?, true).await
+    let prepared = prepare_chat_dispatch(payload)?;
+    let dedup_key = prepared.dedup_key;
+    let response = chat_run_admission::run_nonstream(prepared, true).await;
+    release_dedup_key_on_failure(dedup_key, &response);
+    response
 }
 
 async fn api_chat_send(Json(payload): Json<SendMessageRequest>) -> ApiResult<Json<SendMessageResponse>> {
-    chat_run_admission::run_nonstream(prepare_chat_dispatch(payload)?, false).await
+    let prepared = prepare_chat_dispatch(payload)?;
+    let dedup_key = prepared.dedup_key;
+    let response = chat_run_admission::run_nonstream(prepared, false).await;
+    release_dedup_key_on_failure(dedup_key, &response);
+    response
 }
 
 async fn run_prepared_chat_dispatch(
@@ -19371,8 +19379,18 @@ async fn api_chat_send_stream(
 ) -> ApiResult<Sse<impl futures_core::Stream<Item = Result<Event, std::convert::Infallible>>>> {
     let turn_clock = Instant::now();
     let result = prepare_chat_dispatch(payload)?;
+    let dedup_key = result.dedup_key;
+    let accepted = match chat_run_admission::accept(&result, "chat-send-stream") {
+        Ok(accepted) => accepted,
+        Err(error) => {
+            if let Some(key) = dedup_key {
+                release_chat_request_fingerprint(key);
+            }
+            return Err(error);
+        }
+    };
     let chat_run_admission::AcceptedChatRun { turn_id, run_id, claim_token, db_path,
-        cancellation, root_budget, parent, guard } = chat_run_admission::accept(&result, "chat-send-stream")?;
+        cancellation, root_budget, parent, guard } = accepted;
     let stream = async_stream::stream! {
         let mut turn_guard = guard;
         let mut terminal_status = ChatTurnStatus::Completed;
@@ -20320,6 +20338,12 @@ async fn api_chat_send_stream(
         } else {
             terminal_status
         });
+        // 失败与中断是明确终态：客户端已知结果，释放指纹放行人工重试；完成态保留弱网窗口。
+        if matches!(status, ChatTurnStatus::Failed | ChatTurnStatus::Interrupted) {
+            if let Some(key) = dedup_key {
+                release_chat_request_fingerprint(key);
+            }
+        }
         if status == ChatTurnStatus::Completed {
             emit_backend_pet_event(
                 "chat.completed",
@@ -20975,15 +20999,9 @@ fn chat_idempotency_registry() -> &'static Mutex<HashMap<u64, u64>> {
     REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-/// 检测聊天请求是否为时间窗内的重复提交（弱网保护）。命中返回拒绝原因；否则登记并放行。
-/// 指纹含 session/room/目标 agent/规范化文本/附件(url+name)，确保不同内容不误判；附件不同→不同指纹。
-fn check_chat_request_duplicate(payload: &SendMessageRequest) -> Option<String> {
-    let window_ms = chat_idempotency_window_ms();
-    if window_ms == 0 {
-        return None;
-    }
+/// 请求指纹：session/room/目标 agent/规范化文本/附件(url+name)，不同内容不误判；纯空内容不取指纹。
+fn chat_request_fingerprint(payload: &SendMessageRequest) -> Option<u64> {
     let text = payload.text.trim();
-    // 纯空内容不参与去重（已被前置校验处理）。
     if text.is_empty()
         && payload
             .attachments
@@ -21009,7 +21027,15 @@ fn check_chat_request_duplicate(payload: &SendMessageRequest) -> Option<String> 
             fingerprint.push(';');
         }
     }
-    let key = hash_bytes(fingerprint.as_bytes());
+    Some(hash_bytes(fingerprint.as_bytes()))
+}
+
+/// 登记时间窗内的重复提交（弱网保护）。命中返回拒绝原因；否则登记并放行。
+fn check_chat_request_duplicate(key: u64) -> Option<String> {
+    let window_ms = chat_idempotency_window_ms();
+    if window_ms == 0 {
+        return None;
+    }
     let now = unix_timestamp_millis();
     let mut map = chat_idempotency_registry().lock().ok()?;
     map.retain(|_, ts| now.saturating_sub(*ts) < window_ms);
@@ -21023,7 +21049,53 @@ fn check_chat_request_duplicate(payload: &SendMessageRequest) -> Option<String> 
     None
 }
 
+/// 请求明确失败后放行后续重试：客户端已收到失败结果，不再是弱网重发的歧义场景。
+fn release_chat_request_fingerprint(key: u64) {
+    if let Ok(mut map) = chat_idempotency_registry().lock() {
+        map.remove(&key);
+    }
+}
+
+/// 响应明确失败（dispatch 错误或回合失败）时释放幂等指纹；成功完成保留窗口防弱网重发。
+fn release_dedup_key_on_failure(
+    dedup_key: Option<u64>,
+    response: &ApiResult<Json<SendMessageResponse>>,
+) {
+    let failed = match response {
+        Err(_) => true,
+        Ok(Json(body)) => body.execution_failed,
+    };
+    if failed {
+        if let Some(key) = dedup_key {
+            release_chat_request_fingerprint(key);
+        }
+    }
+}
+
+/// 幂等登记 → 实际装配；登记后的任何装配失败都释放指纹，放行明确失败后的用户重试。
 fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatDispatch> {
+    let dedup_key = chat_request_fingerprint(&payload);
+    if let Some(key) = dedup_key {
+        // 命中拒绝时指纹属于首发请求，不能代其注销。
+        if let Some(reason) = check_chat_request_duplicate(key) {
+            return Err(api_error(StatusCode::CONFLICT, &reason));
+        }
+    }
+    match prepare_chat_dispatch_checked(payload) {
+        Ok(mut prepared) => {
+            prepared.dedup_key = dedup_key;
+            Ok(prepared)
+        }
+        Err(error) => {
+            if let Some(key) = dedup_key {
+                release_chat_request_fingerprint(key);
+            }
+            Err(error)
+        }
+    }
+}
+
+fn prepare_chat_dispatch_checked(payload: SendMessageRequest) -> ApiResult<PreparedChatDispatch> {
     // 与切工程共用唯一守门；pin 必须早于配置/历史/附件读取，并随接纳 guard 收尾。
     let workspace_pin = Arc::new(workspace_activity::pin_workspace()
         .map_err(|message| api_error(StatusCode::CONFLICT, &message))?);
@@ -21044,11 +21116,9 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         ));
     }
 
-    // 请求幂等（弱网保护）：同一 (session, room, agents, text, 附件指纹) 在时间窗内重复提交→拒绝重复执行，
-    // 避免弱网重发导致同一指令被执行两次（不 emit、不调模型、不存消息）。realtime 链路独立，不受影响。
-    if let Some(reason) = check_chat_request_duplicate(&payload) {
-        return Err(api_error(StatusCode::CONFLICT, &reason));
-    }
+    // 请求幂等（弱网保护）由 prepare_chat_dispatch 包装层负责：
+    // 同一 (session, room, agents, text, 附件指纹) 在时间窗内重复提交→拒绝重复执行；
+    // 明确失败会释放指纹，放行用户重试。realtime 链路独立，不受影响。
 
     let selectable_agents = default_agent_sessions()
         .into_iter()
@@ -21211,6 +21281,7 @@ fn prepare_chat_dispatch(payload: SendMessageRequest) -> ApiResult<PreparedChatD
         calls_tool,
         reference_context,
         goal_trigger,
+        dedup_key: None,
     })
 }
 
@@ -25410,9 +25481,12 @@ fn spawn_approval_resume_turn(record: &PendingApprovalRecord, rejected: bool) {
                 return;
             }
         };
-        if let Err(error) = chat_run_admission::run_nonstream(prepared, false).await {
+        let dedup_key = prepared.dedup_key;
+        let response = chat_run_admission::run_nonstream(prepared, false).await;
+        if let Err(error) = &response {
             diag!("[APPROVAL-RESUME] resume turn failed for {tool_name} {call_id}: {}", error.1.error);
         }
+        release_dedup_key_on_failure(dedup_key, &response);
     });
 }
 
@@ -32045,6 +32119,8 @@ struct PreparedChatDispatch {
     calls_tool: bool,
     reference_context: ChatReferenceContext,
     goal_trigger: Option<PreparedGoalTrigger>,
+    /// 幂等窗口指纹；由包装层写入，明确失败时释放以放行重试。
+    dedup_key: Option<u64>,
 }
 
 #[derive(Debug, Clone)]
@@ -62025,6 +62101,28 @@ pub(crate) mod tests {
     }
 
     #[test]
+    fn chat_dedup_release_allows_retry_after_failure_but_keeps_weak_network_window() {
+        let _guard = config_test_guard();
+        let payload = super::SendMessageRequest {
+            expected_workspace_id: None,
+            native_browser_panel: false,
+            session_id: Some("dedup-release-session".to_string()),
+            chat_room_id: Some("dedup-release-room".to_string()),
+            target_agent_ids: vec!["dedup-agent".to_string()],
+            text: "dedup-release-unique-content".to_string(),
+            selected_message_ids: None,
+            attachments: None,
+        };
+        let key = super::chat_request_fingerprint(&payload).expect("fingerprint");
+        assert!(super::check_chat_request_duplicate(key).is_none());
+        // 窗口内重复提交仍被拒绝。
+        assert!(super::check_chat_request_duplicate(key).is_some());
+        // 明确失败后释放：同一内容的人工重试不再被幂等窗口拦截。
+        super::release_chat_request_fingerprint(key);
+        assert!(super::check_chat_request_duplicate(key).is_none());
+    }
+
+    #[test]
     fn multi_agent_group_send_marks_shared_room_memory_for_counting() {
         let _guard = config_test_guard();
         let mut agent_a = super::seed_session();
@@ -87649,6 +87747,41 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("new FormData()"));
         assert!(WEB_APP_JS.contains("formData.append(\"file\""));
         assert!(WEB_APP_JS.contains("await uploadComposerAttachments()"));
+    }
+
+    #[test]
+    fn web_frontend_model_settings_can_delete_session_and_controls_share_gold_spec() {
+        let model_settings = include_str!("model_settings.js");
+        assert!(model_settings.contains("data-ms-action=\"delete\""));
+        assert!(model_settings.contains("async function removeSession()"));
+        assert!(model_settings.contains("request(`/api/sessions/${encodeURIComponent(sessionId)}`, {}, \"DELETE\")"));
+        assert!(model_settings.contains("if (action === \"delete\") void removeSession();"));
+        assert!(include_str!("chat_experience.js").contains("onDeleted: async"));
+        let jade = include_str!("jade_controls.css");
+        for token in ["--ui-control-h: 36px;", "--ui-gold-edge:", ".terminal-window-command > [data-action=\"terminal-window-run\"]", ".model-settings .ms-upload input"] {
+            assert!(jade.contains(token), "统一控件规格缺少：{token}");
+        }
+        assert!(WEB_APP_JS.contains("\"terminal-window-interrupt\": [\"pause\""));
+        assert!(WEB_APP_JS.contains("\"rename\", \"pause\","));
+        assert!(WEB_APP_JS.contains("if (event.key !== \"Enter\" || event.shiftKey || event.isComposing) return;"));
+    }
+
+    #[test]
+    fn web_frontend_workspace_switch_offers_authorize_and_devin_panel_is_aligned() {
+        let experience = include_str!("chat_experience.js");
+        assert!(experience.contains("授权此目录"));
+        assert!(experience.contains("/api/tools/allowed-roots"));
+        assert!(experience.contains("showWorkspaceError"));
+        let model_settings = include_str!("model_settings.js");
+        assert!(model_settings.contains("data-ms-action=\"refresh-plugins\" class=\"ms-secondary\" aria-label=\"刷新可选插件工具\" title=\"刷新可选插件工具\">↻</button></legend>"));
+        assert!(model_settings.contains("缺少授权时本轮不执行。"));
+        let model_css = include_str!("model_settings.css");
+        for token in ["[data-ms=\"devin-plugin-tools\"] { display:grid", "[data-ms=\"devin-plugin-tools\"] label.ms-checkbox { display:flex", "[data-ms=\"devin-rebind-row\"] { display:flex"] {
+            assert!(model_css.contains(token), "Devin 区块对齐规则缺少：{token}");
+        }
+        let devin_auth = include_str!("devin_auth.js");
+        assert!(devin_auth.contains("正在核对 Devin 登录状态…"));
+        assert!(devin_auth.contains("requestController.abort(), 45000"));
     }
 
     #[test]

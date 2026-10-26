@@ -65,7 +65,7 @@
       : options.backendFilter === "llm_http" ? httpProtocols : [...httpProtocols, ["devin_acp", "Devin · 账号登录"], ["openai_subscription", "OpenAI / ChatGPT · 账号登录"]];
     container.classList.add("model-settings");
     container.innerHTML = `
-      <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2></div><div class="ms-heading-actions"><button type="button" data-ms-action="new" class="ms-secondary">＋ 新建会话</button><button type="button" data-ms="save" data-ms-action="save" class="ms-primary">保存配置</button></div></div>
+      <div class="ms-intro"><div><span class="ms-eyebrow">MODEL & SESSION</span><h2>模型与会话</h2></div><div class="ms-heading-actions"><button type="button" data-ms-action="new" class="ms-secondary">＋ 新建会话</button><button type="button" data-ms="delete" data-ms-action="delete" class="ms-danger" title="删除当前选中的会话配置及其历史消息" disabled>删除会话</button><button type="button" data-ms="save" data-ms-action="save" class="ms-primary">保存配置</button></div></div>
       <label class="ms-session-picker">编辑配置的会话<select data-ms="session-select" aria-label="选择要编辑配置的会话"></select><span data-ms="dirty" hidden>● 未保存</span></label>
       <div class="ms-avatar-row"><img data-ms="avatar-preview" alt="会话头像" width="40" height="40"><span>会话头像</span><select data-ms="avatar" aria-label="选择品牌头像">${avatarChoices.map(item=>option(...item)).join("")}</select><label class="ms-upload">上传图片<input data-ms="avatar-upload" type="file" accept="image/png,image/webp"></label><details class="ms-avatar-library"><summary>从 Q 版头像库选择</summary><div class="ms-avatar-grid">${avatarChoices.slice(1).map(([path,label])=>`<button type="button" data-ms-avatar="${esc(path)}" aria-pressed="false"><img src="${esc(path)}" alt="" width="64" height="64"><span>${esc(label)}</span></button>`).join("")}</div></details></div>
       <div class="ms-effort-row"><label for="ms-effort-slider">思考程度<small>对下一次请求生效</small></label><div class="ms-effort-track"><input id="ms-effort-slider" data-ms="effort-slider" type="range" min="0" max="0" value="0" step="1" aria-label="思考程度"><div data-ms="effort-ticks"></div></div><output data-ms="effort-value">自动</output></div>
@@ -78,11 +78,11 @@
               <label>会话名称<input data-ms="name" required maxlength="32" placeholder="例如：日常助手"></label>
               <label>通信协议<select data-ms="protocol">${protocols.map(item => option(...item)).join("")}</select></label>
               <div class="ms-wide" data-ms="devin-auth" hidden></div><div class="ms-wide ms-account-card" data-ms="openai-auth" hidden><strong>OpenAI / ChatGPT</strong><p data-ms="openai-auth-status" role="status">读取中…</p><div class="ms-heading-actions"><button type="button" data-ms-action="openai-status">刷新状态</button><button type="button" data-ms-action="openai-login">登录</button><button type="button" data-ms-action="openai-cancel" hidden>取消登录</button><button type="button" data-ms-action="openai-logout">退出登录</button></div><a data-ms="openai-login-link" target="_blank" rel="noopener noreferrer" hidden>打开授权页</a><details data-ms="openai-auth-error" hidden><summary>错误详情</summary><pre data-ms="openai-auth-error-detail"></pre></details></div>
-              <small class="ms-wide" data-ms="devin-context" hidden>同一聊天室与模型配置继续发送时，会沿用远端会话，应用重启后也可恢复。重置上下文或切换模型后，会开始新的远端会话。</small>
-              <div class="ms-wide" data-ms="devin-rebind-row" hidden><button type="button" data-ms-action="rebind-devin" class="ms-secondary" aria-label="重新绑定 Devin 远端会话" title="重新绑定 Devin 远端会话">↻</button><small>如果已经清除了 Devin 远端会话，可重新绑定。保留本地聊天记录；下一轮发送时建立新连接。</small></div>
-              <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取、查找与内容搜索；不开放写入、命令、电脑操作或原生 Devin 工具。</small></label>
-              <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>通过宿主操作浏览器与桌面；规划和验收使用所选模型，图片需由 ACP 声明支持。</small></label>
-              <fieldset class="ms-wide" data-ms="devin-plugins-label" hidden><legend>允许的插件工具</legend><button type="button" data-ms="refresh-plugins" data-ms-action="refresh-plugins" class="ms-secondary" aria-label="刷新可选插件工具" title="刷新可选插件工具">↻</button><div data-ms="devin-plugin-tools"></div><small data-ms="devin-plugin-hint">仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。</small></fieldset>
+              <small class="ms-wide" data-ms="devin-context" hidden>继续发送会沿用远端会话，重启后仍可恢复；重置上下文或切换模型后建立新会话。</small>
+              <div class="ms-wide" data-ms="devin-rebind-row" hidden><button type="button" data-ms-action="rebind-devin" class="ms-secondary" aria-label="重新绑定 Devin 远端会话" title="重新绑定 Devin 远端会话">↻</button><small>远端会话被清除后点此重新绑定；本地聊天记录保留。</small></div>
+              <label class="ms-wide" data-ms="devin-review-label" hidden><span><input type="checkbox" data-ms="devin-review">允许读取当前工程用于仓库审查</span><small>仅文件读取与搜索；不含写入、命令或电脑操作。</small></label>
+              <label class="ms-wide" data-ms="devin-computer-label" hidden><span><input type="checkbox" data-ms="devin-computer">允许 Computer Use</span><small>由宿主操作浏览器与桌面；图片需模型声明支持。</small></label>
+              <fieldset class="ms-wide" data-ms="devin-plugins-label" hidden><legend>允许的插件工具<button type="button" data-ms="refresh-plugins" data-ms-action="refresh-plugins" class="ms-secondary" aria-label="刷新可选插件工具" title="刷新可选插件工具">↻</button></legend><div data-ms="devin-plugin-tools"></div><small data-ms="devin-plugin-hint">仅勾选需要的已启用工具；缺少授权时本轮不执行。</small></fieldset>
               <label class="ms-wide">接口地址 · Base URL<input data-ms="base-url" type="url" required spellcheck="false" placeholder="https://api.example.com/v1"></label>
               <div class="ms-wide ms-discovery" aria-label="远程模型发现">
                 <div class="ms-discovery-actions"><button type="button" data-ms-action="discover" class="ms-secondary">获取模型</button><label class="ms-checkbox"><input type="checkbox" data-ms="discovery-no-key">此次查询不使用密钥</label></div>
@@ -170,7 +170,7 @@
         `<label class="ms-checkbox"><input type="checkbox" data-ms="devin-plugin" value="${esc(tool.name)}" ${selected.has(tool.name) ? "checked" : ""}><span>${esc(tool.description || tool.name)}<small>${esc(tool.name)}</small></span></label>`).join("")
         : "<p class=\"ms-hint\">暂无已启用的插件工具。请先在插件市场安装并启用，再刷新可选工具。</p>";
       el("devin-plugin-hint").textContent = data?.plugin_tools_error ? `插件工具读取失败：${data.plugin_tools_error}`
-        : "仅勾选需要的已启用工具。插件执行需要当前聊天室完全访问；缺少授权时本轮不会延期执行。";
+        : "仅勾选需要的已启用工具；缺少授权时本轮不执行。";
     }
 
     const devinConnection = () => value("protocol") === "devin_acp";
@@ -207,9 +207,12 @@
       const patch = {reasoning_effort:choice.value};
       if (devinConnection() && choice.value !== "auto") {
         const model = devinCatalog?.find(item => item.id === oldModel);
-        const variant = model && devinCatalog.find(item => item.family === model.family && item.reasoning_effort === choice.value);
-        if (!variant) { status("请先刷新账号模型目录，核对可用的思考档位。",true); syncEffort(); return; }
-        patch.model = variant.id;
+        if (model) {
+          const variant = devinCatalog.find(item => item.family === model.family && item.reasoning_effort === choice.value);
+          if (!variant) { status("该模型没有对应的思考变体，请改选其它档位。",true); syncEffort(); return; }
+          patch.model = variant.id;
+        }
+        // 目录不可用或模型不在目录时仅提交档位；后端校验档位与模型 ID 后缀一致，不匹配会明确报错并回滚。
       }
       set("reasoning-effort", choice.value); if (patch.model) set("model", patch.model); syncEffort();
       if (!id) { markDirty(); return; }
@@ -414,15 +417,32 @@
       }
       if (devin) {
         el("reasoning-mode").innerHTML = option("auto", "模型变体");
-        const model = devinCatalog?.find(item => item.id === value("model"));
+        const catalogReady = Array.isArray(devinCatalog) && devinCatalog.length > 0;
+        const model = catalogReady ? devinCatalog.find(item => item.id === value("model")) : null;
         const variants = model ? devinCatalog.filter(item => item.family === model.family && item.reasoning_effort) : [];
         const selectedEffort = value("reasoning-effort");
         const savedEffort = snapshot?.session?.model === value("model") ? snapshot.session.reasoning_effort : "auto";
-        el("reasoning-effort").innerHTML = option("auto", "所选模型默认") + efforts.filter(([id]) => variants.some(item => item.reasoning_effort === id) || !model && id === savedEffort && id !== "auto").map(item => option(...item)).join("");
-        set("reasoning-effort", variants.some(item => item.reasoning_effort === selectedEffort) || !model && selectedEffort === savedEffort ? selectedEffort : "auto");
-        el("reasoning-mode").disabled = true; el("reasoning-effort").disabled = !variants.length;
+        if (variants.length) {
+          el("reasoning-effort").innerHTML = option("auto", "所选模型默认") + efforts.filter(([id]) => variants.some(item => item.reasoning_effort === id)).map(item => option(...item)).join("");
+          set("reasoning-effort", variants.some(item => item.reasoning_effort === selectedEffort) ? selectedEffort : "auto");
+          el("reasoning-effort").disabled = false;
+          el("reasoning-hint").textContent = "切换档位会选择对应的模型变体。";
+        } else if (!catalogReady || !model) {
+          // 目录不可用或模型不在目录（手填/已下线）：开放全部档位，后端保存时校验档位与模型 ID 后缀一致。
+          el("reasoning-effort").innerHTML = efforts.map(item => option(...item)).join("");
+          set("reasoning-effort", efforts.some(([id]) => id === selectedEffort) ? selectedEffort : "auto");
+          el("reasoning-effort").disabled = false;
+          el("reasoning-hint").textContent = catalogReady
+            ? "模型不在账号目录中：档位需与模型 ID 后缀一致（如 -high 对应高），保存时校验。"
+            : "账号模型目录不可用：档位需与模型 ID 后缀一致（如 -high 对应高），保存时校验。";
+        } else {
+          el("reasoning-effort").innerHTML = option("auto", "自动");
+          set("reasoning-effort", "auto");
+          el("reasoning-effort").disabled = true;
+          el("reasoning-hint").textContent = "所选模型没有思考变体。";
+        }
+        el("reasoning-mode").disabled = true;
         el("budget-label").hidden = true; el("thinking-budget").required = false;
-        el("reasoning-hint").textContent = "切换档位会选择对应的模型变体。";
         el("effective-limit").textContent = "上下文与输出容量使用 Devin 模型默认值。";
         el("multimodal-hint").textContent = tri("supports-multimodal") === true
           ? "直接发送图片，需模型支持。"
@@ -540,9 +560,9 @@
           updateDynamicFields(); resetDiscovery(); dirty = true;
           status("新连接草稿尚未保存。填写该平台凭据并获取模型，再保存；已有会话和密钥保持独立。");
         }
-        el("fields").disabled = false; el("save").disabled = false; return;
+        el("fields").disabled = false; el("save").disabled = false; el("delete").disabled = true; return;
       }
-      el("fields").disabled = true; el("save").disabled = true;
+      el("fields").disabled = true; el("save").disabled = true; el("delete").disabled = true;
       status("正在读取配置…");
       let loaded = false;
       try {
@@ -553,7 +573,7 @@
       } catch (error) {
         if (sequence === loadSequence && !disposed) status(`读取失败：${error.message}`, true);
       } finally {
-        if (sequence === loadSequence && !disposed) { el("fields").disabled = !loaded; el("save").disabled = !loaded; }
+        if (sequence === loadSequence && !disposed) { el("fields").disabled = !loaded; el("save").disabled = !loaded; el("delete").disabled = !loaded; }
       }
     }
 
@@ -627,7 +647,7 @@
       if (!subscription && ["image","video"].includes(session.model_type)) Object.assign(parameters,{context_window:0,max_output_tokens:0,temperature:null,top_p:null,reasoning_mode:"auto",thinking_budget:null,enable_llm_tools:false,computer_use_enabled:false,llm_tool_exposure:"whitelist",tool_allowlist:[]});
       if (openaiConnection()) Object.assign(parameters, {base_url:null,endpoint:null,context_window:0,max_output_tokens:0,temperature:null,top_p:null,reasoning_mode:"auto",thinking_budget:null,enable_llm_tools:false,computer_use_enabled:false,llm_tool_exposure:"whitelist",tool_allowlist:[]});
       if (el("clear-key").checked && !window.confirm("确认清除此会话保存的 API Key？")) return;
-      busy = true; el("save").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
+      busy = true; el("save").disabled = true; el("delete").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
       status("正在保存…");
       try {
         const creating=!selectedId;
@@ -644,8 +664,36 @@
       } catch (error) { if (!disposed) status(`保存失败：${error.message}`, true); }
       finally {
         busy = false;
-        if (!disposed) { el("save").disabled = false; el("fields").disabled = false; el("session-select").disabled = false; }
+        if (!disposed) { el("save").disabled = false; el("delete").disabled = !selectedId; el("fields").disabled = false; el("session-select").disabled = false; }
       }
+    }
+
+    async function removeSession() {
+      if (disposed || busy || effortSaving || !selectedId) return;
+      const sessionId = selectedId;
+      const target = sessions.find(s => s.id === sessionId);
+      const label = target?.display_name || target?.name || sessionId;
+      const sendingNote = sendingIds.has(sessionId) ? "\n该会话是当前发送对象，删除后需重新选择发送对象。" : "";
+      if (!window.confirm(`确认删除会话「${label}」？\n\n该会话的模型配置、历史消息与记忆会一并删除，且无法恢复。${sendingNote}`)) return;
+      busy = true; el("save").disabled = true; el("delete").disabled = true; el("fields").disabled = true; el("session-select").disabled = true;
+      status("正在删除…");
+      let deleted = false, note = `已删除会话「${label}」`, noteIsError = false;
+      try {
+        await request(`/api/sessions/${encodeURIComponent(sessionId)}`, {}, "DELETE");
+        deleted = true;
+        sessions = sessions.filter(s => s.id !== sessionId);
+        selectedId = null; dirty = false; dirtyBadge();
+        if (disposed) return;
+        try { await (options.onDeleted || options.onSaved)?.(null, { deleted: sessionId }); }
+        catch (error) { note = `会话已删除，但界面刷新失败：${error.message}`; noteIsError = true; }
+        if (!disposed) container.dispatchEvent(new CustomEvent("model-settings-deleted", { bubbles: true, detail: { session_id: sessionId } }));
+      } catch (error) { if (!disposed) status(`删除失败：${error.message}`, true); }
+      finally {
+        busy = false;
+        if (!disposed) { el("save").disabled = false; el("delete").disabled = !selectedId; el("fields").disabled = false; el("session-select").disabled = false; }
+      }
+      // 删除后回落到激活会话；提示放在重新加载之后，避免被“正在读取配置”覆盖。
+      if (deleted && !disposed) { await refresh(null); if (!disposed) status(note, noteIsError); }
     }
 
     async function rebindDevin() {
@@ -731,6 +779,7 @@
       if (action === "save") void save(event);
       if (action?.startsWith("openai-")) void openaiAuth(action.slice(7));
       if (action === "new") void select(null);
+      if (action === "delete") void removeSession();
       if (action === "discover") void discoverModels();
       if (action === "refresh-plugins") void refreshPluginTools();
       if (action === "rebind-devin") void rebindDevin();

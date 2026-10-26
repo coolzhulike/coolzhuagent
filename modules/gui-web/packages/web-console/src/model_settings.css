@@ -176,6 +176,18 @@ body.ui-3d .ui-redesign .model-settings .ms-primary { background: linear-gradien
   .ms-heading-actions { gap:6px; }
 }
 
+/* Devin 订阅区块：图例行内放置刷新键，说明文字与操作分列对齐；插件工具逐项成行。 */
+.model-settings [data-ms="devin-rebind-row"] { display:flex; align-items:flex-start; gap:10px; }
+.model-settings [data-ms="devin-rebind-row"] > button { flex:0 0 auto; }
+.model-settings [data-ms="devin-rebind-row"] > small { flex:1; min-width:0; }
+.model-settings [data-ms="devin-plugins-label"] legend { display:flex; align-items:center; gap:8px; width:100%; font-size:13px; font-weight:650; }
+.model-settings [data-ms="devin-plugins-label"] legend button { margin-left:auto; min-height:28px; padding:2px 10px; font-size:12px; }
+.model-settings [data-ms="devin-plugin-tools"] { display:grid; gap:8px; margin:8px 0; }
+.model-settings [data-ms="devin-plugin-tools"] label.ms-checkbox { display:flex; flex-direction:row; align-items:flex-start; gap:8px; padding-top:0; min-height:0; align-self:stretch; font-weight:400; }
+.model-settings [data-ms="devin-plugin-tools"] label.ms-checkbox input { margin-top:2px; }
+.model-settings [data-ms="devin-plugin-tools"] label.ms-checkbox > span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.model-settings [data-ms="devin-plugin-tools"] label.ms-checkbox small { display:block; font-size:11px; opacity:.72; }
+
 .task-hub-tabs,.usage-filters {display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 20px}
 .task-hub-tabs button[aria-selected="true"] {background:#294437;color:#f0d591;border-color:#b79956}
 [data-task-pane][hidden] {display:none!important}

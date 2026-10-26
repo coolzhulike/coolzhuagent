@@ -96,6 +96,18 @@ test("Devin 查询不发送隐藏的 HTTP 密钥，失败保留模型草稿", as
   h.api.destroy();
 });
 
+test("Devin 目录不可用时思考档位保持可选，保存由后端校验配对", async () => {
+  const h = harness("devin_acp", {model: "swe-2-high", reasoning_effort: "high"});
+  await settle();
+  assert.equal(h.elements.get("reasoning-effort").disabled, false);
+  assert.equal(h.elements.get("reasoning-effort").value, "high");
+  assert.match(h.elements.get("reasoning-hint").textContent, /后缀一致/);
+  h.change("reasoning-effort", "auto");
+  await h.save();
+  assert.equal(h.calls.findLast(call => call.body?.session)?.body.session.reasoning_effort, "auto");
+  h.api.destroy();
+});
+
 test("HTTP 切换至 Devin 保存时清理不适用覆盖，保留版本和会话身份", async () => {
   const h = harness("openai_chat_completions"); await settle();
   h.elements.get("api-key").value = "do-not-send";
