@@ -16,9 +16,10 @@ use std::{
 };
 use tokio::sync::mpsc;
 
-// 3000.10.67 已核签名、文件哈希、ACP 握手和原会话恢复；升级只迁移闲置绑定。
-pub(super) const CLI_VERSION: &str = "devin 3000.10.67 (0b186d6e)";
-const CLI_SHA256: &str = "8bb4e4288ec399fe9d9c5b9c1cf4df06a7ec71d1780ef65077a085613cfa4be1";
+// 3000.11.216 已核 Authenticode 签名（Exafunction, Inc. 官方签发）、文件哈希、
+// --version 与浏览器登录菜单；ACP 握手/模型目录在登录态回归中验收。
+pub(super) const CLI_VERSION: &str = "devin 3000.11.216 (d70b4713dfea)";
+const CLI_SHA256: &str = "3709aab6447f188ced81a548de21daae075ea933ce22435dcf1cf598dc441ebb";
 
 pub(super) fn error(message: impl Into<String>) -> api::ApiError {
     api::ApiError::UnsupportedCapability {

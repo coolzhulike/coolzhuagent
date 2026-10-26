@@ -215,7 +215,7 @@ impl Journal {
                     old_domain.starts_with("host-incremental-v3:") && old_domain==new_domain
                     && !old_model.is_empty() && !new_model.is_empty());
             if cli!=binding.cli_identity {
-                if cli!="devin 3000.10.48 (fcf7ba39)" || binding.cli_identity!=super::chat::CLI_VERSION
+                if cli!="devin 3000.10.67 (0b186d6e)" || binding.cli_identity!=super::chat::CLI_VERSION
                     || locked.is_some() || cwd!=binding.cwd || !same_domain {
                     return Err(fail("CLI 版本变化未通过闲置绑定兼容条件，未修改原绑定。"));
                 }
@@ -726,7 +726,7 @@ pub(super) mod tests {
     #[test]
     fn qualified_cli_upgrade_and_model_change_preserve_idle_remote_only() {
         let (_dir,journal,mut old)=setup();
-        old.cli_identity="devin 3000.10.48 (fcf7ba39)".into();
+        old.cli_identity="devin 3000.10.67 (0b186d6e)".into();
         old.context_digest="host-incremental-v3:Some(123):gpt-6-luna-max".into();
         let first=journal.claim(scope("before-upgrade"),&old).unwrap();
         journal.save_remote(&first,"same-existing-remote").unwrap();
