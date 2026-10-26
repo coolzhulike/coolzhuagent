@@ -128,14 +128,32 @@ pub(super) fn model_config(options: &Value) -> Result<(&str, &str, &[Value]), &'
     Ok((id, current, choices))
 }
 
+fn option_values<'a>(options: &'a [Value], output: &mut Vec<&'a str>) {
+    for option in options {
+        if let Some(value) = option.get("value").and_then(Value::as_str) {
+            if super::chat::valid_model_id(value) { output.push(value); }
+        }
+        if let Some(group) = option.get("options").and_then(Value::as_array) {
+            option_values(group, output);
+        }
+    }
+}
+
 pub(super) fn set_model_params(
     session_id: &str,
     requested: &str,
     options: &Value,
-) -> Result<Value, &'static str> {
+) -> Result<Value, String> {
     let (id, _, choices) = model_config(options)?;
     if !option_has_value(choices, requested) {
-        return Err("请求的模型不在当前 ACP 会话的可用选项中。");
+        // 报出会话实际提供的少量可用值，帮助用户在账号目录变更后改选。
+        let mut values = Vec::new();
+        option_values(choices, &mut values);
+        values.truncate(8);
+        return Err(format!(
+            "请求的模型 {requested} 不在当前 ACP 会话的可用选项中。可用：{}。",
+            if values.is_empty() { "（空）".to_string() } else { values.join("、") }
+        ));
     }
     Ok(json!({"sessionId": session_id, "configId": id, "value": requested}))
 }

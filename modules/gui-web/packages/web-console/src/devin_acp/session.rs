@@ -500,7 +500,8 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
         let options = result
             .get("configOptions")
             .ok_or_else(|| invalid("ACP 会话未提供可确认的模型配置。"))?;
-        let set = protocol::set_model_params(&remote, requested, options).map_err(invalid)?;
+        let set = protocol::set_model_params(&remote, requested, options)
+            .map_err(|reason| invalid(&reason))?;
         let result = transport
             .configure("session/set_config_option", set, deadline, |frame| {
                 emit(
