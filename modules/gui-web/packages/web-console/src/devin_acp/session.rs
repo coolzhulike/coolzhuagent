@@ -445,7 +445,7 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                 return Err(invalid("ACP 不支持恢复已有会话，未创建替代会话。"));
             }
             params["sessionId"] = json!(remote);
-            transport
+            match transport
                 .configure("session/load", params, deadline, |frame| {
                     emit(
                         &scope,
@@ -458,9 +458,21 @@ impl<W: AsyncWrite + Unpin> SessionService<W> {
                         None,
                     )
                 })
-                .await.map_err(|reason| invalid(&format!(
-                    "Devin 远端会话恢复失败：{reason}。未创建替代会话、未重发本轮；请核对原登录账号，必要时在设置中重置上下文。"
-                )))?
+                .await
+            {
+                Ok(result) => result,
+                Err(reason) => {
+                    let retired = journal.retire_dead_remote(&scope, remote).unwrap_or(false);
+                    return Err(invalid(&format!(
+                        "Devin 远端会话恢复失败：{reason}。{}",
+                        if retired {
+                            "失效绑定已解除（聊天记录保留）；可直接重试，将创建新远端会话。"
+                        } else {
+                            "未创建替代会话、未重发本轮；请核对原登录账号，或在设置中重新绑定远端会话。"
+                        }
+                    )));
+                }
+            }
         } else {
             transport
                 .configure("session/new", params, deadline, |frame| {
@@ -972,6 +984,38 @@ mod tests {
             }).await.unwrap();
         assert_eq!(response["sessionId"], "remote");
         assert_eq!(observed, replay_count);
+        peer.await.unwrap();
+    }
+    #[tokio::test]
+    async fn rejected_session_load_retires_dead_remote_and_advises_retry() {
+        let (_dir, journal, binding) = setup();
+        let first = journal.claim(scope("stale-load"), &binding).unwrap();
+        journal.save_remote(&first, "remote").unwrap();
+        journal
+            .transition(&first, &["prepared"], "not_sent", None, false)
+            .unwrap();
+        journal.record_drained(&first).unwrap();
+        let claim = journal.claim(scope("retry-load"), &binding).unwrap();
+        let (transport, mut reader, mut writer) = pair();
+        let peer = tokio::spawn(async move {
+            let request = read_frame(&mut reader).await.unwrap();
+            assert_eq!(request["method"], "initialize");
+            reply(&mut writer, &request["id"],
+                json!({"protocolVersion":1,"agentCapabilities":{"loadSession":true}})).await;
+            let request = read_frame(&mut reader).await.unwrap();
+            assert_eq!(request["method"], "session/load");
+            assert_eq!(request["params"]["sessionId"], "remote");
+            let mut bytes = serde_json::to_vec(&json!({"jsonrpc":"2.0","id":request["id"],
+                "error":{"code":-32603,"message":"session not found"}})).unwrap();
+            bytes.push(b'\n');
+            writer.write_all(&bytes).await.unwrap();
+        });
+        let result = SessionService::connect(transport, journal.clone(), claim.clone(), "actual",
+            vec![], tokio::time::Instant::now() + Duration::from_secs(30), |_| Ok(())).await;
+        let text = result.err().unwrap().to_string();
+        assert!(text.contains("远端会话恢复失败"), "{text}");
+        assert!(text.contains("可直接重试"), "{text}");
+        assert!(journal.binding(&claim).unwrap().remote_session_id.is_none());
         peer.await.unwrap();
     }
     async fn reply(writer: &mut Writer, id: &Value, result: Value) {
