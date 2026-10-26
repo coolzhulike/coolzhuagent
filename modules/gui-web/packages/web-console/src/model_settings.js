@@ -207,9 +207,12 @@
       const patch = {reasoning_effort:choice.value};
       if (devinConnection() && choice.value !== "auto") {
         const model = devinCatalog?.find(item => item.id === oldModel);
-        const variant = model && devinCatalog.find(item => item.family === model.family && item.reasoning_effort === choice.value);
-        if (!variant) { status("请先刷新账号模型目录，核对可用的思考档位。",true); syncEffort(); return; }
-        patch.model = variant.id;
+        if (model) {
+          const variant = devinCatalog.find(item => item.family === model.family && item.reasoning_effort === choice.value);
+          if (!variant) { status("该模型没有对应的思考变体，请改选其它档位。",true); syncEffort(); return; }
+          patch.model = variant.id;
+        }
+        // 目录不可用或模型不在目录时仅提交档位；后端校验档位与模型 ID 后缀一致，不匹配会明确报错并回滚。
       }
       set("reasoning-effort", choice.value); if (patch.model) set("model", patch.model); syncEffort();
       if (!id) { markDirty(); return; }
@@ -414,15 +417,32 @@
       }
       if (devin) {
         el("reasoning-mode").innerHTML = option("auto", "模型变体");
-        const model = devinCatalog?.find(item => item.id === value("model"));
+        const catalogReady = Array.isArray(devinCatalog) && devinCatalog.length > 0;
+        const model = catalogReady ? devinCatalog.find(item => item.id === value("model")) : null;
         const variants = model ? devinCatalog.filter(item => item.family === model.family && item.reasoning_effort) : [];
         const selectedEffort = value("reasoning-effort");
         const savedEffort = snapshot?.session?.model === value("model") ? snapshot.session.reasoning_effort : "auto";
-        el("reasoning-effort").innerHTML = option("auto", "所选模型默认") + efforts.filter(([id]) => variants.some(item => item.reasoning_effort === id) || !model && id === savedEffort && id !== "auto").map(item => option(...item)).join("");
-        set("reasoning-effort", variants.some(item => item.reasoning_effort === selectedEffort) || !model && selectedEffort === savedEffort ? selectedEffort : "auto");
-        el("reasoning-mode").disabled = true; el("reasoning-effort").disabled = !variants.length;
+        if (variants.length) {
+          el("reasoning-effort").innerHTML = option("auto", "所选模型默认") + efforts.filter(([id]) => variants.some(item => item.reasoning_effort === id)).map(item => option(...item)).join("");
+          set("reasoning-effort", variants.some(item => item.reasoning_effort === selectedEffort) ? selectedEffort : "auto");
+          el("reasoning-effort").disabled = false;
+          el("reasoning-hint").textContent = "切换档位会选择对应的模型变体。";
+        } else if (!catalogReady || !model) {
+          // 目录不可用或模型不在目录（手填/已下线）：开放全部档位，后端保存时校验档位与模型 ID 后缀一致。
+          el("reasoning-effort").innerHTML = efforts.map(item => option(...item)).join("");
+          set("reasoning-effort", efforts.some(([id]) => id === selectedEffort) ? selectedEffort : "auto");
+          el("reasoning-effort").disabled = false;
+          el("reasoning-hint").textContent = catalogReady
+            ? "模型不在账号目录中：档位需与模型 ID 后缀一致（如 -high 对应高），保存时校验。"
+            : "账号模型目录不可用：档位需与模型 ID 后缀一致（如 -high 对应高），保存时校验。";
+        } else {
+          el("reasoning-effort").innerHTML = option("auto", "自动");
+          set("reasoning-effort", "auto");
+          el("reasoning-effort").disabled = true;
+          el("reasoning-hint").textContent = "所选模型没有思考变体。";
+        }
+        el("reasoning-mode").disabled = true;
         el("budget-label").hidden = true; el("thinking-budget").required = false;
-        el("reasoning-hint").textContent = "切换档位会选择对应的模型变体。";
         el("effective-limit").textContent = "上下文与输出容量使用 Devin 模型默认值。";
         el("multimodal-hint").textContent = tri("supports-multimodal") === true
           ? "直接发送图片，需模型支持。"
