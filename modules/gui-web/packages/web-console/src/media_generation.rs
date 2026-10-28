@@ -267,28 +267,76 @@ pub(super) async fn save_remote(url: &str, kind: &str) -> Result<ChatAttachmentD
         32 * 1024 * 1024
     };
     let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(30))
         .timeout(Duration::from_secs(180))
         .build()
         .map_err(|_| "产物下载连接不可用")?;
+    // 远端报告成功后流仍可能中断（CDN 节点瞬时断流/连接重置/超时）：仅传输错误重试一次，
+    // HTTP 状态与超限属于确定性失败不重试。
+    let mut attempt = 0u32;
+    let bytes = loop {
+        attempt += 1;
+        match download_remote(&client, parsed.clone(), max).await {
+            Ok(bytes) => break bytes,
+            Err(DownloadFailure::Transport(message)) if attempt < 2 => {
+                diag_log(&format!(
+                    "[MEDIA] 产物下载失败将重试 attempt={attempt} kind={kind} err={message}"
+                ));
+            }
+            Err(failure) => return Err(failure.into_message()),
+        }
+    };
+    save_bytes(&attachment_store_dir(), &bytes, kind)
+}
+
+/// 传输层错误可在下一轮重试；已知的远端状态错误与本地上限检查不可重试。
+#[derive(Debug)]
+enum DownloadFailure {
+    Transport(String),
+    Final(String),
+}
+
+impl DownloadFailure {
+    fn into_message(self) -> String {
+        match self {
+            Self::Transport(message) | Self::Final(message) => message,
+        }
+    }
+}
+
+async fn download_remote(
+    client: &reqwest::Client,
+    url: reqwest::Url,
+    max: u64,
+) -> Result<Vec<u8>, DownloadFailure> {
     let mut response = client
-        .get(parsed)
+        .get(url)
         .send()
         .await
-        .map_err(|_| "产物下载失败；未将临时地址当作已保存结果")?;
+        .map_err(|e| DownloadFailure::Transport(format!("产物下载请求失败：{e}")))?;
     if !response.status().is_success() {
-        return Err(format!("产物下载 HTTP {}", response.status()));
+        return Err(DownloadFailure::Final(format!(
+            "产物下载 HTTP {}",
+            response.status()
+        )));
     }
     if response.content_length().is_some_and(|n| n > max) {
-        return Err("生成产物超过下载上限（图像 32 MB、视频 256 MB）".into());
+        return Err(DownloadFailure::Final(
+            "生成产物超过下载上限（图像 32 MB、视频 256 MB）".into(),
+        ));
     }
     let mut bytes = Vec::new();
-    while let Some(chunk) = response.chunk().await.map_err(|_| "产物下载中断")? {
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|e| DownloadFailure::Transport(format!("产物下载中断：{e}")))?
+    {
         if bytes.len() + chunk.len() > max as usize {
-            return Err("产物下载超过大小上限".into());
+            return Err(DownloadFailure::Final("产物下载超过大小上限".into()));
         }
         bytes.extend_from_slice(&chunk);
     }
-    save_bytes(&attachment_store_dir(), &bytes, kind)
+    Ok(bytes)
 }
 pub(super) fn save_base64(data: &str) -> Result<ChatAttachmentDto, String> {
     use base64::Engine;
@@ -417,6 +465,52 @@ mod tests {
         assert!(validate(&config, &agent).is_ok());
         config.parameters.insert("duration".into(), json!(7));
         assert!(validate(&config, &agent).is_err());
+    }
+
+    /// 模拟 CDN 报出 Content-Length 后中途断流：错误须归为可重试的 Transport，
+    /// 而 HTTP 状态错误须为不可重试的 Final——这正是 save_remote 重试门的判据。
+    #[tokio::test]
+    async fn truncated_product_stream_is_retryable_but_http_error_is_final() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = tokio::spawn(async move {
+            let mut responses = vec![
+                // 声明 100 字节只发 10 个就断连 → IncompleteBody 传输错误。
+                b"HTTP/1.1 200 OK\r\nContent-Length: 100\r\n\r\n0123456789".to_vec(),
+                // 第二次请求返回状态错误 → 确定性失败。
+                b"HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n".to_vec(),
+            ];
+            while let Ok((mut socket, _)) = listener.accept().await {
+                // 先耗尽客户端请求字节：接收缓冲残留会让 close() 发 RST 冲掉已送达的响应，
+                // 真实 CDN 是先消费请求再断流。
+                let mut buf = [0u8; 4096];
+                tokio::io::AsyncReadExt::read(&mut socket, &mut buf).await.ok();
+                if let Some(bytes) = responses.first().cloned() {
+                    responses.remove(0);
+                    tokio::io::AsyncWriteExt::write_all(&mut socket, &bytes).await.ok();
+                }
+                let _ = socket;
+            }
+        });
+        let client = reqwest::Client::builder().build().unwrap();
+        let url = reqwest::Url::parse(&format!("http://127.0.0.1:{port}/image.png")).unwrap();
+
+        let truncated = download_remote(&client, url.clone(), 32 * 1024 * 1024).await;
+        match truncated {
+            Err(DownloadFailure::Transport(message)) => {
+                assert!(message.starts_with("产物下载中断"), "{message}");
+            }
+            other => panic!("截断流必须是可重试的传输错误：{other:?}"),
+        }
+
+        let refused = download_remote(&client, url, 32 * 1024 * 1024).await;
+        match refused {
+            Err(DownloadFailure::Final(message)) => {
+                assert!(message.contains("500"), "{message}");
+            }
+            other => panic!("HTTP 状态错误必须是不可重试的确定性失败"),
+        }
+        server.abort();
     }
     #[test]
     fn 新版视频模型不混入旧版帧参数而显式配置仍可发送() {
