@@ -34,7 +34,7 @@ body.ui-3d .chat-history-toolbar button,
 body.ui-3d .chat-run-activity,
 body.ui-3d .chat-activity-stream { color:#ADBBAF; }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message :is(.message-content, .message-content p, .message-content li) {
-  font-size:16px; line-height:1.7;
+  font-size:14px; line-height:1.5;
 }
 body.ui-3d .chat-main-column .composer input[data-role="message-input"] { font-size:14px; }
 body.ui-3d .chat-message-empty-state p { font-size:13px; line-height:1.5; }
