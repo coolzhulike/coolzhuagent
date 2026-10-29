@@ -114,12 +114,13 @@ body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message {
   max-width: 100%; width: 100%; min-width: 0;
   margin: 0 auto 10px 0; padding: 8px 12px;
   display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: auto auto; gap: 4px 10px;
-  color: var(--jade-ink); border: 1px solid #4e735d; border-radius: 10px;
-  background: #102b21f7; box-shadow: inset 0 1px #d4efdd0c, 0 3px 10px #0002;
+  color: var(--jade-ink); border: 1px solid #4e735d99; border-radius: 10px;
+  background: rgba(16, 43, 33, 0.36); backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px #d4efdd0c, 0 3px 10px #0002;
 }
 /* 用户消息整体镜像到右侧：头像与正文靠右，时间/轮次角标回退到左上。 */
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user {
-  width: 100%; max-width: 100%; margin-left: auto; margin-right: 0; border-color: #7f8158; background: #2b3020f7;
+  width: 100%; max-width: 100%; margin-left: auto; margin-right: 0; border-color: rgba(216, 184, 102, 0.45); background: rgba(74, 62, 28, 0.34);
   grid-template-columns: minmax(0, 1fr) 32px;
 }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > img { grid-column: 2; }
@@ -141,6 +142,10 @@ body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message :is
   color: var(--jade-ink); font: 400 15px/1.75 "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
   text-shadow: none; overflow-wrap: anywhere;
 }
+/* 用户发言金色加粗，与模型白色正文区分；元信息用同族暗金降低存在感。 */
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user :is(.message-content, .message-content p, .message-content li) { color: #f2d98a; font-weight: 600; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > div > strong { color: #eecf7d; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > time { color: #cbbd92; }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message > time { position: absolute; top: 8px; right: 12px; color: #b5cbbd; font-size: 11px; white-space: nowrap; }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > time { left: 12px; right: auto; }
 body.ui-3d .message-run-meta { display: inline; font-size: 12px; margin-left: 10px; opacity: 1; }
