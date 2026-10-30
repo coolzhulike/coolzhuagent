@@ -669,14 +669,19 @@ document.addEventListener("DOMContentLoaded", () => {
   refreshRealtimeSessionStatus();
 
   const messageInput = document.querySelector('[data-role="message-input"]');
-  messageInput?.addEventListener("input", saveComposerDraft);
+  messageInput?.addEventListener("input", (event) => {
+    saveComposerDraft();
+    renderMentionPopover(event.target);
+  });
   messageInput?.addEventListener("paste", onComposerPaste);
   messageInput?.addEventListener("keydown", (event) => {
+    if (mentionHandleKeydown(event.target, event)) return;
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       sendMessage();
     }
   });
+  messageInput?.addEventListener("blur", () => setTimeout(closeMentionPopover, 120));
   restoreComposerDraft();
   browserWindowUpdateNavigationControls();
 
@@ -15733,6 +15738,147 @@ function setSingleAgentTarget(agentId) {
   updateAgentTriggerText();
   persistAgentTargets(activeChatRoomId);
   return true;
+}
+
+// ── @会话提及：输入 @ 联想可选会话，选中后把会话并入发送对象 ────────────────
+
+function mentionCandidateAgents() {
+  return (agentRegistry?.agents || []).filter(canSendToAgent);
+}
+
+// 光标前的 @token：@ 必须在串首或空白字符后，query 不含空白。
+function mentionTokenAt(value, cursor) {
+  const head = value.slice(0, cursor);
+  const at = head.lastIndexOf("@");
+  if (at < 0) return null;
+  if (at > 0 && !/\s/.test(head[at - 1])) return null;
+  const query = head.slice(at + 1);
+  if (/\s/.test(query) || query.length > 40) return null;
+  return { start: at, query };
+}
+
+function mentionMatches(query, limit = 8) {
+  const needle = String(query || "").toLowerCase();
+  return mentionCandidateAgents()
+    .map((agent) => {
+      const name = agent.name || agent.display_name || "";
+      const hay = name.toLowerCase();
+      const score = !needle
+        ? 10
+        : hay === needle
+          ? 1000
+          : hay.startsWith(needle)
+            ? 800
+            : hay.includes(needle)
+              ? 500 - hay.indexOf(needle)
+              : -1;
+      return { agent, score };
+    })
+    .filter((item) => item.score >= 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((item) => item.agent);
+}
+
+const mentionState = { open: false, token: null, active: 0, items: [] };
+
+function mentionPopover() {
+  return document.querySelector('[data-role="mention-popover"]');
+}
+
+function renderMentionPopover(input) {
+  const pop = mentionPopover();
+  if (!pop) return;
+  const token = mentionTokenAt(input.value, input.selectionStart ?? input.value.length);
+  const items = token ? mentionMatches(token.query) : [];
+  if (!token || !items.length) {
+    closeMentionPopover();
+    return;
+  }
+  mentionState.open = true;
+  mentionState.token = token;
+  mentionState.items = items;
+  mentionState.active = Math.min(mentionState.active, items.length - 1);
+  pop.replaceChildren(
+    ...items.map((agent, index) => {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.className = `mention-item${index === mentionState.active ? " is-active" : ""}`;
+      option.setAttribute("role", "option");
+      option.dataset.agentId = agent.id;
+      const strong = document.createElement("b");
+      strong.textContent = agent.name || agent.display_name || agent.id;
+      option.append(strong);
+      if (agent.model) option.append(document.createTextNode(` ${agent.model}`));
+      // pointerdown 早于 blur，避免先失焦把弹层关掉。
+      option.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        applyMentionPick(agent);
+      });
+      return option;
+    }),
+  );
+  pop.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+}
+
+function closeMentionPopover() {
+  const pop = mentionPopover();
+  mentionState.open = false;
+  mentionState.token = null;
+  mentionState.items = [];
+  if (pop) pop.hidden = true;
+  document.querySelector('[data-role="message-input"]')?.setAttribute("aria-expanded", "false");
+}
+
+function mentionHandleKeydown(input, event) {
+  if (!mentionState.open) return false;
+  const count = mentionState.items.length;
+  if (!count) return false;
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    mentionState.active = (mentionState.active + (event.key === "ArrowDown" ? 1 : -1) + count) % count;
+    mentionPopover()
+      ?.querySelectorAll(".mention-item")
+      .forEach((node, index) => node.classList.toggle("is-active", index === mentionState.active));
+    return true;
+  }
+  if (event.key === "Enter" || event.key === "Tab") {
+    event.preventDefault();
+    applyMentionPick(mentionState.items[mentionState.active]);
+    return true;
+  }
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeMentionPopover();
+    return true;
+  }
+  return false;
+}
+
+function applyMentionPick(agent) {
+  const input = document.querySelector('[data-role="message-input"]');
+  const token = mentionState.token;
+  if (!input || !token || !agent) {
+    closeMentionPopover();
+    return;
+  }
+  const insert = `@${agent.name || agent.display_name || agent.id} `;
+  const cursor = input.selectionStart ?? token.start;
+  input.value = input.value.slice(0, token.start) + insert + input.value.slice(cursor);
+  const pos = token.start + insert.length;
+  input.setSelectionRange(pos, pos);
+  // @选中 → 并入发送对象（不覆盖现有勾选）；change 事件统一走既有持久化链。
+  const checkbox = document.querySelector(
+    `[data-role="agent-targets"] input[type="checkbox"][value="${CSS.escape(String(agent.id))}"]`,
+  );
+  if (checkbox && !checkbox.checked) {
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  closeMentionPopover();
+  input.focus();
+  saveComposerDraft();
 }
 
 function renderChatRoomList(rooms, activeId) {
