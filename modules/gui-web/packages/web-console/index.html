@@ -725,7 +725,18 @@
                   </div>
                 </div>
                 <section class="chat-panel">
-                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-role="chat-usage-meter" type="button" aria-label="当前聊天室用量明细">用量加载中</button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button></div>
+                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="code-graph-open" type="button" aria-expanded="false" aria-controls="code-graph-popover">代码图谱</button><button data-role="chat-usage-meter" type="button" aria-label="当前聊天室用量明细">用量加载中</button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button>
+                    <div id="code-graph-popover" class="code-graph-popover" data-role="code-graph-popover" hidden>
+                      <header><strong>目录代码图谱</strong><span data-role="code-graph-status">索引状态读取中…</span></header>
+                      <div class="code-graph-actions">
+                        <button data-action="code-graph-rebuild" type="button">更新索引</button>
+                        <label class="code-graph-inject-toggle" title="发送消息时自动检索图谱并注入上下文"><input type="checkbox" data-role="code-graph-inject" checked /> 检索记忆注入</label>
+                        <button data-action="code-graph-close" type="button">关闭</button>
+                      </div>
+                      <input data-role="code-graph-query" type="search" placeholder="符号 / 文件名检索…" autocomplete="off" />
+                      <ul class="code-graph-results" data-role="code-graph-results"></ul>
+                    </div>
+                  </div>
                   <div class="message-list" data-role="chat-message-list" data-chat-window-lines="50">
                     <div class="chat-message-empty-state" data-role="chat-message-empty-state" role="status">
                       <span aria-hidden="true"><img src="./assets/icons-wuxia/chat.svg" alt="" /></span>
@@ -747,7 +758,8 @@
                     <img src="./assets/icons-wuxia/upload.svg" alt="" />
                   </button>
                   <input data-role="composer-file-input" type="file" hidden multiple />
-                  <input value="" placeholder="输入消息，按 Enter 发送..." data-role="message-input" />
+                  <input value="" placeholder="输入消息，按 Enter 发送；/ 命令：/session 选会话 · /clear 清屏 · /delete 序号" data-role="message-input" />
+                  <div class="assist-popover" data-role="composer-assist-popover" role="listbox" aria-label="命令与会话联想" hidden></div>
                   <button class="send is-primary-control" data-action="send-message" type="button"><img src="./assets/icons-wuxia/send.svg" alt="" />发送</button>
                   <button data-action="stt-dictate" type="button" title="语音输入：说话→自动识别并发送，大模型回复自动朗读"><img src="./assets/icons-wuxia/microphone.svg" alt="" />语音输入</button>
                 </footer>

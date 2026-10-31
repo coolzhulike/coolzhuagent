@@ -493,10 +493,101 @@ window.CoolzhuChatExperience = (() => {
     save.dataset.role = "session-avatar-save"; container.append(save, feedback);
     if (vision) container.append(vision, note("视觉 Agent 的选择即时保存，用于图像理解与视觉任务。"));
   }
+  // ── 目录代码图谱：状态 / 更新索引 / 检索注入开关 / 符号检索 ────────────────
+  function graphSetOpen(open) {
+    const pop = qs("code-graph-popover"), trigger = document.querySelector('[data-action="code-graph-open"]');
+    if (!pop) return;
+    pop.hidden = !open;
+    trigger?.setAttribute("aria-expanded", String(open));
+    if (open) { void graphRefreshStatus(); qs("code-graph-query")?.focus(); }
+  }
+  async function graphRefreshStatus() {
+    const status = qs("code-graph-status");
+    try {
+      const data = await requestJson("/api/code-graph/status");
+      if (status) {
+        status.textContent = data.indexed
+          ? `${data.file_count} 文件 · ${data.symbol_count} 符号 · ${data.edge_count} 引用边${data.built_at ? ` · ${new Date(data.built_at).toLocaleString("zh-CN", { hour12: false })}` : ""}`
+          : "尚未建立索引——点「更新索引」扫描当前工作区";
+      }
+      const inject = qs("code-graph-inject");
+      if (inject) inject.checked = Boolean(data.inject_enabled);
+    } catch (error) {
+      if (status) status.textContent = `状态读取失败：${error.message}`;
+    }
+  }
+  async function graphRebuild() {
+    const status = qs("code-graph-status");
+    if (status) status.textContent = "正在扫描工作区…";
+    try {
+      const data = await requestJson("/api/project/symbol-index", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ full: false }) });
+      if (status) status.textContent = `完成：${data.file_count} 文件 · ${data.symbol_count} 符号 · ${data.edge_count ?? 0} 引用边 · ${data.elapsed_ms}ms`;
+      void graphRefreshStatus();
+    } catch (error) {
+      if (status) status.textContent = `索引失败：${error.message}`;
+    }
+  }
+  async function graphSetInject(enabled) {
+    try {
+      await requestJson("/api/code-graph/inject", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) });
+    } catch (error) { report(error); void graphRefreshStatus(); }
+  }
+  function graphRenderResults(data) {
+    const list = qs("code-graph-results");
+    if (!list) return;
+    const rows = [];
+    for (const hit of data.hits || []) {
+      const li = document.createElement("li");
+      li.className = "code-graph-hit";
+      const main = document.createElement("b");
+      main.textContent = `${hit.name}`;
+      const loc = document.createElement("span");
+      loc.className = "code-graph-loc";
+      loc.textContent = ` [${hit.kind}] ${hit.path}:${hit.line}`;
+      li.append(main, loc);
+      const edges = [];
+      if (hit.imports?.length) edges.push(`imports→${hit.imports.join(", ")}`);
+      if (hit.imported_by?.length) edges.push(`←${hit.imported_by.join(", ")}`);
+      if (edges.length) {
+        const rel = document.createElement("small");
+        rel.textContent = edges.join("  ");
+        li.append(rel);
+      }
+      rows.push(li);
+    }
+    for (const file of (data.files || []).slice(0, 4)) {
+      const li = document.createElement("li");
+      li.className = "code-graph-hit is-file";
+      li.textContent = `📄 ${file}`;
+      rows.push(li);
+    }
+    list.replaceChildren(...rows);
+    if (!rows.length) {
+      const li = document.createElement("li");
+      li.className = "code-graph-empty";
+      li.textContent = data.indexed === false ? "索引未建立" : "无命中";
+      list.append(li);
+    }
+  }
+  async function graphQuery() {
+    const query = qs("code-graph-query")?.value.trim() || "";
+    const list = qs("code-graph-results");
+    if (!query) { list?.replaceChildren(); return; }
+    try {
+      const data = await requestJson(`/api/code-graph/query?q=${encodeURIComponent(query)}&limit=12`);
+      graphRenderResults(data);
+    } catch (error) { report(error); }
+  }
+
   function init() {
     if (state.initialized) return; state.initialized = true;
     mountExtraControls(); mountModelSettings(activeSessionId); syncModelSession(activeSessionId);
     document.querySelectorAll('[data-action="chat-history-open"]').forEach(node => node.addEventListener("click", openHistory));
+    document.querySelectorAll('[data-action="code-graph-open"]').forEach(node => node.addEventListener("click", () => graphSetOpen(qs("code-graph-popover")?.hidden ?? true)));
+    document.querySelectorAll('[data-action="code-graph-close"]').forEach(node => node.addEventListener("click", () => graphSetOpen(false)));
+    document.querySelectorAll('[data-action="code-graph-rebuild"]').forEach(node => node.addEventListener("click", () => void graphRebuild()));
+    qs("code-graph-inject")?.addEventListener("change", event => void graphSetInject(event.target.checked));
+    qs("code-graph-query")?.addEventListener("input", () => { clearTimeout(state.graphTimer); state.graphTimer = setTimeout(() => void graphQuery(), 220); });
     qs("chat-history-query")?.addEventListener("input", () => { clearTimeout(state.searchTimer); state.searchTimer = setTimeout(() => void search(), 180); });
     qs("chat-history-more")?.addEventListener("click", () => void search(true));
     qs("chat-return-latest")?.addEventListener("click", async () => {
