@@ -114,16 +114,23 @@ body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message {
   max-width: 100%; width: 100%; min-width: 0;
   margin: 0 auto 10px 0; padding: 8px 12px;
   display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: auto auto; gap: 4px 10px;
-  color: var(--jade-ink); border: 1px solid #4e735d99; border-radius: 10px;
-  background: rgba(16, 43, 33, 0.36); backdrop-filter: blur(6px);
-  box-shadow: inset 0 1px #d4efdd0c, 0 3px 10px #0002;
+  color: var(--jade-ink); border: 1px solid transparent; border-radius: 10px;
+  background: transparent; backdrop-filter: none;
+  box-shadow: none;
 }
 /* 用户消息整体镜像到右侧：头像与正文靠右，时间/轮次角标回退到左上。 */
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user {
-  width: 100%; max-width: 100%; margin-left: auto; margin-right: 0; border-color: rgba(216, 184, 102, 0.45); background: rgba(74, 62, 28, 0.34);
+  width: 100%; max-width: 100%; margin-left: auto; margin-right: 0; border-color: transparent; background: transparent;
   grid-template-columns: minmax(0, 1fr) 32px;
 }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > img { grid-column: 2; }
+/* 推理/工具/工具调用气泡同去底色与描边：全窗只留文字（styles.css 有同族高优先级变体层）。 */
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message:is(.reasoning, .thought, .tool, .vision-computer-use, .computer-use) {
+  border-color: transparent; background: transparent; box-shadow: none;
+}
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message:is(.reasoning, .thought, .tool, .vision-computer-use, .computer-use) > div {
+  background: transparent; box-shadow: none;
+}
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message > div::before { display: none; }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > div { grid-column: 1; background: transparent; }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .message.user > div .message-content { text-align: right; }
