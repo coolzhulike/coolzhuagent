@@ -758,8 +758,8 @@
                     <img src="./assets/icons-wuxia/upload.svg" alt="" />
                   </button>
                   <input data-role="composer-file-input" type="file" hidden multiple />
-                  <input value="" placeholder="输入消息，按 Enter 发送；@ 联想会话对象" data-role="message-input" />
-                  <div class="mention-popover" data-role="mention-popover" role="listbox" aria-label="会话对象联想" hidden></div>
+                  <input value="" placeholder="输入消息，按 Enter 发送；/ 命令：/session 选会话 · /clear 清屏 · /delete 序号" data-role="message-input" />
+                  <div class="assist-popover" data-role="composer-assist-popover" role="listbox" aria-label="命令与会话联想" hidden></div>
                   <button class="send is-primary-control" data-action="send-message" type="button"><img src="./assets/icons-wuxia/send.svg" alt="" />发送</button>
                   <button data-action="stt-dictate" type="button" title="语音输入：说话→自动识别并发送，大模型回复自动朗读"><img src="./assets/icons-wuxia/microphone.svg" alt="" />语音输入</button>
                 </footer>

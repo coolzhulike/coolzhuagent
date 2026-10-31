@@ -671,17 +671,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const messageInput = document.querySelector('[data-role="message-input"]');
   messageInput?.addEventListener("input", (event) => {
     saveComposerDraft();
-    renderMentionPopover(event.target);
+    renderSlashPopover(event.target);
   });
   messageInput?.addEventListener("paste", onComposerPaste);
   messageInput?.addEventListener("keydown", (event) => {
-    if (mentionHandleKeydown(event.target, event)) return;
+    if (slashHandleKeydown(event.target, event)) return;
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       sendMessage();
     }
   });
-  messageInput?.addEventListener("blur", () => setTimeout(closeMentionPopover, 120));
+  messageInput?.addEventListener("blur", () => setTimeout(closeSlashPopover, 120));
   restoreComposerDraft();
   browserWindowUpdateNavigationControls();
 
@@ -15740,26 +15740,21 @@ function setSingleAgentTarget(agentId) {
   return true;
 }
 
-// ── @会话提及：输入 @ 联想可选会话，选中后把会话并入发送对象 ────────────────
+// ── / 斜杠命令：/session 选会话并入发送对象、/clear 清屏、/delete 序号删消息 ──
 
-function mentionCandidateAgents() {
+const SLASH_COMMANDS = [
+  { name: "session", usage: "/session [会话名]", desc: "列出会话对象，选中并入发送名单" },
+  { name: "clear", usage: "/clear", desc: "清空当前聊天室全部消息" },
+  { name: "delete", usage: "/delete 序号", desc: "删除指定序号消息（#17 → /delete 17）" },
+];
+
+function sessionCandidates() {
   return (agentRegistry?.agents || []).filter(canSendToAgent);
 }
 
-// 光标前的 @token：@ 必须在串首或空白字符后，query 不含空白。
-function mentionTokenAt(value, cursor) {
-  const head = value.slice(0, cursor);
-  const at = head.lastIndexOf("@");
-  if (at < 0) return null;
-  if (at > 0 && !/\s/.test(head[at - 1])) return null;
-  const query = head.slice(at + 1);
-  if (/\s/.test(query) || query.length > 40) return null;
-  return { start: at, query };
-}
-
-function mentionMatches(query, limit = 8) {
+function sessionMatches(query, limit = 8) {
   const needle = String(query || "").toLowerCase();
-  return mentionCandidateAgents()
+  return sessionCandidates()
     .map((agent) => {
       const name = agent.name || agent.display_name || "";
       const hay = name.toLowerCase();
@@ -15780,95 +15775,175 @@ function mentionMatches(query, limit = 8) {
     .map((item) => item.agent);
 }
 
-const mentionState = { open: false, token: null, active: 0, items: [] };
-
-function mentionPopover() {
-  return document.querySelector('[data-role="mention-popover"]');
+// 输入解析："/" 开头才算命令；/cmd（无空格、完整命令名）与 /cmd arg 都进对应模式。
+function slashParse(value) {
+  if (!value.startsWith("/")) return null;
+  const match = value.match(/^\/(\S*)(?:\s+(.*))?$/s);
+  if (!match) return null;
+  const cmd = (match[1] || "").toLowerCase();
+  const arg = (match[2] ?? "").trim();
+  const known = SLASH_COMMANDS.some((command) => command.name === cmd);
+  if (known) return { mode: cmd, cmd, arg };
+  if (!match[2] && SLASH_COMMANDS.some((command) => command.name.startsWith(cmd))) {
+    return { mode: "commands", cmd, arg };
+  }
+  if (!match[2]) return { mode: "unknown", cmd, arg };
+  return { mode: "unknown", cmd, arg };
 }
 
-function renderMentionPopover(input) {
-  const pop = mentionPopover();
+// 当前聊天室可删序号：扫 run-meta 的 #N 角标，附正文预览。
+function messageSeqEntries() {
+  const articles = [...(chatMessageList()?.querySelectorAll(".message[data-message-id]") || [])];
+  // insights 未回填 run-meta 的窗口期，视图从首条起（无更早分页）时可用 DOM 位次兜底序号；
+  // 分页窗口期不给序号，防止 `/delete N` 命中错位消息。
+  const positional = !messagePaging?.hasMore;
+  return articles.map((article, index) => {
+    const match = article.querySelector(".message-run-meta")?.textContent.match(/#(\d+)/);
+    const seq = match ? Number(match[1]) : positional ? index + 1 : null;
+    const preview = (article.querySelector(".message-content")?.textContent || "")
+      .trim()
+      .slice(0, 36);
+    return { seq, id: article.dataset.messageId, preview };
+  });
+}
+
+const slashState = { open: false, mode: null, items: [], active: 0 };
+
+function assistPopover() {
+  return document.querySelector('[data-role="composer-assist-popover"]');
+}
+
+function assistItem(label, hint, onPick) {
+  const option = document.createElement("button");
+  option.type = "button";
+  option.className = "assist-item";
+  option.setAttribute("role", "option");
+  const strong = document.createElement("b");
+  strong.textContent = label;
+  option.append(strong);
+  if (hint) option.append(document.createTextNode(` ${hint}`));
+  // pointerdown 早于 blur，避免先失焦把弹层关掉。
+  option.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    onPick();
+  });
+  return option;
+}
+
+function renderSlashPopover(input) {
+  const pop = assistPopover();
   if (!pop) return;
-  const token = mentionTokenAt(input.value, input.selectionStart ?? input.value.length);
-  const items = token ? mentionMatches(token.query) : [];
-  if (!token || !items.length) {
-    closeMentionPopover();
+  const parsed = slashParse(input.value);
+  if (!parsed) {
+    closeSlashPopover();
     return;
   }
-  mentionState.open = true;
-  mentionState.token = token;
-  mentionState.items = items;
-  mentionState.active = Math.min(mentionState.active, items.length - 1);
-  pop.replaceChildren(
-    ...items.map((agent, index) => {
-      const option = document.createElement("button");
-      option.type = "button";
-      option.className = `mention-item${index === mentionState.active ? " is-active" : ""}`;
-      option.setAttribute("role", "option");
-      option.dataset.agentId = agent.id;
-      const strong = document.createElement("b");
-      strong.textContent = agent.name || agent.display_name || agent.id;
-      option.append(strong);
-      if (agent.model) option.append(document.createTextNode(` ${agent.model}`));
-      // pointerdown 早于 blur，避免先失焦把弹层关掉。
-      option.addEventListener("pointerdown", (event) => {
-        event.preventDefault();
-        applyMentionPick(agent);
-      });
-      return option;
-    }),
+  const items = [];
+  if (parsed.mode === "commands") {
+    for (const command of SLASH_COMMANDS.filter((c) => c.name.startsWith(parsed.cmd))) {
+      items.push(
+        assistItem(command.usage, command.desc, () => {
+          input.value = command.name === "clear" ? "/clear" : `/${command.name} `;
+          input.setSelectionRange(input.value.length, input.value.length);
+          renderSlashPopover(input);
+          input.focus();
+        }),
+      );
+    }
+  } else if (parsed.mode === "session") {
+    for (const agent of sessionMatches(parsed.arg)) {
+      items.push(
+        assistItem(agent.name || agent.display_name || agent.id, agent.model || "", () =>
+          applySessionPick(agent, input),
+        ),
+      );
+    }
+    if (!items.length) {
+      items.push(assistItem("（无可选会话）", parsed.arg ? `「${parsed.arg}」无命中` : "", () => {}));
+    }
+  } else if (parsed.mode === "delete") {
+    const arg = parsed.arg.replace(/^#/, "");
+    const entries = messageSeqEntries().filter(
+      (entry) => !arg || (entry.seq != null && String(entry.seq).includes(arg)),
+    );
+    for (const entry of entries.slice(0, 10)) {
+      items.push(
+        assistItem(entry.seq != null ? `#${entry.seq}` : "未编号", entry.preview, () =>
+          void runSlashDelete(entry, input),
+        ),
+      );
+    }
+    if (!entries.length) {
+      items.push(assistItem("（无可删序号）", arg ? `「${arg}」无命中` : "当前没有可删消息", () => {}));
+    }
+  } else if (parsed.mode === "clear") {
+    items.push(
+      assistItem("/clear", "确认清空当前聊天室全部消息", () => void runSlashClear(input)),
+    );
+  } else {
+    items.push(assistItem(`/${parsed.cmd}`, "未识别命令 · Enter 按原文发送", () => {}));
+  }
+  slashState.open = true;
+  slashState.mode = parsed.mode;
+  slashState.items = items;
+  slashState.active = Math.min(slashState.active, Math.max(0, items.length - 1));
+  items.forEach((node, index) =>
+    node.classList.toggle("is-active", index === slashState.active && parsed.mode !== "unknown"),
   );
+  pop.replaceChildren(...items);
   pop.hidden = false;
   input.setAttribute("aria-expanded", "true");
 }
 
-function closeMentionPopover() {
-  const pop = mentionPopover();
-  mentionState.open = false;
-  mentionState.token = null;
-  mentionState.items = [];
+function closeSlashPopover() {
+  const pop = assistPopover();
+  slashState.open = false;
+  slashState.mode = null;
+  slashState.items = [];
   if (pop) pop.hidden = true;
   document.querySelector('[data-role="message-input"]')?.setAttribute("aria-expanded", "false");
 }
 
-function mentionHandleKeydown(input, event) {
-  if (!mentionState.open) return false;
-  const count = mentionState.items.length;
+function slashHandleKeydown(input, event) {
+  if (!slashState.open) return false;
+  const count = slashState.items.length;
   if (!count) return false;
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
-    mentionState.active = (mentionState.active + (event.key === "ArrowDown" ? 1 : -1) + count) % count;
-    mentionPopover()
-      ?.querySelectorAll(".mention-item")
-      .forEach((node, index) => node.classList.toggle("is-active", index === mentionState.active));
+    slashState.active = (slashState.active + (event.key === "ArrowDown" ? 1 : -1) + count) % count;
+    assistPopover()
+      ?.querySelectorAll(".assist-item")
+      .forEach((node, index) => node.classList.toggle("is-active", index === slashState.active));
     return true;
   }
   if (event.key === "Enter" || event.key === "Tab") {
+    // 未识别命令不吃 Enter，让原文照常发送。
+    if (slashState.mode === "unknown") return false;
     event.preventDefault();
-    applyMentionPick(mentionState.items[mentionState.active]);
+    if (slashState.mode === "delete" && slashState.items.length) {
+      // Enter 优先精确序号，其次当前高亮项。
+      const arg = (slashParse(input.value)?.arg || "").replace(/^#/, "");
+      const exact = slashState.items.find((node) => node.querySelector("b")?.textContent === `#${arg}`);
+      (exact || slashState.items[slashState.active]).dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    } else {
+      slashState.items[slashState.active].dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    }
     return true;
   }
   if (event.key === "Escape") {
     event.preventDefault();
-    closeMentionPopover();
+    closeSlashPopover();
     return true;
   }
   return false;
 }
 
-function applyMentionPick(agent) {
-  const input = document.querySelector('[data-role="message-input"]');
-  const token = mentionState.token;
-  if (!input || !token || !agent) {
-    closeMentionPopover();
+function applySessionPick(agent, input) {
+  if (!agent) {
+    closeSlashPopover();
     return;
   }
-  const insert = `@${agent.name || agent.display_name || agent.id} `;
-  const cursor = input.selectionStart ?? token.start;
-  input.value = input.value.slice(0, token.start) + insert + input.value.slice(cursor);
-  const pos = token.start + insert.length;
-  input.setSelectionRange(pos, pos);
-  // @选中 → 并入发送对象（不覆盖现有勾选）；change 事件统一走既有持久化链。
+  // 选中 → 并入发送对象（不覆盖现有勾选）；命令文本消费掉。
   const checkbox = document.querySelector(
     `[data-role="agent-targets"] input[type="checkbox"][value="${CSS.escape(String(agent.id))}"]`,
   );
@@ -15876,9 +15951,62 @@ function applyMentionPick(agent) {
     checkbox.checked = true;
     checkbox.dispatchEvent(new Event("change", { bubbles: true }));
   }
-  closeMentionPopover();
+  input.value = "";
+  closeSlashPopover();
   input.focus();
   saveComposerDraft();
+}
+
+function slashStatusNote(text) {
+  const label = document.querySelector('[data-role="chat-activity-label"]');
+  if (label) label.textContent = text;
+}
+
+async function runSlashClear(input) {
+  const room = activeChatRoomId;
+  input.value = "";
+  closeSlashPopover();
+  saveComposerDraft();
+  if (!room) {
+    slashStatusNote("当前没有打开的聊天室");
+    return;
+  }
+  try {
+    const response = await requestJson(
+      `/api/chat/rooms/${encodeURIComponent(room)}/messages`,
+      { method: "DELETE" },
+    );
+    // 走正规全量重载：丢弃在途旧读、重渲染、重新激活 SSE，避免被历史同步复活旧消息。
+    await loadChatRoomMessages(room);
+    await refreshActiveBeads();
+    const deleted = response?.report?.deleted_messages ?? 0;
+    slashStatusNote(`已清空 ${deleted} 条消息`);
+  } catch (error) {
+    slashStatusNote(`清空失败：${error.message}`);
+  }
+}
+
+async function runSlashDelete(entry, input) {
+  const room = activeChatRoomId;
+  input.value = "";
+  closeSlashPopover();
+  saveComposerDraft();
+  if (!room || !entry?.id) {
+    slashStatusNote("当前没有打开的聊天室");
+    return;
+  }
+  try {
+    await requestJson(
+      `/api/chat/rooms/${encodeURIComponent(room)}/messages/${encodeURIComponent(entry.id)}`,
+      { method: "DELETE" },
+    );
+    // 与 deleteSelectedMessages 同一条重载路径：防 SSE 在途读复活，顺带刷新序号与衍生 beads。
+    await loadChatRoomMessages(room);
+    await refreshActiveBeads();
+    slashStatusNote(entry.seq != null ? `已删除 #${entry.seq}` : "已删除消息");
+  } catch (error) {
+    slashStatusNote(`删除失败：${error.message}`);
+  }
 }
 
 function renderChatRoomList(rooms, activeId) {

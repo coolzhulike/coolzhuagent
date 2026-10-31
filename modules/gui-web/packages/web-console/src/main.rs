@@ -1822,7 +1822,7 @@ fn app() -> Router {
         )
         .route(
             "/api/chat/rooms/{room_id}/messages",
-            get(api_chat_room_messages),
+            get(api_chat_room_messages).delete(api_clear_chat_room_messages),
         )
         .route(
             "/api/chat/rooms/{room_id}/messages/{message_id}",
@@ -18052,6 +18052,17 @@ async fn api_delete_chat_room_message(
         .lock()
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
     let report = store.delete_chat_room_message(&room_id, &message_id)?;
+    Ok(Json(MessageDeleteResponse { report }))
+}
+
+/// DELETE /api/chat/rooms/{room_id}/messages —— 清空聊天室全部消息（/clear 命令）。
+async fn api_clear_chat_room_messages(
+    AxumPath(room_id): AxumPath<String>,
+) -> ApiResult<Json<MessageDeleteResponse>> {
+    let mut store = session_store()
+        .lock()
+        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+    let report = store.clear_chat_room_messages(&room_id)?;
     Ok(Json(MessageDeleteResponse { report }))
 }
 
@@ -41822,6 +41833,60 @@ impl SessionStore {
         })
     }
 
+    /// /clear 命令：清空聊天室全部消息，连带删除衍生 beads 与附件引用；房间本身保留。
+    fn clear_chat_room_messages(&mut self, room_id: &str) -> ApiResult<CascadeDeleteReport> {
+        let attachment_dir = attachment_store_dir();
+        self.clear_chat_room_messages_with_attachment_dir(room_id, &attachment_dir)
+    }
+
+    fn clear_chat_room_messages_with_attachment_dir(
+        &mut self,
+        room_id: &str,
+        attachment_dir: &Path,
+    ) -> ApiResult<CascadeDeleteReport> {
+        self.save()?;
+        if !self
+            .state
+            .chat_rooms
+            .iter()
+            .any(|room| room.id == room_id)
+        {
+            return Err(api_error(StatusCode::NOT_FOUND, "聊天室不存在"));
+        }
+        let message_ids = history_persistence::message_ids(&self.path, true, room_id)?;
+        let deleted_messages = message_ids.len();
+        let deleted_beads = self
+            .state
+            .sessions
+            .iter()
+            .map(|session| {
+                session
+                    .memory_beads
+                    .iter()
+                    .filter(|b| {
+                        b.origin_table.as_deref() == Some("chat_room_messages")
+                            && b.origin_message_id
+                                .as_deref()
+                                .is_some_and(|id| message_ids.contains(id))
+                    })
+                    .count()
+            })
+            .sum();
+        let deleted_attachments =
+            clear_chat_room_messages_sqlite(&self.path, room_id, attachment_dir)?;
+        self.sync_state_after_sql_delete()?;
+        Ok(CascadeDeleteReport {
+            target_kind: "chat-room-messages".to_string(),
+            target_id: room_id.to_string(),
+            target_label: room_id.to_string(),
+            deleted_messages,
+            deleted_beads,
+            deleted_attachments,
+            deleted_rooms: 0,
+            deleted_sessions: 0,
+        })
+    }
+
     /// REQ-WEB-SESSION-007：删除会话消息（Agent 对话流水），连带删除衍生 beads。
     fn delete_session_message(
         &mut self,
@@ -51307,6 +51372,46 @@ fn delete_chat_room_message_sqlite(
     tx.execute(
         "DELETE FROM chat_room_messages WHERE room_id = ?1 AND id = ?2",
         params![room_id, message_id],
+    )
+    .map_err(sqlite_api_error)?;
+    delete_attachment_refs_for_message_ids(&tx, "chat_room_messages", &ids)
+        .map_err(sqlite_api_error)?;
+    tx.execute(
+        "UPDATE chat_rooms SET updated_at = ?1 WHERE id = ?2",
+        params![u64_to_i64(unix_timestamp_millis()), room_id],
+    )
+    .map_err(sqlite_api_error)?;
+    tx.commit().map_err(sqlite_api_error)?;
+    gc_unreferenced_attachment_files(&connection, attachment_dir, attachment_file_names)
+}
+
+/// /clear：删除指定聊天室的全部消息 + 附件引用，房间与其它表不受影响。
+fn clear_chat_room_messages_sqlite(
+    path: &Path,
+    room_id: &str,
+    attachment_dir: &Path,
+) -> ApiResult<usize> {
+    let mut connection = open_session_connection(path).map_err(sqlite_api_error)?;
+    initialize_session_schema(&connection).map_err(sqlite_api_error)?;
+    let tx = connection.transaction().map_err(sqlite_api_error)?;
+    let ids: std::collections::BTreeSet<String> = {
+        let mut statement = tx
+            .prepare("SELECT id FROM chat_room_messages WHERE room_id=?1")
+            .map_err(sqlite_api_error)?;
+        let rows = statement
+            .query_map(params![room_id], |row| row.get(0))
+            .map_err(sqlite_api_error)?
+            .collect::<rusqlite::Result<std::collections::BTreeSet<_>>>()
+            .map_err(sqlite_api_error)?;
+        drop(statement);
+        rows
+    };
+    let attachment_file_names =
+        attachment_file_names_for_message_ids(&tx, "chat_room_messages", &ids)
+            .map_err(sqlite_api_error)?;
+    tx.execute(
+        "DELETE FROM chat_room_messages WHERE room_id = ?1",
+        params![room_id],
     )
     .map_err(sqlite_api_error)?;
     delete_attachment_refs_for_message_ids(&tx, "chat_room_messages", &ids)
@@ -69752,6 +69857,195 @@ attach: last_assistant
         assert_eq!(bead_count, 0);
         assert_eq!(unique_refs, 0);
         assert_eq!(shared_refs, 1);
+    }
+
+    #[test]
+    fn clear_chat_room_messages_empties_room_but_keeps_room_and_other_rooms() {
+        // /clear 命令：清空 room-a 全部消息 + 衍生 beads + 附件引用；
+        // 房间本身、活动房间指针、room-b 与其消息/beads 不受影响。
+        let temp = tempfile::tempdir().expect("tempdir");
+        let attachment_dir = temp.path().join("attachments");
+        std::fs::create_dir_all(&attachment_dir).expect("mkdir attachments");
+        let unique_file = attachment_dir.join("att-unique.png");
+        let shared_file = attachment_dir.join("att-shared.png");
+        std::fs::write(&unique_file, b"unique").expect("write unique");
+        std::fs::write(&shared_file, b"shared").expect("write shared");
+
+        let mut msg_a1 = persisted_message("msg-a1", 1);
+        msg_a1.attachments = vec![
+            ChatAttachmentDto { text_snapshot: None,
+                kind: "image".to_string(),
+                name: "unique.png".to_string(),
+                url: "/api/attachments/files/att-unique.png".to_string(),
+                mime_type: Some("image/png".to_string()),
+            },
+            ChatAttachmentDto { text_snapshot: None,
+                kind: "image".to_string(),
+                name: "shared.png".to_string(),
+                url: "/api/attachments/files/att-shared.png".to_string(),
+                mime_type: Some("image/png".to_string()),
+            },
+        ];
+        let msg_a2 = persisted_message("msg-a2", 2);
+        let mut msg_b1 = persisted_message("msg-b1", 3);
+        msg_b1.attachments = vec![ChatAttachmentDto { text_snapshot: None,
+            kind: "image".to_string(),
+            name: "shared.png".to_string(),
+            url: "/api/attachments/files/att-shared.png".to_string(),
+            mime_type: Some("image/png".to_string()),
+        }];
+
+        let db_path = temp.path().join("sessions.sqlite3");
+        let mut store = super::SessionStore {
+            history_edits: Vec::new(),
+            writer: None,
+            committed_state: None,
+            path: db_path.clone(),
+            legacy_json_path: temp.path().join("sessions.json"),
+            capacity: super::SessionStoreCapacity::default(),
+            state: super::PersistedSessionState {
+                sessions: vec![super::PersistedSession {
+                    id: "s1".to_string(),
+                    name: "agent-a".to_string(),
+                    provider: "p".to_string(),
+                    model: "m".to_string(),
+                    avatar: None,
+                    api_key_ref: String::new(),
+                    base_url: None,
+                    endpoint: None,
+                    reasoning_effort: "medium".to_string(),
+                    model_type: "text".to_string(),
+                    memory_beads: vec![
+                        super::MemoryBeadDto {
+                            id: "bead-derived-room-a".to_string(),
+                            kind: "decision".to_string(),
+                            layer: "L2".to_string(),
+                            summary: "derived from room-a msg".to_string(),
+                            source: "chat-room".to_string(),
+                            pinned: false,
+                            confidence: 0.7,
+                            created_at: 10,
+                            origin_message_id: Some("msg-a1".to_string()),
+                            origin_table: Some("chat_room_messages".to_string()),
+                            token_count: Some(32),
+                        },
+                        super::MemoryBeadDto {
+                            id: "bead-derived-room-b".to_string(),
+                            kind: "decision".to_string(),
+                            layer: "L2".to_string(),
+                            summary: "derived from room-b msg".to_string(),
+                            source: "chat-room".to_string(),
+                            pinned: false,
+                            confidence: 0.6,
+                            created_at: 11,
+                            origin_message_id: Some("msg-b1".to_string()),
+                            origin_table: Some("chat_room_messages".to_string()),
+                            token_count: Some(24),
+                        },
+                        super::MemoryBeadDto {
+                            id: "bead-pinned".to_string(),
+                            kind: "person".to_string(),
+                            layer: "L1".to_string(),
+                            summary: "user preference".to_string(),
+                            source: "manual".to_string(),
+                            pinned: true,
+                            confidence: 1.0,
+                            created_at: 1,
+                            origin_message_id: None,
+                            origin_table: None,
+                            token_count: Some(16),
+                        },
+                    ],
+                    created_at: 0,
+                    updated_at: 0,
+                    context_reset_at: 0,
+                    messages: Vec::new(),
+                }],
+                active_session_id: Some("s1".to_string()),
+                active_vision_session_id: None,
+                chat_rooms: vec![
+                    super::PersistedChatRoom {
+                        id: "room-a".to_string(),
+                        name: "A".to_string(),
+                        created_at: 0,
+                        updated_at: 0,
+                        messages: vec![msg_a1, msg_a2],
+                    },
+                    super::PersistedChatRoom {
+                        id: "room-b".to_string(),
+                        name: "B".to_string(),
+                        created_at: 0,
+                        updated_at: 0,
+                        messages: vec![msg_b1],
+                    },
+                ],
+                active_chat_room_id: Some("room-a".to_string()),
+            },
+        };
+
+        let report = store
+            .clear_chat_room_messages_with_attachment_dir("room-a", &attachment_dir)
+            .expect("clear room-a messages");
+        assert_eq!(report.deleted_messages, 2);
+        assert_eq!(report.deleted_beads, 1);
+        assert_eq!(report.deleted_rooms, 0);
+        assert_eq!(report.target_kind, "chat-room-messages");
+
+        // 房间保留、活动房间不变、room-b 原样。
+        assert_eq!(store.state.chat_rooms.len(), 2);
+        assert_eq!(store.state.active_chat_room_id.as_deref(), Some("room-a"));
+        assert!(
+            store.state.chat_rooms.iter().any(|room| room.id == "room-a"),
+            "room-a 必须保留"
+        );
+
+        // 衍生 bead 回收，pinned 与 room-b bead 保留。
+        let remaining_ids: std::collections::BTreeSet<&str> = store.state.sessions[0]
+            .memory_beads
+            .iter()
+            .map(|b| b.id.as_str())
+            .collect();
+        assert!(!remaining_ids.contains("bead-derived-room-a"));
+        assert!(remaining_ids.contains("bead-derived-room-b"));
+        assert!(remaining_ids.contains("bead-pinned"));
+
+        // SQLite 层核验：room-a 消息清零、room-b 消息保留、附件引用按引用数回收。
+        let conn = super::open_session_connection(&db_path).expect("open sqlite");
+        let room_a_msgs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM chat_room_messages WHERE room_id='room-a'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("room-a msg count");
+        let room_b_msgs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM chat_room_messages WHERE room_id='room-b'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("room-b msg count");
+        let unique_refs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM attachment_refs WHERE file_name='att-unique.png'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("unique refs");
+        let shared_refs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM attachment_refs WHERE file_name='att-shared.png'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("shared refs");
+        assert_eq!(room_a_msgs, 0);
+        assert_eq!(room_b_msgs, 1);
+        assert_eq!(unique_refs, 0);
+        assert_eq!(shared_refs, 1);
+        // 保守 GC：已发布文件仍驻留磁盘，不被消息零引用删除。
+        assert!(unique_file.exists());
+        assert!(shared_file.exists());
     }
 
     #[test]
