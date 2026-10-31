@@ -1691,6 +1691,9 @@ fn app() -> Router {
         .route("/api/project/diff-files", get(api_project_diff_files))
         .route("/api/project/symbol-index", post(api_project_symbol_index))
         .route("/api/project/symbols", get(api_project_symbols))
+        .route("/api/code-graph/status", get(api_code_graph_status))
+        .route("/api/code-graph/query", get(api_code_graph_query))
+        .route("/api/code-graph/inject", post(api_code_graph_inject))
         .route("/api/project/search-files", get(api_project_search_files))
         .route("/api/agents", get(api_agents))
         .route("/api/agents/understanding", get(api_understanding_agents))
@@ -1819,7 +1822,7 @@ fn app() -> Router {
         )
         .route(
             "/api/chat/rooms/{room_id}/messages",
-            get(api_chat_room_messages),
+            get(api_chat_room_messages).delete(api_clear_chat_room_messages),
         )
         .route(
             "/api/chat/rooms/{room_id}/messages/{message_id}",
@@ -9593,6 +9596,20 @@ static RE_PY_DEF: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\s*def\s+(\w+)").unwr
 static RE_PY_CLASS: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\s*class\s+(\w+)").unwrap());
 static RE_HTML_FN: Lazy<Regex> = Lazy::new(|| Regex::new(r"function\s+(\w+)").unwrap());
 
+// ── 代码图谱引用边（import/use/mod）：提取原始 specifier，构建末尾按文件清单统一解析。
+static RE_RS_USE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"^\s*(?:pub\s+)?use\s+([^;{}]+)(?:\s*::\s*\{[^}]*\})?\s*;"#).unwrap());
+static RE_RS_MOD_DECL: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^\s*(?:pub\s+)?mod\s+(\w+)\s*;").unwrap());
+static RE_PY_IMPORT: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^\s*import\s+([\w.]+)").unwrap());
+static RE_PY_FROM: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^\s*from\s+([.\w]+)\s+import\s+([^#\n]+)").unwrap());
+static RE_JS_FROM: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"(?:from|import)\s*['"]([^'"]+)['"]"#).unwrap());
+static RE_JS_REQUIRE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r#"require\(\s*['"]([^'"]+)['"]\s*\)"#).unwrap());
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct IdeSymbol {
     name: String,
@@ -9637,6 +9654,22 @@ struct IdeMetaIndex {
     files: Vec<IdeMetaFileEntry>,
 }
 
+/// 文件级引用边：src 文件通过 spec 声明依赖 dst 文件；解析不到索引内目标的 spec 不落库。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct IdeEdge {
+    src: String,
+    spec: String,
+    kind: String,
+    dst: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct IdeEdgesIndex {
+    built_at: u64,
+    edge_count: usize,
+    edges: Vec<IdeEdge>,
+}
+
 #[derive(Debug, Deserialize)]
 struct ProjectSymbolIndexRequest {
     full: Option<bool>,
@@ -9647,6 +9680,7 @@ struct ProjectSymbolIndexResponse {
     status: String,
     file_count: usize,
     symbol_count: usize,
+    edge_count: usize,
     elapsed_ms: u64,
     incremental: bool,
 }
@@ -9880,9 +9914,19 @@ fn build_project_symbol_index(root: &Path, full: bool) -> ApiResult<ProjectSymbo
         }
     }
 
+    let mut prev_edges: Vec<IdeEdge> = Vec::new();
+    if incremental {
+        if let Ok(text) = std::fs::read_to_string(index_dir.join("edges.json")) {
+            if let Ok(idx) = serde_json::from_str::<IdeEdgesIndex>(&text) {
+                prev_edges = idx.edges;
+            }
+        }
+    }
+
     let mut files: Vec<IdeFileEntry> = Vec::new();
     let mut meta_files: Vec<IdeMetaFileEntry> = Vec::new();
     let mut symbols: Vec<IdeSymbol> = Vec::new();
+    let mut raw_edges: Vec<(String, String, String)> = Vec::new();
     let mut changed_paths: HashSet<String> = HashSet::new();
 
     for entry in WalkDir::new(root)
@@ -9928,6 +9972,7 @@ fn build_project_symbol_index(root: &Path, full: bool) -> ApiResult<ProjectSymbo
         }
         changed_paths.insert(rel.clone());
         symbols.extend(extract_ide_symbols(path, &rel));
+        raw_edges.extend(extract_ide_edge_specs(path, &rel));
     }
 
     // 未变更文件沿用上次索引的符号。
@@ -9937,11 +9982,36 @@ fn build_project_symbol_index(root: &Path, full: bool) -> ApiResult<ProjectSymbo
                 symbols.push(symbol.clone());
             }
         }
+        for edge in &prev_edges {
+            if !changed_paths.contains(&edge.src) {
+                raw_edges.push((edge.src.clone(), edge.spec.clone(), edge.kind.clone()));
+            }
+        }
     }
+    // 已删除文件的旧边/旧符号随 changed_paths 语义自然剔除：prev 里 src 不在新 files 的不再回收。
+    {
+        let live: HashSet<&str> = files.iter().map(|file| file.path.as_str()).collect();
+        raw_edges.retain(|(src, _, _)| live.contains(src.as_str()));
+    }
+
+    let known: HashSet<String> = files.iter().map(|file| file.path.clone()).collect();
+    // 解析不到索引内文件的 spec（外部包/伪路径）直接丢弃，不写幻影边。
+    let edges: Vec<IdeEdge> = raw_edges
+        .into_iter()
+        .filter_map(|(src, spec, kind)| {
+            resolve_ide_edge(&src, &spec, &known).map(|dst| IdeEdge {
+                src,
+                spec,
+                kind,
+                dst,
+            })
+        })
+        .collect();
 
     let built_at = unix_timestamp_millis();
     let file_count = files.len();
     let symbol_count = symbols.len();
+    let edge_count = edges.len();
 
     write_ide_json(
         &symbols_path,
@@ -9967,11 +10037,20 @@ fn build_project_symbol_index(root: &Path, full: bool) -> ApiResult<ProjectSymbo
             files: meta_files,
         },
     )?;
+    write_ide_json(
+        &index_dir.join("edges.json"),
+        &IdeEdgesIndex {
+            built_at,
+            edge_count,
+            edges,
+        },
+    )?;
 
     Ok(ProjectSymbolIndexResponse {
         status: "ok".to_string(),
         file_count,
         symbol_count,
+        edge_count,
         elapsed_ms: elapsed_millis(start),
         incremental,
     })
@@ -10032,6 +10111,8 @@ fn extract_ide_symbols(path: &Path, rel: &str) -> Vec<IdeSymbol> {
         Ok(text) => text,
         Err(_) => return Vec::new(),
     };
+    // UTF-8 BOM 会让首行的 ^ 锚定正则失配，先剥掉。
+    let text = text.trim_start_matches('\u{feff}');
     let ext = path
         .extension()
         .and_then(|extension| extension.to_str())
@@ -10180,6 +10261,209 @@ fn make_ide_symbol(
     }
 }
 
+/// 按扩展名提取文件级引用声明（src,spec,kind 三元组；dst 在构建末尾统一解析）。
+/// rust: `use path::to::x` / `mod name;`；python: `import a.b` / `from a.b import x`（含 `.` 相对）；
+/// js/ts: `import/export ... from "x"`、`import "x"`、`require("x")`。
+fn extract_ide_edge_specs(path: &Path, rel: &str) -> Vec<(String, String, String)> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(_) => return Vec::new(),
+    };
+    // UTF-8 BOM 会让首行的 ^ 锚定正则失配，先剥掉。
+    let text = text.trim_start_matches('\u{feff}');
+    let ext = path
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+    let mut out: Vec<(String, String, String)> = Vec::new();
+    let mut push = |spec: &str, kind: &str| {
+        let spec = spec.trim();
+        if !spec.is_empty() && spec.chars().count() <= 200 {
+            out.push((rel.to_string(), spec.to_string(), kind.to_string()));
+        }
+    };
+    for line in text.lines() {
+        match ext.as_str() {
+            "rs" => {
+                if let Some(captures) = RE_RS_USE.captures(line) {
+                    push(captures.get(1).unwrap().as_str(), "use");
+                } else if let Some(captures) = RE_RS_MOD_DECL.captures(line) {
+                    push(
+                        &format!("mod:{}", captures.get(1).unwrap().as_str()),
+                        "mod",
+                    );
+                }
+            }
+            "py" => {
+                if let Some(captures) = RE_PY_FROM.captures(line) {
+                    let module = captures.get(1).unwrap().as_str();
+                    push(module, "from");
+                    // `from .store import beads` 的 beads 也可能是子模块：补 module.name 边。
+                    if let Some(names) = captures.get(2) {
+                        for name in names.as_str().split(',') {
+                            let name = name
+                                .trim()
+                                .trim_matches(|c| c == '(' || c == ')')
+                                .split_whitespace()
+                                .next()
+                                .unwrap_or("");
+                            if !name.is_empty()
+                                && name != "*"
+                                && name.chars().all(|c| c.is_alphanumeric() || c == '_')
+                            {
+                                // `from . import x`：模块本身是点号时不重复加 '.'。
+                                let spec = if module.ends_with('.') {
+                                    format!("{module}{name}")
+                                } else {
+                                    format!("{module}.{name}")
+                                };
+                                push(&spec, "from");
+                            }
+                        }
+                    }
+                } else if let Some(captures) = RE_PY_IMPORT.captures(line) {
+                    push(captures.get(1).unwrap().as_str(), "import");
+                }
+            }
+            "js" | "jsx" | "mjs" | "cjs" | "ts" | "tsx" => {
+                for captures in RE_JS_FROM.captures_iter(line) {
+                    push(captures.get(1).unwrap().as_str(), "import");
+                }
+                for captures in RE_JS_REQUIRE.captures_iter(line) {
+                    push(captures.get(1).unwrap().as_str(), "require");
+                }
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
+/// 把 import specifier 解析为索引内的相对路径。解析不到返回 None（外部包/伪路径）。
+/// 只接受相对/仓库内路径：`. 或 .. 开头`、py 点号模块、rs `crate::`/`super::`/`self::`/`mod:`。
+fn resolve_ide_edge(src: &str, spec: &str, known: &HashSet<String>) -> Option<String> {
+    let src_dir = src.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
+    let mut candidates: Vec<String> = Vec::new();
+    if let Some(name) = spec.strip_prefix("mod:") {
+        // rust `mod name;` → 同目录 name.rs 或 name/mod.rs
+        for suffix in [".rs", "/mod.rs"] {
+            candidates.push(format!("{src_dir}/{name}{suffix}"));
+        }
+    } else if spec.starts_with("./") || spec.starts_with("../") {
+        // js/ts 相对导入：拼上 src 目录后归一化 ../
+        let base = normalize_rel_path(&format!("{src_dir}/{spec}"));
+        for ext in ["", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"] {
+            candidates.push(format!("{base}{ext}"));
+        }
+        for ext in ["ts", "tsx", "js", "jsx", "mjs", "cjs"] {
+            candidates.push(format!("{base}/index.{ext}"));
+        }
+    } else if spec.starts_with("crate::") || spec.starts_with("super::") || spec.starts_with("self::")
+    {
+        // rust 路径：crate:: 相对 src 根（按首个 src/ 目录推断），super:: 相对上级
+        let root_dir = src
+            .find("/src/")
+            .map(|at| &src[..at + 4])
+            .unwrap_or("src");
+        let mut parts: Vec<String> = spec
+            .split("::")
+            .filter(|part| !part.is_empty())
+            .map(str::to_string)
+            .collect();
+        let base = match parts.first().map(String::as_str) {
+            Some("crate") => {
+                parts.remove(0);
+                root_dir.to_string()
+            }
+            Some("self") => {
+                parts.remove(0);
+                src_dir.to_string()
+            }
+            Some("super") => {
+                parts.remove(0);
+                let mut dir = src_dir.to_string();
+                while parts.first().map(String::as_str) == Some("super") {
+                    parts.remove(0);
+                    dir = dir
+                        .rsplit_once('/')
+                        .map(|(parent, _)| parent.to_string())
+                        .unwrap_or_default();
+                }
+                dir
+            }
+            _ => src_dir.to_string(),
+        };
+        // 末段可能是项而非模块：逐级截短尝试 path.rs / path/mod.rs
+        let joined = parts.join("/");
+        if !joined.is_empty() {
+            for suffix in [".rs", "/mod.rs"] {
+                candidates.push(format!("{base}/{joined}{suffix}"));
+            }
+            // 末段是项时退回其父模块
+            if let Some((parent, _)) = joined.rsplit_once('/') {
+                for suffix in [".rs", "/mod.rs"] {
+                    candidates.push(format!("{base}/{parent}{suffix}"));
+                }
+            }
+        }
+    } else if spec.chars().all(|c| c == '.') {
+        // python `from . import x` / `from .. import x` 的纯相对层级：.→当前包、..→上级包。
+        let mut dir = src_dir.to_string();
+        for _ in 1..spec.chars().count() {
+            dir = dir
+                .rsplit_once('/')
+                .map(|(parent, _)| parent.to_string())
+                .unwrap_or_default();
+        }
+        candidates.push(format!("{dir}/__init__.py"));
+    } else if spec.chars().all(|c| c.is_alphanumeric() || c == '.' || c == '_')
+        && spec.contains('.')
+    {
+        // python 点号模块 a.b.c → a/b/c.py 或 a/b/c/__init__.py；相对层级剥前导点
+        let trimmed = spec.trim_start_matches('.');
+        let joined = trimmed.replace('.', "/");
+        let base = if spec.starts_with('.') {
+            normalize_rel_path(&format!("{src_dir}/{joined}"))
+        } else {
+            joined.clone()
+        };
+        candidates.push(format!("{base}.py"));
+        candidates.push(format!("{base}/__init__.py"));
+        if let Some((parent, _)) = joined.rsplit_once('/') {
+            candidates.push(format!("{parent}.py"));
+            candidates.push(format!("{parent}/__init__.py"));
+        }
+    } else if spec.chars().all(|c| c.is_alphanumeric() || c == ':' || c == '_') {
+        // rust 单段 `use foo` 通常是外部 crate；多段 a::b 按 a/b.rs 猜
+        let joined = spec.split("::").collect::<Vec<_>>().join("/");
+        if joined.contains('/') {
+            for suffix in [".rs", "/mod.rs"] {
+                candidates.push(format!("{joined}{suffix}"));
+                candidates.push(format!("src/{joined}{suffix}"));
+            }
+        }
+    }
+    candidates
+        .into_iter()
+        .find(|candidate| known.contains(candidate.as_str()))
+}
+
+/// 归一化相对路径中的 `./` 与 `../`（不访问磁盘，纯字符串折叠）。
+fn normalize_rel_path(path: &str) -> String {
+    let mut parts: Vec<&str> = Vec::new();
+    for part in path.split('/') {
+        match part {
+            "" | "." => {}
+            ".." => {
+                parts.pop();
+            }
+            _ => parts.push(part),
+        }
+    }
+    parts.join("/")
+}
+
 /// 模糊打分（plan §3.2）：前缀命中 > 子串 > 首字母序贯；不匹配返回 None。
 fn fuzzy_score(name: &str, query: &str) -> Option<i32> {
     if query.is_empty() {
@@ -10226,6 +10510,295 @@ fn subsequence_indices(haystack: &str, needle: &str) -> Option<Vec<usize>> {
         }
     }
     Some(positions)
+}
+
+// ── 目录代码图谱：在 ide-index 之上提供检索 API 与聊天上下文快捷注入。───────────────
+
+#[derive(Debug, Deserialize)]
+struct CodeGraphInjectRequest {
+    enabled: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct CodeGraphStatusResponse {
+    indexed: bool,
+    built_at: Option<u64>,
+    file_count: usize,
+    symbol_count: usize,
+    edge_count: usize,
+    inject_enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct CodeGraphQueryParams {
+    q: Option<String>,
+    limit: Option<usize>,
+}
+
+#[derive(Debug, Serialize)]
+struct CodeGraphHit {
+    name: String,
+    kind: String,
+    path: String,
+    line: usize,
+    signature: String,
+    imports: Vec<String>,
+    imported_by: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct CodeGraphQueryResponse {
+    indexed: bool,
+    hits: Vec<CodeGraphHit>,
+    files: Vec<String>,
+}
+
+const CODE_GRAPH_BLOCK_MAX_CHARS: usize = 1600;
+const CODE_GRAPH_MAX_HITS: usize = 6;
+
+fn code_graph_inject_flag_path(root: &Path) -> PathBuf {
+    ide_index_dir(root).join("chat-inject.flag")
+}
+
+/// 注入开关：默认开（建立索引的目的就是把目录代码变成检索记忆）；flag 文件写 "0" 即关。
+fn code_graph_inject_enabled(root: &Path) -> bool {
+    std::fs::read_to_string(code_graph_inject_flag_path(root))
+        .map(|text| text.trim() != "0")
+        .unwrap_or(true)
+}
+
+fn load_ide_index<T: serde::de::DeserializeOwned>(root: &Path, name: &str) -> Option<T> {
+    std::fs::read_to_string(ide_index_dir(root).join(name))
+        .ok()
+        .and_then(|text| serde_json::from_str(&text).ok())
+}
+
+/// 检索 token：标识符词（≥3 字符）+ 路径样式词（含 / 或代码扩展名）。
+/// CJK 分词不可靠，整段 CJK 不作符号 token，但可命中文件路径子串。
+fn code_graph_tokens(text: &str) -> Vec<String> {
+    let mut tokens: Vec<String> = Vec::new();
+    let mut seen: HashSet<String> = HashSet::new();
+    for raw in text.split(|c: char| !(c.is_alphanumeric() || c == '_' || c == '.' || c == '/' || c == '-')) {
+        let token = raw.trim_matches(|c: char| c == '.' || c == '/' || c == '-' || c == '_');
+        let len = token.chars().count();
+        if len < 3 || len > 64 {
+            continue;
+        }
+        let is_path_like = token.contains('/')
+            || matches!(
+                token.rsplit('.').next(),
+                Some("rs" | "py" | "js" | "jsx" | "ts" | "tsx" | "mjs" | "cjs" | "html" | "htm")
+            );
+        let is_ident = token
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+            && token.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.');
+        if !is_path_like && !is_ident {
+            continue;
+        }
+        if seen.insert(token.to_lowercase()) {
+            tokens.push(token.to_string());
+        }
+        if tokens.len() >= 32 {
+            break;
+        }
+    }
+    tokens
+}
+
+fn code_graph_rank(
+    symbols: &[IdeSymbol],
+    edges: &[IdeEdge],
+    tokens: &[String],
+    limit: usize,
+) -> Vec<CodeGraphHit> {
+    let mut scored: Vec<(i32, &IdeSymbol)> = symbols
+        .iter()
+        .filter_map(|symbol| {
+            // 多 token 命中叠加：取前两个最高分相加，避免单一常见词独大。
+            let mut best = [0i32, 0i32];
+            for token in tokens {
+                if let Some(score) = fuzzy_score(&symbol.name, token) {
+                    if score > best[0] {
+                        best[1] = best[0];
+                        best[0] = score;
+                    } else if score > best[1] {
+                        best[1] = score;
+                    }
+                }
+            }
+            let total = best[0] + best[1] / 2;
+            (total > 0).then_some((total, symbol))
+        })
+        .collect();
+    scored.sort_by(|left, right| right.0.cmp(&left.0));
+    scored.truncate(limit);
+    scored
+        .into_iter()
+        .map(|(_, symbol)| {
+            let imports: Vec<String> = edges
+                .iter()
+                .filter(|edge| edge.src == symbol.path && !edge.dst.is_empty())
+                .map(|edge| edge.dst.clone())
+                .take(4)
+                .collect();
+            let imported_by: Vec<String> = edges
+                .iter()
+                .filter(|edge| edge.dst == symbol.path)
+                .map(|edge| edge.src.clone())
+                .take(4)
+                .collect();
+            CodeGraphHit {
+                name: symbol.name.clone(),
+                kind: symbol.kind.clone(),
+                path: symbol.path.clone(),
+                line: symbol.line,
+                signature: symbol.signature.clone(),
+                imports,
+                imported_by,
+            }
+        })
+        .collect()
+}
+
+fn code_graph_file_hits(files: &[IdeFileEntry], tokens: &[String], limit: usize) -> Vec<String> {
+    let mut scored: Vec<(i32, &str)> = files
+        .iter()
+        .filter_map(|file| {
+            let name = file.path.rsplit('/').next().unwrap_or(file.path.as_str());
+            tokens
+                .iter()
+                .filter_map(|token| fuzzy_score(name, token).or_else(|| fuzzy_score(&file.path, token)))
+                .max()
+                .map(|score| (score, file.path.as_str()))
+        })
+        .collect();
+    scored.sort_by(|left, right| right.0.cmp(&left.0));
+    scored.into_iter().take(limit).map(|(_, p)| p.to_string()).collect()
+}
+
+/// GET /api/code-graph/status —— 索引存在性、规模与注入开关。
+async fn api_code_graph_status() -> ApiResult<Json<CodeGraphStatusResponse>> {
+    let root = active_workspace_path()
+        .canonicalize()
+        .unwrap_or_else(|_| active_workspace_path());
+    let symbols: Option<IdeSymbolsIndex> = load_ide_index(&root, "symbols.json");
+    let edges: Option<IdeEdgesIndex> = load_ide_index(&root, "edges.json");
+    Ok(Json(CodeGraphStatusResponse {
+        indexed: symbols.is_some(),
+        built_at: symbols.as_ref().map(|index| index.built_at),
+        file_count: symbols.as_ref().map_or(0, |index| index.file_count),
+        symbol_count: symbols.as_ref().map_or(0, |index| index.symbols.len()),
+        edge_count: edges.as_ref().map_or(0, |index| index.edge_count),
+        inject_enabled: code_graph_inject_enabled(&root),
+    }))
+}
+
+/// POST /api/code-graph/inject —— 切换「检索记忆注入」开关（写 chat-inject.flag）。
+async fn api_code_graph_inject(
+    Json(payload): Json<CodeGraphInjectRequest>,
+) -> ApiResult<Json<CodeGraphStatusResponse>> {
+    let root = active_workspace_path()
+        .canonicalize()
+        .map_err(|_| api_error(StatusCode::BAD_REQUEST, "当前工作区不存在或不可访问"))?;
+    let index_dir = ide_index_dir(&root);
+    std::fs::create_dir_all(&index_dir).map_err(io_api_error)?;
+    std::fs::write(
+        code_graph_inject_flag_path(&root),
+        if payload.enabled { "1" } else { "0" },
+    )
+    .map_err(io_api_error)?;
+    api_code_graph_status().await
+}
+
+/// GET /api/code-graph/query?q= —— 符号命中（带 import 邻居）+ 文件命中。
+async fn api_code_graph_query(
+    Query(params): Query<CodeGraphQueryParams>,
+) -> ApiResult<Json<CodeGraphQueryResponse>> {
+    let root = active_workspace_path()
+        .canonicalize()
+        .map_err(|_| api_error(StatusCode::BAD_REQUEST, "当前工作区不存在或不可访问"))?;
+    let needle = params.q.as_deref().map(str::trim).unwrap_or("");
+    if needle.is_empty() {
+        return Ok(Json(CodeGraphQueryResponse {
+            indexed: true,
+            hits: Vec::new(),
+            files: Vec::new(),
+        }));
+    }
+    let symbols: Option<IdeSymbolsIndex> = load_ide_index(&root, "symbols.json");
+    let Some(symbols_index) = symbols else {
+        return Ok(Json(CodeGraphQueryResponse {
+            indexed: false,
+            hits: Vec::new(),
+            files: Vec::new(),
+        }));
+    };
+    let edges: IdeEdgesIndex =
+        load_ide_index(&root, "edges.json").unwrap_or(IdeEdgesIndex {
+            built_at: 0,
+            edge_count: 0,
+            edges: Vec::new(),
+        });
+    let limit = params.limit.unwrap_or(20).clamp(1, 50);
+    let tokens = code_graph_tokens(needle);
+    let hits = code_graph_rank(&symbols_index.symbols, &edges.edges, &tokens, limit);
+    let files = match load_ide_index::<IdeFilesIndex>(&root, "files.json") {
+        Some(index) => code_graph_file_hits(&index.files, &tokens, 5),
+        None => Vec::new(),
+    };
+    Ok(Json(CodeGraphQueryResponse {
+        indexed: true,
+        hits,
+        files,
+    }))
+}
+
+/// 聊天注入：按消息 token 检索索引，命中则返回 # Code Graph Context 提示块。
+/// 索引未建/开关关/零命中 → None，不打扰对话。
+fn code_graph_context_block(root: &Path, text: &str) -> Option<String> {
+    if !code_graph_inject_enabled(root) {
+        return None;
+    }
+    let symbols: IdeSymbolsIndex = load_ide_index(root, "symbols.json")?;
+    let edges: IdeEdgesIndex = load_ide_index(root, "edges.json").unwrap_or(IdeEdgesIndex {
+        built_at: 0,
+        edge_count: 0,
+        edges: Vec::new(),
+    });
+    let tokens = code_graph_tokens(text);
+    if tokens.is_empty() {
+        return None;
+    }
+    let hits = code_graph_rank(&symbols.symbols, &edges.edges, &tokens, CODE_GRAPH_MAX_HITS);
+    if hits.is_empty() {
+        return None;
+    }
+    let mut block = String::from(
+        "# Code Graph Context\nworkspace 目录代码图谱快捷检索（符号 + import 边），供回答定位与追溯：",
+    );
+    for hit in &hits {
+        block.push_str(&format!(
+            "\n- {}:{} [{}] {}  {}",
+            hit.path,
+            hit.line,
+            hit.kind,
+            hit.name,
+            compact_message_snippet(&hit.signature, 80)
+        ));
+        if !hit.imports.is_empty() {
+            block.push_str(&format!("\n  imports: {}", hit.imports.join(", ")));
+        }
+        if !hit.imported_by.is_empty() {
+            block.push_str(&format!("\n  imported-by: {}", hit.imported_by.join(", ")));
+        }
+    }
+    if block.chars().count() > CODE_GRAPH_BLOCK_MAX_CHARS {
+        block = block.chars().take(CODE_GRAPH_BLOCK_MAX_CHARS).collect();
+        block.push('…');
+    }
+    Some(block)
 }
 
 fn resolve_project_diff_existing_path(root: &Path, input: &str) -> ApiResult<PathBuf> {
@@ -17482,6 +18055,17 @@ async fn api_delete_chat_room_message(
     Ok(Json(MessageDeleteResponse { report }))
 }
 
+/// DELETE /api/chat/rooms/{room_id}/messages —— 清空聊天室全部消息（/clear 命令）。
+async fn api_clear_chat_room_messages(
+    AxumPath(room_id): AxumPath<String>,
+) -> ApiResult<Json<MessageDeleteResponse>> {
+    let mut store = session_store()
+        .lock()
+        .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
+    let report = store.clear_chat_room_messages(&room_id)?;
+    Ok(Json(MessageDeleteResponse { report }))
+}
+
 async fn api_delete_session_message(
     AxumPath((session_id, message_id)): AxumPath<(String, String)>,
 ) -> ApiResult<Json<MessageDeleteResponse>> {
@@ -21233,7 +21817,14 @@ fn prepare_chat_dispatch_checked(payload: SendMessageRequest) -> ApiResult<Prepa
         text,
         &targets,
     );
-    let visible_user_content = compose_user_message_content(text, &reference_context);
+    let mut visible_user_content = compose_user_message_content(text, &reference_context);
+    // 目录代码图谱快捷检索：索引已建且开关开时，按消息 token 命中符号/import 边注入上下文块。
+    if let Some(graph_root) = active_workspace_path().canonicalize().ok() {
+        if let Some(block) = code_graph_context_block(&graph_root, text) {
+            visible_user_content.push_str("\n\n");
+            visible_user_content.push_str(&block);
+        }
+    }
     let user_content = attachment_text::append(&visible_user_content, &attachments);
     let goal_trigger = if devin_text { None } else { prepare_goal_trigger_for_dispatch(
         text,
@@ -41242,6 +41833,60 @@ impl SessionStore {
         })
     }
 
+    /// /clear 命令：清空聊天室全部消息，连带删除衍生 beads 与附件引用；房间本身保留。
+    fn clear_chat_room_messages(&mut self, room_id: &str) -> ApiResult<CascadeDeleteReport> {
+        let attachment_dir = attachment_store_dir();
+        self.clear_chat_room_messages_with_attachment_dir(room_id, &attachment_dir)
+    }
+
+    fn clear_chat_room_messages_with_attachment_dir(
+        &mut self,
+        room_id: &str,
+        attachment_dir: &Path,
+    ) -> ApiResult<CascadeDeleteReport> {
+        self.save()?;
+        if !self
+            .state
+            .chat_rooms
+            .iter()
+            .any(|room| room.id == room_id)
+        {
+            return Err(api_error(StatusCode::NOT_FOUND, "聊天室不存在"));
+        }
+        let message_ids = history_persistence::message_ids(&self.path, true, room_id)?;
+        let deleted_messages = message_ids.len();
+        let deleted_beads = self
+            .state
+            .sessions
+            .iter()
+            .map(|session| {
+                session
+                    .memory_beads
+                    .iter()
+                    .filter(|b| {
+                        b.origin_table.as_deref() == Some("chat_room_messages")
+                            && b.origin_message_id
+                                .as_deref()
+                                .is_some_and(|id| message_ids.contains(id))
+                    })
+                    .count()
+            })
+            .sum();
+        let deleted_attachments =
+            clear_chat_room_messages_sqlite(&self.path, room_id, attachment_dir)?;
+        self.sync_state_after_sql_delete()?;
+        Ok(CascadeDeleteReport {
+            target_kind: "chat-room-messages".to_string(),
+            target_id: room_id.to_string(),
+            target_label: room_id.to_string(),
+            deleted_messages,
+            deleted_beads,
+            deleted_attachments,
+            deleted_rooms: 0,
+            deleted_sessions: 0,
+        })
+    }
+
     /// REQ-WEB-SESSION-007：删除会话消息（Agent 对话流水），连带删除衍生 beads。
     fn delete_session_message(
         &mut self,
@@ -50740,6 +51385,46 @@ fn delete_chat_room_message_sqlite(
     gc_unreferenced_attachment_files(&connection, attachment_dir, attachment_file_names)
 }
 
+/// /clear：删除指定聊天室的全部消息 + 附件引用，房间与其它表不受影响。
+fn clear_chat_room_messages_sqlite(
+    path: &Path,
+    room_id: &str,
+    attachment_dir: &Path,
+) -> ApiResult<usize> {
+    let mut connection = open_session_connection(path).map_err(sqlite_api_error)?;
+    initialize_session_schema(&connection).map_err(sqlite_api_error)?;
+    let tx = connection.transaction().map_err(sqlite_api_error)?;
+    let ids: std::collections::BTreeSet<String> = {
+        let mut statement = tx
+            .prepare("SELECT id FROM chat_room_messages WHERE room_id=?1")
+            .map_err(sqlite_api_error)?;
+        let rows = statement
+            .query_map(params![room_id], |row| row.get(0))
+            .map_err(sqlite_api_error)?
+            .collect::<rusqlite::Result<std::collections::BTreeSet<_>>>()
+            .map_err(sqlite_api_error)?;
+        drop(statement);
+        rows
+    };
+    let attachment_file_names =
+        attachment_file_names_for_message_ids(&tx, "chat_room_messages", &ids)
+            .map_err(sqlite_api_error)?;
+    tx.execute(
+        "DELETE FROM chat_room_messages WHERE room_id = ?1",
+        params![room_id],
+    )
+    .map_err(sqlite_api_error)?;
+    delete_attachment_refs_for_message_ids(&tx, "chat_room_messages", &ids)
+        .map_err(sqlite_api_error)?;
+    tx.execute(
+        "UPDATE chat_rooms SET updated_at = ?1 WHERE id = ?2",
+        params![u64_to_i64(unix_timestamp_millis()), room_id],
+    )
+    .map_err(sqlite_api_error)?;
+    tx.commit().map_err(sqlite_api_error)?;
+    gc_unreferenced_attachment_files(&connection, attachment_dir, attachment_file_names)
+}
+
 fn delete_session_message_sqlite(
     path: &Path,
     session_id: &str,
@@ -60008,6 +60693,7 @@ pub(crate) mod tests {
     use axum::Json;
     use computer_use::default_regression_scenarios;
     use serde_json::{json, Value as JsonValue};
+    use std::collections::HashSet;
     use std::path::Path;
     use vision::{VisionBackendKind, VisionResponse, VisionToolCapability};
 
@@ -62098,6 +62784,176 @@ pub(crate) mod tests {
         assert_eq!(tail[1].author, "Agent C (model-c)");
         assert_eq!(tail[2].author, "Agent A (model-a)");
         assert_eq!(tail[3].author, "Agent B (model-b)");
+    }
+
+    #[test]
+    fn code_graph_edge_specs_extract_imports_for_rust_python_js() {
+        let temp = tempfile::tempdir().expect("temp workspace");
+        let rust = temp.path().join("a.rs");
+        // 带 UTF-8 BOM：首行 ^ 锚定正则不得因此失配。
+        std::fs::write(
+            &rust,
+            "\u{feff}use crate::store::Session;\npub mod beads;\nfn main() {}\n",
+        )
+        .unwrap();
+        let specs = super::extract_ide_edge_specs(&rust, "src/a.rs");
+        assert!(specs.contains(&("src/a.rs".to_string(), "crate::store::Session".to_string(), "use".to_string())));
+        assert!(specs.contains(&("src/a.rs".to_string(), "mod:beads".to_string(), "mod".to_string())));
+        assert_eq!(specs.len(), 2);
+
+        let py = temp.path().join("b.py");
+        std::fs::write(&py, "import os.path\nfrom .store import beads, helper as h\nfrom . import local\n").unwrap();
+        let specs = super::extract_ide_edge_specs(&py, "pkg/b.py");
+        let spec_set: HashSet<&str> = specs.iter().map(|(_, spec, _)| spec.as_str()).collect();
+        assert!(spec_set.contains("os.path"));
+        assert!(spec_set.contains(".store"));
+        // `from .store import beads` 同时怀疑 beads 是子模块 → .store.beads
+        assert!(spec_set.contains(".store.beads"));
+        assert!(spec_set.contains(".store.helper"), "别名应取原名而非别名");
+        // `from . import local` → 模块 . + 子模块 .local
+        assert!(spec_set.contains("."));
+        assert!(spec_set.contains(".local"));
+
+        let js = temp.path().join("c.ts");
+        std::fs::write(&js, "import x from \"./util/x\";\nimport \"./polyfill\";\nconst y = require(\"../lib/y\");\nexport {z} from \"./z\";\n").unwrap();
+        let specs = super::extract_ide_edge_specs(&js, "app/c.ts");
+        let specs_set: HashSet<&str> = specs.iter().map(|(_, spec, _)| spec.as_str()).collect();
+        assert!(specs_set.contains("./util/x"));
+        assert!(specs_set.contains("./polyfill"));
+        assert!(specs_set.contains("../lib/y"));
+        assert!(specs_set.contains("./z"));
+    }
+
+    #[test]
+    fn code_graph_resolve_edge_maps_specs_to_workspace_files() {
+        let known: HashSet<String> = [
+            "src/store/mod.rs",
+            "src/a.rs",
+            "src/beads.rs",
+            "pkg/b.py",
+            "pkg/__init__.py",
+            "pkg/store/__init__.py",
+            "app/util/x.ts",
+            "lib/y.js",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        assert_eq!(
+            super::resolve_ide_edge("src/a.rs", "crate::store::Session", &known).as_deref(),
+            Some("src/store/mod.rs")
+        );
+        assert_eq!(
+            super::resolve_ide_edge("src/a.rs", "mod:beads", &known).as_deref(),
+            Some("src/beads.rs")
+        );
+        assert_eq!(
+            super::resolve_ide_edge("pkg/b.py", ".store", &known).as_deref(),
+            Some("pkg/store/__init__.py")
+        );
+        assert_eq!(
+            super::resolve_ide_edge("pkg/b.py", ".", &known).as_deref(),
+            Some("pkg/__init__.py"),
+            "from . import x 的包自身"
+        );
+        assert_eq!(
+            super::resolve_ide_edge("app/c.ts", "./util/x", &known).as_deref(),
+            Some("app/util/x.ts")
+        );
+        assert_eq!(
+            super::resolve_ide_edge("app/c.ts", "../lib/y", &known).as_deref(),
+            Some("lib/y.js")
+        );
+        // 外部包与伪路径解析不到，不得伪造边。
+        assert!(super::resolve_ide_edge("src/a.rs", "serde::Serialize", &known).is_none());
+        assert!(super::resolve_ide_edge("app/c.ts", "react", &known).is_none());
+    }
+
+    #[test]
+    fn code_graph_tokens_collect_ident_and_path_skip_noise() {
+        let tokens = super::code_graph_tokens("请看看 session_store.rs 里的 prepare_chat_dispatch 和 #18 号！");
+        assert!(tokens.contains(&"session_store.rs".to_string()));
+        assert!(tokens.contains(&"prepare_chat_dispatch".to_string()));
+        assert!(!tokens.iter().any(|token| token == "18"));
+        assert!(super::code_graph_tokens("！！！").is_empty());
+    }
+
+    #[test]
+    fn code_graph_context_block_injects_hits_and_respects_flag() {
+        let temp = tempfile::tempdir().expect("temp workspace");
+        let root = temp.path();
+        let index_dir = root.join(".coolzhu").join("ide-index");
+        std::fs::create_dir_all(&index_dir).unwrap();
+        std::fs::write(
+            index_dir.join("symbols.json"),
+            serde_json::to_string(&json!({
+                "built_at": 1,
+                "file_count": 2,
+                "symbols": [{
+                    "name": "prepare_chat_dispatch", "kind": "fn", "lang": "rust",
+                    "path": "src/main.rs", "line": 42, "signature": "fn prepare_chat_dispatch(payload)"
+                }]
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        std::fs::write(
+            index_dir.join("edges.json"),
+            serde_json::to_string(&json!({
+                "built_at": 1, "edge_count": 1,
+                "edges": [{"src": "src/main.rs", "spec": "crate::store", "kind": "use", "dst": "src/store/mod.rs"}]
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        // 命中 token → 生成上下文块并带 import 邻居。
+        let block = super::code_graph_context_block(root, "explain prepare_chat_dispatch please")
+            .expect("context block");
+        assert!(block.contains("# Code Graph Context"));
+        assert!(block.contains("src/main.rs:42"));
+        assert!(block.contains("imports: src/store/mod.rs"));
+        // 零命中 → None；注入关闭 → None。
+        assert!(super::code_graph_context_block(root, "zzzzzzzzz").is_none());
+        std::fs::write(index_dir.join("chat-inject.flag"), "0").unwrap();
+        assert!(super::code_graph_context_block(root, "prepare_chat_dispatch").is_none());
+        std::fs::write(index_dir.join("chat-inject.flag"), "1").unwrap();
+        assert!(super::code_graph_context_block(root, "prepare_chat_dispatch").is_some());
+    }
+
+    #[test]
+    fn code_graph_build_writes_edges_json_alongside_symbols() {
+        let temp = tempfile::tempdir().expect("temp workspace");
+        let root = temp.path();
+        std::fs::create_dir_all(root.join("src/store")).unwrap();
+        std::fs::write(
+            root.join("src/a.rs"),
+            "use crate::store::Session;\nfn go() {}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("src/store/mod.rs"),
+            "pub mod session;\npub struct Session;\n",
+        )
+        .unwrap();
+        std::fs::write(root.join("src/store/session.rs"), "pub struct S;\n").unwrap();
+        // 解析不到的外部 spec 不得落库。
+        std::fs::write(root.join("src/ext.rs"), "use serde::Serialize;\n").unwrap();
+        let result = super::build_project_symbol_index(root, true).expect("build index");
+        assert!(result.symbol_count > 0);
+        assert_eq!(result.edge_count, 2);
+        let edges: super::IdeEdgesIndex =
+            super::load_ide_index(root, "edges.json").expect("edges.json");
+        let pairs: HashSet<(&str, &str)> = edges
+            .edges
+            .iter()
+            .map(|edge| (edge.src.as_str(), edge.dst.as_str()))
+            .collect();
+        assert!(pairs.contains(&("src/a.rs", "src/store/mod.rs")), "use 边");
+        assert!(
+            pairs.contains(&("src/store/mod.rs", "src/store/session.rs")),
+            "mod 边"
+        );
+        assert!(!edges.edges.iter().any(|edge| edge.dst.is_empty()));
     }
 
     #[test]
@@ -69001,6 +69857,195 @@ attach: last_assistant
         assert_eq!(bead_count, 0);
         assert_eq!(unique_refs, 0);
         assert_eq!(shared_refs, 1);
+    }
+
+    #[test]
+    fn clear_chat_room_messages_empties_room_but_keeps_room_and_other_rooms() {
+        // /clear 命令：清空 room-a 全部消息 + 衍生 beads + 附件引用；
+        // 房间本身、活动房间指针、room-b 与其消息/beads 不受影响。
+        let temp = tempfile::tempdir().expect("tempdir");
+        let attachment_dir = temp.path().join("attachments");
+        std::fs::create_dir_all(&attachment_dir).expect("mkdir attachments");
+        let unique_file = attachment_dir.join("att-unique.png");
+        let shared_file = attachment_dir.join("att-shared.png");
+        std::fs::write(&unique_file, b"unique").expect("write unique");
+        std::fs::write(&shared_file, b"shared").expect("write shared");
+
+        let mut msg_a1 = persisted_message("msg-a1", 1);
+        msg_a1.attachments = vec![
+            ChatAttachmentDto { text_snapshot: None,
+                kind: "image".to_string(),
+                name: "unique.png".to_string(),
+                url: "/api/attachments/files/att-unique.png".to_string(),
+                mime_type: Some("image/png".to_string()),
+            },
+            ChatAttachmentDto { text_snapshot: None,
+                kind: "image".to_string(),
+                name: "shared.png".to_string(),
+                url: "/api/attachments/files/att-shared.png".to_string(),
+                mime_type: Some("image/png".to_string()),
+            },
+        ];
+        let msg_a2 = persisted_message("msg-a2", 2);
+        let mut msg_b1 = persisted_message("msg-b1", 3);
+        msg_b1.attachments = vec![ChatAttachmentDto { text_snapshot: None,
+            kind: "image".to_string(),
+            name: "shared.png".to_string(),
+            url: "/api/attachments/files/att-shared.png".to_string(),
+            mime_type: Some("image/png".to_string()),
+        }];
+
+        let db_path = temp.path().join("sessions.sqlite3");
+        let mut store = super::SessionStore {
+            history_edits: Vec::new(),
+            writer: None,
+            committed_state: None,
+            path: db_path.clone(),
+            legacy_json_path: temp.path().join("sessions.json"),
+            capacity: super::SessionStoreCapacity::default(),
+            state: super::PersistedSessionState {
+                sessions: vec![super::PersistedSession {
+                    id: "s1".to_string(),
+                    name: "agent-a".to_string(),
+                    provider: "p".to_string(),
+                    model: "m".to_string(),
+                    avatar: None,
+                    api_key_ref: String::new(),
+                    base_url: None,
+                    endpoint: None,
+                    reasoning_effort: "medium".to_string(),
+                    model_type: "text".to_string(),
+                    memory_beads: vec![
+                        super::MemoryBeadDto {
+                            id: "bead-derived-room-a".to_string(),
+                            kind: "decision".to_string(),
+                            layer: "L2".to_string(),
+                            summary: "derived from room-a msg".to_string(),
+                            source: "chat-room".to_string(),
+                            pinned: false,
+                            confidence: 0.7,
+                            created_at: 10,
+                            origin_message_id: Some("msg-a1".to_string()),
+                            origin_table: Some("chat_room_messages".to_string()),
+                            token_count: Some(32),
+                        },
+                        super::MemoryBeadDto {
+                            id: "bead-derived-room-b".to_string(),
+                            kind: "decision".to_string(),
+                            layer: "L2".to_string(),
+                            summary: "derived from room-b msg".to_string(),
+                            source: "chat-room".to_string(),
+                            pinned: false,
+                            confidence: 0.6,
+                            created_at: 11,
+                            origin_message_id: Some("msg-b1".to_string()),
+                            origin_table: Some("chat_room_messages".to_string()),
+                            token_count: Some(24),
+                        },
+                        super::MemoryBeadDto {
+                            id: "bead-pinned".to_string(),
+                            kind: "person".to_string(),
+                            layer: "L1".to_string(),
+                            summary: "user preference".to_string(),
+                            source: "manual".to_string(),
+                            pinned: true,
+                            confidence: 1.0,
+                            created_at: 1,
+                            origin_message_id: None,
+                            origin_table: None,
+                            token_count: Some(16),
+                        },
+                    ],
+                    created_at: 0,
+                    updated_at: 0,
+                    context_reset_at: 0,
+                    messages: Vec::new(),
+                }],
+                active_session_id: Some("s1".to_string()),
+                active_vision_session_id: None,
+                chat_rooms: vec![
+                    super::PersistedChatRoom {
+                        id: "room-a".to_string(),
+                        name: "A".to_string(),
+                        created_at: 0,
+                        updated_at: 0,
+                        messages: vec![msg_a1, msg_a2],
+                    },
+                    super::PersistedChatRoom {
+                        id: "room-b".to_string(),
+                        name: "B".to_string(),
+                        created_at: 0,
+                        updated_at: 0,
+                        messages: vec![msg_b1],
+                    },
+                ],
+                active_chat_room_id: Some("room-a".to_string()),
+            },
+        };
+
+        let report = store
+            .clear_chat_room_messages_with_attachment_dir("room-a", &attachment_dir)
+            .expect("clear room-a messages");
+        assert_eq!(report.deleted_messages, 2);
+        assert_eq!(report.deleted_beads, 1);
+        assert_eq!(report.deleted_rooms, 0);
+        assert_eq!(report.target_kind, "chat-room-messages");
+
+        // 房间保留、活动房间不变、room-b 原样。
+        assert_eq!(store.state.chat_rooms.len(), 2);
+        assert_eq!(store.state.active_chat_room_id.as_deref(), Some("room-a"));
+        assert!(
+            store.state.chat_rooms.iter().any(|room| room.id == "room-a"),
+            "room-a 必须保留"
+        );
+
+        // 衍生 bead 回收，pinned 与 room-b bead 保留。
+        let remaining_ids: std::collections::BTreeSet<&str> = store.state.sessions[0]
+            .memory_beads
+            .iter()
+            .map(|b| b.id.as_str())
+            .collect();
+        assert!(!remaining_ids.contains("bead-derived-room-a"));
+        assert!(remaining_ids.contains("bead-derived-room-b"));
+        assert!(remaining_ids.contains("bead-pinned"));
+
+        // SQLite 层核验：room-a 消息清零、room-b 消息保留、附件引用按引用数回收。
+        let conn = super::open_session_connection(&db_path).expect("open sqlite");
+        let room_a_msgs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM chat_room_messages WHERE room_id='room-a'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("room-a msg count");
+        let room_b_msgs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM chat_room_messages WHERE room_id='room-b'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("room-b msg count");
+        let unique_refs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM attachment_refs WHERE file_name='att-unique.png'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("unique refs");
+        let shared_refs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM attachment_refs WHERE file_name='att-shared.png'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("shared refs");
+        assert_eq!(room_a_msgs, 0);
+        assert_eq!(room_b_msgs, 1);
+        assert_eq!(unique_refs, 0);
+        assert_eq!(shared_refs, 1);
+        // 保守 GC：已发布文件仍驻留磁盘，不被消息零引用删除。
+        assert!(unique_file.exists());
+        assert!(shared_file.exists());
     }
 
     #[test]
