@@ -225,6 +225,23 @@ body.ui-3d .workbench-window[data-window-theme="communication-bay"] .code-graph-
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .code-graph-hit.is-file { color: var(--jade-muted); }
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .code-graph-empty { padding: 8px; color: var(--jade-muted); text-align: center; }
 
+/* 任务清单弹层：与代码图谱同位的 communication-bay 主题版。 */
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-popover {
+  background: rgba(7, 26, 17, 0.97); border-color: #72937f; color: var(--jade-ink);
+}
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-popover > header strong { color: #b8e6c8; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-popover > header > span { color: var(--jade-muted); }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-popover > header > button {
+  color: #eaf4e8; border-color: #6b8a73; background: linear-gradient(#2e513b, #132e22);
+}
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-group > header b { color: #f2d98a; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-meta { color: var(--jade-muted); }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-item.is-in_progress { background: #80bc9d22; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-item.is-in_progress .chat-todos-icon { color: #f2d98a; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-item.is-completed .chat-todos-icon { color: #80bc9d; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-active { color: #9db8a6; }
+body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-todos-empty { color: var(--jade-muted); }
+
 /* 扩展页只保留一个页头；协作页继续保留自己的页签和操作。 */
 body.ui-3d .workbench-window[data-window-theme="communication-bay"] .chat-window-panel > .chat-right-rail { padding: 8px; gap: 8px; border-color: #49695b; background: #0c211bf5; grid-template-rows: 38px 36px minmax(0, 1fr) 38px; }
 body.ui-3d .chat-right-rail-heading { min-height: 0; height: 38px; padding: 3px 6px; border: 0; background: transparent; box-shadow: none; }

@@ -725,7 +725,7 @@
                   </div>
                 </div>
                 <section class="chat-panel">
-                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="code-graph-open" type="button" aria-expanded="false" aria-controls="code-graph-popover">代码图谱</button><button data-role="chat-usage-meter" type="button" aria-label="当前聊天室用量明细">用量加载中</button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button>
+                  <div class="chat-history-toolbar"><button data-action="chat-history-open" type="button">搜索 / 消息索引</button><button data-action="code-graph-open" type="button" aria-expanded="false" aria-controls="code-graph-popover">代码图谱</button><button data-action="chat-todos-open" type="button" aria-expanded="false" aria-controls="chat-todos-popover">任务清单<span data-role="chat-todos-badge" hidden></span></button><button data-role="chat-usage-meter" type="button" aria-label="当前聊天室用量明细">用量加载中</button><button data-role="preview-tabs-reopen" type="button" hidden>预览标签</button><button data-role="chat-return-latest" type="button" hidden>回到最新消息</button>
                     <div id="code-graph-popover" class="code-graph-popover" data-role="code-graph-popover" hidden>
                       <header><strong>目录代码图谱</strong><span data-role="code-graph-status">索引状态读取中…</span></header>
                       <div class="code-graph-actions">
@@ -735,6 +735,10 @@
                       </div>
                       <input data-role="code-graph-query" type="search" placeholder="符号 / 文件名检索…" autocomplete="off" />
                       <ul class="code-graph-results" data-role="code-graph-results"></ul>
+                    </div>
+                    <div id="chat-todos-popover" class="chat-todos-popover" data-role="chat-todos-popover" hidden>
+                      <header><strong>任务清单</strong><span data-role="chat-todos-summary"></span><button data-action="chat-todos-close" type="button">关闭</button></header>
+                      <div class="chat-todos-list" data-role="chat-todos-list"></div>
                     </div>
                   </div>
                   <div class="message-list" data-role="chat-message-list" data-chat-window-lines="50">
