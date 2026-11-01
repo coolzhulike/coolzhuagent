@@ -3313,6 +3313,7 @@ fn build_web_card_api_audit() -> WebCardApiAuditResponse {
             &[
                 "/api/chat/rooms",
                 "/api/chat/rooms/{room_id}/messages",
+                "/api/chat/rooms/{room_id}/todos",
                 "/api/chat/send",
                 "/api/chat/send/stream",
             ],
