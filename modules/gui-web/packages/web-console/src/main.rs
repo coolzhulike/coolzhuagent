@@ -3,6 +3,7 @@ mod async_diagnostics;
 mod app_update;
 mod extension_market;
 mod skill_catalog;
+mod chat_todos;
 mod dsh_market;
 mod dsh_source_download;
 mod devin_plugin;
@@ -1828,6 +1829,10 @@ fn app() -> Router {
             "/api/chat/rooms/{room_id}/messages/{message_id}",
             delete(api_delete_chat_room_message),
         )
+        .route(
+            "/api/chat/rooms/{room_id}/todos",
+            get(api_chat_room_todos),
+        )
         .route("/api/channels/clawbot/status", get(api_clawbot_status))
         .route("/api/channels/clawbot/commands", get(api_clawbot_commands))
         .route(
@@ -3617,6 +3622,8 @@ fn active_workspace_path() -> PathBuf {
 /// 权限仍由 runtime gate 统一决定。
 struct RegistryExecutor {
     allowlist: Vec<&'static str>,
+    /// 宿主侧工具（TodoWrite）的聊天室归属；非房间调用保持 None。
+    room_id: Option<String>,
 }
 
 impl RegistryExecutor {
@@ -3624,12 +3631,19 @@ impl RegistryExecutor {
     fn from_registry() -> Self {
         let mut allowlist: Vec<_> = mvp_tool_specs().into_iter().map(|spec| spec.name).collect();
         allowlist.push("Skill");
-        Self { allowlist }
+        Self { allowlist, room_id: None }
+    }
+
+    /// 聊天室调用路径：TodoWrite 由宿主按 (room, session) 落 sqlite。
+    fn for_room(room_id: Option<String>) -> Self {
+        let mut executor = Self::from_registry();
+        executor.room_id = room_id;
+        executor
     }
 
     #[cfg(test)]
     fn with_allowlist(names: Vec<&'static str>) -> Self {
-        Self { allowlist: names }
+        Self { allowlist: names, room_id: None }
     }
 }
 
@@ -3642,7 +3656,7 @@ impl ToolInvocationExecutor for RegistryExecutor {
         #[cfg(test)]
         ha04_tests::record_executor_entry(&invoke.tool_name);
         let start = std::time::Instant::now();
-        let (status, summary, output) = match if invoke.tool_name == "Skill" { skill_catalog::execute(invoke) } else { tools::execute_tool(&invoke.tool_name, &invoke.input) }
+        let (status, summary, output) = match if invoke.tool_name == "Skill" { skill_catalog::execute(invoke) } else if invoke.tool_name == "TodoWrite" { chat_todos::execute(invoke, self.room_id.as_deref()) } else { tools::execute_tool(&invoke.tool_name, &invoke.input) }
         {
             Ok(text) => {
                 if let Ok(value) = serde_json::from_str::<JsonValue>(&text) {
@@ -3727,6 +3741,9 @@ fn registry_executor_status_from_output(tool_name: &str, text: &str) -> ToolOutc
 /// 不得回退成 `ReadOnly`——`ReadOnly` 走自动放行，等于让未声明的工具静默通过。
 fn required_permission_for_tool(tool_name: &str) -> PermissionMode {
     if tool_name == "Skill" { return PermissionMode::ReadOnly; }
+    // TodoWrite 由宿主执行：只写宿主侧 sqlite 元数据，不碰工作区文件，
+    // 因此即便 mvp spec 标 WorkspaceWrite，这里按只读档开放（只读房间也放行）。
+    if tool_name == "TodoWrite" { return PermissionMode::ReadOnly; }
     // CU 是控制台的异步工具，不在同步 registry 中；须明确登记其权限元数据。
     // 只接纳正式入口与历史别名，不能给任意 computer_* 名称隐式授权。
     if matches!(tool_name, COMPUTER_USE_TOOL_NAME | "computer_use.perform") {
@@ -4469,6 +4486,13 @@ enum ToolEvent {
         #[serde(skip_serializing_if = "Option::is_none")]
         reason: Option<String>,
     },
+    /// 聊天室任务清单变化：前端按 room/session 匹配后刷新展示，不轮询。
+    #[serde(rename = "todos-changed")]
+    TodosChanged {
+        room_id: String,
+        session_id: String,
+        revision: i64,
+    },
 }
 
 impl ToolEvent {
@@ -4477,6 +4501,7 @@ impl ToolEvent {
             Self::PermissionRequired(_) => "permission-required",
             Self::Approved { .. } => "approved",
             Self::Rejected { .. } => "rejected",
+            Self::TodosChanged { .. } => "todos-changed",
         }
     }
 }
@@ -18053,6 +18078,21 @@ async fn api_delete_chat_room_message(
         .map_err(|_| api_error(StatusCode::INTERNAL_SERVER_ERROR, "会话存储锁已损坏"))?;
     let report = store.delete_chat_room_message(&room_id, &message_id)?;
     Ok(Json(MessageDeleteResponse { report }))
+}
+
+/// GET /api/chat/rooms/{room_id}/todos —— 房间内各会话的任务清单快照（按最近更新排序）。
+async fn api_chat_room_todos(
+    AxumPath(room_id): AxumPath<String>,
+) -> ApiResult<Json<JsonValue>> {
+    let db_path = default_session_sqlite_path();
+    if !chat_todos::room_exists(&db_path, &room_id)
+        .map_err(|message| api_error(StatusCode::INTERNAL_SERVER_ERROR, &message))?
+    {
+        return Err(api_error(StatusCode::NOT_FOUND, "聊天室不存在"));
+    }
+    let sessions = chat_todos::read_room(&db_path, &room_id)
+        .map_err(|message| api_error(StatusCode::INTERNAL_SERVER_ERROR, &message))?;
+    Ok(Json(json!({ "room_id": room_id, "sessions": sessions })))
 }
 
 /// DELETE /api/chat/rooms/{room_id}/messages —— 清空聊天室全部消息（/clear 命令）。
@@ -34013,12 +34053,30 @@ fn agent_message_request_with_context_messages_for_room(
     chat_room_id: Option<&str>,
 ) -> MessageRequest {
     let tools = llm_tool_definitions_for_session(&agent.id, chat_room_id);
+    let mut system_prompt = system_prompt.to_string();
+    // D5：清单快照只拼进本轮 system_prompt，不写入 visible_user_content /
+    // ContextAssembly / chat_room_messages，避免快照被持久化进聊天记录。
+    // 工具循环每轮都会重新走这里，快照随之刷新。
+    if let Some(room_id) = chat_room_id {
+        let context_window = effective_model_limit_for_agent(agent).0;
+        if context_window > 16_384
+            && tools.as_ref().is_some_and(|definitions| {
+                definitions.iter().any(|definition| definition.name == "TodoWrite")
+            })
+        {
+            if let Some(block) =
+                chat_todos::context_block(&default_session_sqlite_path(), room_id, &agent.id)
+            {
+                system_prompt.push_str(&block);
+            }
+        }
+    }
     agent_message_request_build_with_system(
         agent,
         messages,
         stream,
         tools,
-        system_prompt.to_string(),
+        system_prompt,
     )
 }
 
@@ -34144,9 +34202,15 @@ fn messages_allow_computer_use(messages: &[InputMessage]) -> bool {
 
 fn request_tool_policy_instruction(tools: Option<&[ToolDefinition]>) -> String {
     match tools.filter(|definitions| !definitions.is_empty()) {
-        Some(definitions) => format!(
-            "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。历史工具执行事实只属于历史轮次，不能当作本轮回执；本轮尚未收到结构化 ToolResult 时，必须说明操作尚未执行，禁止虚构本轮调用次数、错误码或执行结果。",
-            tool_definition_names(definitions)),
+        Some(definitions) => {
+            let mut text = format!(
+                "当前请求可调用工具仅限：{}。权限开放不代表其它工具可用。纯生成文本、HTML、SVG 时直接输出内容；只有用户要求实际保存文件才调用写入工具。工具调用必须走结构化协议，禁止在正文伪造 <tool_call>。历史工具执行事实只属于历史轮次，不能当作本轮回执；本轮尚未收到结构化 ToolResult 时，必须说明操作尚未执行，禁止虚构本轮调用次数、错误码或执行结果。",
+                tool_definition_names(definitions));
+            if definitions.iter().any(|definition| definition.name == "TodoWrite") {
+                text.push_str("TodoWrite 用法：仅在多步任务（≥3 个动作、长时程或用户要求清单）时建立；与其它工具同批调用以节省轮次；完成一项立即标记；计划变化时重发完整清单；同一时间建议只保留一项进行中；清单状态不等于任务已验证。");
+            }
+            text
+        },
         None => "当前请求禁止调用任何工具。直接用最终答案完成原始任务，禁止输出 <tool_call> 或声称文件已写入、命令已执行。若任务确需外部操作，说明尚未执行并提供可用的文本内容。".to_string(),
     }
 }
@@ -35261,6 +35325,14 @@ fn llm_tool_definitions_for_session(
         if skill_catalog::guidance(&active_workspace_path(), session_id).is_some() {
             defs.push(skill_catalog::definition());
         }
+        // TodoWrite 仅在有聊天室归属且未被会话 allowlist 排除时开放（宿主执行）。
+        if chat_room_id.is_some()
+            && settings.tool_allowlist.as_ref().map_or(true, |allowlist| {
+                allowlist.iter().any(|name| name == "TodoWrite")
+            })
+        {
+            defs.push(chat_todos::definition());
+        }
         defs.extend(mcp_host::model_tool_definitions(
             &workspace_identity(&active_workspace_path()), settings.tool_allowlist.as_ref(),
         ));
@@ -35335,6 +35407,11 @@ fn llm_tool_definitions_with_settings(
         // ToolSearch 是「发现工具」元工具：工具已直接暴露给模型，它在此纯属冗余，
         // 却常被弱模型（如 agnes flash）对纯问答类消息反射性误调。统一不暴露给 LLM。
         if spec.name == "ToolSearch" {
+            continue;
+        }
+        // TodoWrite 由宿主定义接管（chat_todos::definition），这里始终跳过 mvp 版，
+        // 避免与宿主版重复或把文件存储语义泄漏给聊天会话。
+        if spec.name == "TodoWrite" {
             continue;
         }
         if mode == "whitelist" && !allowlist.contains(spec.name) {
@@ -37190,7 +37267,7 @@ fn execute_runtime_tool_blocking(
     chat_room_id: Option<String>,
     scheduled_grant: Option<Arc<scheduled_execution::ScheduledExecutionGrant>>,
 ) -> ToolOutcome {
-    let exec = RegistryExecutor::from_registry();
+    let exec = RegistryExecutor::for_room(chat_room_id.clone());
     execute_runtime_tool_blocking_with_executor(
         invoke, workspace_root, chat_room_id, scheduled_grant, &exec,
     )
@@ -43308,6 +43385,7 @@ fn initialize_session_schema(connection: &Connection) -> rusqlite::Result<()> {
             "SELECT record_seq,record_subject FROM fact_log_records LIMIT 0",
             "SELECT provider_tool_call_id,source_request_key FROM tool_calls LIMIT 0",
             "SELECT id,workspace_id,spec_json,state,run_id FROM execution_index LIMIT 0",
+            "SELECT room_id,session_id,todos_json,source,revision FROM chat_room_todos LIMIT 0",
         ] { connection.prepare(query)?; }
         Ok(())
     })
@@ -43432,6 +43510,7 @@ fn apply_session_schema_steps(connection: &Connection) -> rusqlite::Result<()> {
     computer_use_store::apply_session_migration_v27_tool_call_source(connection)?;
     computer_use_store::apply_session_migration_v28_panel_dispatch(connection)?;
     execution_service::apply_session_migration_v29(connection)?;
+    chat_todos::apply_session_migration_v30(connection)?;
     Ok(())
 }
 
@@ -43703,7 +43782,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 29;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 30;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -51339,6 +51418,12 @@ fn delete_chat_room_sqlite(
             .map_err(sqlite_api_error)?;
     tx.execute("DELETE FROM chat_rooms WHERE id = ?1", params![room_id])
         .map_err(sqlite_api_error)?;
+    // 显式删除该房间清单：不能依赖外键级联——save 路径在 foreign_keys=OFF 下删房间。
+    tx.execute(
+        "DELETE FROM chat_room_todos WHERE room_id = ?1",
+        params![room_id],
+    )
+    .map_err(sqlite_api_error)?;
     delete_attachment_refs_for_message_ids(&tx, "chat_room_messages", message_ids)
         .map_err(sqlite_api_error)?;
     tx.execute(
@@ -51414,6 +51499,20 @@ fn clear_chat_room_messages_sqlite(
         params![room_id],
     )
     .map_err(sqlite_api_error)?;
+    // /clear 连任务清单一起清：先记下受影响的会话，提交后逐会话广播清零事件。
+    let todo_sessions: Vec<String> = {
+        let mut statement = tx
+            .prepare("SELECT session_id FROM chat_room_todos WHERE room_id = ?1")
+            .map_err(sqlite_api_error)?;
+        let collected = statement
+            .query_map(params![room_id], |row| row.get(0))
+            .map_err(sqlite_api_error)?
+            .collect::<rusqlite::Result<Vec<String>>>()
+            .map_err(sqlite_api_error)?;
+        drop(statement);
+        collected
+    };
+    chat_todos::clear_room_tx(&tx, room_id).map_err(sqlite_api_error)?;
     delete_attachment_refs_for_message_ids(&tx, "chat_room_messages", &ids)
         .map_err(sqlite_api_error)?;
     tx.execute(
@@ -51422,6 +51521,13 @@ fn clear_chat_room_messages_sqlite(
     )
     .map_err(sqlite_api_error)?;
     tx.commit().map_err(sqlite_api_error)?;
+    for session_id in todo_sessions {
+        broadcast_tool_event(ToolEvent::TodosChanged {
+            room_id: room_id.to_string(),
+            session_id,
+            revision: 0,
+        });
+    }
     gc_unreferenced_attachment_files(&connection, attachment_dir, attachment_file_names)
 }
 
@@ -51532,6 +51638,8 @@ fn save_session_state_to_sqlite_with_epoch(
     }
     tx.execute("DELETE FROM chat_handoffs WHERE chat_room_id NOT IN (SELECT id FROM chat_rooms)", []).map_err(sqlite_api_error)?;
     tx.execute("DELETE FROM memory_beads WHERE session_id NOT IN (SELECT id FROM sessions)", []).map_err(sqlite_api_error)?;
+    // 房间/会话在 foreign_keys=OFF 下删除，清单孤儿行须显式回收。
+    chat_todos::delete_orphans_tx(&tx).map_err(sqlite_api_error)?;
 
     tx.execute(
         "INSERT INTO metadata(key, value) VALUES (?1, ?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value WHERE value IS NOT excluded.value",
@@ -79797,7 +79905,7 @@ attach: last_assistant
         // informational questions. 默认权限只增加分发与交接；all 暴露方式不授予 CU 权限。
         let expected_len = tools::mvp_tool_specs()
             .iter()
-            .filter(|spec| spec.name != "ToolSearch")
+            .filter(|spec| spec.name != "ToolSearch" && spec.name != "TodoWrite")
             .count()
             + 2;
         assert_eq!(defs.len(), expected_len);
@@ -82574,6 +82682,12 @@ attach: last_assistant
         assert_eq!(
             super::required_permission_for_tool("bash"),
             super::PermissionMode::DangerFullAccess
+        );
+        // TodoWrite 宿主执行只写元数据 sqlite，按只读档开放（覆盖 mvp spec 的
+        // WorkspaceWrite 声明）。
+        assert_eq!(
+            super::required_permission_for_tool("TodoWrite"),
+            super::PermissionMode::ReadOnly
         );
         // 未知/动态工具没有权威最低权限元数据：必须返回 Unspecified 交由闸门
         // fail-closed，不得回退成 ReadOnly（ReadOnly 走自动放行）。
