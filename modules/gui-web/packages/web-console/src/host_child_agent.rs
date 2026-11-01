@@ -155,7 +155,9 @@ impl HostModelSnapshot {
 
     fn child_tools(&self, requested: &BTreeSet<String>) -> BTreeSet<String> {
         requested.intersection(&self.parent_tools)
-            .filter(|name| name.as_str() != "Agent" && name.as_str() != "SendUserMessage")
+            // TodoWrite 不开放给子代理：子代理与父会话共用会话身份，会覆盖父清单。
+            .filter(|name| name.as_str() != "Agent" && name.as_str() != "SendUserMessage"
+                && name.as_str() != "TodoWrite")
             .filter(|name| {
                 let required = required_permission_for_tool(name);
                 !required.is_unspecified() && required <= self.permission
@@ -491,6 +493,17 @@ mod tests {
         assert!(snapshot.permits_parent_agent());
         let allowed = snapshot.child_tools(&BTreeSet::from([String::from("write_file")]));
         assert!(allowed.contains("write_file"), "测试须证实写工具原本可用");
+        // TodoWrite 即便父定义/请求允许，也必须被子代理过滤：子代理与父会话共用
+        // 会话身份，写清单会覆盖父清单。
+        let allowed = snapshot.child_tools(&BTreeSet::from([
+            String::from("TodoWrite"),
+            String::from("write_file"),
+        ]));
+        assert!(
+            !allowed.contains("TodoWrite"),
+            "子代理不得拿到 TodoWrite，actual={allowed:?}"
+        );
+        assert!(allowed.contains("write_file"));
         parent.host_model_snapshots = Arc::new(std::collections::HashMap::from([(
             agent.id.clone(), Arc::clone(&snapshot),
         )]));
