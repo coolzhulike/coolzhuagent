@@ -212,6 +212,115 @@ fn execute_with_path(
     Ok(reply)
 }
 
+/// Devin ACP `sessionUpdate:"plan"` 的单条计划项。
+///
+/// 字段已在 `devin_acp::session::project_plan` 校验：content/status 为非空
+/// 字符串、status ∈ {pending,in_progress,completed}、priority 只保留
+/// high/medium/low（其它取值按未提供处理）。ACP 计划项没有 activeForm，
+/// 落库时以 content 兼任。
+#[derive(Debug)]
+pub(crate) struct AcpPlanEntry {
+    pub content: String,
+    pub priority: Option<String>,
+    pub status: String,
+}
+
+/// Devin ACP `sessionUpdate:"plan"` 的整表替换落库。
+///
+/// plan 是远端建议性状态而非工具执行事实：房间缺失或写不进去时不报错
+/// （返回 Ok(0) 并记诊断），绝不因清单失败中断 ACP 会话。新清单与存量
+/// todos_json 完全一致时不升 revision、不广播；空 plan 表示"无计划"——
+/// 删除清单行并按 revision=0 广播。返回落库后的版本号。
+pub(crate) fn apply_acp_plan(
+    path: &Path,
+    room_id: &str,
+    session_id: &str,
+    entries: &[AcpPlanEntry],
+) -> Result<i64, String> {
+    let mut connection = open_session_connection(path).map_err(|error| error.to_string())?;
+    initialize_session_schema(&connection).map_err(|error| error.to_string())?;
+    let tx = connection
+        .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+        .map_err(|error| error.to_string())?;
+    // 显式校验房间，不依赖外键开关状态（与 execute_with_path 同一约定）。
+    let room_exists: i64 = tx
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM chat_rooms WHERE id = ?1)",
+            params![room_id],
+            |row| row.get(0),
+        )
+        .map_err(|error| error.to_string())?;
+    if room_exists == 0 {
+        // plan 只是建议性投影；房间在会话途中被删是合法竞态，不值得中断会话。
+        tracing::warn!("Devin ACP plan 落库跳过：聊天室不存在 {room_id}");
+        return Ok(0);
+    }
+    let existing: Option<(String, i64)> = tx
+        .query_row(
+            "SELECT todos_json, revision FROM chat_room_todos \
+             WHERE room_id = ?1 AND session_id = ?2",
+            params![room_id, session_id],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .optional()
+        .map_err(|error| error.to_string())?;
+    let revision = if entries.is_empty() {
+        tx.execute(
+            "DELETE FROM chat_room_todos WHERE room_id = ?1 AND session_id = ?2",
+            params![room_id, session_id],
+        )
+        .map_err(|error| error.to_string())?;
+        0
+    } else {
+        let stored: Vec<StoredTodo> = entries
+            .iter()
+            .map(|entry| StoredTodo {
+                content: entry.content.clone(),
+                // ACP plan 没有 activeForm；与 content 同文，进行中项在 UI 仍可读。
+                active_form: entry.content.clone(),
+                status: entry.status.clone(),
+                priority: entry.priority.clone(),
+            })
+            .collect();
+        let todos_json = serde_json::to_string(&stored).map_err(|error| error.to_string())?;
+        if let Some((old_json, old_revision)) = &existing {
+            // 远端可能重复推送同一计划；内容一致不动版本、不广播（事务随 tx 丢弃回滚）。
+            if *old_json == todos_json {
+                return Ok(*old_revision);
+            }
+        }
+        let new_revision = existing.as_ref().map(|(_, revision)| *revision).unwrap_or(0) + 1;
+        tx.execute(
+            "INSERT INTO chat_room_todos(room_id, session_id, todos_json, source, revision, updated_at, last_call_id) \
+             VALUES (?1, ?2, ?3, 'acp-plan', ?4, ?5, NULL) \
+             ON CONFLICT(room_id, session_id) DO UPDATE SET \
+               todos_json = excluded.todos_json, source = excluded.source, \
+               revision = excluded.revision, updated_at = excluded.updated_at, \
+               last_call_id = excluded.last_call_id",
+            params![
+                room_id,
+                session_id,
+                todos_json,
+                new_revision,
+                u64_to_i64(unix_timestamp_millis()),
+            ],
+        )
+        .map_err(|error| error.to_string())?;
+        new_revision
+    };
+    tx.commit().map_err(|error| error.to_string())?;
+
+    // 空 plan 只有真的删掉了行才广播；无行可删与内容一致同样视为无变化。
+    if !entries.is_empty() || existing.is_some() {
+        broadcast_tool_event(ToolEvent::TodosChanged {
+            room_id: room_id.to_string(),
+            session_id: session_id.to_string(),
+            revision,
+        });
+    }
+    Ok(revision)
+}
+
 /// 房间内一份清单（按会话分组），供 `GET /api/chat/rooms/{room_id}/todos` 回读。
 #[derive(Debug, Serialize)]
 pub(crate) struct RoomTodos {
@@ -795,5 +904,112 @@ mod tests {
         );
         let system = request.system.unwrap_or_default();
         assert!(!system.contains("当前任务清单"), "{system}");
+    }
+
+    fn plan_entries() -> Vec<AcpPlanEntry> {
+        vec![
+            AcpPlanEntry {
+                content: "甲步".into(),
+                priority: Some("high".into()),
+                status: "in_progress".into(),
+            },
+            AcpPlanEntry {
+                content: "乙步".into(),
+                priority: None,
+                status: "pending".into(),
+            },
+        ]
+    }
+
+    #[test]
+    fn chat_todos_acp_plan_replace_dedup_clear_and_missing_room() {
+        let _guard = crate::tests::config_test_guard();
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = setup_db(temp.path());
+        let entries = plan_entries();
+
+        // 首次落库：整表写入、source='acp-plan'、priority 原样、activeForm 同 content。
+        assert_eq!(
+            apply_acp_plan(&path, "room-a", "s-1", &entries).expect("first plan"),
+            1
+        );
+        let rows = read_room(&path, "room-a").expect("read room-a");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].session_id, "s-1");
+        assert_eq!(rows[0].source, "acp-plan");
+        assert_eq!(rows[0].revision, 1);
+        assert_eq!(rows[0].todos.len(), 2);
+        assert_eq!(rows[0].todos[0]["content"], json!("甲步"));
+        assert_eq!(rows[0].todos[0]["activeForm"], json!("甲步"));
+        assert_eq!(rows[0].todos[0]["status"], json!("in_progress"));
+        assert_eq!(rows[0].todos[0]["priority"], json!("high"));
+        assert!(rows[0].todos[1].get("priority").is_none(), "无 priority 不得落字段");
+
+        // 相同内容重复推送：不升 revision、行保持原版本。
+        assert_eq!(
+            apply_acp_plan(&path, "room-a", "s-1", &entries).expect("dedup"),
+            1,
+            "内容一致不得升版"
+        );
+        assert_eq!(read_room(&path, "room-a").unwrap()[0].revision, 1);
+
+        // 内容变化的整表替换：升版并覆盖（同房间其它会话行不受影响）。
+        let changed = vec![AcpPlanEntry {
+            content: "乙步".into(),
+            priority: Some("low".into()),
+            status: "completed".into(),
+        }];
+        execute_with_path(&path, &invoke_for(Some("s-2"), two_todos("in_progress")), Some("room-a"))
+            .expect("s-2 tool row");
+        assert_eq!(
+            apply_acp_plan(&path, "room-a", "s-1", &changed).expect("replace"),
+            2
+        );
+        let rows = read_room(&path, "room-a").expect("read after replace");
+        let s1 = rows.iter().find(|row| row.session_id == "s-1").expect("s-1");
+        assert_eq!(s1.revision, 2);
+        assert_eq!(s1.source, "acp-plan");
+        assert_eq!(s1.todos.len(), 1);
+        assert_eq!(s1.todos[0]["priority"], json!("low"));
+        let s2 = rows.iter().find(|row| row.session_id == "s-2").expect("s-2");
+        assert_eq!(s2.source, "tool", "工具清单行不得被 plan 波及");
+
+        // 空 plan = 无计划：删行并返回 0；再次空推送无行可删也不报错。
+        assert_eq!(apply_acp_plan(&path, "room-a", "s-1", &[]).expect("clear"), 0);
+        let rows = read_room(&path, "room-a").expect("read after clear");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].session_id, "s-2");
+        assert_eq!(apply_acp_plan(&path, "room-a", "s-1", &[]).expect("clear again"), 0);
+
+        // 房间缺失：plan 是建议性状态，Ok(0) 不报错、不落行。
+        assert_eq!(
+            apply_acp_plan(&path, "room-missing", "s-1", &entries).expect("missing room"),
+            0
+        );
+        assert!(read_room(&path, "room-a").expect("final read").len() == 1);
+    }
+
+    #[test]
+    fn chat_todos_acp_plan_overwrites_tool_row_and_tool_recovers() {
+        // plan 与 TodoWrite 共用 (room, session) 键：后到者整表覆盖，
+        // 这是"同一 agent 会话一份清单"的单一事实源语义。
+        let _guard = crate::tests::config_test_guard();
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = setup_db(temp.path());
+        execute_with_path(&path, &invoke_for(Some("s-1"), two_todos("in_progress")), Some("room-a"))
+            .expect("tool write");
+        assert_eq!(
+            apply_acp_plan(&path, "room-a", "s-1", &plan_entries()).expect("plan over tool"),
+            2
+        );
+        let rows = read_room(&path, "room-a").expect("read");
+        assert_eq!(rows[0].source, "acp-plan");
+        assert_eq!(rows[0].revision, 2);
+        // TodoWrite 之后同样整表覆盖回 tool。
+        execute_with_path(&path, &invoke_for(Some("s-1"), two_todos("pending")), Some("room-a"))
+            .expect("tool rewrite");
+        let rows = read_room(&path, "room-a").expect("read back");
+        assert_eq!(rows[0].source, "tool");
+        assert_eq!(rows[0].revision, 3);
     }
 }
