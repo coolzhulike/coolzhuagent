@@ -209,14 +209,22 @@ pub(super) fn prepare_directory_with_tools(key: &str, review: bool) -> Result<(P
 }
 
 #[cfg(test)]
-fn publish(event: Event, tx: &mpsc::Sender<Item>) -> io::Result<()> {
-    publish_with_tools(event, tx, false)
+fn publish(event: Event, tx: &mpsc::Sender<Item>, db: &Path) -> io::Result<()> {
+    publish_with_tools(event, tx, false, db)
 }
 
-fn publish_with_tools(event: Event, tx: &mpsc::Sender<Item>, review: bool) -> io::Result<()> {
+fn publish_with_tools(
+    event: Event,
+    tx: &mpsc::Sender<Item>,
+    review: bool,
+    db: &Path,
+) -> io::Result<()> {
     if event.replay {
         return Ok(());
     }
+    // plan 落库需要房间与 Agent 归属；match 会按字段移走 update，先借用 scope。
+    let room_id = event.scope.room_id.as_str();
+    let agent_id = event.scope.agent_id.as_str();
     match event.update {
         Update::Text { text, thought, .. } => {
             let delta = if thought {
@@ -237,6 +245,24 @@ fn publish_with_tools(event: Event, tx: &mpsc::Sender<Item>, review: bool) -> io
         Update::ToolObservation { .. } => Err(io::Error::other(
             "文本会话出现工具调用；已停止，未执行宿主工具。",
         )),
+        // ACP plan 是整表替换的建议性清单：只落 chat_room_todos，不进文本消费流；
+        // 落库失败只记诊断，不中断本轮 ACP 会话（review/非 review 一致）。
+        Update::Plan { entries } => {
+            let todos: Vec<crate::chat_todos::AcpPlanEntry> = entries
+                .into_iter()
+                .map(|entry| crate::chat_todos::AcpPlanEntry {
+                    content: entry.content,
+                    priority: entry.priority,
+                    status: entry.status,
+                })
+                .collect();
+            if let Err(reason) =
+                crate::chat_todos::apply_acp_plan(db, room_id, agent_id, &todos)
+            {
+                tracing::warn!("Devin ACP plan 落库失败：{reason}");
+            }
+            Ok(())
+        }
         _ => Ok(()),
     }
 }
@@ -248,11 +274,12 @@ fn publish_to_consumer(
     tx: &mpsc::Sender<Item>,
     review: bool,
     cancellation: &ChatTurnCancellation,
+    db: &Path,
 ) -> io::Result<()> {
     if cancellation.is_requested() && tx.is_closed() {
         return Ok(());
     }
-    publish_with_tools(event, tx, review)
+    publish_with_tools(event, tx, review, db)
 }
 
 /// 版本探测只用于错误文案；失败不阻塞原错误报告。
@@ -504,6 +531,8 @@ async fn execute(
             Some(bridge.start().await?)
         } else { None };
         let review = bridge.is_some();
+        // ACP plan 清单与消息/台账同库：journal.path() 即冻结会话库路径。
+        let db = journal.path();
         let connect = SessionService::connect(
             transport,
             journal.clone(),
@@ -511,7 +540,7 @@ async fn execute(
             model,
             bridge.as_ref().map(|bridge| vec![bridge.config()]).unwrap_or_default(),
             deadline.min(tokio::time::Instant::now() + Duration::from_secs(30)),
-            |event| publish_to_consumer(event, tx, review, &cancellation),
+            |event| publish_to_consumer(event, tx, review, &cancellation, db),
         );
         let mut session = tokio::select! { biased;
             _=cancellation.cancelled()=>return Err("Devin 配置期间已停止，未发送本轮。".into()),
@@ -529,7 +558,7 @@ async fn execute(
                 || image_signal.as_ref().is_some_and(|signal|signal.load(std::sync::atomic::Ordering::Acquire)) {
                 if let Update::Text { thought, .. } = &mut event.update { *thought = true; }
             }
-            publish_to_consumer(event, tx, review, &consumer_cancellation)
+            publish_to_consumer(event, tx, review, &consumer_cancellation, db)
         };
         let mut content = vec![json!({"type":"text", "text":context.prompt})];
         content.extend(context.images.iter().cloned());
@@ -857,6 +886,7 @@ mod tests {
     #[tokio::test]
     async fn replay_never_becomes_new_reply_and_eof_never_means_completion() {
         let (tx, rx) = mpsc::channel(4);
+        let dir = tempfile::tempdir().unwrap();
         let scope = super::super::journal::tests::scope("projection");
         publish(
             Event {
@@ -870,6 +900,7 @@ mod tests {
                 },
             },
             &tx,
+            dir.path(),
         )
         .unwrap();
         publish(
@@ -884,6 +915,7 @@ mod tests {
                 },
             },
             &tx,
+            dir.path(),
         )
         .unwrap();
         drop(tx);
@@ -938,6 +970,7 @@ mod tests {
         assert!(token.is_requested());
         let (tx, rx) = mpsc::channel(1);
         drop(rx);
+        let dir = tempfile::tempdir().unwrap();
         let event = || Event {
             scope: super::super::journal::tests::scope("consumer-stopped"),
             sequence: 1,
@@ -948,8 +981,11 @@ mod tests {
                 message_id: None,
             },
         };
-        assert!(publish_to_consumer(event(), &tx, false, &token).is_ok());
-        assert!(publish_to_consumer(event(), &tx, false, &ChatTurnCancellation::new()).is_err());
+        assert!(publish_to_consumer(event(), &tx, false, &token, dir.path()).is_ok());
+        assert!(
+            publish_to_consumer(event(), &tx, false, &ChatTurnCancellation::new(), dir.path())
+                .is_err()
+        );
     }
     #[test]
     fn reset_preserves_old_binding_and_cannot_unlock_unknown() {
@@ -1006,7 +1042,8 @@ mod tests {
                     status: Some("completed".into())
                 }
             },
-            &tx
+            &tx,
+            dir.path(),
         )
         .is_err());
         let config = controlled_config();
@@ -1018,6 +1055,76 @@ mod tests {
                 .unwrap()
                 .contains(&json!(tool)));
         }
+    }
+
+    /// ACP plan 事件只写 chat_room_todos，不产生文本增量；replay 与缺失房间不落库。
+    #[test]
+    fn acp_plan_event_persists_room_todos_and_stays_out_of_text_stream() {
+        let _guard = crate::tests::config_test_guard();
+        let temp = tempfile::tempdir().unwrap();
+        let db = temp.path().join("session.sqlite3");
+        {
+            let connection = crate::open_session_connection(&db).unwrap();
+            crate::initialize_session_schema(&connection).unwrap();
+            connection
+                .execute(
+                    "INSERT INTO chat_rooms(id, name, created_at, updated_at) \
+                     VALUES ('room-plan', 'room-plan', 1, 1)",
+                    [],
+                )
+                .unwrap();
+        }
+        let event = |replay: bool, suffix: &str| {
+            let mut scope = super::super::journal::tests::scope("plan-turn");
+            scope.room_id = "room-plan".into();
+            scope.agent_id = "agent-plan".into();
+            Event {
+                scope,
+                sequence: 1,
+                replay,
+                update: Update::Plan {
+                    entries: vec![
+                        super::super::session::PlanEntry {
+                            content: format!("甲步{suffix}"),
+                            priority: Some("high".into()),
+                            status: "in_progress".into(),
+                        },
+                        super::super::session::PlanEntry {
+                            content: "乙步".into(),
+                            priority: None,
+                            status: "pending".into(),
+                        },
+                    ],
+                },
+            }
+        };
+        let (tx, mut rx) = mpsc::channel(4);
+        publish_with_tools(event(false, ""), &tx, false, &db).unwrap();
+        // plan 不进文本消费流：队列中不得出现任何 Item。
+        assert!(rx.try_recv().is_err());
+        let rows = crate::chat_todos::read_room(&db, "room-plan").unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].session_id, "agent-plan");
+        assert_eq!(rows[0].source, "acp-plan");
+        assert_eq!(rows[0].revision, 1);
+        assert_eq!(rows[0].todos[0]["priority"], json!("high"));
+
+        // 历史重放的 plan 不写库：头部 replay 门禁钉住，行保持第 1 版。
+        publish_with_tools(event(true, "重放"), &tx, false, &db).unwrap();
+        let rows = crate::chat_todos::read_room(&db, "room-plan").unwrap();
+        assert_eq!(rows[0].revision, 1);
+        assert_eq!(rows[0].todos[0]["content"], json!("甲步"));
+
+        // review 模式同样落库（plan 不是工具请求）。
+        publish_with_tools(event(false, ""), &tx, true, &db).unwrap();
+        let rows = crate::chat_todos::read_room(&db, "room-plan").unwrap();
+        assert_eq!(rows[0].revision, 1, "相同内容不升版");
+
+        // 房间在会话途中被删：Ok 不报错、不残留行。
+        let mut gone = event(false, "");
+        gone.scope.room_id = "room-gone".into();
+        publish_with_tools(gone, &tx, false, &db).unwrap();
+        assert!(crate::chat_todos::read_room(&db, "room-gone").unwrap().is_empty());
     }
 }
 
@@ -1257,14 +1364,15 @@ mod acp_nonstream_visibility_048 {
         // 有界队列满不得吞消息或伪完成：生产端 try_send 失败必须如实报错。
         let token = ChatTurnCancellation::new();
         let (tx, _rx) = mpsc::channel(1);
+        let dir = tempfile::tempdir().unwrap();
         let event = |text: &str| Event {
             scope: super::super::journal::tests::scope("queue-full"),
             sequence: 1,
             replay: false,
             update: Update::Text { text: text.into(), thought: false, message_id: None },
         };
-        assert!(publish_to_consumer(event("一"), &tx, false, &token).is_ok());
-        let error = publish_to_consumer(event("二"), &tx, false, &token).unwrap_err();
+        assert!(publish_to_consumer(event("一"), &tx, false, &token, dir.path()).is_ok());
+        let error = publish_to_consumer(event("二"), &tx, false, &token, dir.path()).unwrap_err();
         assert!(error.to_string().contains("队列超限"), "{error}");
     }
 

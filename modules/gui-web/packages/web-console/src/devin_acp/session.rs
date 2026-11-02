@@ -90,9 +90,22 @@ pub(super) enum Update {
     Config {
         options: Value,
     },
+    /// ACP `sessionUpdate:"plan"` 的整表计划；只投影成聊天室清单，不进文本流。
+    Plan {
+        entries: Vec<PlanEntry>,
+    },
     Diagnostic {
         name: String,
     },
+}
+
+/// ACP plan 单条计划项；priority 只收 high/medium/low，其它取值按未提供处理。
+#[derive(Debug, Serialize)]
+pub(super) struct PlanEntry {
+    pub content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<String>,
+    pub status: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -184,10 +197,55 @@ fn project(update: &Value) -> io::Result<Update> {
                 .ok_or_else(|| invalid("ACP 配置通知缺少完整目录。"))?
                 .clone(),
         }),
+        // plan 是建议性清单：结构不合法落成诊断事件而不是 Err，绝不中断 ACP 会话。
+        "plan" => Ok(project_plan(update)),
         other => Ok(Update::Diagnostic {
             name: other.to_owned(),
         }),
     }
+}
+
+/// ACP plan 载荷逐项校验：entries 必须是数组，content/status 必须为非空
+/// 字符串且 status 限三态；任何结构不合法只返回 plan_malformed 诊断，
+/// 不返回 Err（Err 会按协议错误中断整个 ACP 会话）。空数组合法，表示无计划。
+fn project_plan(update: &Value) -> Update {
+    fn malformed() -> Update {
+        Update::Diagnostic {
+            name: "plan_malformed".into(),
+        }
+    }
+    let Some(entries) = update.get("entries").and_then(Value::as_array) else {
+        return malformed();
+    };
+    let mut projected = Vec::with_capacity(entries.len());
+    for entry in entries {
+        let Some(content) = entry
+            .get("content")
+            .and_then(Value::as_str)
+            .filter(|text| !text.is_empty())
+        else {
+            return malformed();
+        };
+        let Some(status) = entry
+            .get("status")
+            .and_then(Value::as_str)
+            .filter(|status| matches!(*status, "pending" | "in_progress" | "completed"))
+        else {
+            return malformed();
+        };
+        // priority 只收三档；缺失或其它取值按未提供处理，不拒整条计划。
+        let priority = entry
+            .get("priority")
+            .and_then(Value::as_str)
+            .filter(|priority| matches!(*priority, "high" | "medium" | "low"))
+            .map(str::to_owned);
+        projected.push(PlanEntry {
+            content: content.to_owned(),
+            priority,
+            status: status.to_owned(),
+        });
+    }
+    Update::Plan { entries: projected }
 }
 
 /// reader 独立任务保留半帧；取消 select 不会丢掉已读入的部分 JSON。
@@ -1426,5 +1484,55 @@ mod tests {
             project(&json!({"sessionUpdate":"usage_update","used":1,"size":2})).unwrap(),
             Update::Usage { cost: None, .. }
         ));
+    }
+    #[test]
+    fn acp_plan_projects_entries_and_never_rejects_malformed_payloads() {
+        // 合法 plan：逐项保留 content/status，priority 按原样投影。
+        let update = project(&json!({"sessionUpdate":"plan","entries":[
+            {"content":"甲步","priority":"high","status":"in_progress"},
+            {"content":"乙步","priority":"low","status":"pending"}
+        ]}))
+        .unwrap();
+        let Update::Plan { entries } = update else {
+            panic!("plan 必须投影为 Update::Plan：{update:?}");
+        };
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[0].content, "甲步");
+        assert_eq!(entries[0].status, "in_progress");
+        assert_eq!(entries[0].priority.as_deref(), Some("high"));
+        assert_eq!(entries[1].priority.as_deref(), Some("low"));
+        // priority 缺字段、null 与三档外取值都按未提供处理，不拒整条计划。
+        for priority in [json!("urgent"), json!(3), Value::Null] {
+            let update = project(&json!({"sessionUpdate":"plan","entries":[
+                {"content":"甲","priority":priority,"status":"pending"},
+                {"content":"乙","status":"completed"}
+            ]}))
+            .unwrap();
+            let Update::Plan { entries } = update else {
+                panic!("plan 必须投影：{update:?}");
+            };
+            assert_eq!(entries[0].priority, None, "{priority}");
+            assert_eq!(entries[1].priority, None);
+        }
+        // 空数组是合法的"无计划"整表替换。
+        assert!(matches!(
+            project(&json!({"sessionUpdate":"plan","entries":[]})).unwrap(),
+            Update::Plan { entries } if entries.is_empty()
+        ));
+        // 结构不合法只落 plan_malformed 诊断，绝不返回 Err 中断会话。
+        for bad in [
+            json!({"sessionUpdate":"plan"}),
+            json!({"sessionUpdate":"plan","entries":{}}),
+            json!({"sessionUpdate":"plan","entries":[{"status":"pending"}]}),
+            json!({"sessionUpdate":"plan","entries":[{"content":"","status":"pending"}]}),
+            json!({"sessionUpdate":"plan","entries":[{"content":"甲"}]}),
+            json!({"sessionUpdate":"plan","entries":[{"content":"甲","status":"doing"}]}),
+            json!({"sessionUpdate":"plan","entries":["text"]}),
+        ] {
+            assert!(
+                matches!(project(&bad), Ok(Update::Diagnostic { name }) if name == "plan_malformed"),
+                "非法载荷必须降级为诊断：{bad}"
+            );
+        }
     }
 }
