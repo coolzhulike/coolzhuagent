@@ -579,12 +579,117 @@ window.CoolzhuChatExperience = (() => {
     } catch (error) { report(error); }
   }
 
+  // ── 房间任务清单：工具栏徽标合计 + 弹层按会话分组（todos-changed 事件驱动，不轮询）──
+  let todosVersion = 0;
+  function todosAgentName(sessionId) {
+    const agents = Array.isArray(agentRegistry?.agents) ? agentRegistry.agents : [];
+    const found = agents.find(agent => agent?.id === sessionId);
+    return found?.display_name || found?.name || sessionId || "未知会话";
+  }
+  // 徽标合计：跨会话汇总「完成数/总数」；纯函数便于契约测试验证。
+  function todosTotals(sessions) {
+    let done = 0, total = 0;
+    for (const session of Array.isArray(sessions) ? sessions : []) {
+      const todos = Array.isArray(session?.todos) ? session.todos : [];
+      total += todos.length;
+      done += todos.filter(todo => todo?.status === "completed").length;
+    }
+    return { done, total };
+  }
+  function todosRender(data) {
+    const badge = qs("chat-todos-badge"), summary = qs("chat-todos-summary"), list = qs("chat-todos-list");
+    const sessions = (Array.isArray(data?.sessions) ? data.sessions : [])
+      .filter(session => Array.isArray(session?.todos) && session.todos.length);
+    const { done, total } = todosTotals(sessions);
+    if (badge) { badge.hidden = total === 0; badge.textContent = total ? ` ${done}/${total}` : ""; }
+    if (summary) summary.textContent = total ? `${done}/${total} 完成` : "";
+    if (!list) return;
+    if (!sessions.length) {
+      const empty = document.createElement("p");
+      empty.className = "chat-todos-empty";
+      empty.textContent = "当前聊天室暂无任务清单。模型处理多步任务时会自动建立。";
+      list.replaceChildren(empty);
+      return;
+    }
+    const groups = sessions.map(session => {
+      const group = document.createElement("section");
+      group.className = "chat-todos-group";
+      const head = document.createElement("header");
+      const name = document.createElement("b");
+      // 全部经 textContent 落 DOM：清单内容来自模型输出，禁止 innerHTML。
+      name.textContent = todosAgentName(session.session_id);
+      const meta = document.createElement("span");
+      meta.className = "chat-todos-meta";
+      const time = session.updated_at
+        ? new Date(Number(session.updated_at)).toLocaleString("zh-CN", { hour12: false })
+        : "";
+      meta.textContent = ` 第 ${session.revision} 版${time ? ` · ${time}` : ""}${session.source === "acp-plan" ? " · Devin 计划" : ""}`;
+      head.append(name, meta);
+      const items = document.createElement("ul");
+      items.className = "chat-todos-items";
+      for (const todo of session.todos) {
+        const status = todo?.status || "pending";
+        const li = document.createElement("li");
+        li.className = `chat-todos-item is-${status}`;
+        const icon = document.createElement("span");
+        icon.className = "chat-todos-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = status === "completed" ? "✓" : status === "in_progress" ? "◐" : "○";
+        const text = document.createElement("span");
+        text.className = "chat-todos-text";
+        text.textContent = String(todo?.content ?? "");
+        li.append(icon, text);
+        if (status === "in_progress" && todo?.activeForm) {
+          const active = document.createElement("small");
+          active.className = "chat-todos-active";
+          active.textContent = String(todo.activeForm);
+          li.append(active);
+        }
+        if (todo?.priority) {
+          const priority = document.createElement("small");
+          priority.className = "chat-todos-priority";
+          priority.textContent = String(todo.priority);
+          li.append(priority);
+        }
+        items.append(li);
+      }
+      group.append(head, items);
+      return group;
+    });
+    list.replaceChildren(...groups);
+  }
+  async function todosRefresh() {
+    const scope = scopeSnapshot(); const version = ++todosVersion;
+    const room = scope.room;
+    if (!room) { todosRender(null); return; }
+    const current = () => scopeMatches(scope) && version === todosVersion;
+    try {
+      const data = await requestJson(`/api/chat/rooms/${encodeURIComponent(room)}/todos`);
+      if (!current()) return;
+      todosRender(data);
+    } catch (error) {
+      // 404（房间已删）与其它错误都按空清单收口：徽标/弹层不阻塞聊天主路径。
+      if (!current()) return;
+      todosRender(null);
+    }
+  }
+  function todosSetOpen(open) {
+    const pop = qs("chat-todos-popover"), trigger = document.querySelector('[data-action="chat-todos-open"]');
+    if (!pop) return;
+    pop.hidden = !open;
+    trigger?.setAttribute("aria-expanded", String(open));
+    if (open) void todosRefresh();
+  }
+
   function init() {
     if (state.initialized) return; state.initialized = true;
     mountExtraControls(); mountModelSettings(activeSessionId); syncModelSession(activeSessionId);
     document.querySelectorAll('[data-action="chat-history-open"]').forEach(node => node.addEventListener("click", openHistory));
     document.querySelectorAll('[data-action="code-graph-open"]').forEach(node => node.addEventListener("click", () => graphSetOpen(qs("code-graph-popover")?.hidden ?? true)));
     document.querySelectorAll('[data-action="code-graph-close"]').forEach(node => node.addEventListener("click", () => graphSetOpen(false)));
+    document.querySelectorAll('[data-action="chat-todos-open"]').forEach(node => node.addEventListener("click", () => todosSetOpen(qs("chat-todos-popover")?.hidden ?? true)));
+    document.querySelectorAll('[data-action="chat-todos-close"]').forEach(node => node.addEventListener("click", () => todosSetOpen(false)));
+    void todosRefresh();
     document.querySelectorAll('[data-action="code-graph-rebuild"]').forEach(node => node.addEventListener("click", () => void graphRebuild()));
     qs("code-graph-inject")?.addEventListener("change", event => void graphSetInject(event.target.checked));
     qs("code-graph-query")?.addEventListener("input", () => { clearTimeout(state.graphTimer); state.graphTimer = setTimeout(() => void graphQuery(), 220); });
@@ -611,6 +716,6 @@ window.CoolzhuChatExperience = (() => {
     });
     window.addEventListener("resize", () => closePopup());
   }
-  return {init,popup,closePopup,intercept,streamEvent,finish,prepareDelta,refreshInsights,annotate,openHistory,search,locate,duration,syncModelSession,recipientTargetsChanged,roomChanged,
+  return {init,popup,closePopup,intercept,streamEvent,finish,prepareDelta,refreshInsights,annotate,openHistory,search,locate,duration,syncModelSession,recipientTargetsChanged,roomChanged,todosRefresh,
     get changingEnvironment() { return state.switching; }};
 })();

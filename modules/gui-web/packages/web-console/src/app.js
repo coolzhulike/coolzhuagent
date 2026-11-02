@@ -3596,6 +3596,12 @@ function connectToolEventSource() {
       hideApprovalPanel();
     }
   });
+  source.addEventListener("todos-changed", (event) => {
+    const payload = safeJsonParse(event.data);
+    // 只刷新当前房间；防抖合并模型连续多次 TodoWrite 产生的事件。
+    if (!payload || payload.room_id !== activeChatRoomId) return;
+    scheduleTodosRefresh();
+  });
   source.addEventListener("lagged", () => {
     // 发生 lagged 时服务端建议前端拉一次 /api/tools/pending 补齐
     refreshPendingApprovals();
@@ -3611,6 +3617,15 @@ function connectToolEventSource() {
 
 function safeJsonParse(raw) {
   try { return JSON.parse(raw); } catch { return null; }
+}
+
+let todosRefreshTimer = null;
+function scheduleTodosRefresh() {
+  if (todosRefreshTimer) return;
+  todosRefreshTimer = window.setTimeout(() => {
+    todosRefreshTimer = null;
+    window.CoolzhuChatExperience?.todosRefresh?.();
+  }, 150);
 }
 
 function chatMessageList() {
@@ -11375,6 +11390,8 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   const requestedWorkspace = activeWorkspaceKey;
   const requestedProject = projectRequestScope();
   window.CoolzhuChatExperience?.roomChanged(roomId);
+  // 房间切换统一走此入口：任务清单随作用域刷新（同房间 /clear 另有兜底）。
+  window.CoolzhuChatExperience?.todosRefresh?.();
   const url = new URL(`/api/chat/rooms/${encodeURIComponent(roomId)}/messages`, location.origin);
   url.searchParams.set("limit", "80");
   if (before) {
@@ -15979,6 +15996,8 @@ async function runSlashClear(input) {
     // 走正规全量重载：丢弃在途旧读、重渲染、重新激活 SSE，避免被历史同步复活旧消息。
     await loadChatRoomMessages(room);
     await refreshActiveBeads();
+    // /clear 已连带清空房间任务清单：同房间 roomChanged 会短路，这里兜底刷新徽标。
+    window.CoolzhuChatExperience?.todosRefresh?.();
     const deleted = response?.report?.deleted_messages ?? 0;
     slashStatusNote(`已清空 ${deleted} 条消息`);
   } catch (error) {
