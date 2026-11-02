@@ -991,16 +991,16 @@ struct TodoWriteInput {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
-struct TodoItem {
-    content: String,
+pub struct TodoItem {
+    pub content: String,
     #[serde(rename = "activeForm")]
-    active_form: String,
-    status: TodoStatus,
+    pub active_form: String,
+    pub status: TodoStatus,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-enum TodoStatus {
+pub enum TodoStatus {
     Pending,
     InProgress,
     Completed,
@@ -2070,13 +2070,8 @@ fn execute_todo_write(input: TodoWriteInput) -> Result<TodoWriteOutput, String> 
     )
     .map_err(|error| error.to_string())?;
 
-    let verification_nudge_needed = (all_done
-        && input.todos.len() >= 3
-        && !input
-            .todos
-            .iter()
-            .any(|todo| todo.content.to_lowercase().contains("verif")))
-    .then_some(true);
+    let verification_nudge_needed =
+        todo_verification_nudge_needed(&input.todos).then_some(true);
 
     Ok(TodoWriteOutput {
         old_todos,
@@ -2103,6 +2098,10 @@ fn validate_todos(todos: &[TodoItem]) -> Result<(), String> {
     if todos.is_empty() {
         return Err(String::from("todos must not be empty"));
     }
+    // 上限：防止弱模型刷屏，同时给宿主侧快照留 token 余量（按 chars 计）
+    if todos.len() > 30 {
+        return Err(String::from("todos must not exceed 30 items"));
+    }
     // Allow multiple in_progress items for parallel workflows
     if todos.iter().any(|todo| todo.content.trim().is_empty()) {
         return Err(String::from("todo content must not be empty"));
@@ -2110,7 +2109,45 @@ fn validate_todos(todos: &[TodoItem]) -> Result<(), String> {
     if todos.iter().any(|todo| todo.active_form.trim().is_empty()) {
         return Err(String::from("todo activeForm must not be empty"));
     }
+    if todos.iter().any(|todo| todo.content.chars().count() > 300) {
+        return Err(String::from(
+            "todo content must not exceed 300 characters",
+        ));
+    }
+    if todos
+        .iter()
+        .any(|todo| todo.active_form.chars().count() > 300)
+    {
+        return Err(String::from(
+            "todo activeForm must not exceed 300 characters",
+        ));
+    }
     Ok(())
+}
+
+/// 反序列化并校验 TodoWrite 入参 `{todos:[...]}`，供宿主侧复用同一套规则。
+pub fn normalize_todo_write(input: &serde_json::Value) -> Result<Vec<TodoItem>, String> {
+    let parsed: TodoWriteInput =
+        serde_json::from_value(input.clone()).map_err(|error| error.to_string())?;
+    validate_todos(&parsed.todos)?;
+    Ok(parsed.todos)
+}
+
+/// 全部完成且 ≥3 项但没有任何验证步骤时，提醒调用方先验证再宣布完成。
+/// 除英文 "verif" 外，把中文"验证/测试/校验"也视为验证项。
+pub fn todo_verification_nudge_needed(todos: &[TodoItem]) -> bool {
+    let all_done = todos
+        .iter()
+        .all(|todo| matches!(todo.status, TodoStatus::Completed));
+    all_done
+        && todos.len() >= 3
+        && !todos.iter().any(|todo| {
+            let content = todo.content.to_lowercase();
+            content.contains("verif")
+                || content.contains("验证")
+                || content.contains("测试")
+                || content.contains("校验")
+        })
 }
 
 fn todo_store_path() -> Result<std::path::PathBuf, String> {
@@ -4785,6 +4822,72 @@ mod tests {
 
         let output: serde_json::Value = serde_json::from_str(&nudge).expect("valid json");
         assert_eq!(output["verificationNudgeNeeded"], true);
+    }
+
+    #[test]
+    fn todo_write_rejects_over_limit_payloads_and_counts_chinese_verification() {
+        let path = temp_path("todos-limits.json");
+        let _env = ScopedEnv::new(vec![env_set("CLAW_TODO_STORE", &path)]);
+
+        // 超过 30 项拒绝
+        let too_many: Vec<serde_json::Value> = (0..31)
+            .map(|i| {
+                json!({
+                    "content": format!("Step {i}"),
+                    "activeForm": format!("Doing step {i}"),
+                    "status": "pending"
+                })
+            })
+            .collect();
+        let err = execute_tool("TodoWrite", &json!({ "todos": too_many }))
+            .expect_err("more than 30 todos should fail");
+        assert!(err.contains("30 items"));
+
+        // content 超 300 字符拒绝
+        let long = "x".repeat(301);
+        let err = execute_tool(
+            "TodoWrite",
+            &json!({
+                "todos": [
+                    {"content": long, "activeForm": "Doing", "status": "pending"}
+                ]
+            }),
+        )
+        .expect_err("overlong content should fail");
+        assert!(err.contains("300 characters"));
+
+        // activeForm 超 300 字符拒绝
+        let err = execute_tool(
+            "TodoWrite",
+            &json!({
+                "todos": [
+                    {"content": "Ok", "activeForm": long, "status": "pending"}
+                ]
+            }),
+        )
+        .expect_err("overlong activeForm should fail");
+        assert!(err.contains("300 characters"));
+
+        // 中文"测试/验证"视为验证步骤，不触发 nudge
+        for keyword in ["测试", "验证", "校验"] {
+            let done = execute_tool(
+                "TodoWrite",
+                &json!({
+                    "todos": [
+                        {"content": "写代码", "activeForm": "写代码", "status": "completed"},
+                        {"content": "补文档", "activeForm": "补文档", "status": "completed"},
+                        {"content": format!("运行{keyword}"), "activeForm": "运行检查", "status": "completed"}
+                    ]
+                }),
+            )
+            .expect("completed todos should succeed");
+            let output: serde_json::Value = serde_json::from_str(&done).expect("valid json");
+            assert!(
+                output["verificationNudgeNeeded"].is_null(),
+                "keyword {keyword} should count as verification"
+            );
+        }
+        let _ = fs::remove_file(path);
     }
 
     #[test]
