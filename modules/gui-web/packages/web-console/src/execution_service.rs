@@ -77,7 +77,7 @@ pub(crate) fn apply_session_migration_v29(connection: &Connection) -> rusqlite::
     }
     Ok(())
 }
-fn open(path: &Path) -> Result<Connection, String> {
+fn open(path: &Path) -> Result<crate::session_db::PooledConnection, String> {
     let connection = crate::open_session_connection(path).map_err(|e| e.to_string())?;
     Ok(connection)
 }

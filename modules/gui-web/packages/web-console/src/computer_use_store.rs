@@ -2033,7 +2033,7 @@ impl ComputerUseRunStore {
         // 所有打开路径复用唯一完整阶梯，先备份再事务迁移。
         crate::initialize_session_schema(&connection)
             .map_err(|error| session_open_error_context(error, "初始化会话库结构"))?;
-        Ok(Self::from_connection(connection))
+        Ok(Self::from_connection(connection.into_inner()))
     }
 
     /// 写入一次接纳事实。归属列**必然**随行写入（类型层面不可缺省）；

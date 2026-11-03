@@ -108,7 +108,7 @@ impl Journal {
         Ok(journal)
     }
 
-    pub(super) fn connection(&self) -> Result<Connection, String> {
+    pub(super) fn connection(&self) -> Result<crate::session_db::PooledConnection, String> {
         let connection = crate::open_session_connection(&self.path)
             .map_err(|_| fail("ACP 台账不可用或版本超前。"))?;
         connection
@@ -314,7 +314,8 @@ impl Journal {
     }
 
     pub(super) fn remote_bindings(&self, workspace: &str, room: &str, agent: &str) -> Result<Vec<RemoteBinding>, String> {
-        Self::remote_bindings_on(&self.connection()?, workspace, room, agent)
+        let connection = self.connection()?;
+        Self::remote_bindings_on(&connection, workspace, room, agent)
     }
 
     fn remote_bindings_on(connection: &Connection, workspace: &str, room: &str, agent: &str) -> Result<Vec<RemoteBinding>, String> {

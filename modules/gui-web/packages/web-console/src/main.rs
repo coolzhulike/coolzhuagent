@@ -39,6 +39,7 @@ mod native_browser_verification;
 mod computer_use_activity;
 mod computer_use_turn_scope;
 mod chat_insights;
+mod session_db;
 mod static_resource_contract;
 mod execution_service;
 mod scheduled_execution;
@@ -43393,9 +43394,20 @@ fn load_session_state_from_sqlite(path: &Path) -> Result<Option<PersistedSession
     }
 }
 
-fn open_session_connection(path: &Path) -> rusqlite::Result<Connection> {
-    computer_use_store::preflight_existing_session_schema(path)?;
-    let connection = Connection::open(path)?;
+fn open_session_connection(path: &Path) -> rusqlite::Result<session_db::PooledConnection> {
+    let connection = match session_db::checkout(path) {
+        Some(pooled) => pooled,
+        None => {
+            // 只读预检只在冷打开做；池化连接上一轮已通过同一校验，
+            // 复用连接上 ensure_session_schema_not_from_the_future 仍强制检查。
+            computer_use_store::preflight_existing_session_schema(path)?;
+            let connection = Connection::open(path)?;
+            session_db::record_fresh_open();
+            #[cfg(not(test))]
+            diag!("session_db fresh_open path={}", path.display());
+            session_db::PooledConnection::new(connection, path.to_path_buf(), false)
+        }
+    };
     // 版本读取在连接配置之前，不能沿用 SQLite 默认的零等待。
     connection.busy_timeout(Duration::from_secs(5))?;
     computer_use_store::ensure_session_schema_not_from_the_future(&connection)?;
