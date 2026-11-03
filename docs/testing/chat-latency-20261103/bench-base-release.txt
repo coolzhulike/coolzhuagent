@@ -1,0 +1,133 @@
+== bench base-release @ 2026-11-03 07:44:15 ==
+[1] http=200 headers=77.74s first_byte=77.74s total=204.33s
+    sse_first: started=77.74s, message=77.74s, request_bound=89.29s, message_start=89.29s, message_delta=89.29s, message_replace=204.33s, message_done=204.33s, done=204.33s
+  run=run-chat-a77e5f5af81ad6378f5e15eb51f1c42782c6f029176b1724 state=completed run_total=181363ms
+    +      0ms  run.accepted
+    +  21658ms  chat.source_messages
+    +  25217ms  chat.target_agents
+    +  29486ms  run.started
+    + 159455ms  chat.context_outputs
+    + 181363ms  run.completed
+    usage: {'created_at': '+53943ms', 'input_tokens': 6130, 'output_tokens': 81, 'cache_read_tokens': 0, 'cache_write_tokens': 0, 'request_kind': 'chat', 'status': 'completed', 'http_status': None, 'finished_at': '+141838ms', 'started_at': '+60480ms', 'first_token_at': '+72904ms'}
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=535
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2310
+    diag: [LLM-CHAIN-STREAM] use_real_llm=true, agent=qwen-3.8 flash, provider=custom, model=qwen3.8-flash
+    diag: [LLM-TOOLS] build_request agent=session-1792519612697-22ffea3a2956ec99 provider=custom model=qwen3.8-flash stream=true max_tokens=65536 tools_enabled=true dev_o
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=275
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=736
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=343
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=999
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=468
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1254
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=529
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1694
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=623
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1394
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=949
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2101
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=706
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1388
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1171
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2596
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=729
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1636
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=591
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2386
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=946
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2211
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=430
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1299
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=521
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1531
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=817
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1944
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=683
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1487
+[2] http=200 headers=56.63s first_byte=56.63s total=115.53s
+    sse_first: started=56.63s, message=56.63s, request_bound=63.44s, message_start=63.44s, message_delta=63.44s, message_replace=115.53s, message_done=115.53s, done=115.53s
+  run=run-chat-afa6ec35fecc76a49e2f818f84d5bcd94c80d03b1da25a45 state=completed run_total=103841ms
+    +      0ms  run.accepted
+    +  13486ms  chat.source_messages
+    +  17424ms  chat.target_agents
+    +  20445ms  run.started
+    +  91128ms  chat.context_outputs
+    + 103841ms  run.completed
+    usage: {'created_at': '+40787ms', 'input_tokens': 6222, 'output_tokens': 46, 'cache_read_tokens': 5376, 'cache_write_tokens': 0, 'request_kind': 'chat', 'status': 'completed', 'http_status': None, 'finished_at': '+84281ms', 'started_at': '+47004ms', 'first_token_at': '+58043ms'}
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1103
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2439
+    diag: [LLM-CHAIN-STREAM] use_real_llm=true, agent=qwen-3.8 flash, provider=custom, model=qwen3.8-flash
+    diag: [LLM-TOOLS] build_request agent=session-1792519612697-22ffea3a2956ec99 provider=custom model=qwen3.8-flash stream=true max_tokens=65536 tools_enabled=true dev_o
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=765
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1911
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1280
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=2551
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=481
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1290
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=456
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1188
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=586
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1210
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=827
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1519
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=642
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1466
+[3] http=200 headers=42.17s first_byte=42.17s total=122.15s
+    sse_first: started=42.17s, message=42.17s, request_bound=46.19s, message_start=46.19s, message_delta=46.19s, message_replace=122.15s, message_done=122.15s, done=122.15s
+  run=run-chat-1f8be06ebe1ea41594f198a2e9b1e59de0754636008ad117 state=completed run_total=106298ms
+    +      1ms  run.accepted
+    +   9464ms  chat.source_messages
+    +  11827ms  chat.target_agents
+    +  14046ms  run.started
+    +  79021ms  chat.context_outputs
+    + 106298ms  run.completed
+    usage: {'created_at': '+30273ms', 'input_tokens': 6290, 'output_tokens': 42, 'cache_read_tokens': 6144, 'cache_write_tokens': 0, 'request_kind': 'chat', 'status': 'completed', 'http_status': None, 'finished_at': '+67873ms', 'started_at': '+35045ms', 'first_token_at': '+41932ms'}
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=503
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1129
+    diag: [LLM-CHAIN-STREAM] use_real_llm=true, agent=qwen-3.8 flash, provider=custom, model=qwen3.8-flash
+    diag: [LLM-TOOLS] build_request agent=session-1792519612697-22ffea3a2956ec99 provider=custom model=qwen3.8-flash stream=true max_tokens=65536 tools_enabled=true dev_o
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=846
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1641
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1053
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1957
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=782
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1319
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=418
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=915
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=833
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1623
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1209
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=3028
+    diag: [SESSION-SQLITE] save start: path=\\?\D:\coolzhuagent\tmp\real-todo-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=942
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=1790

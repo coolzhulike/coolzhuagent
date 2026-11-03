@@ -1,0 +1,82 @@
+== bench base-release-ssd @ 2026-11-03 07:54:35 ==
+[1] http=200 headers=0.16s first_byte=0.16s total=3.57s
+    sse_first: started=0.16s, message=0.16s, request_bound=2.54s, message_start=2.54s, message_delta=2.54s, message_replace=3.57s, message_done=3.57s, done=3.57s
+  run=run-chat-01a007238a4b30a15954a78d8c0fbdf3cd13d7b95e45fbd4 state=completed run_total=3513ms
+    +      0ms  run.accepted
+    +     31ms  chat.source_messages
+    +     37ms  chat.target_agents
+    +     42ms  run.started
+    +   3461ms  chat.context_outputs
+    +   3513ms  run.completed
+    usage: {'created_at': '+121ms', 'input_tokens': 6358, 'output_tokens': 46, 'cache_read_tokens': 6144, 'cache_write_tokens': 0, 'request_kind': 'chat', 'status': 'completed', 'http_status': None, 'finished_at': '+3426ms', 'started_at': '+135ms', 'first_token_at': '+2518ms'}
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+    diag: [LLM-CHAIN-STREAM] use_real_llm=true, agent=qwen-3.8 flash, provider=custom, model=qwen3.8-flash
+    diag: [LLM-TOOLS] build_request agent=session-1792519612697-22ffea3a2956ec99 provider=custom model=qwen3.8-flash stream=true max_tokens=65536 tools_enabled=true dev_o
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=16
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=2
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=11
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=2
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+[2] http=200 headers=0.14s first_byte=0.14s total=3.01s
+    sse_first: started=0.14s, message=0.14s, request_bound=2.30s, message_start=2.30s, message_delta=2.30s, message_replace=3.01s, message_done=3.01s, done=3.01s
+  run=run-chat-3352c57772c49107c2be6b8515dbc982c28ffa40e8d9751c state=completed run_total=2955ms
+    +      0ms  run.accepted
+    +     37ms  chat.source_messages
+    +     42ms  chat.target_agents
+    +     47ms  run.started
+    +   2897ms  chat.context_outputs
+    +   2955ms  run.completed
+    usage: {'created_at': '+110ms', 'input_tokens': 6426, 'output_tokens': 33, 'cache_read_tokens': 6144, 'cache_write_tokens': 0, 'request_kind': 'chat', 'status': 'completed', 'http_status': None, 'finished_at': '+2869ms', 'started_at': '+119ms', 'first_token_at': '+2282ms'}
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+    diag: [LLM-CHAIN-STREAM] use_real_llm=true, agent=qwen-3.8 flash, provider=custom, model=qwen3.8-flash
+    diag: [LLM-TOOLS] build_request agent=session-1792519612697-22ffea3a2956ec99 provider=custom model=qwen3.8-flash stream=true max_tokens=65536 tools_enabled=true dev_o
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=16
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=11
+[3] http=200 headers=0.15s first_byte=0.15s total=3.01s
+    sse_first: started=0.15s, message=0.15s, request_bound=2.28s, message_start=2.28s, message_delta=2.28s, message_replace=3.01s, message_done=3.01s, done=3.01s
+  run=run-chat-506fa8ac1ea50e0387085a59660935bcbb03685c47f187c1 state=completed run_total=2958ms
+    +      0ms  run.accepted
+    +     36ms  chat.source_messages
+    +     41ms  chat.target_agents
+    +     46ms  run.started
+    +   2895ms  chat.context_outputs
+    +   2958ms  run.completed
+    usage: {'created_at': '+123ms', 'input_tokens': 6494, 'output_tokens': 31, 'cache_read_tokens': 6144, 'cache_write_tokens': 0, 'request_kind': 'chat', 'status': 'completed', 'http_status': None, 'finished_at': '+2778ms', 'started_at': '+130ms', 'first_token_at': '+2265ms'}
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=11
+    diag: [LLM-CHAIN-STREAM] use_real_llm=true, agent=qwen-3.8 flash, provider=custom, model=qwen3.8-flash
+    diag: [LLM-TOOLS] build_request agent=session-1792519612697-22ffea3a2956ec99 provider=custom model=qwen3.8-flash stream=true max_tokens=65536 tools_enabled=true dev_o
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=16
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=16
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=2
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
+    diag: [SESSION-SQLITE] save start: path=\\?\C:\Users\zhupu\AppData\Local\Temp\coolzhu-bench-ws\.coolzhu\web-sessions.sqlite3, sessions=6, rooms=3
+    diag: [SESSION-SQLITE] save schema ready: elapsed_ms=1
+    diag: [SESSION-SQLITE] save commit done: elapsed_ms=10
