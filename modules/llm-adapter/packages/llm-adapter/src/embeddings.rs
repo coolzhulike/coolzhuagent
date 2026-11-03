@@ -10,6 +10,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::ApiError;
 
+/// 端点不可达时 OS TCP 超时可到 21s 级，每轮聊天可能多次调用——必须显式限时。
+/// 复用同一个 client：新建 client 每次都要做 TLS/连接池初始化。
+fn embeddings_client() -> &'static reqwest::Client {
+    static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(2))
+            .timeout(std::time::Duration::from_secs(3))
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new())
+    })
+}
+
 #[derive(Serialize)]
 struct EmbeddingsRequest<'a> {
     model: &'a str,
@@ -40,7 +53,7 @@ pub async fn embed_texts(
         return Ok(Vec::new());
     }
     let url = format!("{}/embeddings", base_url.trim_end_matches('/'));
-    let response = reqwest::Client::new()
+    let response = embeddings_client()
         .post(&url)
         .bearer_auth(api_key)
         .json(&EmbeddingsRequest {

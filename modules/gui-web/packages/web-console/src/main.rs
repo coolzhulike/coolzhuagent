@@ -6168,10 +6168,29 @@ fn dispatch_desktop_pet_action(snapshot: &PetStateSnapshot) -> bool {
 }
 
 fn record_pet_event(event_type: &str, message: Option<&str>, source: &str) -> PetEventResponse {
+    record_pet_event_with_mode(event_type, message, source, false)
+}
+
+fn record_pet_event_with_mode(
+    event_type: &str,
+    message: Option<&str>,
+    source: &str,
+    detached_spawn: bool,
+) -> PetEventResponse {
     let mut snapshot = pet_status_for_backend_event(event_type, message, source);
     snapshot.sequence = PET_EVENT_SEQUENCE.fetch_add(1, Ordering::Relaxed) + 1;
     snapshot.updated_at_ms = unix_timestamp_millis();
-    let delivered_to_tauri = dispatch_desktop_pet_action(&snapshot);
+    let delivered_to_tauri = if detached_spawn {
+        // CreateProcess 会同步等待镜像校验；未签名的桌宠壳在杀软冷扫下可阻塞十几秒。
+        // 后端状态事件不消费派发结果，挪出轮次关键路径；delivered 标志无从同步得知。
+        let snapshot_for_spawn = snapshot.clone();
+        std::thread::spawn(move || {
+            let _ = dispatch_desktop_pet_action(&snapshot_for_spawn);
+        });
+        false
+    } else {
+        dispatch_desktop_pet_action(&snapshot)
+    };
     if let Ok(mut state) = pet_state_store().lock() {
         *state = snapshot.clone();
     }
@@ -6183,7 +6202,7 @@ fn record_pet_event(event_type: &str, message: Option<&str>, source: &str) -> Pe
 }
 
 fn emit_backend_pet_event(event_type: &str, message: Option<&str>, source: &str) {
-    let _ = record_pet_event(event_type, message, source);
+    let _ = record_pet_event_with_mode(event_type, message, source, true);
 }
 
 fn emit_pet_event_for_tool_outcome(tool_name: &str, outcome: &ToolOutcome) {
@@ -27873,17 +27892,28 @@ fn semantic_embedder_config() -> (String, String, String) {
     (base_url, api_key, model)
 }
 
+/// 嵌入端点熔断：一次失败后 60s 内不再发起 HTTP，直接用 hash 词袋——
+/// 端点长期不可达时避免每轮都付出超时代价；端点恢复后自动重试。
+static EMBED_DEAD_UNTIL_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+const EMBED_BREAKER_MS: u64 = 60_000;
+
 /// 嵌入文本：真实 /v1/embeddings 成功用之，失败回退 `runtime::hash_embed`（保证不失败）。
 /// 返回 `(model_id, 向量列表)`；`model_id` 用于缓存区分（真实模型 vs `hash:N`）。
 async fn embed_memory_texts(texts: &[String]) -> (String, Vec<Vec<f32>>) {
     if texts.is_empty() {
         return (String::new(), Vec::new());
     }
-    let (base_url, api_key, model) = semantic_embedder_config();
-    if let Ok(vectors) = api::embed_texts(&base_url, &api_key, &model, texts).await {
-        if vectors.len() == texts.len() {
-            return (model, vectors);
+    let now = unix_timestamp_millis();
+    let breaker_open =
+        now < EMBED_DEAD_UNTIL_MS.load(std::sync::atomic::Ordering::Relaxed);
+    if !breaker_open {
+        let (base_url, api_key, model) = semantic_embedder_config();
+        if let Ok(vectors) = api::embed_texts(&base_url, &api_key, &model, texts).await {
+            if vectors.len() == texts.len() {
+                return (model, vectors);
+            }
         }
+        EMBED_DEAD_UNTIL_MS.store(now + EMBED_BREAKER_MS, std::sync::atomic::Ordering::Relaxed);
     }
     diag!("[SEMANTIC] /v1/embeddings 不可用，回退 hash 词袋嵌入");
     let vectors = texts
@@ -27950,7 +27980,8 @@ fn save_memory_vectors(
 async fn compute_semantic_recall(agent: &AgentSessionDto, query: &str) -> Vec<String> {
     use runtime::SemanticIndex;
 
-    if query.trim().is_empty() {
+    // 极短输入（问候/确认类）余弦过不了 0.25 命中线，跳过召回省掉整轮嵌入与向量载入。
+    if query.trim().chars().count() < 4 {
         return Vec::new();
     }
     let beads: Vec<(String, String)> = agent
@@ -30278,6 +30309,24 @@ fn select_context_memory_beads(
             Vec::new(),
             ContextMemorySelectionEvidence {
                 strategy: format!("{memory_mode}_blocked"),
+                candidate_ids: Vec::new(),
+                selected_ids: Vec::new(),
+                expired_or_invalid_ids: Vec::new(),
+                superseded_ids: Vec::new(),
+                budget_skipped_ids: Vec::new(),
+                used_tokens: 0,
+                token_budget: options.memory_token_budget,
+            },
+        );
+    }
+    // 极短输入（hi/ok 类问候与确认）任何召回策略都不会有命中，提前返回，
+    // 省掉结构化查询、superseded 载入与 memory_access 预热各一次的 sqlite 探测。
+    if current_user_text.trim().chars().count() < 4 {
+        recall_span.record("outcome", "skipped_short_query");
+        return (
+            Vec::new(),
+            ContextMemorySelectionEvidence {
+                strategy: "short_query_skip".to_string(),
                 candidate_ids: Vec::new(),
                 selected_ids: Vec::new(),
                 expired_or_invalid_ids: Vec::new(),
@@ -44866,6 +44915,34 @@ fn append_runtime_run_event(
     transaction.commit()?;
     broadcast_runtime_run_event(event.clone());
     Ok(event)
+}
+
+/// 同一连接同一事务内连续写多个事件：接纳段相邻追加不再各付一次连接打开+schema 探针+commit。
+fn append_runtime_run_events(
+    path: &Path,
+    run_id: &str,
+    events: &[(&str, JsonValue)],
+) -> rusqlite::Result<Vec<RuntimeRunEventDto>> {
+    if !path.exists() {
+        return Err(rusqlite::Error::QueryReturnedNoRows);
+    }
+    let mut connection = open_session_connection(path)?;
+    initialize_session_schema(&connection)?;
+    let transaction = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let mut written = Vec::with_capacity(events.len());
+    for (event_type, payload) in events {
+        written.push(append_runtime_run_event_deferred(
+            &transaction,
+            run_id,
+            event_type,
+            payload.clone(),
+        )?);
+    }
+    transaction.commit()?;
+    for event in &written {
+        broadcast_runtime_run_event(event.clone());
+    }
+    Ok(written)
 }
 
 fn chat_turn_status_from_runtime_state(state: &str) -> Option<ChatTurnStatus> {

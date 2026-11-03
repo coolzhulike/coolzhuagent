@@ -81,10 +81,14 @@ pub(crate) fn accept(result: &PreparedChatDispatch, entry: &'static str) -> ApiR
         crate::dsh_web::capture_target_permissions(&mut parent.dsh_permission, &parent.dsh_bindings,
             &workspace_id, &result.targets, &result.chat_room_id, &db_path);
     }
-    crate::chat_insights::record_source_messages(&db_path, &run_id, &result.messages).map_err(crate::sqlite_api_error)?;
-    crate::append_runtime_run_event(&db_path, &run_id, "chat.target_agents",
-        serde_json::json!({"agent_ids":result.targets.iter().map(|agent| &agent.id).collect::<Vec<_>>()}))
-        .map_err(crate::sqlite_api_error)?;
+    // 接纳事件同一事务落盘，不再各付一次连接打开+schema 探针+commit。
+    let mut events: Vec<(&str, serde_json::Value)> = Vec::with_capacity(2);
+    if let Some(event) = crate::chat_insights::source_messages_event(&result.messages) {
+        events.push(event);
+    }
+    events.push(("chat.target_agents",
+        serde_json::json!({"agent_ids":result.targets.iter().map(|agent| &agent.id).collect::<Vec<_>>()})));
+    crate::append_runtime_run_events(&db_path, &run_id, &events).map_err(crate::sqlite_api_error)?;
     crate::execution_service::ExecutionService::bind_chat(&db_path, &workspace_id, &run_id,
         Arc::clone(&cancellation)).map_err(|error|crate::api_error(crate::StatusCode::CONFLICT,&error))?;
     Ok(AcceptedChatRun { turn_id, run_id, claim_token, db_path, cancellation, root_budget, parent, guard })

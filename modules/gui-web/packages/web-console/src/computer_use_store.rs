@@ -231,7 +231,9 @@ pub(crate) fn preflight_existing_session_schema(path: &std::path::Path) -> rusql
 pub(crate) fn configure_session_connection(connection: &Connection) -> rusqlite::Result<()> {
     let wait = std::time::Duration::from_secs(5);
     connection.busy_timeout(wait)?;
-    connection.execute_batch("PRAGMA foreign_keys = ON;")?;
+    // WAL + NORMAL：提交仍写 WAL，fsync 推迟到 checkpoint；进程崩溃不丢已提交事务，
+    // 仅整机掉电才可能丢最后一小段——换取每轮十余次串行写的事务时延。
+    connection.execute_batch("PRAGMA foreign_keys = ON; PRAGMA synchronous = NORMAL;")?;
     let deadline = std::time::Instant::now() + wait;
     loop {
         connection.busy_timeout(deadline.saturating_duration_since(std::time::Instant::now()))?;

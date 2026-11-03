@@ -213,10 +213,10 @@ pub(super) async fn insights(AxumPath(room_id): AxumPath<String>, Query(query): 
 }
 
 /// 只记录接纳时已有的消息标识；查询时还要验证消息已经落盘且仍属于同一房间。
-pub(super) fn record_source_messages(path: &Path, run_id: &str, messages: &[ChatMessageDto]) -> rusqlite::Result<()> {
+/// 返回待追加的事件载荷；空列表不产生事件（接入方决定是否并入同事务批量写）。
+pub(super) fn source_messages_event(messages: &[ChatMessageDto]) -> Option<(&'static str, JsonValue)> {
     let ids=messages.iter().filter(|message| message.role=="user").map(|message|message.id.as_str()).collect::<Vec<_>>();
-    if !ids.is_empty() { append_runtime_run_event(path,run_id,"chat.source_messages",json!({"message_ids":ids}))?; }
-    Ok(())
+    (!ids.is_empty()).then(|| ("chat.source_messages",json!({"message_ids":ids})))
 }
 
 #[derive(Debug, Default, Deserialize)]
