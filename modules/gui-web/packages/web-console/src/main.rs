@@ -27982,10 +27982,6 @@ fn save_memory_vectors(
 async fn compute_semantic_recall(agent: &AgentSessionDto, query: &str) -> Vec<String> {
     use runtime::SemanticIndex;
 
-    // 极短输入（问候/确认类）余弦过不了 0.25 命中线，跳过召回省掉整轮嵌入与向量载入。
-    if query.trim().chars().count() < 4 {
-        return Vec::new();
-    }
     let beads: Vec<(String, String)> = agent
         .memory_beads
         .iter()
@@ -30311,24 +30307,6 @@ fn select_context_memory_beads(
             Vec::new(),
             ContextMemorySelectionEvidence {
                 strategy: format!("{memory_mode}_blocked"),
-                candidate_ids: Vec::new(),
-                selected_ids: Vec::new(),
-                expired_or_invalid_ids: Vec::new(),
-                superseded_ids: Vec::new(),
-                budget_skipped_ids: Vec::new(),
-                used_tokens: 0,
-                token_budget: options.memory_token_budget,
-            },
-        );
-    }
-    // 极短输入（hi/ok 类问候与确认）任何召回策略都不会有命中，提前返回，
-    // 省掉结构化查询、superseded 载入与 memory_access 预热各一次的 sqlite 探测。
-    if current_user_text.trim().chars().count() < 4 {
-        recall_span.record("outcome", "skipped_short_query");
-        return (
-            Vec::new(),
-            ContextMemorySelectionEvidence {
-                strategy: "short_query_skip".to_string(),
                 candidate_ids: Vec::new(),
                 selected_ids: Vec::new(),
                 expired_or_invalid_ids: Vec::new(),
