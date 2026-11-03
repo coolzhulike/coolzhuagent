@@ -9,7 +9,7 @@
 //! - `cfg(test)` 下 `checkout` 恒为 None、Drop 不归还，保住测试隔离与"删库重建"习惯。
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
     path::{Path, PathBuf},
     sync::{
@@ -109,6 +109,109 @@ pub(crate) fn checkout(path: &Path) -> Option<PooledConnection> {
 
 pub(crate) fn record_fresh_open() {
     FRESH_OPENS.fetch_add(1, Ordering::Relaxed);
+}
+
+// ---- 记忆元数据读缓存 -------------------------------------------------------
+// 进程持有 session_writer 时代锁，是唯一写者；读缓存只在已知写点同步更新，
+// 命中即不再触盘。cfg(test) 下读缓存恒 miss，保留测试的删库重建语义。
+
+fn vector_cache() -> &'static Mutex<HashMap<(PathBuf, String, String), HashMap<String, Vec<f32>>>> {
+    static CACHE: OnceLock<Mutex<HashMap<(PathBuf, String, String), HashMap<String, Vec<f32>>>>> =
+        OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn superseded_cache() -> &'static Mutex<HashMap<(PathBuf, String), HashSet<String>>> {
+    static CACHE: OnceLock<Mutex<HashMap<(PathBuf, String), HashSet<String>>>> = OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+pub(crate) fn cached_memory_vectors(
+    path: &Path,
+    session_id: &str,
+    model_id: &str,
+) -> Option<HashMap<String, Vec<f32>>> {
+    #[cfg(test)]
+    {
+        let _ = (path, session_id, model_id);
+        None
+    }
+    #[cfg(not(test))]
+    {
+        let key = (path.to_path_buf(), session_id.to_string(), model_id.to_string());
+        vector_cache()
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .get(&key)
+            .cloned()
+    }
+}
+
+pub(crate) fn store_memory_vectors(
+    path: &Path,
+    session_id: &str,
+    model_id: &str,
+    vectors: HashMap<String, Vec<f32>>,
+) {
+    let key = (path.to_path_buf(), session_id.to_string(), model_id.to_string());
+    vector_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .insert(key, vectors);
+}
+
+/// 向量写入成功后把新条目并入缓存（与 INSERT OR REPLACE 语义一致）。
+pub(crate) fn vectors_upsert_cached(
+    path: &Path,
+    session_id: &str,
+    model_id: &str,
+    entries: &[(String, Vec<f32>)],
+) {
+    let key = (path.to_path_buf(), session_id.to_string(), model_id.to_string());
+    let mut guard = vector_cache().lock().unwrap_or_else(|error| error.into_inner());
+    let map = guard.entry(key).or_default();
+    for (bead_id, vector) in entries {
+        map.insert(bead_id.clone(), vector.clone());
+    }
+}
+
+pub(crate) fn cached_superseded_bead_ids(path: &Path, session_id: &str) -> Option<HashSet<String>> {
+    #[cfg(test)]
+    {
+        let _ = (path, session_id);
+        None
+    }
+    #[cfg(not(test))]
+    {
+        superseded_cache()
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .get(&(path.to_path_buf(), session_id.to_string()))
+            .cloned()
+    }
+}
+
+pub(crate) fn store_superseded_bead_ids(path: &Path, session_id: &str, ids: HashSet<String>) {
+    superseded_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .insert((path.to_path_buf(), session_id.to_string()), ids);
+}
+
+/// superseded 标记写成功后并入缓存；未缓存时留空即可（下次载入以库为准）。
+pub(crate) fn superseded_mark_cached(path: &Path, session_id: &str, bead_ids: &[String]) {
+    let mut guard = superseded_cache().lock().unwrap_or_else(|error| error.into_inner());
+    if let Some(set) = guard.get_mut(&(path.to_path_buf(), session_id.to_string())) {
+        set.extend(bead_ids.iter().cloned());
+    }
+}
+
+/// 批量更新且受影响 bead 集合未知时，丢弃该会话的 superseded 缓存（下次以库为准重建）。
+pub(crate) fn superseded_cache_invalidate(path: &Path, session_id: &str) {
+    superseded_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .remove(&(path.to_path_buf(), session_id.to_string()));
 }
 
 pub(crate) struct PooledConnection {

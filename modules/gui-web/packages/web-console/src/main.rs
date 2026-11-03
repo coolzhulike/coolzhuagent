@@ -27928,6 +27928,9 @@ async fn embed_memory_texts(texts: &[String]) -> (String, Vec<Vec<f32>>) {
 
 /// P1.5：从 sqlite 载入会话指定 model 的 bead 向量（bead_id → vector）。失败/缺表返回空。
 fn load_memory_vectors(path: &Path, session_id: &str, model_id: &str) -> HashMap<String, Vec<f32>> {
+    if let Some(cached) = session_db::cached_memory_vectors(path, session_id, model_id) {
+        return cached;
+    }
     let mut map = HashMap::new();
     let Ok(connection) = open_session_connection(path) else {
         return map;
@@ -27950,6 +27953,7 @@ fn load_memory_vectors(path: &Path, session_id: &str, model_id: &str) -> HashMap
             }
         }
     }
+    session_db::store_memory_vectors(path, session_id, model_id, map.clone());
     map
 }
 
@@ -27976,6 +27980,7 @@ fn save_memory_vectors(
             rusqlite::params![session_id, bead_id, model_id, dim, blob, created_at],
         );
     }
+    session_db::vectors_upsert_cached(path, session_id, model_id, entries);
 }
 
 /// P1.5：对会话 prompt-eligible（非 L4）记忆做真实语义召回，返回命中 bead id（相似度降序）。
@@ -44485,7 +44490,8 @@ fn apply_session_migration_v9(connection: &Connection) -> rusqlite::Result<()> {
 
 /// C 冲突消解（安全版）：新 bead 取代同 `entity_key` 的旧 active bead（仅显式 entity_key 触发，零误删）。
 fn record_entity_supersede(session_id: &str, entity_key: &str, new_bead_id: &str) {
-    let Ok(connection) = open_session_connection(&default_session_sqlite_path()) else {
+    let path = default_session_sqlite_path();
+    let Ok(connection) = open_session_connection(&path) else {
         return;
     };
     let now = unix_timestamp_millis() as i64;
@@ -44499,12 +44505,17 @@ fn record_entity_supersede(session_id: &str, entity_key: &str, new_bead_id: &str
          VALUES (?1, ?2, ?3, 'active', ?4)",
         rusqlite::params![session_id, new_bead_id, entity_key, now],
     );
+    session_db::superseded_cache_invalidate(&path, session_id);
 }
 
 /// C 冲突消解：读取会话中被取代（superseded）的 bead id 集合，召回时剔除。
 fn load_superseded_bead_ids(session_id: &str) -> HashSet<String> {
+    let path = default_session_sqlite_path();
+    if let Some(cached) = session_db::cached_superseded_bead_ids(&path, session_id) {
+        return cached;
+    }
     let mut set = HashSet::new();
-    let Ok(connection) = open_session_connection(&default_session_sqlite_path()) else {
+    let Ok(connection) = open_session_connection(&path) else {
         return set;
     };
     let Ok(mut stmt) = connection
@@ -44517,6 +44528,7 @@ fn load_superseded_bead_ids(session_id: &str) -> HashSet<String> {
             set.insert(id);
         }
     }
+    session_db::store_superseded_bead_ids(&path, session_id, set.clone());
     set
 }
 
@@ -44640,6 +44652,7 @@ fn mark_beads_superseded(path: &Path, session_id: &str, bead_ids: &[String]) {
             rusqlite::params![session_id, bead_id, now],
         );
     }
+    session_db::superseded_mark_cached(path, session_id, bead_ids);
 }
 
 fn ensure_session_column(
