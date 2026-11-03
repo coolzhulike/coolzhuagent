@@ -8249,7 +8249,9 @@ fn default_bind_addr() -> String {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ConfigPet {
-    #[serde(default = "default_true")]
+    // 默认关：桌面壳为未签名 exe，spawn 会同步等待镜像校验（冷扫实测 13s+），
+    // 不许默认进入每轮聊天路径；显式 [pet].enabled=true 才恢复自动拉起。
+    #[serde(default)]
     enabled: bool,
     #[serde(default)]
     exe_path: Option<String>,
@@ -8583,7 +8585,7 @@ impl Default for ConfigWeb {
 impl Default for ConfigPet {
     fn default() -> Self {
         Self {
-            enabled: default_true(),
+            enabled: false,
             exe_path: None,
             pet_exit_closes_console: true,
         }
