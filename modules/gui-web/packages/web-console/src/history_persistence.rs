@@ -53,11 +53,12 @@ pub(super) fn apply(tx: &rusqlite::Transaction<'_>, edits: &[HistoryEdit]) -> ru
     Ok(())
 }
 
-pub(super) fn remove_orphans(tx: &rusqlite::Transaction<'_>) -> rusqlite::Result<()> {
+/// 返回实际删除的 chat_room_messages 行数，供调用方按需失效房史缓存。
+pub(super) fn remove_orphans(tx: &rusqlite::Transaction<'_>) -> rusqlite::Result<usize> {
     tx.execute("DELETE FROM session_messages WHERE session_id NOT IN (SELECT id FROM sessions)", [])?;
-    tx.execute("DELETE FROM chat_room_messages WHERE room_id NOT IN (SELECT id FROM chat_rooms)", [])?;
+    let removed_room_messages = tx.execute("DELETE FROM chat_room_messages WHERE room_id NOT IN (SELECT id FROM chat_rooms)", [])?;
     tx.execute("DELETE FROM attachment_refs WHERE (message_tbl='session_messages' AND NOT EXISTS(SELECT 1 FROM session_messages m WHERE m.id=attachment_refs.message_id)) OR (message_tbl='chat_room_messages' AND NOT EXISTS(SELECT 1 FROM chat_room_messages m WHERE m.id=attachment_refs.message_id))", [])?;
-    Ok(())
+    Ok(removed_room_messages)
 }
 
 #[cfg(test)]

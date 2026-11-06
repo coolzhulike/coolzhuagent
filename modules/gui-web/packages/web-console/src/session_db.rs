@@ -62,14 +62,16 @@ fn reset_temp_objects(connection: &Connection) {
 }
 
 /// 归还前把连接恢复到新建时的默认状态。任一步失败视为连接损坏，弃用不池化。
+/// query_only 必须先复位：temp 清理是写操作，ON 状态下 DROP 会被静默拒绝。
 fn reset_connection(connection: &Connection) -> rusqlite::Result<()> {
-    reset_temp_objects(connection);
     connection.execute_batch(
         "PRAGMA foreign_keys = ON;\
          PRAGMA query_only = OFF;\
          PRAGMA synchronous = NORMAL;\
          PRAGMA busy_timeout = 5000;",
-    )
+    )?;
+    reset_temp_objects(connection);
+    Ok(())
 }
 
 fn return_to_pool(path: PathBuf, connection: Connection) {
@@ -212,6 +214,95 @@ pub(crate) fn superseded_cache_invalidate(path: &Path, session_id: &str) {
         .lock()
         .unwrap_or_else(|error| error.into_inner())
         .remove(&(path.to_path_buf(), session_id.to_string()));
+}
+
+// ---- 房间消息全量历史缓存 ---------------------------------------------------
+// capture 每轮按目标会话读全量房史；库是唯一写者，热路径（save diff INSERT）
+// 在提交后把新行并入缓存，冷路径（/clear、/delete、goal 事务、回填）失效重建。
+// 缓存镜像与 `ORDER BY created_at, id` 一致；ON CONFLICT 覆盖行按 id 去重后重排。
+
+fn room_messages_cache()
+-> &'static Mutex<HashMap<(PathBuf, String), Vec<crate::PersistedChatMessage>>> {
+    static CACHE: OnceLock<
+        Mutex<HashMap<(PathBuf, String), Vec<crate::PersistedChatMessage>>>,
+    > = OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+pub(crate) fn cached_room_messages(
+    path: &Path,
+    room_id: &str,
+) -> Option<Vec<crate::PersistedChatMessage>> {
+    #[cfg(test)]
+    {
+        let _ = (path, room_id);
+        None
+    }
+    #[cfg(not(test))]
+    {
+        room_messages_cache()
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .get(&(path.to_path_buf(), room_id.to_string()))
+            .cloned()
+    }
+}
+
+pub(crate) fn store_room_messages(
+    path: &Path,
+    room_id: &str,
+    messages: Vec<crate::PersistedChatMessage>,
+) {
+    room_messages_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .insert((path.to_path_buf(), room_id.to_string()), messages);
+}
+
+/// 持久化提交成功后并入新写入行；同 id 先去重再重排，保持与磁盘 ORDER BY 一致。
+pub(crate) fn room_messages_upsert_cached(
+    path: &Path,
+    room_id: &str,
+    written: Vec<crate::PersistedChatMessage>,
+) {
+    if written.is_empty() {
+        return;
+    }
+    let mut guard = room_messages_cache().lock().unwrap_or_else(|error| error.into_inner());
+    let Some(cached) = guard.get_mut(&(path.to_path_buf(), room_id.to_string())) else {
+        return; // 未缓存不预填，下次载入以库为准。
+    };
+    for message in written {
+        if let Some(existing) = cached.iter_mut().find(|item| item.id == message.id) {
+            *existing = message;
+        } else {
+            cached.push(message);
+        }
+    }
+    cached.sort_by(|a, b| (a.created_at, &a.id).cmp(&(b.created_at, &b.id)));
+}
+
+pub(crate) fn room_messages_invalidate(path: &Path, room_id: &str) {
+    room_messages_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .remove(&(path.to_path_buf(), room_id.to_string()));
+}
+
+/// 事务内/级联等无法可靠拿到受影响集合的写路径：整库失效（最多重建一次）。
+pub(crate) fn room_messages_invalidate_all(path: &Path) {
+    room_messages_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .retain(|key, _| key.0 != path);
+}
+
+/// 拿不到库路径的事务内写路径（goal 阶段消息插入等）：全表失效，宁可多重建。
+pub(crate) fn room_messages_invalidate_everywhere() {
+    room_messages_cache()
+        .lock()
+        .unwrap_or_else(|error| error.into_inner())
+        .clear();
 }
 
 pub(crate) struct PooledConnection {
