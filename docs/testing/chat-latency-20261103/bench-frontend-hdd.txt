@@ -1,0 +1,10 @@
+== frontend api hdd ==
+     34.2ms      130.7KB  http=200  /
+   4542.2ms        4.7KB  http=200  /api/sessions
+      1.2ms        0.3KB  http=200  /api/chat/rooms
+    533.2ms      134.9KB  http=200  /api/chat/rooms/main-room/messages?limit=80
+      1.6ms        1.2KB  http=200  /api/chat/rooms/main-room/roster?me=session-1792519612697-22ffea3a2956ec99
+    631.5ms        0.0KB  http=200  /api/chat/rooms/main-room/handoffs?limit=20
+    777.3ms        0.3KB  http=200  /api/chat/rooms/main-room/permissions
+   1122.1ms        0.0KB  http=200  /api/chat/rooms/main-room/todos
+      0.6ms        0.3KB  http=200  /api/pet/state

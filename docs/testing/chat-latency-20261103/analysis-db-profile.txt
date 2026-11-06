@@ -1,0 +1,55 @@
+== 表规模（行数 / 主要列字节）==
+session_messages       rows=    2144 bytes=    4.54MB  scan=  267.5ms
+chat_room_messages     rows=    2118 bytes=    4.52MB  scan= 1341.7ms
+memory_beads           rows=       4 bytes=    0.00MB  scan=   11.9ms
+memory_vectors         ERR no such column: vector
+attachment_refs        rows=      70 bytes=    0.00MB  scan=   10.3ms
+runtime_runs           rows=     777 bytes=    0.00MB  scan=   51.3ms
+runtime_run_events     rows=    8936 bytes=    1.15MB  scan=   73.2ms
+chat_usage_events      rows=     693 bytes=    0.00MB  scan=   39.1ms
+tool_calls             rows=    5733 bytes=    0.00MB  scan=   58.3ms
+memory_meta            rows=       1 bytes=    0.00MB  scan=   17.5ms
+memory_access          rows=      17 bytes=    0.00MB  scan=   28.8ms
+memory_edges           rows=       0 bytes=    0.00MB  scan=    9.6ms
+memory_jobs            rows=       0 bytes=    0.00MB  scan=   16.9ms
+
+== 最大的消息行 ==
+session_messages ('msg-1791583964230-user', 'multimedia', 925, 69641)
+session_messages ('msg-1791635795226-user', 'multimedia', 924, 69641)
+session_messages ('msg-1791582627891-user', 'multimedia', 922, 69641)
+chat_room_messages ('msg-1791583964230-user', 'multimedia', 925, 69641)
+chat_room_messages ('msg-1791635795226-user', 'multimedia', 924, 69641)
+chat_room_messages ('msg-1791582627891-user', 'multimedia', 922, 69641)
+
+== 索引 ==
+session_messages: idx_session_messages_created unique=0 cols=['session_id', 'created_at']
+session_messages: sqlite_autoindex_session_messages_1 unique=1 cols=['session_id', 'id']
+chat_room_messages: idx_room_messages_global_id unique=0 cols=['id']
+chat_room_messages: idx_chat_visible_position_v1 unique=0 cols=['room_id', 'created_at', 'id']
+chat_room_messages: idx_chat_room_messages_created unique=0 cols=['room_id', 'created_at']
+chat_room_messages: sqlite_autoindex_chat_room_messages_1 unique=1 cols=['room_id', 'id']
+attachment_refs: idx_attachment_refs_filename unique=0 cols=['file_name']
+attachment_refs: idx_attachment_refs_message unique=0 cols=['message_id']
+attachment_refs: sqlite_autoindex_attachment_refs_1 unique=1 cols=['id']
+
+== 每次 save/load 都会执行的语句：计划 + 耗时 ==
+orphan session_messages           39.6ms result=0
+    plan: SCAN session_messages USING COVERING INDEX idx_session_messages_created | USING INDEX sqlite_autoindex_sessions_1 FOR IN-OPERATOR
+orphan chat_room_messages         39.8ms result=0
+    plan: SCAN chat_room_messages USING COVERING INDEX idx_chat_room_messages_created | USING INDEX sqlite_autoindex_chat_rooms_1 FOR IN-OPERATOR
+orphan attachment_refs            38.1ms result=0
+    plan: SCAN attachment_refs | CORRELATED SCALAR SUBQUERY 1 | SCAN m USING COVERING INDEX sqlite_autoindex_session_messages_1 | CORRELATED SCALAR SUBQUERY 2 | SEARCH m USING COVERING INDEX idx_room_messages_global_id (id=?)
+orphan memory_vectors             10.0ms result=0
+    plan: SCAN memory_vectors USING COVERING INDEX idx_memory_vectors_session | USING INDEX sqlite_autoindex_sessions_1 FOR IN-OPERATOR
+load main-room                    18.1ms result=2104 rows
+    plan: SEARCH chat_room_messages USING INDEX idx_chat_room_messages_created (room_id=?) | USE TEMP B-TREE FOR LAST TERM OF ORDER BY
+load session-1791122188340         2.9ms result=157 rows
+    plan: SEARCH session_messages USING INDEX idx_session_messages_created (session_id=?) | USE TEMP B-TREE FOR LAST TERM OF ORDER BY
+
+== PRAGMA ==
+page_size 4096
+page_count 34720
+freelist_count 109
+journal_mode wal
+cache_size -2000
+mmap_size 0

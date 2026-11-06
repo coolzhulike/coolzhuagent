@@ -1,0 +1,5 @@
+== sqlite 单次操作中位数（ms）==
+USB-HDD(D:)  sync=FULL   open+schema=   388.6  open后提交=   409.2  复用连接提交=   162.2
+USB-HDD(D:)  sync=NORMAL open+schema=   452.1  open后提交=   243.7  复用连接提交=     0.1
+NVMe(C:)     sync=FULL   open+schema=     6.9  open后提交=     2.2  复用连接提交=     0.7
+NVMe(C:)     sync=NORMAL open+schema=     6.6  open后提交=     1.5  复用连接提交=     0.1
