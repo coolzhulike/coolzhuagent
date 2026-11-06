@@ -67,7 +67,7 @@ pub(super) async fn events(AxumPath(room_id): AxumPath<String>, Query(query): Qu
     // 订阅建立允许等待并发写者：沿用 open_session_connection 的 5s busy_timeout，
     // 不再降级为 100ms。锁升级 BUSY 不经过 busy handler，对 setup 整体做有限的
     // 仅 SQLITE_BUSY 退避重试；其他错误原样上报，不能提前返回空流假装成功。
-    let setup = tokio::task::spawn_blocking(move || -> rusqlite::Result<Connection> {
+    let setup = tokio::task::spawn_blocking(move || -> rusqlite::Result<crate::session_db::PooledConnection> {
         let mut attempts = 0u32;
         loop {
             match open_session_connection(&path).and_then(|connection| {

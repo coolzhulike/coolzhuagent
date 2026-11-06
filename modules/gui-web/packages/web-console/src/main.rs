@@ -39,6 +39,7 @@ mod native_browser_verification;
 mod computer_use_activity;
 mod computer_use_turn_scope;
 mod chat_insights;
+mod session_db;
 mod static_resource_contract;
 mod execution_service;
 mod scheduled_execution;
@@ -6168,10 +6169,29 @@ fn dispatch_desktop_pet_action(snapshot: &PetStateSnapshot) -> bool {
 }
 
 fn record_pet_event(event_type: &str, message: Option<&str>, source: &str) -> PetEventResponse {
+    record_pet_event_with_mode(event_type, message, source, false)
+}
+
+fn record_pet_event_with_mode(
+    event_type: &str,
+    message: Option<&str>,
+    source: &str,
+    detached_spawn: bool,
+) -> PetEventResponse {
     let mut snapshot = pet_status_for_backend_event(event_type, message, source);
     snapshot.sequence = PET_EVENT_SEQUENCE.fetch_add(1, Ordering::Relaxed) + 1;
     snapshot.updated_at_ms = unix_timestamp_millis();
-    let delivered_to_tauri = dispatch_desktop_pet_action(&snapshot);
+    let delivered_to_tauri = if detached_spawn {
+        // CreateProcess 会同步等待镜像校验；未签名的桌宠壳在杀软冷扫下可阻塞十几秒。
+        // 后端状态事件不消费派发结果，挪出轮次关键路径；delivered 标志无从同步得知。
+        let snapshot_for_spawn = snapshot.clone();
+        std::thread::spawn(move || {
+            let _ = dispatch_desktop_pet_action(&snapshot_for_spawn);
+        });
+        false
+    } else {
+        dispatch_desktop_pet_action(&snapshot)
+    };
     if let Ok(mut state) = pet_state_store().lock() {
         *state = snapshot.clone();
     }
@@ -6183,7 +6203,7 @@ fn record_pet_event(event_type: &str, message: Option<&str>, source: &str) -> Pe
 }
 
 fn emit_backend_pet_event(event_type: &str, message: Option<&str>, source: &str) {
-    let _ = record_pet_event(event_type, message, source);
+    let _ = record_pet_event_with_mode(event_type, message, source, true);
 }
 
 fn emit_pet_event_for_tool_outcome(tool_name: &str, outcome: &ToolOutcome) {
@@ -8230,7 +8250,9 @@ fn default_bind_addr() -> String {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ConfigPet {
-    #[serde(default = "default_true")]
+    // 默认关：桌面壳为未签名 exe，spawn 会同步等待镜像校验（冷扫实测 13s+），
+    // 不许默认进入每轮聊天路径；显式 [pet].enabled=true 才恢复自动拉起。
+    #[serde(default)]
     enabled: bool,
     #[serde(default)]
     exe_path: Option<String>,
@@ -8564,7 +8586,7 @@ impl Default for ConfigWeb {
 impl Default for ConfigPet {
     fn default() -> Self {
         Self {
-            enabled: default_true(),
+            enabled: false,
             exe_path: None,
             pet_exit_closes_console: true,
         }
@@ -27873,17 +27895,28 @@ fn semantic_embedder_config() -> (String, String, String) {
     (base_url, api_key, model)
 }
 
+/// 嵌入端点熔断：一次失败后 60s 内不再发起 HTTP，直接用 hash 词袋——
+/// 端点长期不可达时避免每轮都付出超时代价；端点恢复后自动重试。
+static EMBED_DEAD_UNTIL_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+const EMBED_BREAKER_MS: u64 = 60_000;
+
 /// 嵌入文本：真实 /v1/embeddings 成功用之，失败回退 `runtime::hash_embed`（保证不失败）。
 /// 返回 `(model_id, 向量列表)`；`model_id` 用于缓存区分（真实模型 vs `hash:N`）。
 async fn embed_memory_texts(texts: &[String]) -> (String, Vec<Vec<f32>>) {
     if texts.is_empty() {
         return (String::new(), Vec::new());
     }
-    let (base_url, api_key, model) = semantic_embedder_config();
-    if let Ok(vectors) = api::embed_texts(&base_url, &api_key, &model, texts).await {
-        if vectors.len() == texts.len() {
-            return (model, vectors);
+    let now = unix_timestamp_millis();
+    let breaker_open =
+        now < EMBED_DEAD_UNTIL_MS.load(std::sync::atomic::Ordering::Relaxed);
+    if !breaker_open {
+        let (base_url, api_key, model) = semantic_embedder_config();
+        if let Ok(vectors) = api::embed_texts(&base_url, &api_key, &model, texts).await {
+            if vectors.len() == texts.len() {
+                return (model, vectors);
+            }
         }
+        EMBED_DEAD_UNTIL_MS.store(now + EMBED_BREAKER_MS, std::sync::atomic::Ordering::Relaxed);
     }
     diag!("[SEMANTIC] /v1/embeddings 不可用，回退 hash 词袋嵌入");
     let vectors = texts
@@ -27895,6 +27928,9 @@ async fn embed_memory_texts(texts: &[String]) -> (String, Vec<Vec<f32>>) {
 
 /// P1.5：从 sqlite 载入会话指定 model 的 bead 向量（bead_id → vector）。失败/缺表返回空。
 fn load_memory_vectors(path: &Path, session_id: &str, model_id: &str) -> HashMap<String, Vec<f32>> {
+    if let Some(cached) = session_db::cached_memory_vectors(path, session_id, model_id) {
+        return cached;
+    }
     let mut map = HashMap::new();
     let Ok(connection) = open_session_connection(path) else {
         return map;
@@ -27917,6 +27953,7 @@ fn load_memory_vectors(path: &Path, session_id: &str, model_id: &str) -> HashMap
             }
         }
     }
+    session_db::store_memory_vectors(path, session_id, model_id, map.clone());
     map
 }
 
@@ -27943,6 +27980,7 @@ fn save_memory_vectors(
             rusqlite::params![session_id, bead_id, model_id, dim, blob, created_at],
         );
     }
+    session_db::vectors_upsert_cached(path, session_id, model_id, entries);
 }
 
 /// P1.5：对会话 prompt-eligible（非 L4）记忆做真实语义召回，返回命中 bead id（相似度降序）。
@@ -27950,9 +27988,6 @@ fn save_memory_vectors(
 async fn compute_semantic_recall(agent: &AgentSessionDto, query: &str) -> Vec<String> {
     use runtime::SemanticIndex;
 
-    if query.trim().is_empty() {
-        return Vec::new();
-    }
     let beads: Vec<(String, String)> = agent
         .memory_beads
         .iter()
@@ -43364,9 +43399,20 @@ fn load_session_state_from_sqlite(path: &Path) -> Result<Option<PersistedSession
     }
 }
 
-fn open_session_connection(path: &Path) -> rusqlite::Result<Connection> {
-    computer_use_store::preflight_existing_session_schema(path)?;
-    let connection = Connection::open(path)?;
+fn open_session_connection(path: &Path) -> rusqlite::Result<session_db::PooledConnection> {
+    let connection = match session_db::checkout(path) {
+        Some(pooled) => pooled,
+        None => {
+            // 只读预检只在冷打开做；池化连接上一轮已通过同一校验，
+            // 复用连接上 ensure_session_schema_not_from_the_future 仍强制检查。
+            computer_use_store::preflight_existing_session_schema(path)?;
+            let connection = Connection::open(path)?;
+            session_db::record_fresh_open();
+            #[cfg(not(test))]
+            diag!("session_db fresh_open path={}", path.display());
+            session_db::PooledConnection::new(connection, path.to_path_buf(), false)
+        }
+    };
     // 版本读取在连接配置之前，不能沿用 SQLite 默认的零等待。
     connection.busy_timeout(Duration::from_secs(5))?;
     computer_use_store::ensure_session_schema_not_from_the_future(&connection)?;
@@ -44444,7 +44490,8 @@ fn apply_session_migration_v9(connection: &Connection) -> rusqlite::Result<()> {
 
 /// C 冲突消解（安全版）：新 bead 取代同 `entity_key` 的旧 active bead（仅显式 entity_key 触发，零误删）。
 fn record_entity_supersede(session_id: &str, entity_key: &str, new_bead_id: &str) {
-    let Ok(connection) = open_session_connection(&default_session_sqlite_path()) else {
+    let path = default_session_sqlite_path();
+    let Ok(connection) = open_session_connection(&path) else {
         return;
     };
     let now = unix_timestamp_millis() as i64;
@@ -44458,12 +44505,17 @@ fn record_entity_supersede(session_id: &str, entity_key: &str, new_bead_id: &str
          VALUES (?1, ?2, ?3, 'active', ?4)",
         rusqlite::params![session_id, new_bead_id, entity_key, now],
     );
+    session_db::superseded_cache_invalidate(&path, session_id);
 }
 
 /// C 冲突消解：读取会话中被取代（superseded）的 bead id 集合，召回时剔除。
 fn load_superseded_bead_ids(session_id: &str) -> HashSet<String> {
+    let path = default_session_sqlite_path();
+    if let Some(cached) = session_db::cached_superseded_bead_ids(&path, session_id) {
+        return cached;
+    }
     let mut set = HashSet::new();
-    let Ok(connection) = open_session_connection(&default_session_sqlite_path()) else {
+    let Ok(connection) = open_session_connection(&path) else {
         return set;
     };
     let Ok(mut stmt) = connection
@@ -44476,6 +44528,7 @@ fn load_superseded_bead_ids(session_id: &str) -> HashSet<String> {
             set.insert(id);
         }
     }
+    session_db::store_superseded_bead_ids(&path, session_id, set.clone());
     set
 }
 
@@ -44599,6 +44652,7 @@ fn mark_beads_superseded(path: &Path, session_id: &str, bead_ids: &[String]) {
             rusqlite::params![session_id, bead_id, now],
         );
     }
+    session_db::superseded_mark_cached(path, session_id, bead_ids);
 }
 
 fn ensure_session_column(
@@ -44866,6 +44920,34 @@ fn append_runtime_run_event(
     transaction.commit()?;
     broadcast_runtime_run_event(event.clone());
     Ok(event)
+}
+
+/// 同一连接同一事务内连续写多个事件：接纳段相邻追加不再各付一次连接打开+schema 探针+commit。
+fn append_runtime_run_events(
+    path: &Path,
+    run_id: &str,
+    events: &[(&str, JsonValue)],
+) -> rusqlite::Result<Vec<RuntimeRunEventDto>> {
+    if !path.exists() {
+        return Err(rusqlite::Error::QueryReturnedNoRows);
+    }
+    let mut connection = open_session_connection(path)?;
+    initialize_session_schema(&connection)?;
+    let transaction = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let mut written = Vec::with_capacity(events.len());
+    for (event_type, payload) in events {
+        written.push(append_runtime_run_event_deferred(
+            &transaction,
+            run_id,
+            event_type,
+            payload.clone(),
+        )?);
+    }
+    transaction.commit()?;
+    for event in &written {
+        broadcast_runtime_run_event(event.clone());
+    }
+    Ok(written)
 }
 
 fn chat_turn_status_from_runtime_state(state: &str) -> Option<ChatTurnStatus> {

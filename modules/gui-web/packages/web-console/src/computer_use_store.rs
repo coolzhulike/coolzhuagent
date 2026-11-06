@@ -231,7 +231,9 @@ pub(crate) fn preflight_existing_session_schema(path: &std::path::Path) -> rusql
 pub(crate) fn configure_session_connection(connection: &Connection) -> rusqlite::Result<()> {
     let wait = std::time::Duration::from_secs(5);
     connection.busy_timeout(wait)?;
-    connection.execute_batch("PRAGMA foreign_keys = ON;")?;
+    // WAL + NORMAL：提交仍写 WAL，fsync 推迟到 checkpoint；进程崩溃不丢已提交事务，
+    // 仅整机掉电才可能丢最后一小段——换取每轮十余次串行写的事务时延。
+    connection.execute_batch("PRAGMA foreign_keys = ON; PRAGMA synchronous = NORMAL;")?;
     let deadline = std::time::Instant::now() + wait;
     loop {
         connection.busy_timeout(deadline.saturating_duration_since(std::time::Instant::now()))?;
@@ -2031,7 +2033,7 @@ impl ComputerUseRunStore {
         // 所有打开路径复用唯一完整阶梯，先备份再事务迁移。
         crate::initialize_session_schema(&connection)
             .map_err(|error| session_open_error_context(error, "初始化会话库结构"))?;
-        Ok(Self::from_connection(connection))
+        Ok(Self::from_connection(connection.into_inner()))
     }
 
     /// 写入一次接纳事实。归属列**必然**随行写入（类型层面不可缺省）；
