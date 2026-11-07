@@ -11394,6 +11394,7 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   window.CoolzhuChatExperience?.todosRefresh?.();
   const url = new URL(`/api/chat/rooms/${encodeURIComponent(roomId)}/messages`, location.origin);
   url.searchParams.set("limit", "80");
+  url.searchParams.set("visible", "true");
   if (before) {
     url.searchParams.set("before", before);
   }

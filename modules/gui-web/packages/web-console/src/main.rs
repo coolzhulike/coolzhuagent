@@ -53917,6 +53917,8 @@ struct VisionAgentConfigResponse {
 struct MessageQuery {
     limit: Option<usize>,
     before: Option<String>,
+    /// 仅返回聊天转录可见消息（越过工具回执等不可见行）；存档与任务记录仍取原始流。
+    visible: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Default)]

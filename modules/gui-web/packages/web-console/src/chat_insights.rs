@@ -174,7 +174,15 @@ pub(super) fn message_page(path: &Path, room_id: &str, query: MessageQuery) -> A
     let before = if let Some(id) = query.before {
         Some(connection.query_row("SELECT created_at,id FROM chat_room_messages WHERE room_id=?1 AND id=?2",params![room_id,id],|row| Ok((row.get::<_,i64>(0)?,row.get::<_,String>(1)?))).optional().map_err(sqlite_api_error)?.ok_or_else(|| api_error(StatusCode::NOT_FOUND,"消息游标已删除或不属于当前聊天室"))?)
     } else { None };
-    let mut statement = connection.prepare("SELECT id,author,role,target,content,kind,attachments_json,created_at FROM chat_room_messages WHERE room_id=?1 AND (?2 IS NULL OR created_at<?2 OR (created_at=?2 AND id<?3)) ORDER BY created_at DESC,id DESC LIMIT ?4").map_err(sqlite_api_error)?;
+    // 转录分页必须落在可见消息集上：原始流里整页被工具回执占满时，
+    // 前端再过滤会得到空页并误渲染空房间（竹简待书）。
+    let sql = if query.visible.unwrap_or(false) {
+        connection.execute_batch(&format!("CREATE INDEX IF NOT EXISTS idx_chat_visible_position_v1 ON chat_room_messages(room_id,created_at,id) WHERE {VISIBLE_SQL}")).map_err(sqlite_api_error)?;
+        format!("SELECT id,author,role,target,content,kind,attachments_json,created_at FROM chat_room_messages INDEXED BY idx_chat_visible_position_v1 WHERE room_id=?1 AND {VISIBLE_SQL} AND (?2 IS NULL OR created_at<?2 OR (created_at=?2 AND id<?3)) ORDER BY created_at DESC,id DESC LIMIT ?4")
+    } else {
+        "SELECT id,author,role,target,content,kind,attachments_json,created_at FROM chat_room_messages WHERE room_id=?1 AND (?2 IS NULL OR created_at<?2 OR (created_at=?2 AND id<?3)) ORDER BY created_at DESC,id DESC LIMIT ?4".to_string()
+    };
+    let mut statement = connection.prepare(&sql).map_err(sqlite_api_error)?;
     let mut messages = statement.query_map(params![room_id,before.as_ref().map(|value| value.0),before.as_ref().map(|value| value.1.as_str()),(limit+1) as i64],persisted_message_from_row).map_err(sqlite_api_error)?.collect::<rusqlite::Result<Vec<_>>>().map_err(sqlite_api_error)?;
     let has_more = messages.len()>limit; if has_more { messages.pop(); } messages.reverse();
     let next_before = has_more.then(|| messages.first().map(|message| message.id.clone())).flatten();
@@ -540,6 +548,41 @@ mod tests {
         for item in foreign["items"].as_array().unwrap() {
             assert_eq!(item["id"].as_str().unwrap(), "foreign");
         }
+    }
+
+    #[test]
+    fn visible_message_page_skips_tool_receipt_tail() {
+        // 复现“聊天室消息消失”：工具回执塞满末页时，可见分页必须越过它们返回真实转录。
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("page.sqlite3");
+        {
+            let seed = Connection::open(&path).unwrap();
+            seed.execute_batch("CREATE TABLE chat_room_messages(room_id TEXT,id TEXT,author TEXT,role TEXT,target TEXT,content TEXT,kind TEXT,attachments_json,created_at INTEGER,PRIMARY KEY(room_id,id));").unwrap();
+            let mut insert = seed.prepare("INSERT INTO chat_room_messages VALUES('r',?1,'助手',?2,'',?3,?4,'[]',?5)").unwrap();
+            insert.execute(params!["u1","user","问个问题","text",1]).unwrap();
+            insert.execute(params!["a1","assistant","回答","assistant-reply",2]).unwrap();
+            insert.execute(params!["think","assistant","内部推理","reasoning",3]).unwrap();
+            for index in 0..100 {
+                insert.execute(params![format!("tool-{index}"),"assistant","回执","tool-result",4 + index as i64]).unwrap();
+            }
+        }
+        // 末页 80 条被工具回执占满：原始分页拿到整页不可见行（保留给存档端点）。
+        let (raw, raw_more, _) = message_page(&path, "r", MessageQuery{limit:Some(80),before:None,visible:None}).unwrap();
+        assert_eq!(raw.len(), 80);
+        assert!(raw.iter().all(|message| message.kind == "tool-result"));
+        assert!(raw_more);
+        // 可见分页越过回执尾部直接返回真实转录（reasoning 同样不可见）。
+        let (messages, has_more, next_before) = message_page(&path, "r", MessageQuery{limit:Some(80),before:None,visible:Some(true)}).unwrap();
+        assert_eq!(messages.iter().map(|message| message.id.as_str()).collect::<Vec<_>>(), ["u1","a1"]);
+        assert!(!has_more);
+        assert!(next_before.is_none());
+        // 可见游标继续向更早翻页；指向不可见行的旧游标也能解析成之前的可见页。
+        let (page, more, next) = message_page(&path, "r", MessageQuery{limit:Some(1),before:Some("a1".into()),visible:Some(true)}).unwrap();
+        assert_eq!(page[0].id, "u1");
+        assert!(!more);
+        assert!(next.is_none());
+        let (page, _, _) = message_page(&path, "r", MessageQuery{limit:Some(80),before:Some("tool-50".into()),visible:Some(true)}).unwrap();
+        assert_eq!(page.iter().map(|message| message.id.as_str()).collect::<Vec<_>>(), ["u1","a1"]);
     }
 
 }
