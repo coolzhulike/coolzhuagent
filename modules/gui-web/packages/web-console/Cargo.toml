@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
+# 存在第二个 bin（coolzhu-browser-native-host）后，cargo run 无法推断默认目标。
+default-run = "coolzhu-web-console"
 
 [[bin]]
 name = "coolzhu-web-console"

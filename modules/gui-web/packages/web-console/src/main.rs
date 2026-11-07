@@ -46336,6 +46336,12 @@ fn load_chat_room_messages(
     connection: &Connection,
     room_id: &str,
 ) -> rusqlite::Result<Vec<PersistedChatMessage>> {
+    let cache_path = connection.path().map(std::path::PathBuf::from);
+    if let Some(path) = cache_path.as_deref() {
+        if let Some(cached) = session_db::cached_room_messages(path, room_id) {
+            return Ok(cached);
+        }
+    }
     let mut stmt = connection.prepare(
         r#"
         SELECT id, author, role, target, content, kind, attachments_json, created_at
@@ -46344,8 +46350,11 @@ fn load_chat_room_messages(
         ORDER BY created_at, id
         "#,
     )?;
-    let messages = collect_messages(stmt.query_map(params![room_id], persisted_message_from_row)?);
-    messages
+    let messages = collect_messages(stmt.query_map(params![room_id], persisted_message_from_row)?)?;
+    if let Some(path) = cache_path.as_deref() {
+        session_db::store_room_messages(path, room_id, messages.clone());
+    }
+    Ok(messages)
 }
 
 fn collect_messages<I>(rows: I) -> rusqlite::Result<Vec<PersistedChatMessage>>
@@ -51418,6 +51427,8 @@ fn insert_goal_phase_messages_transaction(
     )? != 1 {
         return Err(rusqlite::Error::QueryReturnedNoRows);
     }
+    // 外层事务提交点才可知成败；冷路径宁可全失效，也不留脏缓存。
+    session_db::room_messages_invalidate_everywhere();
     Ok(())
 }
 
@@ -51520,6 +51531,7 @@ fn delete_chat_room_sqlite(
     )
     .map_err(sqlite_api_error)?;
     tx.commit().map_err(sqlite_api_error)?;
+    session_db::room_messages_invalidate_all(path);
     gc_unreferenced_attachment_files(&connection, attachment_dir, attachment_file_names)
 }
 
@@ -51550,6 +51562,7 @@ fn delete_chat_room_message_sqlite(
     )
     .map_err(sqlite_api_error)?;
     tx.commit().map_err(sqlite_api_error)?;
+    session_db::room_messages_invalidate(path, room_id);
     gc_unreferenced_attachment_files(&connection, attachment_dir, attachment_file_names)
 }
 
@@ -51604,6 +51617,7 @@ fn clear_chat_room_messages_sqlite(
     )
     .map_err(sqlite_api_error)?;
     tx.commit().map_err(sqlite_api_error)?;
+    session_db::room_messages_invalidate(path, room_id);
     for session_id in todo_sessions {
         broadcast_tool_event(ToolEvent::TodosChanged {
             room_id: room_id.to_string(),
@@ -51922,6 +51936,7 @@ fn save_session_state_to_sqlite_with_epoch(
         elapsed_millis(started)
     );
 
+    let mut written_room_messages: Vec<(String, PersistedChatMessage)> = Vec::new();
     {
         let mut room_stmt = tx
             .prepare(
@@ -51987,6 +52002,7 @@ fn save_session_state_to_sqlite_with_epoch(
                         u64_to_i64(message.created_at)
                     ])
                     .map_err(sqlite_api_error)?;
+                written_room_messages.push((room.id.clone(), message.clone()));
                 tx.execute("DELETE FROM attachment_refs WHERE message_tbl=?1 AND message_id=?2",
                     params!["chat_room_messages", &message.id]).map_err(sqlite_api_error)?;
                 persist_attachment_refs(
@@ -52023,12 +52039,32 @@ fn save_session_state_to_sqlite_with_epoch(
     }
 
     history_persistence::apply(&tx, edits).map_err(sqlite_api_error)?;
-    history_persistence::remove_orphans(&tx).map_err(sqlite_api_error)?;
+    let removed_orphan_room_messages =
+        history_persistence::remove_orphans(&tx).map_err(sqlite_api_error)?;
     if let Some(operation) = config_operation {
         session_config_journal::commit(&tx, operation)
             .map_err(|message| api_error(StatusCode::CONFLICT, &message))?;
     }
     tx.commit().map_err(sqlite_api_error)?;
+    {
+        // apply/remove_orphans 的房消息删除不在 diff 写入集合内，提交后按房失效；
+        // 孤儿清扫真删到行时才整库失效，常规 save（0 行）不付出重建成本。
+        for edit in edits {
+            if let history_persistence::HistoryEdit::Message { room: true, parent_id, .. } = edit {
+                session_db::room_messages_invalidate(path, parent_id);
+            }
+        }
+        if removed_orphan_room_messages > 0 {
+            session_db::room_messages_invalidate_all(path);
+        }
+        let mut by_room: HashMap<String, Vec<PersistedChatMessage>> = HashMap::new();
+        for (room_id, message) in written_room_messages {
+            by_room.entry(room_id).or_default().push(message);
+        }
+        for (room_id, messages) in by_room {
+            session_db::room_messages_upsert_cached(path, &room_id, messages);
+        }
+    }
     diag!(
         "[SESSION-SQLITE] save commit done: elapsed_ms={}",
         elapsed_millis(started)
@@ -92751,7 +92787,7 @@ attach: last_assistant
 
     // ── SQLite Paginated Retrieval Tests ──
 
-    fn pagination_test_db() -> (rusqlite::Connection, tempfile::TempDir) {
+    fn pagination_test_db() -> (crate::session_db::PooledConnection, tempfile::TempDir) {
         let tmp = tempfile::tempdir().expect("tempdir");
         let db_path = tmp.path().join("test.sqlite3");
         let conn = super::open_session_connection(&db_path).expect("open");
