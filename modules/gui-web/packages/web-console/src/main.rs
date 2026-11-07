@@ -8782,11 +8782,26 @@ fn tool_execution_policy() -> ToolExecutionPolicy {
 /// WebSearch 自己探测/降级多个后端，内部预算已含逐后端尝试；这里在预算之外再留一点
 /// 收尾余量（构造失败文案、进程回收）。
 const WEB_SEARCH_TIMEOUT_SLACK_MS: u64 = 5_000;
+/// Sleep/TaskOutput.wait 自身声明的等待就是它要占用的预算；slack 只覆盖派发与收尾，
+/// 不额外延长业务等待。
+const WAIT_TOOL_BUDGET_SLACK_MS: u64 = 5_000;
 
 fn tool_timeout_ms_for(tool_name: &str, input: &JsonValue) -> u64 {
     // timeout_ms 字段语义为毫秒；timeout 字段语义为秒（PowerShell/bash schema 已标 SECONDS），需 ×1000。
     // 否则模型传 timeout:10（秒）会被外层 tokio 超时当 10ms，几十毫秒内杀掉命令 → runtime-timeout。
-    let requested = if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
+    let normalized = tool_name.replace('-', "_");
+    let requested = if normalized.eq_ignore_ascii_case("sleep") {
+        // 睡 N 毫秒是工具自身语义；按默认 30s 发预算会把长睡拦腰杀掉，
+        // worker 又不能立即退出 → 会话级"未确认退出"门把后续工具全部拒绝。
+        input.get("duration_ms").and_then(JsonValue::as_u64)
+            .map(|duration| duration.saturating_add(WAIT_TOOL_BUDGET_SLACK_MS))
+            .unwrap_or_else(|| tool_execution_policy().default_timeout_ms)
+    } else if normalized.eq_ignore_ascii_case("taskoutput")
+        || normalized.eq_ignore_ascii_case("task_output") {
+        input.get("wait_ms").and_then(JsonValue::as_u64)
+            .map(|wait| wait.saturating_add(WAIT_TOOL_BUDGET_SLACK_MS))
+            .unwrap_or_else(|| tool_execution_policy().default_timeout_ms)
+    } else if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
         ms
     } else if let Some(secs) = input.get("timeout").and_then(JsonValue::as_u64) {
         secs.saturating_mul(1000)
@@ -82344,6 +82359,32 @@ attach: last_assistant
             "WebSearch must get budget + slack, got {timeout}"
         );
         assert_eq!(other, super::tool_execution_policy().default_timeout_ms);
+    }
+
+    /// Sleep/TaskOutput 的等待时长就是它们声明的预算。按 30s 默认发时间会把
+    /// 长等待拦腰杀掉，worker 收尾不及时还会触发会话级"未确认退出"门，
+    /// 把同会话后续所有工具调用拒绝——这正是"会话工具被阻断"的来源。
+    #[test]
+    fn wait_tools_timeout_follows_declared_duration() {
+        let sleep = super::tool_timeout_ms_for("Sleep", &serde_json::json!({"duration_ms": 60_000}));
+        let task_output = super::tool_timeout_ms_for(
+            "TaskOutput",
+            &serde_json::json!({"task_id": "1", "wait_ms": 120_000}),
+        );
+        let task_output_nowait = super::tool_timeout_ms_for(
+            "TaskOutput",
+            &serde_json::json!({"task_id": "1"}),
+        );
+        let default = super::tool_execution_policy().default_timeout_ms;
+
+        assert!(sleep >= 60_000, "Sleep must get duration budget, got {sleep}");
+        assert!(task_output >= 120_000, "TaskOutput wait must get budget, got {task_output}");
+        assert_eq!(task_output_nowait, default);
+        // 超过总钳位上限的等待按上限截断，由工具自身分片检查保证尽快收尾。
+        assert_eq!(
+            super::tool_timeout_ms_for("Sleep", &serde_json::json!({"duration_ms": 9_000_000})),
+            600_000
+        );
     }
 
     #[test]

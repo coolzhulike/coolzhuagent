@@ -533,7 +533,7 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "Sleep",
-            description: "Wait for a specified duration without holding a shell process.",
+            description: "Wait for a specified duration without holding a shell process. The host grants a matching time budget, so multi-minute sleeps are fine; for waiting on a background task prefer TaskOutput's wait_ms, which returns as soon as the task exits or emits output.",
             input_schema: json!({
                 "type": "object",
                 "properties": {
@@ -624,12 +624,13 @@ pub fn mvp_tool_specs() -> Vec<ToolSpec> {
         },
         ToolSpec {
             name: "TaskOutput",
-            description: "Read output of a background task started with run_in_background (bash/PowerShell). Returns captured stdout/stderr and whether the task is still running. task_id comes from background_task_id in the spawn result.",
+            description: "Read output of a background task started with run_in_background (bash/PowerShell). Returns captured stdout/stderr and whether the task is still running. task_id comes from background_task_id in the spawn result. Optional wait_ms waits until the task exits, produces new log output, or the wait budget elapses — prefer it over Sleep+poll loops for long-running tasks.",
             input_schema: json!({
                 "type": "object",
                 "properties": {
                     "task_id": { "type": "string", "description": "background_task_id returned by the spawning tool" },
-                    "cwd": { "type": "string", "description": "Working directory used when the task was spawned (default: current directory)" }
+                    "cwd": { "type": "string", "description": "Working directory used when the task was spawned (default: current directory)" },
+                    "wait_ms": { "type": "integer", "minimum": 1, "maximum": 300000, "description": "Optional bounded wait in ms: return early when the task exits or writes new log output; otherwise wait up to this long." }
                 },
                 "required": ["task_id"],
                 "additionalProperties": false
@@ -1234,6 +1235,7 @@ struct NotebookEditOutput {
 #[derive(Debug, Serialize)]
 struct SleepOutput {
     duration_ms: u64,
+    interrupted: bool,
     message: String,
 }
 
@@ -2625,12 +2627,37 @@ fn cell_kind(cell: &serde_json::Value) -> Option<NotebookCellType> {
         })
 }
 
+/// 当前同步执行的控制信号；没有宿主执行控制上下文时视为不可中断。
+fn current_execution_interrupted() -> bool {
+    runtime::managed_process::current_execution_control()
+        .is_some_and(|control| control.interruption().is_some())
+}
+
 #[allow(clippy::needless_pass_by_value)]
 fn execute_sleep(input: SleepInput) -> SleepOutput {
-    std::thread::sleep(Duration::from_millis(input.duration_ms));
+    // 分片睡眠：超时被杀时 worker 必须尽快确认退出；睡到自然醒会让
+    // supervision 把整个会话标记为"有未确认退出的工具"，阻断后续所有调用。
+    const SLICE_MS: u64 = 50;
+    let mut remaining_ms = input.duration_ms;
+    let mut interrupted = false;
+    while remaining_ms > 0 {
+        if current_execution_interrupted() {
+            interrupted = true;
+            break;
+        }
+        let slice = remaining_ms.min(SLICE_MS);
+        std::thread::sleep(Duration::from_millis(slice));
+        remaining_ms -= slice;
+    }
+    let elapsed_ms = input.duration_ms - remaining_ms;
     SleepOutput {
         duration_ms: input.duration_ms,
-        message: format!("Slept for {}ms", input.duration_ms),
+        interrupted,
+        message: if interrupted {
+            format!("Sleep interrupted after {elapsed_ms}ms (requested {}ms)", input.duration_ms)
+        } else {
+            format!("Slept for {}ms", input.duration_ms)
+        },
     }
 }
 
@@ -3323,6 +3350,9 @@ struct TaskIdInput {
     task_id: String,
     /// 任务 spawn 时的工作目录；缺省用当前进程 cwd（与 spawn 侧一致）。
     cwd: Option<String>,
+    /// 可选：有界等待毫秒数。等到进程退出 / 日志有新字节 / 预算耗尽后再返回；
+    /// 不给时立即返回当前快照。替代 Sleep+轮询，避免空转烧掉反馈轮。
+    wait_ms: Option<u64>,
 }
 
 fn task_log_path(task_id: &str, cwd: Option<&str>) -> PathBuf {
@@ -3360,6 +3390,11 @@ fn task_is_running(pid: u32) -> bool {
         .unwrap_or(false)
 }
 
+/// wait_ms 的轮询粒度与总上限：粒度决定"进程退出/新输出"的回报延迟，
+/// tasklist/kill 探测本身有进程级开销，不能太密。
+const TASK_OUTPUT_WAIT_POLL_MS: u64 = 250;
+const TASK_OUTPUT_MAX_WAIT_MS: u64 = 300_000;
+
 fn run_task_output(input: TaskIdInput) -> Result<String, String> {
     let pid: u32 = input
         .task_id
@@ -3367,6 +3402,31 @@ fn run_task_output(input: TaskIdInput) -> Result<String, String> {
         .parse()
         .map_err(|_| format!("task_id `{}` 不是有效进程号", input.task_id))?;
     let log = task_log_path(input.task_id.trim(), input.cwd.as_deref());
+    let mut interrupted = false;
+    if let Some(wait_ms) = input.wait_ms.filter(|wait| *wait > 0) {
+        // 有界等待：进程退出、日志新增字节、预算耗尽或被要求停止，任一发生即返回。
+        // 日志增长提前返回是为了把增量尽快交给模型，由它决定继续等还是处理。
+        let baseline_len = std::fs::metadata(&log).map(|meta| meta.len()).unwrap_or(0);
+        let deadline = std::time::Instant::now()
+            + Duration::from_millis(wait_ms.min(TASK_OUTPUT_MAX_WAIT_MS));
+        loop {
+            if !task_is_running(pid)
+                || std::fs::metadata(&log).map(|meta| meta.len()).unwrap_or(0) != baseline_len
+                || std::time::Instant::now() >= deadline
+            {
+                break;
+            }
+            if current_execution_interrupted() {
+                interrupted = true;
+                break;
+            }
+            std::thread::sleep(
+                deadline
+                    .saturating_duration_since(std::time::Instant::now())
+                    .min(Duration::from_millis(TASK_OUTPUT_WAIT_POLL_MS)),
+            );
+        }
+    }
     let output = std::fs::read(&log)
         .map(|bytes| decode_console_output(&bytes))
         .unwrap_or_default();
@@ -3376,6 +3436,7 @@ fn run_task_output(input: TaskIdInput) -> Result<String, String> {
         "log_path": log.display().to_string(),
         "log_exists": log.is_file(),
         "output": output,
+        "interrupted": interrupted,
     }))
 }
 
@@ -5427,11 +5488,59 @@ mod tests {
         let elapsed = started.elapsed();
         let output: serde_json::Value = serde_json::from_str(&result).expect("json");
         assert_eq!(output["duration_ms"], 20);
+        assert!(!output["interrupted"].as_bool().expect("interrupted"));
         assert!(output["message"]
             .as_str()
             .expect("message")
             .contains("Slept for 20ms"));
         assert!(elapsed >= Duration::from_millis(15));
+    }
+
+    #[test]
+    fn sleep_exits_promptly_when_execution_control_cancelled() {
+        // 被取消的 Sleep 必须在分片粒度内收尾；睡到自然醒会让监督器把会话挂为
+        // "有未确认退出的工具"，随后同会话所有工具都被拒绝（"会话工具被阻断"）。
+        let control = runtime::managed_process::ExecutionControl::new(None, None);
+        control.cancel();
+        let started = std::time::Instant::now();
+        let output = runtime::managed_process::with_execution_control(control, || {
+            super::execute_sleep(super::SleepInput { duration_ms: 60_000 })
+        });
+        assert!(started.elapsed() < Duration::from_secs(2));
+        assert!(output.interrupted);
+    }
+
+    #[test]
+    fn task_output_wait_returns_at_budget_when_task_stays_alive() {
+        // 存活任务 + 日志不增长：必须等满 wait_ms 预算再返回（而不是立即返回或死等），
+        // 这样一次调用就能覆盖长等待，不用 Sleep+轮询烧反馈轮。当前测试进程 pid 一定存活。
+        let started = std::time::Instant::now();
+        let result = super::run_task_output(super::TaskIdInput {
+            task_id: std::process::id().to_string(),
+            cwd: Some(std::env::temp_dir().to_string_lossy().into_owned()),
+            wait_ms: Some(500),
+        })
+        .expect("task_output");
+        let output: serde_json::Value = serde_json::from_str(&result).expect("json");
+        assert_eq!(output["running"], true);
+        let elapsed = started.elapsed();
+        assert!(elapsed >= Duration::from_millis(500));
+        assert!(elapsed < Duration::from_secs(10));
+    }
+
+    #[test]
+    fn task_output_wait_returns_immediately_when_task_not_running() {
+        // 4e9 不是合法运行 pid：wait 必须在首个探测点就返回，不能空等整个预算。
+        let started = std::time::Instant::now();
+        let result = super::run_task_output(super::TaskIdInput {
+            task_id: "4000000000".to_string(),
+            cwd: Some(std::env::temp_dir().to_string_lossy().into_owned()),
+            wait_ms: Some(30_000),
+        })
+        .expect("task_output");
+        let output: serde_json::Value = serde_json::from_str(&result).expect("json");
+        assert_eq!(output["running"], false);
+        assert!(started.elapsed() < Duration::from_secs(5));
     }
 
     #[test]
