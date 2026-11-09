@@ -152,8 +152,26 @@ async fn wait_case(end: WaitEnd) {
     else {assert_eq!(requests.len(),2,"停止后不能启动反馈请求或新工具");assert_ne!(state,"completed");assert!(!output.to_string().contains("HA05_CONFIRMED_COMPLETE"));}
     release.notify_waiters();server.abort();
 }
-#[tokio::test]
-async fn host_waits_once_and_cancel_or_deadline_stops_followup_without_new_budget() {
+/// Agent 子请求深 poll 链在 debug 下超过 libtest 默认线程栈；断言体不变，
+/// 在独立大栈线程上跑同一逻辑（与 ha04 深链测试同款处理）。
+#[test]
+fn host_waits_once_and_cancel_or_deadline_stops_followup_without_new_budget() {
+    std::thread::Builder::new()
+        .name("ha05-host-waits".into())
+        .stack_size(32 * 1024 * 1024)
+        .spawn(|| {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("ha05 测试线程 runtime")
+                .block_on(host_waits_once_inner());
+        })
+        .expect("spawn ha05 worker")
+        .join()
+        .expect("ha05 worker panicked");
+}
+
+async fn host_waits_once_inner() {
     let _guard=tests::config_test_guard();
     for end in [WaitEnd::Complete,WaitEnd::Cancel,WaitEnd::Deadline] {wait_case(end).await;}
 }

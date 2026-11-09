@@ -1074,6 +1074,24 @@
                       <label><span>验证者</span><select data-goal-role-assignment="verifier"></select></label>
                     </div>
                   </section>
+                  <section class="task-window-section fusion-team-section" data-role="fusion-team-section" aria-label="Fusion Team 模型聚合">
+                    <header>
+                      <div>
+                        <strong>Fusion Team 模型聚合</strong>
+                        <span>启用并配置主持/执行者/查询者后，发送对象中出现 Team；主持默认不联网，检索交给查询者。</span>
+                      </div>
+                      <button class="mini-button is-primary-control" data-action="fusion-team-save" type="button"><img src="./assets/icons-wuxia/save.svg" alt="" />保存配置</button>
+                    </header>
+                    <div class="goal-role-assignment-grid">
+                      <label><span>启用 Team</span><select data-role="fusion-team-enabled"><option value="false">关闭</option><option value="true">启用</option></select></label>
+                      <label><span>团队名称</span><input data-role="fusion-team-name" maxlength="40" placeholder="Fusion Team" /></label>
+                      <label><span>主持（强模型）</span><select data-role="fusion-team-host"></select></label>
+                      <label><span>执行者</span><select data-role="fusion-team-executor"></select></label>
+                      <label><span>查询者</span><select data-role="fusion-team-querier"><option value="">同执行者</option></select></label>
+                      <label><span>主持联网检索</span><select data-role="fusion-team-web"><option value="false">关闭（交查询者）</option><option value="true">允许</option></select></label>
+                    </div>
+                    <p class="fusion-team-status" data-role="fusion-team-status" hidden></p>
+                  </section>
                   <details class="task-window-section goal-role-config" data-role="goal-role-config" aria-label="目标角色运行配置">
                     <summary class="task-window-section-head compact">
                       <img src="./assets/icons-wuxia/tasks.svg" alt="" />

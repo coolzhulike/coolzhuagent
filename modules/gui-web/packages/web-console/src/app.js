@@ -363,6 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("goal-role-bootstrap")?.addEventListener("click", bootstrapGoalRoleSessions);
   actionButtons.get("goal-role-heartbeat")?.addEventListener("click", sendGoalRoleHeartbeat);
   actionButtons.get("goal-role-assign")?.addEventListener("click", applyGoalRoleAssignments);
+  actionButtons.get("fusion-team-save")?.addEventListener("click", saveFusionTeam);
   actionButtons.get("message-load-older")?.addEventListener("click", loadOlderMessages);
   actionButtons.get("message-delete-selected")?.addEventListener("click", deleteSelectedMessages);
   actionButtons.get("chat-room-new")?.addEventListener("click", createChatRoom);
@@ -9331,10 +9332,126 @@ function closeAvatarPicker() {
   if (picker) picker.hidden = true;
 }
 
+// ── Fusion Team：模型聚合发送对象与设置面板 ────────────────────────────
+// 发送对象是伪目标 `fusion:<id>`；只在「启用 + 主持/执行者配置完整 + 会话有效」时出现，
+// 停用或配置残缺自动隐藏（后端保存接口与发送接口有同样的校验）。
+
+let fusionTeams = [];
+
+function fusionSendableTargets() {
+  return (Array.isArray(fusionTeams) ? fusionTeams : [])
+    .filter((team) => team?.enabled && team?.sendable && team?.target_id)
+    .map((team) => ({
+      id: team.target_id,
+      name: `${team.name || "Fusion Team"}（团队）`,
+      display_name: `${team.name || "Fusion Team"}（团队）`,
+      selectable: true,
+      enabled: true,
+      fusion: true,
+    }));
+}
+
+function sendableTargets() {
+  const agents = Array.isArray(agentRegistry?.agents) ? agentRegistry.agents : [];
+  return [...agents.filter(canSendToAgent), ...fusionSendableTargets()];
+}
+
+function setFusionTeamStatus(text) {
+  const status = document.querySelector('[data-role="fusion-team-status"]');
+  if (!status) return;
+  status.textContent = text || "";
+  status.hidden = !text;
+}
+
+async function loadFusionTeams() {
+  try {
+    const registry = await requestJson("/api/fusion/teams");
+    fusionTeams = Array.isArray(registry?.teams) ? registry.teams : [];
+  } catch (error) {
+    fusionTeams = [];
+    console.warn("Fusion Team 加载失败:", error);
+  }
+  renderFusionTeamPanel();
+}
+
+function renderFusionTeamPanel() {
+  const section = document.querySelector('[data-role="fusion-team-section"]');
+  if (!section) return;
+  const team = fusionTeams[0] || null;
+  const sessions = goalConsultCandidateSessions();
+  const fill = (name, value, emptyText) => {
+    const select = document.querySelector(`[data-role="fusion-team-${name}"]`);
+    if (!select) return;
+    select.replaceChildren();
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = emptyText;
+    select.append(empty);
+    sessions.forEach((session) => {
+      const option = document.createElement("option");
+      option.value = session.id;
+      option.textContent = session.display_name || `${session.name || session.id} (${session.model || "-"})`;
+      select.append(option);
+    });
+    select.value = sessions.some((session) => session.id === value) ? value : "";
+  };
+  fill("host", team?.members?.host?.session_id || "", "选择会话配置");
+  fill("executor", team?.members?.executor?.session_id || "", "选择会话配置");
+  fill("querier", team?.members?.querier?.session_id || "", "同执行者");
+  const enabled = document.querySelector('[data-role="fusion-team-enabled"]');
+  if (enabled) enabled.value = team?.enabled ? "true" : "false";
+  const nameInput = document.querySelector('[data-role="fusion-team-name"]');
+  if (nameInput) nameInput.value = team?.name || "";
+  const web = document.querySelector('[data-role="fusion-team-web"]');
+  if (web) web.value = team?.settings?.host_web_access ? "true" : "false";
+  setFusionTeamStatus(
+    team
+      ? (team.sendable
+          ? `已启用：发送对象中显示「${team.name || "Fusion Team"}（团队）」。`
+          : `发送对象中不显示：${(team.issues || []).join("；") || (team.enabled ? "配置不完整" : "未启用")}`)
+      : "尚未创建团队。配置主持/执行者并启用后，发送对象中才会出现 Team。",
+  );
+}
+
+async function saveFusionTeam() {
+  const button = actionButtons.get("fusion-team-save");
+  const team = fusionTeams[0] || null;
+  const payload = {
+    name: document.querySelector('[data-role="fusion-team-name"]')?.value?.trim() || "Fusion Team",
+    enabled: document.querySelector('[data-role="fusion-team-enabled"]')?.value === "true",
+    host_session_id: document.querySelector('[data-role="fusion-team-host"]')?.value || "",
+    executor_session_id: document.querySelector('[data-role="fusion-team-executor"]')?.value || "",
+    querier_session_id: document.querySelector('[data-role="fusion-team-querier"]')?.value || "",
+    settings: {
+      host_web_access: document.querySelector('[data-role="fusion-team-web"]')?.value === "true",
+    },
+  };
+  setBusy(button, true, "保存中");
+  try {
+    const saved = await requestJson(team ? `/api/fusion/teams/${team.id}` : "/api/fusion/teams", {
+      method: team ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const index = fusionTeams.findIndex((item) => item.id === saved.id);
+    if (index >= 0) fusionTeams[index] = saved; else fusionTeams.push(saved);
+    // 发送对象联动：先重建勾选列表再按现有选择恢复，禁用/残缺时 Team 自动消失。
+    const currentSelection = getSelectedAgentIds();
+    renderAgentOptions(sendableTargets(), currentSelection);
+    restoreAgentTargets(sendableTargets(), currentSelection, activeChatRoomId);
+    renderFusionTeamPanel();
+  } catch (error) {
+    setFusionTeamStatus(`保存失败：${error.message}`);
+  } finally {
+    setBusy(button, false);
+  }
+}
+
 async function loadAgents() {
   try {
     const registry = await requestJson("/api/agents");
     agentRegistry = registry;
+    await loadFusionTeams();
     const selectable = registry.agents.filter(canSendToAgent);
     const active = selectable.find((agent) => registry.active_agent_ids.includes(agent.id)) ?? selectable[0];
 
@@ -9345,8 +9462,8 @@ async function loadAgents() {
     setText("agent.memoryState", registry.memory.architecture === "beads" ? "beads 分层" : "会话独立");
     setText("agent.memory", registry.memory.scope);
     setText("agent.window", registry.memory.window_strategy);
-    renderAgentOptions(selectable, registry.active_agent_ids);
-    restoreAgentTargets(selectable, registry.active_agent_ids, activeChatRoomId);
+    renderAgentOptions(sendableTargets(), registry.active_agent_ids);
+    restoreAgentTargets(sendableTargets(), registry.active_agent_ids, activeChatRoomId);
     renderGoalRoleAssignmentMatrix();
     renderOverviewHealth(agentRegistry);
     renderOverviewMascot();
@@ -9379,6 +9496,7 @@ async function loadSessions() {
     renderSessionList(registry.sessions, activeSessionId);
     renderTaskScheduleSessionOptions();
     renderGoalRoleAssignmentMatrix();
+    renderFusionTeamPanel();
     renderVisionAgentSelect(activeOverviewVisionAgent);
     renderOverviewMascot();
 
@@ -9401,6 +9519,7 @@ async function loadSessions() {
     clearStaleApprovalForActiveScope();
     renderSessionList([], null);
     renderGoalRoleAssignmentMatrix();
+    renderFusionTeamPanel();
     setSessionForm(null);
     setText("agent.current", "加载失败");
     setText("session.active", "加载失败");
@@ -9450,7 +9569,7 @@ async function loadChatRooms() {
   if (active) {
     updateChatRoomTrigger(active.name);
     restoreAgentTargets(
-      agentRegistry.agents.filter(canSendToAgent),
+      sendableTargets(),
       agentRegistry.active_agent_ids,
       active.id,
     );
@@ -15457,6 +15576,10 @@ function isSpeakableAssistantReplyForTts(message) {
     "goal-phase",
     "task-summary",
     "scheduled-task",
+    "fusion-brief",
+    "fusion-result",
+    "fusion-status",
+    "fusion-plan",
   ]);
   if (blockedKinds.has(kind)) {
     return false;
@@ -15653,7 +15776,7 @@ function renderAgentOptions(agents, activeIds) {
   container.replaceChildren();
   agents.forEach((agent) => {
     const label = document.createElement("label");
-    label.className = "agent-cb";
+    label.className = agent.fusion ? "agent-cb fusion-team-target" : "agent-cb";
     const avatarPath = avatarForSession(sessionById(agent.id) || agent);
     if (avatarPath) {
       label.classList.add("has-avatar");
@@ -16094,7 +16217,7 @@ async function openSelectedChatRoom() {
     const result=await activation;
     if(!current() || !result)return;
     updateChatRoomTrigger(result.room.name);
-    restoreAgentTargets(agentRegistry.agents.filter(canSendToAgent),agentRegistry.active_agent_ids,room);
+    restoreAgentTargets(sendableTargets(),agentRegistry.active_agent_ids,room);
     await Promise.allSettled([loadChatRoomMessages(room),refreshFullAccessStatus(),refreshChatRoomDiagnosticsPreferences(),refreshPendingApprovals()]);
     if(current()) console.debug("[room-switch]",{room,ready_ms:Math.round(performance.now()-started)});
   } catch(error) {
@@ -17161,9 +17284,7 @@ function canSendToAgent(agent) {
 
 function agentTargetSelectionError(targetIds = getSelectedAgentIds()) {
   if (!targetIds.length) return "尚未选择发送对象，请先在顶栏选择。";
-  const selectableIds = new Set((agentRegistry?.agents || [])
-    .filter(canSendToAgent)
-    .map((agent) => String(agent.id)));
+  const selectableIds = new Set(sendableTargets().map((agent) => String(agent.id)));
   if (targetIds.some((id) => !selectableIds.has(id))) {
     return "发送名单包含已不可用的 Agent，请重新确认。";
   }
@@ -17179,8 +17300,10 @@ function updateAgentTriggerText() {
     return;
   }
   const selectedIds = getSelectedAgentIds();
+  const fusionTargets = fusionSendableTargets();
   const names = selectedIds.map((id) => {
-    const agent = agentRegistry?.agents?.find((candidate) => candidate.id === id);
+    const agent = agentRegistry?.agents?.find((candidate) => candidate.id === id)
+      || fusionTargets.find((candidate) => candidate.id === id);
     return agent?.display_name || agent?.name || id;
   });
   const label = document.createElement("span");
