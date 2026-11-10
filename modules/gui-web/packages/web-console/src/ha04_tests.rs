@@ -229,8 +229,27 @@ async fn real_retries_keep_one_admission_and_link_feedback_request() {
     for streamed in [false,true] { for change in [Change::Retry429,Change::Retry503,Change::Exhaust503] {route_case(streamed,change).await;} }
 }
 
-#[tokio::test]
-async fn actual_agent_child_request_inherits_parent_identity_and_capability_limit() {
+/// Agent 工具→子请求→子模型循环→再次工具派发的 poll 链在 debug 下单层就超过
+/// libtest 默认线程栈（约 2-4MB）；断言体不变，在独立大栈线程上跑同一逻辑，
+/// 只换线程栈余量，不改被测路径（沿用 Box::pin 之外的确定性手段）。
+#[test]
+fn actual_agent_child_request_inherits_parent_identity_and_capability_limit() {
+    std::thread::Builder::new()
+        .name("ha04-actual-agent-child".into())
+        .stack_size(32 * 1024 * 1024)
+        .spawn(|| {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("ha04 测试线程 runtime")
+                .block_on(actual_agent_child_request_inner());
+        })
+        .expect("spawn ha04 worker")
+        .join()
+        .expect("ha04 worker panicked");
+}
+
+async fn actual_agent_child_request_inner() {
     let _lock=tests::config_test_guard();
     let raws=Arc::new(Mutex::new(Vec::<String>::new())); let seen=raws.clone();
     let router=Router::new().route("/v1/chat/completions",post(move |bytes:axum::body::Bytes| {

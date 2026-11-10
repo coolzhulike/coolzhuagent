@@ -42,6 +42,7 @@ mod chat_insights;
 mod session_db;
 mod static_resource_contract;
 mod execution_service;
+mod fusion;
 mod scheduled_execution;
 mod scheduled_delivery;
 mod scheduled_jobs;
@@ -1397,6 +1398,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    // Fusion 遗留 running brief/工作项随进程启动一并收敛（interrupted/pending，不重放）。
+    if runtime_run_db_path.exists() {
+        fusion::runtime::startup_sweep(&runtime_run_db_path);
+    }
+
     // bind 先行：输入安全评估与会话库装载移到后台阻塞任务，冷启动大库不再阻塞首屏与端口。
     // startup_writer 一并移交：写者文件锁从启动段连续持有到 SessionStore 接管完成才释放；
     // 初始化 panic 保持 fail-closed（记录后退出），与原先同步路径的"未继续操作"语义一致。
@@ -2017,6 +2023,11 @@ fn app() -> Router {
         .route("/api/chat/send", post(api_chat_send))
         .route("/api/chat/send/stream", post(api_chat_send_stream))
         .route("/api/chat/turn/interrupt", post(api_chat_turn_interrupt))
+        .route("/api/fusion/teams", get(fusion::runtime::api_fusion_teams_list).post(fusion::runtime::api_fusion_team_create))
+        .route("/api/fusion/teams/{team_id}", axum::routing::put(fusion::runtime::api_fusion_team_update).delete(fusion::runtime::api_fusion_team_delete))
+        .route("/api/fusion/tasks", get(fusion::runtime::api_fusion_tasks))
+        .route("/api/fusion/tasks/{task_id}/cancel", post(fusion::runtime::api_fusion_task_cancel))
+        .route("/api/fusion/decisions/{decision_id}/answer", post(fusion::runtime::api_fusion_decision_answer))
         .route("/api/chat/send/relay", post(api_chat_send_relay))
         .route(
             "/api/agents/{agent_id}/diagnostics",
@@ -8782,11 +8793,26 @@ fn tool_execution_policy() -> ToolExecutionPolicy {
 /// WebSearch 自己探测/降级多个后端，内部预算已含逐后端尝试；这里在预算之外再留一点
 /// 收尾余量（构造失败文案、进程回收）。
 const WEB_SEARCH_TIMEOUT_SLACK_MS: u64 = 5_000;
+/// Sleep/TaskOutput.wait 自身声明的等待就是它要占用的预算；slack 只覆盖派发与收尾，
+/// 不额外延长业务等待。
+const WAIT_TOOL_BUDGET_SLACK_MS: u64 = 5_000;
 
 fn tool_timeout_ms_for(tool_name: &str, input: &JsonValue) -> u64 {
     // timeout_ms 字段语义为毫秒；timeout 字段语义为秒（PowerShell/bash schema 已标 SECONDS），需 ×1000。
     // 否则模型传 timeout:10（秒）会被外层 tokio 超时当 10ms，几十毫秒内杀掉命令 → runtime-timeout。
-    let requested = if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
+    let normalized = tool_name.replace('-', "_");
+    let requested = if normalized.eq_ignore_ascii_case("sleep") {
+        // 睡 N 毫秒是工具自身语义；按默认 30s 发预算会把长睡拦腰杀掉，
+        // worker 又不能立即退出 → 会话级"未确认退出"门把后续工具全部拒绝。
+        input.get("duration_ms").and_then(JsonValue::as_u64)
+            .map(|duration| duration.saturating_add(WAIT_TOOL_BUDGET_SLACK_MS))
+            .unwrap_or_else(|| tool_execution_policy().default_timeout_ms)
+    } else if normalized.eq_ignore_ascii_case("taskoutput")
+        || normalized.eq_ignore_ascii_case("task_output") {
+        input.get("wait_ms").and_then(JsonValue::as_u64)
+            .map(|wait| wait.saturating_add(WAIT_TOOL_BUDGET_SLACK_MS))
+            .unwrap_or_else(|| tool_execution_policy().default_timeout_ms)
+    } else if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
         ms
     } else if let Some(secs) = input.get("timeout").and_then(JsonValue::as_u64) {
         secs.saturating_mul(1000)
@@ -19665,6 +19691,9 @@ async fn api_chat_send_relay(Json(payload): Json<SendMessageRequest>) -> ApiResu
 }
 
 async fn api_chat_send(Json(payload): Json<SendMessageRequest>) -> ApiResult<Json<SendMessageResponse>> {
+    if fusion::targets_include_fusion(&payload.target_agent_ids) {
+        return fusion::runtime::send(payload).await;
+    }
     let prepared = prepare_chat_dispatch(payload)?;
     let dedup_key = prepared.dedup_key;
     let response = chat_run_admission::run_nonstream(prepared, false).await;
@@ -20025,6 +20054,12 @@ async fn api_chat_send_stream(
     Json(payload): Json<SendMessageRequest>,
 ) -> ApiResult<Sse<impl futures_core::Stream<Item = Result<Event, std::convert::Infallible>>>> {
     let turn_clock = Instant::now();
+    if fusion::targets_include_fusion(&payload.target_agent_ids) {
+        let prepared = fusion::runtime::admit(payload).await?;
+        return Ok(Sse::new(futures_util::future::Either::Left(
+            fusion::runtime::stream_events(prepared),
+        )));
+    }
     let result = prepare_chat_dispatch(payload)?;
     let dedup_key = result.dedup_key;
     let accepted = match chat_run_admission::accept(&result, "chat-send-stream") {
@@ -21007,7 +21042,9 @@ async fn api_chat_send_stream(
         ));
     };
 
-    Ok(Sse::new(root_execution_budget::scope_stream(root_budget, stream)))
+    Ok(Sse::new(futures_util::future::Either::Right(
+        root_execution_budget::scope_stream(root_budget, stream),
+    )))
 }
 
 async fn api_agent_diagnostics(
@@ -28920,6 +28957,8 @@ async fn dispatch_model_tool_calls_parallel(
     host_scope: Option<host_child_agent::HostToolScope>,
 ) -> Vec<ModelToolDispatchResult> {
     let source_request_key = tool_invocation_identity::current();
+    // Fusion 角色 scope 同 request_key 一样需手动重挂——spawn 不会自动继承 task-local。
+    let fusion_scope = fusion::current_scope();
     let request_collector = request_binding::current_collector();
     let policy = tool_execution_policy();
     let ids = tool_requests
@@ -28956,6 +28995,7 @@ async fn dispatch_model_tool_calls_parallel(
         let parent = parent.clone();
         let host_scope = host_scope.clone();
         let source_request_key = source_request_key.clone();
+        let fusion_scope = fusion_scope.clone();
         let request_collector = request_collector.clone();
         tasks.spawn(async move {
             let _permit = semaphore.acquire_owned().await.ok();
@@ -28980,9 +29020,12 @@ async fn dispatch_model_tool_calls_parallel(
             );
             // 子请求的观测仍属于本次响应；spawn 不会自动继承 task-local。
             let (outcome, recovery_stop) = tool_recovery::capture(request_binding::with_collector(request_collector, async {
-                match source_request_key {
-                    Some(source) => tool_invocation_identity::scope(source, dispatch).await,
-                    None => dispatch.await,
+                match (source_request_key, fusion_scope) {
+                    (Some(source), Some(scope)) =>
+                        tool_invocation_identity::scope(source, fusion::scope(scope, dispatch)).await,
+                    (Some(source), None) => tool_invocation_identity::scope(source, dispatch).await,
+                    (None, Some(scope)) => fusion::scope(scope, dispatch).await,
+                    (None, None) => dispatch.await,
                 }
             })).await;
             #[cfg(test)]
@@ -35353,6 +35396,10 @@ fn llm_tool_definitions_for_session(
     } else {
         llm_tool_permission_for_room(chat_room_id)
     };
+    // Fusion 角色轮次：工具表由角色策略+团队开关决定，不走会话默认表与 MCP/插件追加。
+    if let Some(fusion_scope) = fusion::current_scope() {
+        return fusion::role_tool_definitions(&fusion_scope, permission, &settings);
+    }
     let mut defs = llm_tool_definitions_with_settings(permission, Some(&settings)).unwrap_or_default();
     let tools_enabled = settings.enable_llm_tools.unwrap_or_else(llm_tools_enabled);
     let mode = settings.llm_tool_exposure.as_deref()
@@ -36610,6 +36657,11 @@ async fn run_model_tool_dispatch_within_root(
     // 宿主/冻结权限骨证收纳为预检，与派发服务共用；调用方必须先过门禁才能触发 hook。
     model_tool_host_preflight(name, input, caller_session_id, turn_id, chat_room_id, parent, host_scope)?;
     let normalized = name.replace('-', "_");
+
+    // Fusion 角色轮次的 team_* 协调工具：仅写 fusion_* 台账，不进 MCP/插件/DSH 通道。
+    if normalized.starts_with("team_") {
+        return fusion::execute_team_tool(&normalized, input).await;
+    }
 
     if name.starts_with("mcp__") {
         let outcome = mcp_host::call_from_model(
@@ -43558,6 +43610,7 @@ fn apply_session_schema_steps(connection: &Connection) -> rusqlite::Result<()> {
     computer_use_store::apply_session_migration_v28_panel_dispatch(connection)?;
     execution_service::apply_session_migration_v29(connection)?;
     chat_todos::apply_session_migration_v30(connection)?;
+    fusion::store::apply_session_migration_v31(connection)?;
     Ok(())
 }
 
@@ -43829,7 +43882,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 30;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 31;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -53902,6 +53955,8 @@ struct VisionAgentConfigResponse {
 struct MessageQuery {
     limit: Option<usize>,
     before: Option<String>,
+    /// 仅返回聊天转录可见消息（越过工具回执等不可见行）；存档与任务记录仍取原始流。
+    visible: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -79330,7 +79385,7 @@ attach: last_assistant
     }
 
     #[test]
-    fn run_model_tool_dispatch_sleep_respects_runtime_timeout() {
+    fn run_model_tool_dispatch_sleep_uses_own_wait_budget() {
         use super::{ConfigTool, ConfigToolExecution, WorkspaceConfig};
         let _guard = config_test_guard();
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -79363,15 +79418,22 @@ attach: last_assistant
             .enable_all()
             .build()
             .unwrap();
+        // Sleep 的等待本身就是其声明预算（duration_ms + slack，见
+        // tool_timeout_ms_for）：200ms 睡眠预算 5.2s，不被 default_timeout_ms=20
+        // 拦腰杀——这是防"等待轮询烧反馈轮"的现行契约（6ddde36c）。
+        assert_eq!(
+            super::tool_timeout_ms_for("Sleep", &serde_json::json!({ "duration_ms": 200 })),
+            200 + super::WAIT_TOOL_BUDGET_SLACK_MS
+        );
         let resp = rt
             .block_on(super::run_model_tool_dispatch(
                 "Sleep",
                 &serde_json::json!({ "duration_ms": 200 }),
             ))
-            .expect("timeout should still map to dispatch response");
+            .expect("sleep within its own budget completes");
 
-        assert_eq!(resp.route, "runtime-timeout");
-        assert_eq!(resp.status, "timeout");
+        assert_eq!(resp.route, "runtime-executed");
+        assert_eq!(resp.status, "ok");
         assert!(resp.notes.iter().any(|note| !note.trim().is_empty()));
 
         let _ = std::mem::replace(&mut *super::workspace_config().lock().expect("lock"), prev);
@@ -82346,6 +82408,32 @@ attach: last_assistant
         assert_eq!(other, super::tool_execution_policy().default_timeout_ms);
     }
 
+    /// Sleep/TaskOutput 的等待时长就是它们声明的预算。按 30s 默认发时间会把
+    /// 长等待拦腰杀掉，worker 收尾不及时还会触发会话级"未确认退出"门，
+    /// 把同会话后续所有工具调用拒绝——这正是"会话工具被阻断"的来源。
+    #[test]
+    fn wait_tools_timeout_follows_declared_duration() {
+        let sleep = super::tool_timeout_ms_for("Sleep", &serde_json::json!({"duration_ms": 60_000}));
+        let task_output = super::tool_timeout_ms_for(
+            "TaskOutput",
+            &serde_json::json!({"task_id": "1", "wait_ms": 120_000}),
+        );
+        let task_output_nowait = super::tool_timeout_ms_for(
+            "TaskOutput",
+            &serde_json::json!({"task_id": "1"}),
+        );
+        let default = super::tool_execution_policy().default_timeout_ms;
+
+        assert!(sleep >= 60_000, "Sleep must get duration budget, got {sleep}");
+        assert!(task_output >= 120_000, "TaskOutput wait must get budget, got {task_output}");
+        assert_eq!(task_output_nowait, default);
+        // 超过总钳位上限的等待按上限截断，由工具自身分片检查保证尽快收尾。
+        assert_eq!(
+            super::tool_timeout_ms_for("Sleep", &serde_json::json!({"duration_ms": 9_000_000})),
+            600_000
+        );
+    }
+
     #[test]
     fn runtime_execute_relative_write_file_is_scoped_to_active_workspace() {
         let _guard = config_test_guard();
@@ -84151,7 +84239,7 @@ attach: last_assistant
             "className = \"session-option chat-room-nav-item\"",
             "function setChatWorkspacePath(workspace)",
             "function workspaceLeafName(workspace)",
-            "const display = full || \"未设置\";",
+            "const display = workspaceDisplayPath(full) || \"未设置\";",
             "data-role=\"chat-workspace-summary-path\"",
             "document.querySelector('[data-role=\"chat-room-list\"]')?.addEventListener(\"keydown\"",
             "event.target.closest(\"button[data-room-id]\")",
@@ -89431,7 +89519,7 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("function persistAgentTargets"));
         assert!(WEB_APP_JS.contains("activeWorkspaceKey"));
         assert!(WEB_APP_JS.contains("activeChatRoomId"));
-        assert!(WEB_APP_JS.contains("restoreAgentTargets(selectable, registry.active_agent_ids"));
+        assert!(WEB_APP_JS.contains("restoreAgentTargets(sendableTargets(), registry.active_agent_ids"));
         assert!(WEB_APP_JS.contains("persistAgentTargets(activeChatRoomId)"));
     }
 
