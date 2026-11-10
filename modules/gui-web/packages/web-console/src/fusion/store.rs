@@ -145,6 +145,7 @@ pub(super) struct FusionWorkItemRow {
     pub task_id: String,
     pub title: String,
     pub status: String,
+    pub depends_on_json: String,
     pub acceptance_json: String,
     pub verification_json: Option<String>,
     pub retry_count: i64,
@@ -446,7 +447,7 @@ pub(super) fn fusion_work_items_for_task(path: &Path, task_id: &str) -> ApiResul
     let connection = connection_for(path)?;
     let mut statement = connection
         .prepare(
-            "SELECT id,task_id,title,status,acceptance_json,verification_json,retry_count,max_retries,
+            "SELECT id,task_id,title,status,depends_on_json,acceptance_json,verification_json,retry_count,max_retries,
                  last_verdict,last_reason FROM fusion_work_items WHERE task_id=?1 ORDER BY created_at, id",
         )
         .map_err(sqlite_api_error)?;
@@ -457,12 +458,13 @@ pub(super) fn fusion_work_items_for_task(path: &Path, task_id: &str) -> ApiResul
                 task_id: row.get(1)?,
                 title: row.get(2)?,
                 status: row.get(3)?,
-                acceptance_json: row.get(4)?,
-                verification_json: row.get(5)?,
-                retry_count: row.get(6)?,
-                max_retries: row.get(7)?,
-                last_verdict: row.get(8)?,
-                last_reason: row.get(9)?,
+                depends_on_json: row.get(4)?,
+                acceptance_json: row.get(5)?,
+                verification_json: row.get(6)?,
+                retry_count: row.get(7)?,
+                max_retries: row.get(8)?,
+                last_verdict: row.get(9)?,
+                last_reason: row.get(10)?,
             })
         })
         .map_err(sqlite_api_error)?
@@ -594,6 +596,29 @@ pub(super) fn fusion_briefs_queued(
         .map_err(sqlite_api_error)?;
     let rows = statement
         .query_map(params![room_id, team_id], brief_from_row)
+        .map_err(sqlite_api_error)?
+        .collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(sqlite_api_error)?;
+    Ok(rows)
+}
+
+/// 按状态取本房间本团队的 brief（重启恢复事件源）。
+pub(super) fn fusion_briefs_by_status(
+    path: &Path,
+    room_id: &str,
+    team_id: &str,
+    status: &str,
+) -> ApiResult<Vec<FusionBriefRow>> {
+    let connection = connection_for(path)?;
+    let mut statement = connection
+        .prepare(
+            "SELECT id,task_id,work_item_id,room_id,team_id,from_role,to_role,kind,payload_json,status,result_json
+             FROM fusion_briefs WHERE room_id=?1 AND team_id=?2 AND status=?3
+             ORDER BY created_at, id",
+        )
+        .map_err(sqlite_api_error)?;
+    let rows = statement
+        .query_map(params![room_id, team_id, status], brief_from_row)
         .map_err(sqlite_api_error)?
         .collect::<rusqlite::Result<Vec<_>>>()
         .map_err(sqlite_api_error)?;
@@ -757,6 +782,94 @@ pub(super) fn fusion_decisions_pending(path: &Path, task_id: &str) -> ApiResult<
     Ok(rows)
 }
 
+#[derive(Debug, Clone)]
+pub(super) struct FusionDecisionRow {
+    pub id: String,
+    pub task_id: String,
+    pub question: String,
+    pub options_json: String,
+    pub status: String,
+    pub answer_json: Option<String>,
+}
+
+pub(super) fn fusion_decision_get(path: &Path, decision_id: &str) -> ApiResult<Option<FusionDecisionRow>> {
+    let connection = connection_for(path)?;
+    connection
+        .query_row(
+            "SELECT id,task_id,question,options_json,status,answer_json FROM fusion_decisions WHERE id=?1",
+            params![decision_id],
+            |row| {
+                Ok(FusionDecisionRow {
+                    id: row.get(0)?,
+                    task_id: row.get(1)?,
+                    question: row.get(2)?,
+                    options_json: row.get(3)?,
+                    status: row.get(4)?,
+                    answer_json: row.get(5)?,
+                })
+            },
+        )
+        .optional()
+        .map_err(sqlite_api_error)
+}
+
+/// 用户回答决策：pending→answered 的 CAS；返回 false 表示已回答/已取消（不可重复回答）。
+pub(super) fn fusion_decision_answer(
+    path: &Path,
+    decision_id: &str,
+    answer_json: &str,
+) -> ApiResult<bool> {
+    let connection = connection_for(path)?;
+    let changed = connection
+        .execute(
+            "UPDATE fusion_decisions SET status='answered', answer_json=?2, answered_at=?3
+             WHERE id=?1 AND status='pending'",
+            params![decision_id, answer_json, u64_to_i64(unix_timestamp_millis())],
+        )
+        .map_err(sqlite_api_error)?;
+    Ok(changed > 0)
+}
+
+/// 重启清扫：执行者 running 工作项随 brief interrupted 回到 pending（不重放，由主持重派）。
+pub(super) fn fusion_work_items_sweep_running(path: &Path) -> ApiResult<usize> {
+    let connection = connection_for(path)?;
+    let changed = connection
+        .execute(
+            "UPDATE fusion_work_items SET status='pending', updated_at=?1 WHERE status='running'",
+            params![u64_to_i64(unix_timestamp_millis())],
+        )
+        .map_err(sqlite_api_error)?;
+    Ok(changed)
+}
+
+/// 单条工作项（depends_on 校验用）。
+pub(super) fn fusion_work_item_get(path: &Path, work_item_id: &str) -> ApiResult<Option<FusionWorkItemRow>> {
+    let connection = connection_for(path)?;
+    connection
+        .query_row(
+            "SELECT id,task_id,title,status,depends_on_json,acceptance_json,verification_json,retry_count,max_retries,
+                 last_verdict,last_reason FROM fusion_work_items WHERE id=?1",
+            params![work_item_id],
+            |row| {
+                Ok(FusionWorkItemRow {
+                    id: row.get(0)?,
+                    task_id: row.get(1)?,
+                    title: row.get(2)?,
+                    status: row.get(3)?,
+                    depends_on_json: row.get(4)?,
+                    acceptance_json: row.get(5)?,
+                    verification_json: row.get(6)?,
+                    retry_count: row.get(7)?,
+                    max_retries: row.get(8)?,
+                    last_verdict: row.get(9)?,
+                    last_reason: row.get(10)?,
+                })
+            },
+        )
+        .optional()
+        .map_err(sqlite_api_error)
+}
+
 pub(super) fn fusion_artifact_insert(
     path: &Path,
     artifact_id: &str,
@@ -867,6 +980,22 @@ mod tests {
         assert!(!exceeded);
         let items_after = fusion_work_items_for_task(&path, "task-1").expect("items2");
         assert_eq!(items_after[0].status, "rework");
+        // 连续返工顶到 max_retries=2：第 3 次 rework 置 blocked。
+        fusion_work_item_verdict(&path, &items_after[0].id, "rework", Some("仍缺"), None)
+            .expect("verdict2");
+        let (retries, exceeded) =
+            fusion_work_item_verdict(&path, &items_after[0].id, "rework", Some("还缺"), None)
+                .expect("verdict3")
+                .expect("work item");
+        assert_eq!(retries, 3);
+        assert!(exceeded);
+        assert_eq!(
+            fusion_work_item_get(&path, &items_after[0].id)
+                .expect("get")
+                .expect("item")
+                .status,
+            "blocked"
+        );
         let _ = std::fs::remove_file(&path);
     }
 
@@ -920,6 +1049,103 @@ mod tests {
             fusion_brief_get(&path, "b-run").expect("get2").expect("brief2").status,
             "interrupted"
         );
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn fusion_decision_answer_is_pending_cas() {
+        let path = temp_db("decision");
+        fusion_task_insert(&path, "task-1", "t1", "room-1", "ws", None, None, "{}")
+            .expect("insert task");
+        fusion_decision_insert(
+            &path,
+            "dec-1",
+            "task-1",
+            "选哪个方案？",
+            r#"{"options":[{"id":"a","label":"方案 A"}],"allow_free_text":true}"#,
+        )
+        .expect("insert decision");
+        let decision = fusion_decision_get(&path, "dec-1")
+            .expect("get")
+            .expect("decision");
+        assert_eq!(decision.status, "pending");
+        assert_eq!(decision.task_id, "task-1");
+        assert!(decision.answer_json.is_none());
+        // pending→answered 只允许一次；重复回答/篡改被 CAS 拒绝。
+        assert!(fusion_decision_answer(&path, "dec-1", r#"{"label":"方案 A"}"#).expect("answer"));
+        assert!(!fusion_decision_answer(&path, "dec-1", r#"{"label":"篡改"}"#).expect("answer2"));
+        let answered = fusion_decision_get(&path, "dec-1")
+            .expect("get2")
+            .expect("answered");
+        assert_eq!(answered.status, "answered");
+        assert!(answered.answer_json.unwrap().contains("方案 A"));
+        assert!(fusion_decisions_pending(&path, "task-1")
+            .expect("pending")
+            .is_empty());
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn fusion_work_items_sweep_returns_running_to_pending() {
+        let path = temp_db("sweep");
+        fusion_task_insert(&path, "task-1", "t1", "room-1", "ws", None, None, "{}")
+            .expect("insert task");
+        let ids = fusion_work_items_replace(
+            &path,
+            "task-1",
+            &[
+                serde_json::json!({"id":"wi-a","title":"A","depends_on":["wi-b"]}),
+                serde_json::json!({"id":"wi-b","title":"B"}),
+            ],
+        )
+        .expect("replace");
+        assert_eq!(ids.len(), 2);
+        // depends_on 落库可读回（调度门的数据源）。
+        let item = fusion_work_item_get(&path, "wi-a").expect("get").expect("item");
+        assert_eq!(item.depends_on_json, r#"["wi-b"]"#);
+        fusion_work_item_set_status(&path, "wi-a", "running").expect("set running");
+        fusion_work_item_set_status(&path, "wi-b", "done").expect("set done");
+        assert_eq!(fusion_work_items_sweep_running(&path).expect("sweep"), 1);
+        let item = fusion_work_item_get(&path, "wi-a").expect("get2").expect("item2");
+        assert_eq!(item.status, "pending");
+        // done 不受影响。
+        assert_eq!(
+            fusion_work_item_get(&path, "wi-b").expect("get3").expect("item3").status,
+            "done"
+        );
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn fusion_briefs_by_status_scopes_room_and_team() {
+        let path = temp_db("bystatus");
+        for (id, room, team) in [
+            ("b-1", "room-1", "t1"),
+            ("b-2", "room-1", "t2"),
+            ("b-3", "room-2", "t1"),
+        ] {
+            fusion_brief_insert(
+                &path,
+                &FusionBriefRow {
+                    id: id.to_string(),
+                    task_id: None,
+                    work_item_id: None,
+                    room_id: room.to_string(),
+                    team_id: team.to_string(),
+                    from_role: "host".to_string(),
+                    to_role: "executor".to_string(),
+                    kind: "work".to_string(),
+                    payload_json: "{}".to_string(),
+                    status: String::new(),
+                    result_json: None,
+                },
+            )
+            .expect("insert");
+            fusion_brief_claim(&path, id, "run-x").expect("claim");
+        }
+        let running = fusion_briefs_by_status(&path, "room-1", "t1", "running").expect("running");
+        assert_eq!(running.len(), 1);
+        assert_eq!(running[0].id, "b-1");
         let _ = std::fs::remove_file(&path);
     }
 }

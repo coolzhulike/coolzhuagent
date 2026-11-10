@@ -243,7 +243,7 @@ pub(super) async fn execute(normalized_name: &str, input: &JsonValue) -> ApiResu
         "team_report" => team_report(&scope, input),
         "team_escalate" => team_escalate(&scope, input),
         "team_ask_user" => team_ask_user(&scope, input),
-        "team_accept" => team_accept(&scope, input),
+        "team_accept" => team_accept(&scope, input).await,
         other => text_response("failed", format!("未知团队工具 `{other}`")),
     }
 }
@@ -280,7 +280,8 @@ fn team_plan(scope: &FusionToolScope, input: &JsonValue) -> ApiResult<ToolDispat
                 .and_then(JsonValue::as_str)
                 .map(str::trim)
                 .filter(|value| !value.is_empty())
-                .map(|value| value.chars().take(160).collect::<String>());
+                .map(|value| value.chars().take(160).collect::<String>())
+                .or_else(|| scope.task_title_hint.clone());
             let mandate = json!({
                 "workspace_id": scope.workspace_id,
                 "room_id": scope.room_id,
@@ -381,6 +382,67 @@ fn team_dispatch(scope: &FusionToolScope, input: &JsonValue) -> ApiResult<ToolDi
         .get("work_item_id")
         .and_then(JsonValue::as_str)
         .map(str::to_string);
+    // depends_on 由宿主强制：依赖未全部 done 时拒绝派发，而不是排队等。
+    if let Some(work_item_id) = work_item_id.as_deref() {
+        match store::fusion_work_item_get(&scope.db_path, work_item_id)? {
+            Some(item) => {
+                if item.status == "blocked" {
+                    return text_response(
+                        "failed",
+                        format!("工作项 {work_item_id} 已 blocked，请先在计划中调整或换派"),
+                    );
+                }
+                let deps: Vec<String> = serde_json::from_str::<JsonValue>(&item.depends_on_json)
+                    .ok()
+                    .and_then(|value| {
+                        value.as_array().map(|items| {
+                            items
+                                .iter()
+                                .filter_map(|entry| entry.as_str().map(str::to_string))
+                                .collect()
+                        })
+                    })
+                    .unwrap_or_default();
+                if !deps.is_empty() {
+                    let items = store::fusion_work_items_for_task(&scope.db_path, &item.task_id)
+                        .unwrap_or_default();
+                    let mut unmet = Vec::new();
+                    let mut broken = Vec::new();
+                    for dep in deps {
+                        match items.iter().find(|entry| entry.id == dep) {
+                            Some(dep_item) if dep_item.status == "done" => {}
+                            Some(dep_item) if dep_item.status == "blocked" || dep_item.status == "failed" => {
+                                broken.push(format!("{dep}（{}）", dep_item.status));
+                            }
+                            Some(dep_item) => unmet.push(format!("{dep}（{}）", dep_item.status)),
+                            None => unmet.push(format!("{dep}（不存在）")),
+                        }
+                    }
+                    if !broken.is_empty() {
+                        return text_response(
+                            "failed",
+                            format!(
+                                "工作项 {work_item_id} 的依赖已失败/阻塞：{}。请先处理依赖或调整计划。",
+                                broken.join("、")
+                            ),
+                        );
+                    }
+                    if !unmet.is_empty() {
+                        return text_response(
+                            "failed",
+                            format!(
+                                "工作项 {work_item_id} 的依赖未完成：{}。请先派发/等待依赖完成。",
+                                unmet.join("、")
+                            ),
+                        );
+                    }
+                }
+            }
+            None => {
+                return text_response("failed", format!("工作项 {work_item_id} 不存在"));
+            }
+        }
+    }
     let task_id = resolve_task_id(scope);
     store::fusion_brief_insert(
         &scope.db_path,
@@ -599,13 +661,46 @@ fn team_ask_user(scope: &FusionToolScope, input: &JsonValue) -> ApiResult<ToolDi
         return text_response("failed", "question 必填".to_string());
     }
     let options = input.get("options").cloned().unwrap_or_else(|| json!([]));
+    let allow_free_text = input
+        .get("allow_free_text")
+        .and_then(JsonValue::as_bool)
+        .unwrap_or(true);
     let decision_id = new_id("decision");
-    store::fusion_decision_insert(&scope.db_path, &decision_id, &task_id, &question, &options.to_string())?;
+    // options_json 存成 {options, allow_free_text}——回答 API 与前端卡片共用一个真源。
+    let stored = json!({"options": options, "allow_free_text": allow_free_text});
+    store::fusion_decision_insert(&scope.db_path, &decision_id, &task_id, &question, &stored.to_string())?;
     store::fusion_task_update(&scope.db_path, &task_id, "awaiting_user", None, None)?;
+    // 决策卡片进聊天室：[fusion-decision] 行携带机读 JSON，前端渲染可点选项。
+    let mut card = format!("主持 · 需要你的决定\n{question}");
+    if let Some(items) = options.as_array() {
+        for item in items {
+            let label = item
+                .get("label")
+                .and_then(JsonValue::as_str)
+                .unwrap_or("")
+                .trim();
+            if label.is_empty() {
+                continue;
+            }
+            let detail = item
+                .get("detail")
+                .and_then(JsonValue::as_str)
+                .map(str::trim)
+                .filter(|text| !text.is_empty())
+                .map(|text| format!(" — {text}"))
+                .unwrap_or_default();
+            card.push_str(&format!("\n- {label}{detail}"));
+        }
+    }
+    card.push_str(&format!(
+        "\n[fusion-decision]{}",
+        json!({"id": decision_id, "question": question, "options": options, "allow_free_text": allow_free_text})
+    ));
+    runtime::emit_room_message(&scope.room_id, "主持", "fusion-decision", &card);
     text_response("ok", format!("已发起决策 {decision_id}；任务挂起等待用户回复"))
 }
 
-fn team_accept(scope: &FusionToolScope, input: &JsonValue) -> ApiResult<ToolDispatchResponse> {
+async fn team_accept(scope: &FusionToolScope, input: &JsonValue) -> ApiResult<ToolDispatchResponse> {
     if let Some(denied) = require_role(scope, &[FusionRole::Host], "team_accept") {
         return denied;
     }
@@ -633,17 +728,70 @@ fn team_accept(scope: &FusionToolScope, input: &JsonValue) -> ApiResult<ToolDisp
     {
         return text_response("failed", "rework 必须给出 reason".to_string());
     }
-    let reason = input.get("reason").and_then(JsonValue::as_str);
-    match store::fusion_work_item_verdict(&scope.db_path, &work_item_id, &verdict, reason, None)? {
+    let mut reason = input
+        .get("reason")
+        .and_then(JsonValue::as_str)
+        .map(str::to_string);
+    let mut evidence_json: Option<String> = None;
+    // 确定性验收门（§6.3）：accept 前先跑宿主校验，失败自动转 rework 且证据入库——
+    // 主持不能用模型正文"口头通过" FilesExist/Command 合同。
+    let item = match store::fusion_work_item_get(&scope.db_path, &work_item_id)? {
+        Some(item) => item,
+        None => return text_response("failed", format!("工作项 {work_item_id} 不存在")),
+    };
+    if verdict == "accept" && item.verification_json.is_some() {
+        match verification::evaluate(item.verification_json.as_deref(), &active_workspace_path()).await {
+            verification::GateOutcome::Passed => {
+                evidence_json = Some(json!({"gate": "passed"}).to_string());
+            }
+            verification::GateOutcome::Failed { reason: gate_reason, evidence } => {
+                evidence_json = Some(
+                    json!({"gate": "failed", "gate_reason": gate_reason, "gate_evidence": evidence})
+                        .to_string(),
+                );
+                reason = Some(format!("验收门未过：{gate_reason}"));
+                // 越过 accept 直接落 rework，retry 计数由 store 层统一递增。
+                return apply_verdict(scope, &work_item_id, "rework", reason.as_deref(), evidence_json.as_deref(), true);
+            }
+            verification::GateOutcome::Invalid { reason: invalid } => {
+                return text_response(
+                    "failed",
+                    format!("工作项 {work_item_id} 的验收合同非法（{invalid}），请先用 team_plan 修正"),
+                );
+            }
+            verification::GateOutcome::NotRequired => {}
+        }
+    }
+    apply_verdict(scope, &work_item_id, &verdict, reason.as_deref(), evidence_json.as_deref(), false)
+}
+
+/// 裁决落库 + 任务收敛；gate_rejected 表示确定性门触发的自动 rework（提示语区分）。
+fn apply_verdict(
+    scope: &FusionToolScope,
+    work_item_id: &str,
+    verdict: &str,
+    reason: Option<&str>,
+    evidence_json: Option<&str>,
+    gate_rejected: bool,
+) -> ApiResult<ToolDispatchResponse> {
+    match store::fusion_work_item_verdict(&scope.db_path, work_item_id, verdict, reason, evidence_json)? {
         None => text_response("failed", format!("工作项 {work_item_id} 不存在")),
         Some((retries, exceeded)) => {
             let mut text = if verdict == "accept" {
-                format!("工作项 {work_item_id} 已通过验收")
+                format!("工作项 {work_item_id} 已通过验收（含确定性门校验）")
+            } else if gate_rejected {
+                format!("工作项 {work_item_id} 确定性验收门未过，已按返工处理（第 {retries} 次）：{}", reason.unwrap_or_default())
             } else {
                 format!("工作项 {work_item_id} 退回返工（第 {retries} 次）")
             };
             if exceeded {
                 text.push_str("；已超过重试上限，工作项转 blocked——请调整方案、改派更强模型或 team_ask_user 问用户");
+                runtime::emit_room_message(
+                    &scope.room_id,
+                    "Fusion Team",
+                    "fusion-status",
+                    &format!("工作项 {work_item_id} 重试达上限，已 blocked；等待主持决策。"),
+                );
             }
             // 全部工作项 done → 任务自动标记 done，供编排器收尾。
             if let Some(task_id) = resolve_task_id(scope) {
@@ -796,4 +944,96 @@ pub(super) fn render_result_card(brief: &store::FusionBriefRow) -> String {
         .unwrap_or_default();
     text.push_str(&join_lines("遗留", &open));
     text
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn host_scope(db_path: &std::path::Path) -> FusionToolScope {
+        FusionToolScope {
+            team_id: "t1".to_string(),
+            room_id: "room-1".to_string(),
+            workspace_id: "ws".to_string(),
+            db_path: db_path.to_path_buf(),
+            role: FusionRole::Host,
+            brief_id: None,
+            task_id: Some("task-1".to_string()),
+            host_web_access: false,
+            querier_is_separate: false,
+            task_title_hint: None,
+        }
+    }
+
+    fn temp_db(tag: &str) -> std::path::PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "coolzhu-fusion-tools-{tag}-{}-{}.sqlite3",
+            std::process::id(),
+            unix_timestamp_millis()
+        ));
+        let _ = std::fs::remove_file(&path);
+        path
+    }
+
+    #[tokio::test]
+    async fn team_dispatch_blocks_until_dependencies_done() {
+        let path = temp_db("deps");
+        store::fusion_task_insert(&path, "task-1", "t1", "room-1", "ws", None, None, "{}")
+            .expect("insert task");
+        store::fusion_work_items_replace(
+            &path,
+            "task-1",
+            &[
+                json!({"id":"wi-a","title":"A","depends_on":["wi-b"]}),
+                json!({"id":"wi-b","title":"B"}),
+            ],
+        )
+        .expect("replace items");
+        // 依赖未完成 → 拒绝派发，且不产生 brief。
+        let input = json!({"to":"executor","work_item_id":"wi-a","objective":"做 A"});
+        let resp = scope(host_scope(&path), execute("team_dispatch", &input))
+            .await
+            .expect("dispatch");
+        assert_eq!(resp.status, "failed");
+        assert!(resp
+            .tool_result_text
+            .as_deref()
+            .unwrap_or_default()
+            .contains("依赖未完成"));
+        assert!(store::fusion_briefs_queued(&path, "room-1", "t1")
+            .expect("queued")
+            .is_empty());
+        // 依赖完成 → 允许派发且工作项转 running。
+        store::fusion_work_item_set_status(&path, "wi-b", "done").expect("done dep");
+        let resp = scope(host_scope(&path), execute("team_dispatch", &input))
+            .await
+            .expect("dispatch2");
+        assert_eq!(resp.status, "ok");
+        assert_eq!(store::fusion_briefs_queued(&path, "room-1", "t1")
+            .expect("queued2")
+            .len(), 1);
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[tokio::test]
+    async fn team_ask_user_writes_pending_decision_and_holds_task() {
+        let path = temp_db("ask");
+        store::fusion_task_insert(&path, "task-1", "t1", "room-1", "ws", None, None, "{}")
+            .expect("insert task");
+        let input = json!({
+            "question": "选哪个？",
+            "options": [{"id":"a","label":"方案 A"}],
+            "allow_free_text": false,
+        });
+        let resp = scope(host_scope(&path), execute("team_ask_user", &input))
+            .await
+            .expect("ask");
+        assert_eq!(resp.status, "ok");
+        let pending = store::fusion_decisions_pending(&path, "task-1").expect("pending");
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending[0].1, "选哪个？");
+        let task = store::fusion_task_get(&path, "task-1").expect("get").expect("task");
+        assert_eq!(task.status, "awaiting_user");
+        let _ = std::fs::remove_file(&path);
+    }
 }

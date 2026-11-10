@@ -1398,6 +1398,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    // Fusion 遗留 running brief/工作项随进程启动一并收敛（interrupted/pending，不重放）。
+    if runtime_run_db_path.exists() {
+        fusion::runtime::startup_sweep(&runtime_run_db_path);
+    }
+
     // bind 先行：输入安全评估与会话库装载移到后台阻塞任务，冷启动大库不再阻塞首屏与端口。
     // startup_writer 一并移交：写者文件锁从启动段连续持有到 SessionStore 接管完成才释放；
     // 初始化 panic 保持 fail-closed（记录后退出），与原先同步路径的"未继续操作"语义一致。
@@ -2022,6 +2027,7 @@ fn app() -> Router {
         .route("/api/fusion/teams/{team_id}", axum::routing::put(fusion::runtime::api_fusion_team_update).delete(fusion::runtime::api_fusion_team_delete))
         .route("/api/fusion/tasks", get(fusion::runtime::api_fusion_tasks))
         .route("/api/fusion/tasks/{task_id}/cancel", post(fusion::runtime::api_fusion_task_cancel))
+        .route("/api/fusion/decisions/{decision_id}/answer", post(fusion::runtime::api_fusion_decision_answer))
         .route("/api/chat/send/relay", post(api_chat_send_relay))
         .route(
             "/api/agents/{agent_id}/diagnostics",

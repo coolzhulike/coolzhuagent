@@ -4657,6 +4657,7 @@ async function taskRefreshWindow() {
     refreshTaskSchedules(),
     refreshGoalRoleRisks(),
     refreshGoals(),
+    refreshFusionTasks(),
     activeChatRoomId ? refreshChatCollaboration(activeChatRoomId) : Promise.resolve(),
   ]);
 }
@@ -11494,6 +11495,12 @@ function reconcileChatHistory(response) {
     else list.insertBefore(article, cursor);
   }
   if (!visible.length) renderChatMessageEmptyState(list);
+  // fusion-* 消息到达时顺带刷新任务面板（节流 5s，避免每条消息一次请求）。
+  if (visible.some((message) => String(message.kind || "").startsWith("fusion-"))
+      && Date.now() - (refreshFusionTasks._lastAt || 0) > 5000) {
+    refreshFusionTasks._lastAt = Date.now();
+    void refreshFusionTasks();
+  }
   messagePaging = {roomId: activeChatRoomId, hasMore: response.has_more, nextBefore: response.next_before};
   updateLoadOlderButton(); updateReferenceSelection();
   updateChatRoomTrigger(response.room.name);
@@ -16218,7 +16225,7 @@ async function openSelectedChatRoom() {
     if(!current() || !result)return;
     updateChatRoomTrigger(result.room.name);
     restoreAgentTargets(sendableTargets(),agentRegistry.active_agent_ids,room);
-    await Promise.allSettled([loadChatRoomMessages(room),refreshFullAccessStatus(),refreshChatRoomDiagnosticsPreferences(),refreshPendingApprovals()]);
+    await Promise.allSettled([loadChatRoomMessages(room),refreshFullAccessStatus(),refreshChatRoomDiagnosticsPreferences(),refreshPendingApprovals(),refreshFusionTasks(room)]);
     if(current()) console.debug("[room-switch]",{room,ready_ms:Math.round(performance.now()-started)});
   } catch(error) {
     if(current()) { taskRenderFullAccessStatus({room_id:room,error:error.message}); addMessage({author:"聊天室",text:`加载失败：${error.message}。再次选择此聊天室可重试。`,kind:"thought",icon:"error-log"}); }
@@ -16247,6 +16254,9 @@ function iconForMessage(message) {
   if (message.kind === "assistant-fallback") {
     return "info-log";
   }
+  if (message.kind === "fusion-decision") {
+    return "task-list";
+  }
   if (message.kind === "multimedia") {
     return "image-preview";
   }
@@ -16269,6 +16279,9 @@ function kindForMessage(message) {
   if (message.kind === "approval-result") {
     return "bot tool approval-result";
   }
+  if (message.kind === "fusion-decision") {
+    return "bot tool fusion-decision";
+  }
   if (message.kind === "vision") {
     return "bot vision";
   }
@@ -16284,14 +16297,14 @@ function renderTaskList(tasks) {
   syncTaskCardFromGoals(taskGoals, mergedRuntimeTaskItems());
   const count = document.querySelector('[data-role="task-runtime-count"]');
   if (count) {
-    count.textContent = `${taskRuntimeItems.length} 项`;
+    count.textContent = `${taskRuntimeItems.length + fusionTaskItems.length} 项`;
   }
   if (!list) {
     return;
   }
   list.replaceChildren();
   const visibleTasks = (Array.isArray(tasks) ? tasks : []).filter((task) => task.visible_in_chat);
-  if (!visibleTasks.length) {
+  if (!visibleTasks.length && !fusionTaskItems.length) {
     const empty = document.createElement("li");
     empty.className = "task-window-empty";
     empty.textContent = "暂无运行任务。";
@@ -16304,6 +16317,53 @@ function renderTaskList(tasks) {
     item.querySelector("strong").textContent = task.executor_agent;
     item.querySelector("span").textContent = ` ${task.status} · ${task.summary}`;
     item.querySelector("small").textContent = `${task.timeout_ms}ms`;
+    list.append(item);
+  });
+  renderFusionTaskItems(list);
+}
+
+// ── Fusion 任务面板状态：任务 + 工作项（blocked/awaiting/interrupted 高亮）──
+let fusionTaskItems = [];
+
+const FUSION_STATUS_LABELS = {
+  planning: "规划中", executing: "执行中", awaiting_user: "等你决定",
+  done: "完成", blocked: "受阻", failed: "失败", cancelled: "已取消",
+};
+
+async function refreshFusionTasks(roomId = activeChatRoomId) {
+  if (!roomId) { fusionTaskItems = []; return; }
+  try {
+    const result = await requestJson(`/api/fusion/tasks?room_id=${encodeURIComponent(roomId)}`);
+    fusionTaskItems = Array.isArray(result?.tasks) ? result.tasks : [];
+  } catch {
+    fusionTaskItems = [];
+  }
+  // 复用当前 runtime 任务数组触发一次重绘。
+  const list = document.querySelector('[data-role="task-list"]');
+  if (list) {
+    const current = taskRuntimeItems.map((item) => ({ ...item, visible_in_chat: true }));
+    renderTaskList(current);
+  }
+}
+
+function renderFusionTaskItems(list) {
+  fusionTaskItems.forEach((task) => {
+    const items = Array.isArray(task.work_items) ? task.work_items : [];
+    const done = items.filter((item) => item.status === "done").length;
+    const item = document.createElement("li");
+    item.className = "fusion-task-item";
+    const awaiting = task.status === "awaiting_user" || (task.pending_decisions || 0) > 0;
+    const blocked = task.status === "blocked" || items.some((entry) => entry.status === "blocked");
+    const statusLabel = FUSION_STATUS_LABELS[task.status] || task.status;
+    item.innerHTML = `<strong></strong><span></span><small></small>`;
+    item.querySelector("strong").textContent = `⚡ ${task.title || "Fusion 任务"}`;
+    const badge = blocked ? " · blocked" : awaiting ? " · 待决策" : "";
+    item.querySelector("span").textContent = ` ${statusLabel}${badge} · ${done}/${items.length} 工作项`;
+    const detail = items
+      .filter((entry) => entry.status !== "done")
+      .map((entry) => `${entry.title}:${entry.status}${entry.retry_count ? `(重试${entry.retry_count})` : ""}`)
+      .join("，");
+    item.querySelector("small").textContent = detail || "全部工作项完成";
     list.append(item);
   });
 }
@@ -20357,7 +20417,154 @@ function renderChatMessageText(container, text = "", { role = "", kind = "", str
   // 流式增量和历史/最终 upsert 都保留原文，只在标准聊天 DOM 显示层过滤尾注。
   void streaming;
   container.dataset.rawText = rawText;
+  if (normalizedKind.split(/\s+/).includes("fusion-decision")) {
+    renderFusionDecisionCard(container, rawText);
+    return;
+  }
   container.replaceChildren(...richTextNodes(displayText));
+}
+
+// ── Fusion 决策卡片：[fusion-decision]{json} 行携带机读数据，选项可点击回答 ──
+const FUSION_DECISION_MARKER = /^\[fusion-decision\](\{.*\})\s*$/m;
+const fusionDecisionCards = new Map();
+
+function fusionDecisionParse(rawText) {
+  const match = String(rawText || "").match(FUSION_DECISION_MARKER);
+  if (!match) {
+    return null;
+  }
+  try {
+    const data = JSON.parse(match[1]);
+    if (!data || typeof data.id !== "string") {
+      return null;
+    }
+    return { data, visibleText: String(rawText).replace(match[0], "").trim() };
+  } catch {
+    return null;
+  }
+}
+
+function renderFusionDecisionCard(container, rawText) {
+  const parsed = fusionDecisionParse(rawText);
+  if (!parsed) {
+    container.replaceChildren(...richTextNodes(rawText));
+    return;
+  }
+  const { data, visibleText } = parsed;
+  if (data.answered) {
+    // answered 回执卡片：标记同 id 的待答卡片，同时自身显示为只读摘要。
+    fusionDecisionCards.set(data.id, { answered: true, answer: data.answer });
+    document
+      .querySelectorAll(`[data-fusion-decision="${CSS.escape(data.id)}"]`)
+      .forEach((card) => markFusionDecisionAnswered(card, data.answer));
+  }
+  const prior = fusionDecisionCards.get(data.id);
+  container.replaceChildren(...richTextNodes(visibleText));
+  const card = document.createElement("div");
+  card.className = "fusion-decision-card";
+  card.dataset.fusionDecision = data.id;
+  if (data.answered) {
+    card.classList.add("is-answered");
+    const note = document.createElement("div");
+    note.className = "fusion-decision-answer";
+    note.textContent = `已选择：${data.answer || "—"}`;
+    card.append(note);
+  } else {
+    if (prior?.answered) {
+      card.classList.add("is-answered");
+    }
+    const list = document.createElement("div");
+    list.className = "fusion-decision-options";
+    (Array.isArray(data.options) ? data.options : []).forEach((option, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "fusion-decision-option";
+      // 后端按 id 或 label 匹配：主持没给 id 时传 label。
+      button.dataset.optionId = option.id || option.label || `opt-${index}`;
+      const title = document.createElement("span");
+      title.textContent = option.label || String(option);
+      button.append(title);
+      if (option.detail) {
+        const detail = document.createElement("small");
+        detail.textContent = option.detail;
+        button.append(detail);
+      }
+      button.addEventListener("click", () => answerFusionDecision(card, data.id, button.dataset.optionId, title.textContent));
+      list.append(button);
+    });
+    if (list.childElementCount) {
+      card.append(list);
+    }
+    if (data.allow_free_text !== false) {
+      const row = document.createElement("div");
+      row.className = "fusion-decision-freetext";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "或直接输入你的决定…";
+      const submit = document.createElement("button");
+      submit.type = "button";
+      submit.className = "fusion-decision-submit";
+      submit.textContent = "提交";
+      const send = () => {
+        const text = input.value.trim();
+        if (text) {
+          answerFusionDecision(card, data.id, null, text, text);
+        }
+      };
+      submit.addEventListener("click", send);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          send();
+        }
+      });
+      row.append(input, submit);
+      card.append(row);
+    }
+    if (prior?.answered) {
+      markFusionDecisionAnswered(card, prior.answer);
+    }
+  }
+  container.append(card);
+}
+
+function markFusionDecisionAnswered(card, answer) {
+  card.classList.add("is-answered");
+  card.querySelectorAll("button, input").forEach((element) => {
+    element.disabled = true;
+  });
+  if (!card.querySelector(".fusion-decision-answer")) {
+    const note = document.createElement("div");
+    note.className = "fusion-decision-answer";
+    note.textContent = `已选择：${answer || "—"}`;
+    card.append(note);
+  }
+}
+
+async function answerFusionDecision(card, decisionId, optionId, label, freeText = null) {
+  if (card.classList.contains("is-answered")) {
+    return;
+  }
+  card.querySelectorAll("button, input").forEach((element) => {
+    element.disabled = true;
+  });
+  try {
+    await requestJson(`/api/fusion/decisions/${encodeURIComponent(decisionId)}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(optionId ? { option_id: optionId } : { free_text: freeText || label }),
+    });
+    fusionDecisionCards.set(decisionId, { answered: true, answer: label });
+    markFusionDecisionAnswered(card, label);
+  } catch (error) {
+    card.querySelectorAll("button, input").forEach((element) => {
+      element.disabled = false;
+    });
+    const note = document.createElement("div");
+    note.className = "fusion-decision-error";
+    note.textContent = `提交失败：${error.message || error}`;
+    card.append(note);
+  }
 }
 
 function richTextNodes(text) {

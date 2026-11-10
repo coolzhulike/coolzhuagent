@@ -10,6 +10,7 @@ use std::path::PathBuf;
 pub(super) mod runtime;
 pub(super) mod store;
 pub(super) mod team_tools;
+pub(super) mod verification;
 
 pub(crate) const FUSION_TARGET_PREFIX: &str = "fusion:";
 
@@ -95,6 +96,8 @@ pub(crate) struct FusionToolScope {
     pub host_web_access: bool,
     /// 查询者是否独立于执行者模型；同模型时执行者不暴露 team_query。
     pub querier_is_separate: bool,
+    /// 任务标题兜底（用户原始消息首行）；team_plan 未传 title 时使用。
+    pub task_title_hint: Option<String>,
 }
 
 tokio::task_local! {

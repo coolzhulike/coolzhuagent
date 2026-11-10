@@ -548,12 +548,37 @@ fn task_open(prepared: &FusionPrepared) -> Option<store::FusionTaskRow> {
 }
 
 async fn orchestrate_inner(prepared: &FusionPrepared, run: &Arc<ActiveFusionRun>) -> ChatTurnStatus {
-    // 上次进程遗留的 running brief 收敛为 interrupted（不重放）。
-    let _ = store::fusion_briefs_sweep_interrupted(&prepared.db_path);
+    // 上次进程遗留的 running brief 收敛为 interrupted（不重放）；
+    // 受影响 brief 转为恢复事件交给主持（继续/放弃由主持决定，不自动重放）。
+    let interrupted = store::fusion_briefs_by_status(
+        &prepared.db_path,
+        &prepared.room_id,
+        &prepared.resolved.team.id,
+        "running",
+    )
+    .unwrap_or_default();
+    let swept = store::fusion_briefs_sweep_interrupted(&prepared.db_path).unwrap_or(0);
     let settings = &prepared.resolved.settings;
     let mut stats = OrchestrateStats::default();
     // 首轮主持事件：用户消息（线程里由 run_role_turn 落库）。
     let mut host_events = vec![format!("【用户消息】{}", prepared.user_text)];
+    if swept > 0 {
+        // 中断 brief 的执行者工作项回 pending；待主持决定后重新派发。
+        let _ = store::fusion_work_items_sweep_running(&prepared.db_path);
+        for brief in &interrupted {
+            host_events.push(format!(
+                "【恢复】上次进程中断的 brief {}（{} → {}，kind={}）已标记 interrupted，未重放。\
+                 请核查当前实际状态后决定：重新派发执行（新 brief）或放弃该工作项。",
+                brief.id, brief.from_role, brief.to_role, brief.kind
+            ));
+        }
+        emit(
+            prepared,
+            "Fusion Team",
+            "fusion-status",
+            &format!("检测到 {} 条上次进程中断的任务交接，已标记为 interrupted 等待主持恢复。", interrupted.len().max(swept)),
+        );
+    }
     loop {
         if prepared.cancellation.is_requested() {
             emit(prepared, "Fusion Team", "fusion-status", "已按用户请求停止。");
@@ -785,6 +810,13 @@ async fn run_role_turn(
         task_id: task_open(prepared).map(|task| task.id),
         host_web_access: prepared.resolved.settings.host_web_access,
         querier_is_separate: prepared.resolved.querier_is_separate,
+        task_title_hint: prepared
+            .user_text
+            .lines()
+            .next()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+            .map(|line| line.chars().take(160).collect::<String>()),
     };
     let response = scope(
         scope_value,
@@ -1077,6 +1109,33 @@ pub(crate) async fn api_fusion_tasks(
         .map_err(sqlite_api_error)?
         .collect::<rusqlite::Result<Vec<_>>>()
         .map_err(sqlite_api_error)?;
+    drop(statement);
+    // 任务面板需要工作项级状态（done/pending/blocked 与重试计数）与待答决策数。
+    let tasks: Vec<JsonValue> = tasks
+        .into_iter()
+        .map(|mut task| {
+            let task_id = task["id"].as_str().unwrap_or_default().to_string();
+            let items = store::fusion_work_items_for_task(&db_path, &task_id).unwrap_or_default();
+            task["work_items"] = json!(items
+                .iter()
+                .map(|item| json!({
+                    "id": item.id,
+                    "title": item.title,
+                    "status": item.status,
+                    "depends_on": serde_json::from_str::<JsonValue>(&item.depends_on_json)
+                        .unwrap_or_else(|_| json!([])),
+                    "retry_count": item.retry_count,
+                    "max_retries": item.max_retries,
+                    "last_verdict": item.last_verdict,
+                    "last_reason": item.last_reason,
+                }))
+                .collect::<Vec<_>>());
+            task["pending_decisions"] = json!(store::fusion_decisions_pending(&db_path, &task_id)
+                .map(|items| items.len())
+                .unwrap_or(0));
+            task
+        })
+        .collect();
     Ok(axum::Json(json!({"tasks": tasks})))
 }
 
@@ -1098,4 +1157,132 @@ pub(crate) async fn api_fusion_task_cancel(
     let _ = store::fusion_brief_cancel_running(&db_path, &task.room_id, &task.team_id);
     store::fusion_task_update(&db_path, &task_id, "cancelled", None, None)?;
     Ok(axum::Json(json!({"cancelled": true})))
+}
+
+#[derive(Deserialize)]
+pub(crate) struct FusionDecisionAnswerPayload {
+    #[serde(default)]
+    option_id: Option<String>,
+    #[serde(default)]
+    free_text: Option<String>,
+    #[serde(default)]
+    session_id: Option<String>,
+}
+
+/// 决策卡片回答：写答案 → 任务回 executing → 房间 answered 卡片 →
+/// 以合成用户回合重启编排器（点选规则直达；自由文本由主持映射）。
+pub(crate) async fn api_fusion_decision_answer(
+    AxumPath(decision_id): AxumPath<String>,
+    axum::Json(payload): axum::Json<FusionDecisionAnswerPayload>,
+) -> ApiResult<axum::Json<JsonValue>> {
+    let db_path = default_session_sqlite_path();
+    let Some(decision) = store::fusion_decision_get(&db_path, &decision_id)? else {
+        return Err(api_error(StatusCode::NOT_FOUND, "决策不存在或已过期"));
+    };
+    if decision.status != "pending" {
+        return Err(api_error(StatusCode::CONFLICT, "该决策已回答"));
+    }
+    // options_json 形态：{options:[...], allow_free_text}（兼容历史裸数组）。
+    let meta: JsonValue =
+        serde_json::from_str(&decision.options_json).unwrap_or_else(|_| json!({}));
+    let options = match meta.get("options") {
+        Some(value) => value.as_array().cloned().unwrap_or_default(),
+        None => meta.as_array().cloned().unwrap_or_default(),
+    };
+    let allow_free_text = meta
+        .get("allow_free_text")
+        .and_then(JsonValue::as_bool)
+        .unwrap_or(true);
+    let (label, free_text) = match (
+        payload.option_id.as_deref().map(str::trim),
+        payload.free_text.as_deref().map(str::trim),
+    ) {
+        (Some(option_id), _) if !option_id.is_empty() => {
+            let label = options
+                .iter()
+                .find(|entry| {
+                    entry.get("id").and_then(JsonValue::as_str) == Some(option_id)
+                        || entry.get("label").and_then(JsonValue::as_str) == Some(option_id)
+                })
+                .and_then(|entry| entry.get("label"))
+                .and_then(JsonValue::as_str)
+                .map(str::to_string);
+            match label {
+                Some(label) => (label, None),
+                None => return Err(api_error(StatusCode::BAD_REQUEST, "所选选项不存在")),
+            }
+        }
+        (_, Some(text)) if !text.is_empty() => {
+            if !allow_free_text && !options.is_empty() {
+                return Err(api_error(StatusCode::BAD_REQUEST, "该决策只允许点选"));
+            }
+            (format!("（自由回答）{text}"), Some(text.to_string()))
+        }
+        _ => return Err(api_error(StatusCode::BAD_REQUEST, "option_id 或 free_text 必填")),
+    };
+    let answer_json = json!({
+        "option_id": payload.option_id,
+        "label": label,
+        "free_text": free_text,
+    })
+    .to_string();
+    if !store::fusion_decision_answer(&db_path, &decision_id, &answer_json)? {
+        return Err(api_error(StatusCode::CONFLICT, "该决策已回答"));
+    }
+    let Some(task) = store::fusion_task_get(&db_path, &decision.task_id)? else {
+        return Err(api_error(StatusCode::NOT_FOUND, "决策所属任务已不存在"));
+    };
+    if task.status == "awaiting_user" {
+        store::fusion_task_update(&db_path, &decision.task_id, "executing", None, None)?;
+    }
+    emit_room_message(
+        &task.room_id,
+        "主持",
+        "fusion-decision",
+        &format!(
+            "已收到你的决定\n{}\n选择：{}\n[fusion-decision]{}",
+            decision.question,
+            label,
+            json!({"id": decision_id, "answered": true, "answer": label})
+        ),
+    );
+    // 恢复推进：合成 fusion 目标的用户回合复用 admit→编排器全链路
+    // （决策记录已落库，事件文本提示主持这是规则直达的回答）。
+    let resume = SendMessageRequest {
+        expected_workspace_id: None,
+        native_browser_panel: false,
+        session_id: payload.session_id,
+        chat_room_id: Some(task.room_id.clone()),
+        target_agent_ids: vec![format!("{}{}", FUSION_TARGET_PREFIX, task.team_id)],
+        text: format!("【决策回答】对「{}」的决定：{label}。请按此决定继续推进任务。", decision.question),
+        selected_message_ids: None,
+        attachments: None,
+    };
+    let prepared = admit(resume).await?;
+    let started =
+        start_chat_runtime_run_sqlite(&prepared.db_path, &prepared.run_id, &prepared.claim_token)
+            .unwrap_or(false);
+    if !started {
+        let mut prepared = prepared;
+        let _ = prepared.guard.finish(ChatTurnStatus::Failed);
+        return Err(api_error(StatusCode::CONFLICT, "恢复运行启动冲突，请稍后重试"));
+    }
+    spawn_orchestrator(prepared);
+    Ok(axum::Json(json!({
+        "answered": true,
+        "decision_id": decision_id,
+        "answer": label,
+    })))
+}
+
+/// 进程启动清扫：遗留 running brief → interrupted、running 工作项 → pending。
+/// 在会话 schema 初始化完成后调用一次；不自动重放任何副作用。
+pub(crate) fn startup_sweep(db_path: &Path) {
+    match store::fusion_briefs_sweep_interrupted(db_path) {
+        Ok(count) if count > 0 => {
+            diag_log(&format!("fusion 启动清扫：{count} 条 running brief 标记 interrupted"));
+            let _ = store::fusion_work_items_sweep_running(db_path);
+        }
+        _ => {}
+    }
 }
