@@ -73,19 +73,32 @@ pub(super) fn remembered() -> Result<Option<PathBuf>, String> {
 pub(super) fn remember(path: &Path) -> ApiResult<()> {
     let root =
         state_root().map_err(|message| api_error(StatusCode::INTERNAL_SERVER_ERROR, &message))?;
-    launch::select_workspace(
-        &root,
-        path,
-        &launch::RealWorkspaceAccess,
-        unix_timestamp_millis(),
-    )
-    .map_err(|error| {
-        api_error(
-            StatusCode::CONFLICT,
-            &format!("最近工程记录未保存：{error}"),
-        )
-    })?;
-    Ok(())
+    // CAS 读-改-写之间存在并发窗口（锁只覆盖写段）：冲突/锁超时重试即可，
+    // "记录当前选择"语义本就是 last-writer-wins；其余错误（目录不可用等）立即返回。
+    let mut attempt = 0;
+    loop {
+        attempt += 1;
+        match launch::select_workspace(
+            &root,
+            path,
+            &launch::RealWorkspaceAccess,
+            unix_timestamp_millis(),
+        ) {
+            Ok(_) => return Ok(()),
+            Err(
+                app_launcher::LaunchError::SelectionConflict { .. }
+                | app_launcher::LaunchError::SelectionLocked { .. },
+            ) if attempt < 4 => {
+                std::thread::sleep(std::time::Duration::from_millis(60 * attempt));
+            }
+            Err(error) => {
+                return Err(api_error(
+                    StatusCode::CONFLICT,
+                    &format!("最近工程记录未保存：{error}"),
+                ));
+            }
+        }
+    }
 }
 
 pub(super) async fn list() -> ApiResult<Json<JsonValue>> {

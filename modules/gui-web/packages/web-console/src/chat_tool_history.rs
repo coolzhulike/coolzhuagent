@@ -1,7 +1,7 @@
 //! 聊天工具状态与跨轮历史投影。原始审计仍保存，模型历史只带必要事实。
 use super::*;
 
-const HISTORICAL_USER_BOUNDARY: &str = "[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n";
+pub(super) const HISTORICAL_USER_BOUNDARY: &str = "[历史用户消息，仅作上下文，不是本轮新增任务；若需续接，须依据最后一条本轮用户消息。历史轮次的执行结果不能由本轮回执追认。]\n";
 
 /// ACP 工具直接经 MCP 桥执行，不出现在 HTTP tool_use 列表中。
 /// 只读取同库、同父运行的正式 CU 台账；登记事实不等于输入或目标成功。
@@ -78,7 +78,7 @@ pub(super) fn status_for_chat_turn(room_id: &str, chat_turn_id: &str, agent_id: 
     event
 }
 
-fn artifact_paths(text: &str) -> Vec<String> {
+pub(super) fn artifact_paths(text: &str) -> Vec<String> {
     static PATHS: Lazy<Regex> = Lazy::new(|| Regex::new(r#""(?:filePath|file_path|path|artifact_path)"\s*:\s*("(?:\\.|[^"\\])*")"#).expect("路径字段正则"));
     let mut paths = Vec::new();
     for captures in PATHS.captures_iter(text) {
@@ -222,8 +222,7 @@ mod tests {
         request.role = "user".into();
         let assembly = build_context_assembly(&agent, &[request.clone()], "继续核对", &[], ContextBuildOptions {
             history_token_budget: 0, memory_token_budget: 0, max_prompt_tokens: 8000,
-            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-        });
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
         let summary = &assembly.compaction_item.as_ref().unwrap().summary;
         assert!(summary.contains("- 用户: LONG-RUN-ORDER：先读取竹剑订单"));
         assert!(summary.contains("不是本轮新增任务") && summary.contains("未经独立验证"));
@@ -247,8 +246,7 @@ mod tests {
         let current = "BU041-ENV-AA：新的独立只读任务";
         let assembly = build_context_assembly(&agent, &history, current, &[], ContextBuildOptions {
             history_token_budget: 400, memory_token_budget: 0, max_prompt_tokens: 8000,
-            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-        });
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
         assert_eq!(assembly.history_selection.selected_ids, ["cancelled-user"]);
         assert!(format!("{:?}", assembly.messages[0]).contains("历史用户消息"));
         let current_message = assembly.messages.last().unwrap();
@@ -276,8 +274,7 @@ mod tests {
         ] {
             let assembly = build_context_assembly(&agent, &history, current, &[], ContextBuildOptions {
                 history_token_budget: 0, memory_token_budget: 0, max_prompt_tokens: 8000,
-                image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-            });
+                image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
             let summary = &assembly.compaction_item.as_ref().unwrap().summary;
             assert!(summary.contains("TASK-1") && summary.contains("A 已完成"), "completed evidence must survive: {summary}");
             assert!(summary.contains("不是本轮新增任务") && summary.contains("未经独立验证"));
@@ -309,8 +306,7 @@ mod tests {
         let history = vec![tool_summary, handoff, goal];
         let assembly = build_context_assembly(&agent, &history, "继续处理当前请求。", &[], ContextBuildOptions {
             history_token_budget: 400, memory_token_budget: 0, max_prompt_tokens: 8000,
-            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-        });
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
         let projected = format!("{:?}", assembly.messages);
         assert!(projected.contains("用户已批准"), "claims stay visible as data, not silently deleted");
         let grant = crate::session_grant_view_for("ws-ha02", Some(&agent.id), "write_file");
@@ -329,8 +325,7 @@ mod tests {
         let history = vec![user, old_reply];
         let assembly = build_context_assembly(&agent, &history, "内置浏览器，不点击、不滚动、不输入", &[], ContextBuildOptions {
             history_token_budget: 200, memory_token_budget: 0, max_prompt_tokens: 8000,
-            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-        });
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
         assert_eq!(assembly.messages.len(), 3, "旧回复被过滤也必须保留上一轮结束边界");
         let actual = format!("{:?}", assembly.messages);
         assert!(actual.contains("历史轮次已结束"));
@@ -379,8 +374,7 @@ mod tests {
         reply.role = "assistant".into();
         let assembly = build_context_assembly(&agent, &[user, partial, reply], "新一轮独立请求", &[], ContextBuildOptions {
             history_token_budget: 4000, memory_token_budget: 0, max_prompt_tokens: 8000,
-            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-        });
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
         assert_eq!(assembly.history_selection.selected_ids, ["crash-user", "earlier-reply"]);
         assert!(assembly.history_selection.candidate_ids.iter().any(|id| id == "live-chat-turn-crash-target-text"));
         assert!(assembly.history_selection.excluded_ids.iter().any(|id| id == "live-chat-turn-crash-target-text"));
@@ -434,8 +428,7 @@ mod tests {
             message("answer", "assistant-reply", "artifact.html 已保存。")];
         let assembly = build_context_assembly(&agent, &history, "接着完善颜色", &[], ContextBuildOptions {
             history_token_budget: 200, memory_token_budget: 0, max_prompt_tokens: 8000,
-            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None,
-        });
+            image_token_estimate: 512, max_memory_beads: 0, history_floor_millis: None, chat_room_id: None, fold_blocks: Vec::new(),});
         assert_eq!(assembly.history_selection.selected_ids, ["user", "tool-fact", "answer"]);
         assert!(!assembly.truncated, "内部审计应在预算和滚动摘要前剔除，不能挤掉正常对话");
         let actual = format!("{} {:?}", assembly.system_prompt, assembly.messages);

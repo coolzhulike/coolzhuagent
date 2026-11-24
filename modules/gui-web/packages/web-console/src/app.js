@@ -363,6 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
   actionButtons.get("goal-role-bootstrap")?.addEventListener("click", bootstrapGoalRoleSessions);
   actionButtons.get("goal-role-heartbeat")?.addEventListener("click", sendGoalRoleHeartbeat);
   actionButtons.get("goal-role-assign")?.addEventListener("click", applyGoalRoleAssignments);
+  actionButtons.get("fusion-team-save")?.addEventListener("click", saveFusionTeam);
   actionButtons.get("message-load-older")?.addEventListener("click", loadOlderMessages);
   actionButtons.get("message-delete-selected")?.addEventListener("click", deleteSelectedMessages);
   actionButtons.get("chat-room-new")?.addEventListener("click", createChatRoom);
@@ -4656,6 +4657,7 @@ async function taskRefreshWindow() {
     refreshTaskSchedules(),
     refreshGoalRoleRisks(),
     refreshGoals(),
+    refreshFusionTasks(),
     activeChatRoomId ? refreshChatCollaboration(activeChatRoomId) : Promise.resolve(),
   ]);
 }
@@ -9331,10 +9333,126 @@ function closeAvatarPicker() {
   if (picker) picker.hidden = true;
 }
 
+// ── Fusion Team：模型聚合发送对象与设置面板 ────────────────────────────
+// 发送对象是伪目标 `fusion:<id>`；只在「启用 + 主持/执行者配置完整 + 会话有效」时出现，
+// 停用或配置残缺自动隐藏（后端保存接口与发送接口有同样的校验）。
+
+let fusionTeams = [];
+
+function fusionSendableTargets() {
+  return (Array.isArray(fusionTeams) ? fusionTeams : [])
+    .filter((team) => team?.enabled && team?.sendable && team?.target_id)
+    .map((team) => ({
+      id: team.target_id,
+      name: `${team.name || "Fusion Team"}（团队）`,
+      display_name: `${team.name || "Fusion Team"}（团队）`,
+      selectable: true,
+      enabled: true,
+      fusion: true,
+    }));
+}
+
+function sendableTargets() {
+  const agents = Array.isArray(agentRegistry?.agents) ? agentRegistry.agents : [];
+  return [...agents.filter(canSendToAgent), ...fusionSendableTargets()];
+}
+
+function setFusionTeamStatus(text) {
+  const status = document.querySelector('[data-role="fusion-team-status"]');
+  if (!status) return;
+  status.textContent = text || "";
+  status.hidden = !text;
+}
+
+async function loadFusionTeams() {
+  try {
+    const registry = await requestJson("/api/fusion/teams");
+    fusionTeams = Array.isArray(registry?.teams) ? registry.teams : [];
+  } catch (error) {
+    fusionTeams = [];
+    console.warn("Fusion Team 加载失败:", error);
+  }
+  renderFusionTeamPanel();
+}
+
+function renderFusionTeamPanel() {
+  const section = document.querySelector('[data-role="fusion-team-section"]');
+  if (!section) return;
+  const team = fusionTeams[0] || null;
+  const sessions = goalConsultCandidateSessions();
+  const fill = (name, value, emptyText) => {
+    const select = document.querySelector(`[data-role="fusion-team-${name}"]`);
+    if (!select) return;
+    select.replaceChildren();
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = emptyText;
+    select.append(empty);
+    sessions.forEach((session) => {
+      const option = document.createElement("option");
+      option.value = session.id;
+      option.textContent = session.display_name || `${session.name || session.id} (${session.model || "-"})`;
+      select.append(option);
+    });
+    select.value = sessions.some((session) => session.id === value) ? value : "";
+  };
+  fill("host", team?.members?.host?.session_id || "", "选择会话配置");
+  fill("executor", team?.members?.executor?.session_id || "", "选择会话配置");
+  fill("querier", team?.members?.querier?.session_id || "", "同执行者");
+  const enabled = document.querySelector('[data-role="fusion-team-enabled"]');
+  if (enabled) enabled.value = team?.enabled ? "true" : "false";
+  const nameInput = document.querySelector('[data-role="fusion-team-name"]');
+  if (nameInput) nameInput.value = team?.name || "";
+  const web = document.querySelector('[data-role="fusion-team-web"]');
+  if (web) web.value = team?.settings?.host_web_access ? "true" : "false";
+  setFusionTeamStatus(
+    team
+      ? (team.sendable
+          ? `已启用：发送对象中显示「${team.name || "Fusion Team"}（团队）」。`
+          : `发送对象中不显示：${(team.issues || []).join("；") || (team.enabled ? "配置不完整" : "未启用")}`)
+      : "尚未创建团队。配置主持/执行者并启用后，发送对象中才会出现 Team。",
+  );
+}
+
+async function saveFusionTeam() {
+  const button = actionButtons.get("fusion-team-save");
+  const team = fusionTeams[0] || null;
+  const payload = {
+    name: document.querySelector('[data-role="fusion-team-name"]')?.value?.trim() || "Fusion Team",
+    enabled: document.querySelector('[data-role="fusion-team-enabled"]')?.value === "true",
+    host_session_id: document.querySelector('[data-role="fusion-team-host"]')?.value || "",
+    executor_session_id: document.querySelector('[data-role="fusion-team-executor"]')?.value || "",
+    querier_session_id: document.querySelector('[data-role="fusion-team-querier"]')?.value || "",
+    settings: {
+      host_web_access: document.querySelector('[data-role="fusion-team-web"]')?.value === "true",
+    },
+  };
+  setBusy(button, true, "保存中");
+  try {
+    const saved = await requestJson(team ? `/api/fusion/teams/${team.id}` : "/api/fusion/teams", {
+      method: team ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const index = fusionTeams.findIndex((item) => item.id === saved.id);
+    if (index >= 0) fusionTeams[index] = saved; else fusionTeams.push(saved);
+    // 发送对象联动：先重建勾选列表再按现有选择恢复，禁用/残缺时 Team 自动消失。
+    const currentSelection = getSelectedAgentIds();
+    renderAgentOptions(sendableTargets(), currentSelection);
+    restoreAgentTargets(sendableTargets(), currentSelection, activeChatRoomId);
+    renderFusionTeamPanel();
+  } catch (error) {
+    setFusionTeamStatus(`保存失败：${error.message}`);
+  } finally {
+    setBusy(button, false);
+  }
+}
+
 async function loadAgents() {
   try {
     const registry = await requestJson("/api/agents");
     agentRegistry = registry;
+    await loadFusionTeams();
     const selectable = registry.agents.filter(canSendToAgent);
     const active = selectable.find((agent) => registry.active_agent_ids.includes(agent.id)) ?? selectable[0];
 
@@ -9345,8 +9463,8 @@ async function loadAgents() {
     setText("agent.memoryState", registry.memory.architecture === "beads" ? "beads 分层" : "会话独立");
     setText("agent.memory", registry.memory.scope);
     setText("agent.window", registry.memory.window_strategy);
-    renderAgentOptions(selectable, registry.active_agent_ids);
-    restoreAgentTargets(selectable, registry.active_agent_ids, activeChatRoomId);
+    renderAgentOptions(sendableTargets(), registry.active_agent_ids);
+    restoreAgentTargets(sendableTargets(), registry.active_agent_ids, activeChatRoomId);
     renderGoalRoleAssignmentMatrix();
     renderOverviewHealth(agentRegistry);
     renderOverviewMascot();
@@ -9379,6 +9497,7 @@ async function loadSessions() {
     renderSessionList(registry.sessions, activeSessionId);
     renderTaskScheduleSessionOptions();
     renderGoalRoleAssignmentMatrix();
+    renderFusionTeamPanel();
     renderVisionAgentSelect(activeOverviewVisionAgent);
     renderOverviewMascot();
 
@@ -9401,6 +9520,7 @@ async function loadSessions() {
     clearStaleApprovalForActiveScope();
     renderSessionList([], null);
     renderGoalRoleAssignmentMatrix();
+    renderFusionTeamPanel();
     setSessionForm(null);
     setText("agent.current", "加载失败");
     setText("session.active", "加载失败");
@@ -9450,7 +9570,7 @@ async function loadChatRooms() {
   if (active) {
     updateChatRoomTrigger(active.name);
     restoreAgentTargets(
-      agentRegistry.agents.filter(canSendToAgent),
+      sendableTargets(),
       agentRegistry.active_agent_ids,
       active.id,
     );
@@ -11375,6 +11495,12 @@ function reconcileChatHistory(response) {
     else list.insertBefore(article, cursor);
   }
   if (!visible.length) renderChatMessageEmptyState(list);
+  // fusion-* 消息到达时顺带刷新任务面板（节流 5s，避免每条消息一次请求）。
+  if (visible.some((message) => String(message.kind || "").startsWith("fusion-"))
+      && Date.now() - (refreshFusionTasks._lastAt || 0) > 5000) {
+    refreshFusionTasks._lastAt = Date.now();
+    void refreshFusionTasks();
+  }
   messagePaging = {roomId: activeChatRoomId, hasMore: response.has_more, nextBefore: response.next_before};
   updateLoadOlderButton(); updateReferenceSelection();
   updateChatRoomTrigger(response.room.name);
@@ -11394,6 +11520,7 @@ async function loadChatRoomMessages(roomId, { before = null, appendOlder = false
   window.CoolzhuChatExperience?.todosRefresh?.();
   const url = new URL(`/api/chat/rooms/${encodeURIComponent(roomId)}/messages`, location.origin);
   url.searchParams.set("limit", "80");
+  url.searchParams.set("visible", "true");
   if (before) {
     url.searchParams.set("before", before);
   }
@@ -15456,6 +15583,10 @@ function isSpeakableAssistantReplyForTts(message) {
     "goal-phase",
     "task-summary",
     "scheduled-task",
+    "fusion-brief",
+    "fusion-result",
+    "fusion-status",
+    "fusion-plan",
   ]);
   if (blockedKinds.has(kind)) {
     return false;
@@ -15652,7 +15783,7 @@ function renderAgentOptions(agents, activeIds) {
   container.replaceChildren();
   agents.forEach((agent) => {
     const label = document.createElement("label");
-    label.className = "agent-cb";
+    label.className = agent.fusion ? "agent-cb fusion-team-target" : "agent-cb";
     const avatarPath = avatarForSession(sessionById(agent.id) || agent);
     if (avatarPath) {
       label.classList.add("has-avatar");
@@ -16093,8 +16224,8 @@ async function openSelectedChatRoom() {
     const result=await activation;
     if(!current() || !result)return;
     updateChatRoomTrigger(result.room.name);
-    restoreAgentTargets(agentRegistry.agents.filter(canSendToAgent),agentRegistry.active_agent_ids,room);
-    await Promise.allSettled([loadChatRoomMessages(room),refreshFullAccessStatus(),refreshChatRoomDiagnosticsPreferences(),refreshPendingApprovals()]);
+    restoreAgentTargets(sendableTargets(),agentRegistry.active_agent_ids,room);
+    await Promise.allSettled([loadChatRoomMessages(room),refreshFullAccessStatus(),refreshChatRoomDiagnosticsPreferences(),refreshPendingApprovals(),refreshFusionTasks(room)]);
     if(current()) console.debug("[room-switch]",{room,ready_ms:Math.round(performance.now()-started)});
   } catch(error) {
     if(current()) { taskRenderFullAccessStatus({room_id:room,error:error.message}); addMessage({author:"聊天室",text:`加载失败：${error.message}。再次选择此聊天室可重试。`,kind:"thought",icon:"error-log"}); }
@@ -16123,6 +16254,9 @@ function iconForMessage(message) {
   if (message.kind === "assistant-fallback") {
     return "info-log";
   }
+  if (message.kind === "fusion-decision") {
+    return "task-list";
+  }
   if (message.kind === "multimedia") {
     return "image-preview";
   }
@@ -16145,6 +16279,9 @@ function kindForMessage(message) {
   if (message.kind === "approval-result") {
     return "bot tool approval-result";
   }
+  if (message.kind === "fusion-decision") {
+    return "bot tool fusion-decision";
+  }
   if (message.kind === "vision") {
     return "bot vision";
   }
@@ -16160,14 +16297,14 @@ function renderTaskList(tasks) {
   syncTaskCardFromGoals(taskGoals, mergedRuntimeTaskItems());
   const count = document.querySelector('[data-role="task-runtime-count"]');
   if (count) {
-    count.textContent = `${taskRuntimeItems.length} 项`;
+    count.textContent = `${taskRuntimeItems.length + fusionTaskItems.length} 项`;
   }
   if (!list) {
     return;
   }
   list.replaceChildren();
   const visibleTasks = (Array.isArray(tasks) ? tasks : []).filter((task) => task.visible_in_chat);
-  if (!visibleTasks.length) {
+  if (!visibleTasks.length && !fusionTaskItems.length) {
     const empty = document.createElement("li");
     empty.className = "task-window-empty";
     empty.textContent = "暂无运行任务。";
@@ -16180,6 +16317,53 @@ function renderTaskList(tasks) {
     item.querySelector("strong").textContent = task.executor_agent;
     item.querySelector("span").textContent = ` ${task.status} · ${task.summary}`;
     item.querySelector("small").textContent = `${task.timeout_ms}ms`;
+    list.append(item);
+  });
+  renderFusionTaskItems(list);
+}
+
+// ── Fusion 任务面板状态：任务 + 工作项（blocked/awaiting/interrupted 高亮）──
+let fusionTaskItems = [];
+
+const FUSION_STATUS_LABELS = {
+  planning: "规划中", executing: "执行中", awaiting_user: "等你决定",
+  done: "完成", blocked: "受阻", failed: "失败", cancelled: "已取消",
+};
+
+async function refreshFusionTasks(roomId = activeChatRoomId) {
+  if (!roomId) { fusionTaskItems = []; return; }
+  try {
+    const result = await requestJson(`/api/fusion/tasks?room_id=${encodeURIComponent(roomId)}`);
+    fusionTaskItems = Array.isArray(result?.tasks) ? result.tasks : [];
+  } catch {
+    fusionTaskItems = [];
+  }
+  // 复用当前 runtime 任务数组触发一次重绘。
+  const list = document.querySelector('[data-role="task-list"]');
+  if (list) {
+    const current = taskRuntimeItems.map((item) => ({ ...item, visible_in_chat: true }));
+    renderTaskList(current);
+  }
+}
+
+function renderFusionTaskItems(list) {
+  fusionTaskItems.forEach((task) => {
+    const items = Array.isArray(task.work_items) ? task.work_items : [];
+    const done = items.filter((item) => item.status === "done").length;
+    const item = document.createElement("li");
+    item.className = "fusion-task-item";
+    const awaiting = task.status === "awaiting_user" || (task.pending_decisions || 0) > 0;
+    const blocked = task.status === "blocked" || items.some((entry) => entry.status === "blocked");
+    const statusLabel = FUSION_STATUS_LABELS[task.status] || task.status;
+    item.innerHTML = `<strong></strong><span></span><small></small>`;
+    item.querySelector("strong").textContent = `⚡ ${task.title || "Fusion 任务"}`;
+    const badge = blocked ? " · blocked" : awaiting ? " · 待决策" : "";
+    item.querySelector("span").textContent = ` ${statusLabel}${badge} · ${done}/${items.length} 工作项`;
+    const detail = items
+      .filter((entry) => entry.status !== "done")
+      .map((entry) => `${entry.title}:${entry.status}${entry.retry_count ? `(重试${entry.retry_count})` : ""}`)
+      .join("，");
+    item.querySelector("small").textContent = detail || "全部工作项完成";
     list.append(item);
   });
 }
@@ -17160,9 +17344,7 @@ function canSendToAgent(agent) {
 
 function agentTargetSelectionError(targetIds = getSelectedAgentIds()) {
   if (!targetIds.length) return "尚未选择发送对象，请先在顶栏选择。";
-  const selectableIds = new Set((agentRegistry?.agents || [])
-    .filter(canSendToAgent)
-    .map((agent) => String(agent.id)));
+  const selectableIds = new Set(sendableTargets().map((agent) => String(agent.id)));
   if (targetIds.some((id) => !selectableIds.has(id))) {
     return "发送名单包含已不可用的 Agent，请重新确认。";
   }
@@ -17178,8 +17360,10 @@ function updateAgentTriggerText() {
     return;
   }
   const selectedIds = getSelectedAgentIds();
+  const fusionTargets = fusionSendableTargets();
   const names = selectedIds.map((id) => {
-    const agent = agentRegistry?.agents?.find((candidate) => candidate.id === id);
+    const agent = agentRegistry?.agents?.find((candidate) => candidate.id === id)
+      || fusionTargets.find((candidate) => candidate.id === id);
     return agent?.display_name || agent?.name || id;
   });
   const label = document.createElement("span");
@@ -20233,7 +20417,154 @@ function renderChatMessageText(container, text = "", { role = "", kind = "", str
   // 流式增量和历史/最终 upsert 都保留原文，只在标准聊天 DOM 显示层过滤尾注。
   void streaming;
   container.dataset.rawText = rawText;
+  if (normalizedKind.split(/\s+/).includes("fusion-decision")) {
+    renderFusionDecisionCard(container, rawText);
+    return;
+  }
   container.replaceChildren(...richTextNodes(displayText));
+}
+
+// ── Fusion 决策卡片：[fusion-decision]{json} 行携带机读数据，选项可点击回答 ──
+const FUSION_DECISION_MARKER = /^\[fusion-decision\](\{.*\})\s*$/m;
+const fusionDecisionCards = new Map();
+
+function fusionDecisionParse(rawText) {
+  const match = String(rawText || "").match(FUSION_DECISION_MARKER);
+  if (!match) {
+    return null;
+  }
+  try {
+    const data = JSON.parse(match[1]);
+    if (!data || typeof data.id !== "string") {
+      return null;
+    }
+    return { data, visibleText: String(rawText).replace(match[0], "").trim() };
+  } catch {
+    return null;
+  }
+}
+
+function renderFusionDecisionCard(container, rawText) {
+  const parsed = fusionDecisionParse(rawText);
+  if (!parsed) {
+    container.replaceChildren(...richTextNodes(rawText));
+    return;
+  }
+  const { data, visibleText } = parsed;
+  if (data.answered) {
+    // answered 回执卡片：标记同 id 的待答卡片，同时自身显示为只读摘要。
+    fusionDecisionCards.set(data.id, { answered: true, answer: data.answer });
+    document
+      .querySelectorAll(`[data-fusion-decision="${CSS.escape(data.id)}"]`)
+      .forEach((card) => markFusionDecisionAnswered(card, data.answer));
+  }
+  const prior = fusionDecisionCards.get(data.id);
+  container.replaceChildren(...richTextNodes(visibleText));
+  const card = document.createElement("div");
+  card.className = "fusion-decision-card";
+  card.dataset.fusionDecision = data.id;
+  if (data.answered) {
+    card.classList.add("is-answered");
+    const note = document.createElement("div");
+    note.className = "fusion-decision-answer";
+    note.textContent = `已选择：${data.answer || "—"}`;
+    card.append(note);
+  } else {
+    if (prior?.answered) {
+      card.classList.add("is-answered");
+    }
+    const list = document.createElement("div");
+    list.className = "fusion-decision-options";
+    (Array.isArray(data.options) ? data.options : []).forEach((option, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "fusion-decision-option";
+      // 后端按 id 或 label 匹配：主持没给 id 时传 label。
+      button.dataset.optionId = option.id || option.label || `opt-${index}`;
+      const title = document.createElement("span");
+      title.textContent = option.label || String(option);
+      button.append(title);
+      if (option.detail) {
+        const detail = document.createElement("small");
+        detail.textContent = option.detail;
+        button.append(detail);
+      }
+      button.addEventListener("click", () => answerFusionDecision(card, data.id, button.dataset.optionId, title.textContent));
+      list.append(button);
+    });
+    if (list.childElementCount) {
+      card.append(list);
+    }
+    if (data.allow_free_text !== false) {
+      const row = document.createElement("div");
+      row.className = "fusion-decision-freetext";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "或直接输入你的决定…";
+      const submit = document.createElement("button");
+      submit.type = "button";
+      submit.className = "fusion-decision-submit";
+      submit.textContent = "提交";
+      const send = () => {
+        const text = input.value.trim();
+        if (text) {
+          answerFusionDecision(card, data.id, null, text, text);
+        }
+      };
+      submit.addEventListener("click", send);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          send();
+        }
+      });
+      row.append(input, submit);
+      card.append(row);
+    }
+    if (prior?.answered) {
+      markFusionDecisionAnswered(card, prior.answer);
+    }
+  }
+  container.append(card);
+}
+
+function markFusionDecisionAnswered(card, answer) {
+  card.classList.add("is-answered");
+  card.querySelectorAll("button, input").forEach((element) => {
+    element.disabled = true;
+  });
+  if (!card.querySelector(".fusion-decision-answer")) {
+    const note = document.createElement("div");
+    note.className = "fusion-decision-answer";
+    note.textContent = `已选择：${answer || "—"}`;
+    card.append(note);
+  }
+}
+
+async function answerFusionDecision(card, decisionId, optionId, label, freeText = null) {
+  if (card.classList.contains("is-answered")) {
+    return;
+  }
+  card.querySelectorAll("button, input").forEach((element) => {
+    element.disabled = true;
+  });
+  try {
+    await requestJson(`/api/fusion/decisions/${encodeURIComponent(decisionId)}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(optionId ? { option_id: optionId } : { free_text: freeText || label }),
+    });
+    fusionDecisionCards.set(decisionId, { answered: true, answer: label });
+    markFusionDecisionAnswered(card, label);
+  } catch (error) {
+    card.querySelectorAll("button, input").forEach((element) => {
+      element.disabled = false;
+    });
+    const note = document.createElement("div");
+    note.className = "fusion-decision-error";
+    note.textContent = `提交失败：${error.message || error}`;
+    card.append(note);
+  }
 }
 
 function richTextNodes(text) {

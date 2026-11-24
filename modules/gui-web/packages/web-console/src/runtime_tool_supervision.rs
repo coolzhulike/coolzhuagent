@@ -6,6 +6,7 @@ use runtime::managed_process::{with_execution_control, ExecutionControl};
 struct WorkerScope {
     workspace: String,
     session: Option<String>,
+    tool_name: String,
     unsettled: bool,
 }
 
@@ -53,13 +54,16 @@ pub(super) async fn execute_with_executor(
         let Ok(mut entries) = workers().lock() else {
             return runtime_tool_failed_outcome(&invoke, "工具监督器不可用，未开始执行".into());
         };
-        if entries.values().any(|entry| entry.unsettled
-            && entry.workspace == invoke.workspace_id && entry.session == invoke.session_id) {
-            return runtime_tool_failed_outcome(&invoke,
-                "该会话仍有已请求停止但未确认退出的工具；本次未执行，等待真实收尾后再继续".into());
+        if let Some(pending_tool) = entries.values()
+            .find(|entry| entry.unsettled
+                && entry.workspace == invoke.workspace_id && entry.session == invoke.session_id)
+            .map(|entry| entry.tool_name.clone())
+        {
+            return runtime_tool_failed_outcome(&invoke, format!(
+                "该会话仍有已请求停止但未确认退出的工具（{pending_tool}）；本次未执行，等待真实收尾后再继续"));
         }
         entries.insert(id, WorkerScope { workspace: invoke.workspace_id.clone(),
-            session: invoke.session_id.clone(), unsettled: false });
+            session: invoke.session_id.clone(), tool_name: invoke.tool_name.clone(), unsettled: false });
     }
     let external_cancel = current_turn_trace().as_deref().map(tool_turn_cancellation_checker);
     let control = ExecutionControl::new(Some(Duration::from_millis(timeout_ms)), external_cancel);

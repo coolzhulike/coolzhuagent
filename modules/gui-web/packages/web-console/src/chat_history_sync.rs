@@ -48,7 +48,7 @@ pub(super) async fn messages(AxumPath(room_id): AxumPath<String>, Query(query): 
     if workspace_identity(Path::new(&query.workspace)) != workspace_identity(&active_workspace_path()) {
         return Err(api_error(StatusCode::CONFLICT,"工作区已切换，请重新选择聊天室"));
     }
-    store.chat_room_messages(&room_id,MessageQuery {limit:query.limit,before:query.before})
+    store.chat_room_messages(&room_id,MessageQuery {limit:query.limit,before:query.before,visible:Some(true)})
 }
 
 pub(super) async fn events(AxumPath(room_id): AxumPath<String>, Query(query): Query<ScopeQuery>)

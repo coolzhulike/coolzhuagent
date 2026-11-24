@@ -42,6 +42,7 @@ mod chat_insights;
 mod session_db;
 mod static_resource_contract;
 mod execution_service;
+mod fusion;
 mod scheduled_execution;
 mod scheduled_delivery;
 mod scheduled_jobs;
@@ -70,7 +71,10 @@ mod devin_acp;
 mod content_delivery;
 mod project_file_snapshot;
 mod content_blob_store;
+mod context_fold;
 mod tool_result_spill;
+// M6 轮内工具结果折叠：已消费的旧 ToolResult/ToolUse 正文在工具循环内折叠为事实行+原文指针。
+mod in_turn_fold;
 mod config_publication;
 mod credential_store;
 mod clawbot_channel;
@@ -1397,6 +1401,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    // Fusion 遗留 running brief/工作项随进程启动一并收敛（interrupted/pending，不重放）。
+    if runtime_run_db_path.exists() {
+        fusion::runtime::startup_sweep(&runtime_run_db_path);
+    }
+
     // bind 先行：输入安全评估与会话库装载移到后台阻塞任务，冷启动大库不再阻塞首屏与端口。
     // startup_writer 一并移交：写者文件锁从启动段连续持有到 SessionStore 接管完成才释放；
     // 初始化 panic 保持 fail-closed（记录后退出），与原先同步路径的"未继续操作"语义一致。
@@ -2017,6 +2026,11 @@ fn app() -> Router {
         .route("/api/chat/send", post(api_chat_send))
         .route("/api/chat/send/stream", post(api_chat_send_stream))
         .route("/api/chat/turn/interrupt", post(api_chat_turn_interrupt))
+        .route("/api/fusion/teams", get(fusion::runtime::api_fusion_teams_list).post(fusion::runtime::api_fusion_team_create))
+        .route("/api/fusion/teams/{team_id}", axum::routing::put(fusion::runtime::api_fusion_team_update).delete(fusion::runtime::api_fusion_team_delete))
+        .route("/api/fusion/tasks", get(fusion::runtime::api_fusion_tasks))
+        .route("/api/fusion/tasks/{task_id}/cancel", post(fusion::runtime::api_fusion_task_cancel))
+        .route("/api/fusion/decisions/{decision_id}/answer", post(fusion::runtime::api_fusion_decision_answer))
         .route("/api/chat/send/relay", post(api_chat_send_relay))
         .route(
             "/api/agents/{agent_id}/diagnostics",
@@ -7558,6 +7572,30 @@ struct ConfigContextLifecycle {
     compact_summary_max_chars: usize,
     #[serde(default = "default_true")]
     cleanup_goal_scratch_on_compact: bool,
+    /// M6：轮内工具结果折叠总开关；关闭后完全恢复原行为。
+    #[serde(default = "default_true")]
+    in_turn_fold_enabled: bool,
+    /// 轮内追加段估算 token 超过此值触发一次折叠。
+    #[serde(default = "default_in_turn_fold_high_tokens")]
+    in_turn_fold_high_tokens: u32,
+    /// 触发后按最旧优先折叠，直到轮内段低于此值。
+    #[serde(default = "default_in_turn_fold_low_tokens")]
+    in_turn_fold_low_tokens: u32,
+    /// 无读取能力时折叠行保留的头部节选字符数。
+    #[serde(default = "default_in_turn_fold_excerpt_chars")]
+    in_turn_fold_excerpt_chars: usize,
+    /// `ToolUse.input` 序列化超过此字符数才替换为 stub。
+    #[serde(default = "default_in_turn_fold_tool_use_input_chars")]
+    in_turn_fold_tool_use_input_chars: usize,
+    /// M1：跨轮增量折叠总开关；默认关闭，开启前读路径不加载 FoldBlock。
+    #[serde(default)]
+    fold_enabled: bool,
+    /// 跨轮 tail 估算达到历史预算该百分比时触发一次折叠。
+    #[serde(default = "default_context_fold_high_percent")]
+    fold_high_percent: u32,
+    /// 折叠按完整轮次回退到该百分比水位。
+    #[serde(default = "default_context_fold_low_percent")]
+    fold_low_percent: u32,
 }
 
 fn default_context_warning_percent() -> u32 {
@@ -7592,6 +7630,27 @@ fn default_context_compact_summary_max_messages() -> usize {
 }
 fn default_context_compact_summary_max_chars() -> usize {
     1_600
+}
+fn default_in_turn_fold_high_tokens() -> u32 {
+    // M0 单回合峰均 ~30K；普通回合不触发，只有失控长工具回合付折叠代价。
+    32_000
+}
+fn default_in_turn_fold_low_tokens() -> u32 {
+    16_000
+}
+fn default_in_turn_fold_excerpt_chars() -> usize {
+    1_200
+}
+fn default_in_turn_fold_tool_use_input_chars() -> usize {
+    4_000
+}
+fn default_context_fold_high_percent() -> u32 {
+    // 高水位：跨轮 tail 估算达到历史预算 85% 触发折叠；滞回留出增长空间。
+    85
+}
+fn default_context_fold_low_percent() -> u32 {
+    // 低水位：折叠到 50%，避免每轮重复折叠扰动前缀。
+    50
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -8427,6 +8486,14 @@ impl Default for ConfigContextLifecycle {
             compact_summary_max_messages: default_context_compact_summary_max_messages(),
             compact_summary_max_chars: default_context_compact_summary_max_chars(),
             cleanup_goal_scratch_on_compact: default_true(),
+            in_turn_fold_enabled: default_true(),
+            in_turn_fold_high_tokens: default_in_turn_fold_high_tokens(),
+            in_turn_fold_low_tokens: default_in_turn_fold_low_tokens(),
+            in_turn_fold_excerpt_chars: default_in_turn_fold_excerpt_chars(),
+            in_turn_fold_tool_use_input_chars: default_in_turn_fold_tool_use_input_chars(),
+            fold_enabled: false,
+            fold_high_percent: default_context_fold_high_percent(),
+            fold_low_percent: default_context_fold_low_percent(),
         }
     }
 }
@@ -8782,11 +8849,26 @@ fn tool_execution_policy() -> ToolExecutionPolicy {
 /// WebSearch 自己探测/降级多个后端，内部预算已含逐后端尝试；这里在预算之外再留一点
 /// 收尾余量（构造失败文案、进程回收）。
 const WEB_SEARCH_TIMEOUT_SLACK_MS: u64 = 5_000;
+/// Sleep/TaskOutput.wait 自身声明的等待就是它要占用的预算；slack 只覆盖派发与收尾，
+/// 不额外延长业务等待。
+const WAIT_TOOL_BUDGET_SLACK_MS: u64 = 5_000;
 
 fn tool_timeout_ms_for(tool_name: &str, input: &JsonValue) -> u64 {
     // timeout_ms 字段语义为毫秒；timeout 字段语义为秒（PowerShell/bash schema 已标 SECONDS），需 ×1000。
     // 否则模型传 timeout:10（秒）会被外层 tokio 超时当 10ms，几十毫秒内杀掉命令 → runtime-timeout。
-    let requested = if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
+    let normalized = tool_name.replace('-', "_");
+    let requested = if normalized.eq_ignore_ascii_case("sleep") {
+        // 睡 N 毫秒是工具自身语义；按默认 30s 发预算会把长睡拦腰杀掉，
+        // worker 又不能立即退出 → 会话级"未确认退出"门把后续工具全部拒绝。
+        input.get("duration_ms").and_then(JsonValue::as_u64)
+            .map(|duration| duration.saturating_add(WAIT_TOOL_BUDGET_SLACK_MS))
+            .unwrap_or_else(|| tool_execution_policy().default_timeout_ms)
+    } else if normalized.eq_ignore_ascii_case("taskoutput")
+        || normalized.eq_ignore_ascii_case("task_output") {
+        input.get("wait_ms").and_then(JsonValue::as_u64)
+            .map(|wait| wait.saturating_add(WAIT_TOOL_BUDGET_SLACK_MS))
+            .unwrap_or_else(|| tool_execution_policy().default_timeout_ms)
+    } else if let Some(ms) = input.get("timeout_ms").and_then(JsonValue::as_u64) {
         ms
     } else if let Some(secs) = input.get("timeout").and_then(JsonValue::as_u64) {
         secs.saturating_mul(1000)
@@ -19665,6 +19747,9 @@ async fn api_chat_send_relay(Json(payload): Json<SendMessageRequest>) -> ApiResu
 }
 
 async fn api_chat_send(Json(payload): Json<SendMessageRequest>) -> ApiResult<Json<SendMessageResponse>> {
+    if fusion::targets_include_fusion(&payload.target_agent_ids) {
+        return fusion::runtime::send(payload).await;
+    }
     let prepared = prepare_chat_dispatch(payload)?;
     let dedup_key = prepared.dedup_key;
     let response = chat_run_admission::run_nonstream(prepared, false).await;
@@ -20025,6 +20110,12 @@ async fn api_chat_send_stream(
     Json(payload): Json<SendMessageRequest>,
 ) -> ApiResult<Sse<impl futures_core::Stream<Item = Result<Event, std::convert::Infallible>>>> {
     let turn_clock = Instant::now();
+    if fusion::targets_include_fusion(&payload.target_agent_ids) {
+        let prepared = fusion::runtime::admit(payload).await?;
+        return Ok(Sse::new(futures_util::future::Either::Left(
+            fusion::runtime::stream_events(prepared),
+        )));
+    }
     let result = prepare_chat_dispatch(payload)?;
     let dedup_key = result.dedup_key;
     let accepted = match chat_run_admission::accept(&result, "chat-send-stream") {
@@ -21007,7 +21098,9 @@ async fn api_chat_send_stream(
         ));
     };
 
-    Ok(Sse::new(root_execution_budget::scope_stream(root_budget, stream)))
+    Ok(Sse::new(futures_util::future::Either::Right(
+        root_execution_budget::scope_stream(root_budget, stream),
+    )))
 }
 
 async fn api_agent_diagnostics(
@@ -28920,6 +29013,8 @@ async fn dispatch_model_tool_calls_parallel(
     host_scope: Option<host_child_agent::HostToolScope>,
 ) -> Vec<ModelToolDispatchResult> {
     let source_request_key = tool_invocation_identity::current();
+    // Fusion 角色 scope 同 request_key 一样需手动重挂——spawn 不会自动继承 task-local。
+    let fusion_scope = fusion::current_scope();
     let request_collector = request_binding::current_collector();
     let policy = tool_execution_policy();
     let ids = tool_requests
@@ -28956,6 +29051,7 @@ async fn dispatch_model_tool_calls_parallel(
         let parent = parent.clone();
         let host_scope = host_scope.clone();
         let source_request_key = source_request_key.clone();
+        let fusion_scope = fusion_scope.clone();
         let request_collector = request_collector.clone();
         tasks.spawn(async move {
             let _permit = semaphore.acquire_owned().await.ok();
@@ -28980,9 +29076,12 @@ async fn dispatch_model_tool_calls_parallel(
             );
             // 子请求的观测仍属于本次响应；spawn 不会自动继承 task-local。
             let (outcome, recovery_stop) = tool_recovery::capture(request_binding::with_collector(request_collector, async {
-                match source_request_key {
-                    Some(source) => tool_invocation_identity::scope(source, dispatch).await,
-                    None => dispatch.await,
+                match (source_request_key, fusion_scope) {
+                    (Some(source), Some(scope)) =>
+                        tool_invocation_identity::scope(source, fusion::scope(scope, dispatch)).await,
+                    (Some(source), None) => tool_invocation_identity::scope(source, dispatch).await,
+                    (None, Some(scope)) => fusion::scope(scope, dispatch).await,
+                    (None, None) => dispatch.await,
                 }
             })).await;
             #[cfg(test)]
@@ -29194,6 +29293,11 @@ async fn run_shared_model_tool_loop(
     let mut last_diagnostic = None;
     let mut used_real_model = false;
     let mut history: Option<Vec<InputMessage>> = None;
+    // M6：轮内追加段起点（base_history 逐字节不动）+ 折叠事实登记与水位配置。
+    let in_turn_start = base_history.len();
+    let mut fold_metas: HashMap<String, in_turn_fold::FoldMeta> = HashMap::new();
+    let fold_options = in_turn_fold::InTurnFoldOptions::from_policy(&context_lifecycle_policy());
+    let fold_blob_root = tool_results_store_root(parent);
     let mut best_remote_usage: Option<api::Usage> = None;
     let parent_model_snapshot = parent.and_then(|context| context.host_model_snapshots.get(&agent.id));
     let host_scope = if child_scope.is_none() {
@@ -29330,7 +29434,13 @@ async fn run_shared_model_tool_loop(
             next.push(InputMessage {role:"user".into(),content:tool_requests.iter().map(|(id,_,_)|
                 InputContentBlock::ToolResult {tool_use_id:id.clone(),is_error:true,content:vec![ToolResultContentBlock::Text{
                     text:format!("{reason} 仅允许一次针对参数的修复；本批包含的其他调用也未执行。请保留任务范围及已有结果，修正必要字段后继续。") }]}).collect()});
-            history=Some(next);continue;
+            for (id, name, _) in &tool_requests {
+                fold_metas.insert(id.clone(), in_turn_fold::FoldMeta::new(name.clone(), reason.clone()));
+            }
+            history=Some(next);
+            fold_in_turn_history(&mut history, in_turn_start, &fold_metas, fold_options,
+                fold_blob_root.as_deref(), sent.exposes("read_file"));
+            continue;
         }
         if !tool_requests.is_empty() && round < max_tool_feedback_rounds {
             diag!(
@@ -29358,6 +29468,10 @@ async fn run_shared_model_tool_loop(
             }
             model_tool_calls_executed = true;
             tool_result_summaries.extend(dispatches.iter().map(ToolFallbackSummary::from_dispatch));
+            fold_metas.extend(dispatches.iter().map(|dispatch| (
+                dispatch.tool_use_id.clone(),
+                in_turn_fold::FoldMeta::new(dispatch.name.clone(), dispatch.summary_text.clone()),
+            )));
             tool_write_executed |= dispatches
                 .iter()
                 .any(model_tool_dispatch_result_executed_file_write);
@@ -29434,6 +29548,8 @@ async fn run_shared_model_tool_loop(
                 content: tool_result_blocks,
             });
             history = Some(next_history);
+            fold_in_turn_history(&mut history, in_turn_start, &fold_metas, fold_options,
+                fold_blob_root.as_deref(), sent.exposes("read_file"));
             continue;
         }
 
@@ -29976,7 +30092,15 @@ fn build_context_assembly_with_roster(
             .saturating_sub(system_tokens)
             .saturating_sub(user_tokens),
     );
+    // M1：折叠水位内（含端点）的消息已被 FoldBlock 摘要覆盖——跳过，不入选也不计入
+    // dropped_history（否则兜底摘要会与块内容重复，水位前移也失去意义）。
+    let fold_watermark = context_fold::watermark(&options.fold_blocks);
     for message in room_history.iter().rev() {
+        if let Some(mark) = &fold_watermark {
+            if context_fold::covered_by_watermark(message, mark) {
+                continue;
+            }
+        }
         if options
             .history_floor_millis
             .is_some_and(|floor| message.created_at < floor)
@@ -30036,6 +30160,30 @@ fn build_context_assembly_with_roster(
         selected_ids: history_selected_ids,
         excluded_ids: history_excluded_ids,
     };
+    // M1：冻结 FoldBlock 摘要固定在滚动摘要之前注入；块文本逐轮不变，保住跨轮前缀。
+    // 预算放不下时放弃本轮注入（水位后消息已正常入选，下轮仍有机会）。
+    if !options.fold_blocks.is_empty() {
+        let fold_text = context_fold::render_blocks(&options.fold_blocks);
+        let fold_tokens = estimate_bead_tokens(&fold_text);
+        if !fold_text.is_empty()
+            && system_tokens
+                .saturating_add(fold_tokens)
+                .saturating_add(history_tokens)
+                .saturating_add(user_tokens)
+                <= max_prompt_tokens
+        {
+            system_prompt.push_str("\n\n");
+            system_prompt.push_str(&fold_text);
+            system_tokens = system_tokens.saturating_add(fold_tokens);
+        } else if !fold_text.is_empty() {
+            diagnostics::info(
+                "context",
+                "context_fold.render_deferred",
+                "折叠块摘要超出本轮硬预算，改由兜底滚动摘要覆盖",
+                &[("fold_tokens", fold_tokens.to_string())],
+            );
+        }
+    }
     // dropped_history 是新→旧顺序，摘要时转回时间正序并注入 system_prompt（计入 system_tokens）。
     if !dropped_history.is_empty() {
         dropped_history.reverse();
@@ -30108,6 +30256,11 @@ fn build_context_assembly_with_roster(
     let chat_room_id = options.chat_room_id.clone();
     let permission_profile = context_permission_profile(chat_room_id.as_deref());
     let tool_catalog_revision = context_tool_catalog_revision();
+    let fold_block_seqs: Vec<u32> = options
+        .fold_blocks
+        .iter()
+        .map(|block| block.seq)
+        .collect();
     let context_snapshot_id = context_snapshot_id(
         agent,
         &memory_revision,
@@ -30121,6 +30274,7 @@ fn build_context_assembly_with_roster(
         &permission_profile,
         &memory_mode,
         &tool_catalog_revision,
+        &fold_block_seqs,
     );
     let runtime_snapshot = ContextRuntimeSnapshot {
         snapshot_id: context_snapshot_id.clone(),
@@ -30178,6 +30332,8 @@ fn build_context_assembly_with_roster(
         runtime_snapshot,
         history_floor_millis: options.history_floor_millis,
         history_message_count: selected_history.len(),
+        history_overflowed: !dropped_history.is_empty(),
+        fold_block_seqs,
         token_budget: ContextTokenBudget {
             system: system_tokens,
             memory: memory_tokens,
@@ -30254,6 +30410,7 @@ fn context_snapshot_id(
     permission_profile: &str,
     memory_mode: &str,
     tool_catalog_revision: &str,
+    fold_block_seqs: &[u32],
 ) -> String {
     let history_identity = selected_history
         .iter()
@@ -30263,7 +30420,7 @@ fn context_snapshot_id(
     let input_hash = hash_bytes(current_user_text.as_bytes());
     let prompt_hash = hash_bytes(system_prompt.as_bytes());
     let seed = format!(
-        "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{:016x}|{:016x}",
+        "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{:016x}|{:016x}",
         agent.id,
         memory_revision,
         history_floor_millis.unwrap_or_default(),
@@ -30274,6 +30431,11 @@ fn context_snapshot_id(
         permission_profile,
         memory_mode,
         tool_catalog_revision,
+        fold_block_seqs
+            .iter()
+            .map(u32::to_string)
+            .collect::<Vec<_>>()
+            .join(","),
         prompt_hash,
         input_hash,
     );
@@ -30557,6 +30719,20 @@ fn context_build_options_for_agent_with_floor_and_room(
             usable_context.saturating_mul(policy.memory_budget_percent) / 100;
     }
     options.history_floor_millis = history_floor_millis;
+    // M1：fold_enabled + HTTP 后端 + 房间作用域才加载 FoldBlock；ACP/订阅/无房间路径
+    // 保持空块集，行为与启用前一致。库打开失败返回空，不阻断装配。
+    if policy.fold_enabled
+        && options.chat_room_id.is_some()
+        && agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+            == agent_session_backend::AgentSessionBackend::LlmHttp
+    {
+        options.fold_blocks = context_fold::load_blocks_from_path(
+            &default_session_sqlite_path(),
+            options.chat_room_id.as_deref().unwrap_or_default(),
+            &agent.id,
+            history_floor_millis.unwrap_or(0),
+        );
+    }
     options
 }
 
@@ -30595,10 +30771,54 @@ fn context_message_role(role: &str) -> &'static str {
 }
 
 /// 原文保存与上下文投影使用受理时冻结的存储位置，不回读当前工作区。
+fn frozen_tool_results_db_path(parent: Option<&FrozenParentContext>) -> Option<&Path> {
+    parent.and_then(|parent| parent.goal_phase.as_ref().map(|goal| goal.db_path())
+        .or(parent.runtime_db_path.as_deref()))
+}
+
+/// 工具结果原文落盘根目录：与 tool_result_spill 一致（冻结库旁 tool-results/）。
+fn tool_results_store_root(parent: Option<&FrozenParentContext>) -> Option<PathBuf> {
+    frozen_tool_results_db_path(parent)
+        .and_then(Path::parent)
+        .map(|root| root.join("tool-results"))
+}
+
 fn truncate_tool_result_for_context(text: String, parent: Option<&FrozenParentContext>, can_read_original: bool) -> String {
-    let db_path = parent.and_then(|parent| parent.goal_phase.as_ref().map(|goal| goal.db_path())
-        .or(parent.runtime_db_path.as_deref()));
-    tool_result_spill::for_context(text, db_path, can_read_original)
+    tool_result_spill::for_context(text, frozen_tool_results_db_path(parent), can_read_original)
+}
+
+/// M6：轮内折叠入口。轮内追加段越线时，把最新一轮问答对之前的旧结果折叠为事实行+原文指针。
+fn fold_in_turn_history(
+    history: &mut Option<Vec<InputMessage>>,
+    base_len: usize,
+    metas: &HashMap<String, in_turn_fold::FoldMeta>,
+    options: in_turn_fold::InTurnFoldOptions,
+    blob_root: Option<&Path>,
+    can_read_original: bool,
+) {
+    if !options.enabled {
+        return;
+    }
+    let Some(messages) = history.as_mut() else { return; };
+    let report = in_turn_fold::fold_stale(messages, base_len, metas, options, blob_root, can_read_original);
+    if report.folded_tool_results + report.folded_tool_use_inputs > 0 {
+        diag!(
+            "[TOOL-LOOP] in-turn fold: results={} inputs={} est {}→{} tokens",
+            report.folded_tool_results, report.folded_tool_use_inputs,
+            report.tokens_before, report.tokens_after
+        );
+        diagnostics::info(
+            "context",
+            "in_turn_fold",
+            "轮内工具结果折叠：已消费的旧结果替换为事实行与原文指针",
+            &[
+                ("folded_results", report.folded_tool_results.to_string()),
+                ("folded_inputs", report.folded_tool_use_inputs.to_string()),
+                ("tokens_before", report.tokens_before.to_string()),
+                ("tokens_after", report.tokens_after.to_string()),
+            ],
+        );
+    }
 }
 
 fn estimate_message_tokens(message: &PersistedChatMessage) -> u32 {
@@ -32824,6 +33044,9 @@ struct ContextBuildOptions {
     history_floor_millis: Option<u64>,
     /// 当前 turn 所属聊天室；None 表示调用方没有房间作用域（例如通用模型探测）。
     chat_room_id: Option<String>,
+    /// M1：该 (room, session) 在当前 floor 下有效的折叠块；空表示未启用或无块。
+    /// 由 options 构造器按 fold_enabled+HTTP backend+房间作用域加载，装配函数纯消费。
+    fold_blocks: Vec<context_fold::FoldBlock>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -32854,6 +33077,14 @@ struct ContextLifecyclePolicy {
     compact_summary_max_messages: usize,
     compact_summary_max_chars: usize,
     cleanup_goal_scratch_on_compact: bool,
+    in_turn_fold_enabled: bool,
+    in_turn_fold_high_tokens: u32,
+    in_turn_fold_low_tokens: u32,
+    in_turn_fold_excerpt_chars: usize,
+    in_turn_fold_tool_use_input_chars: usize,
+    fold_enabled: bool,
+    fold_high_percent: u32,
+    fold_low_percent: u32,
 }
 
 impl Default for ContextLifecyclePolicy {
@@ -32866,6 +33097,8 @@ impl From<ConfigContextLifecycle> for ContextLifecyclePolicy {
     fn from(config: ConfigContextLifecycle) -> Self {
         let warning_percent = config.warning_percent.clamp(1, 100);
         let auto_compact_percent = config.auto_compact_percent.clamp(warning_percent, 100);
+        let in_turn_fold_high_tokens = config.in_turn_fold_high_tokens.clamp(4_096, 4_000_000);
+        let fold_high_percent = config.fold_high_percent.clamp(50, 99);
         Self {
             warning_percent,
             auto_compact_percent,
@@ -32878,6 +33111,17 @@ impl From<ConfigContextLifecycle> for ContextLifecyclePolicy {
             compact_summary_max_messages: config.compact_summary_max_messages.clamp(1, 100),
             compact_summary_max_chars: config.compact_summary_max_chars.clamp(240, 12_000),
             cleanup_goal_scratch_on_compact: config.cleanup_goal_scratch_on_compact,
+            in_turn_fold_enabled: config.in_turn_fold_enabled,
+            in_turn_fold_high_tokens,
+            in_turn_fold_low_tokens: config.in_turn_fold_low_tokens.clamp(1_024, in_turn_fold_high_tokens),
+            in_turn_fold_excerpt_chars: config.in_turn_fold_excerpt_chars.clamp(0, 8_000),
+            in_turn_fold_tool_use_input_chars: config.in_turn_fold_tool_use_input_chars.clamp(256, 256_000),
+            fold_enabled: config.fold_enabled,
+            fold_high_percent,
+            // 滞回要求低水位严格低于高水位，留至少 10 个百分点的回退区间。
+            fold_low_percent: config
+                .fold_low_percent
+                .clamp(10, fold_high_percent.saturating_sub(10).max(10)),
         }
     }
 }
@@ -32890,6 +33134,8 @@ struct ContextUsageSnapshot {
     percent_tenths: u32,
     warning_reached: bool,
     auto_compact_reached: bool,
+    /// 本轮装配是否有历史因预算被丢弃；越线但历史未溢出时压力来自轮内，不重置。
+    history_overflowed: bool,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -32914,6 +33160,7 @@ impl Default for ContextBuildOptions {
             max_memory_beads: 8,
             history_floor_millis: None,
             chat_room_id: None,
+            fold_blocks: Vec::new(),
         }
     }
 }
@@ -33005,6 +33252,11 @@ struct ContextAssembly {
     runtime_snapshot: ContextRuntimeSnapshot,
     history_floor_millis: Option<u64>,
     history_message_count: usize,
+    /// 有历史消息因预算被丢弃；区分于 user 正文/图片截断——生命周期据此判断
+    /// "usage 越线"是否与跨轮历史有关，无关则不切断历史（轮内压力不误伤）。
+    history_overflowed: bool,
+    /// M1：本轮参与装配的 FoldBlock 序号；块集合变化会让 context_snapshot_id 变化。
+    fold_block_seqs: Vec<u32>,
     token_budget: ContextTokenBudget,
     truncated: bool,
 }
@@ -33047,6 +33299,7 @@ fn context_usage_snapshot_for_assembly_with_usage(
             || percent_tenths >= policy.warning_percent.saturating_mul(10),
         auto_compact_reached: estimated_budget_truncated
             || percent_tenths >= policy.auto_compact_percent.saturating_mul(10),
+        history_overflowed: assembly.history_overflowed,
     }
 }
 
@@ -34979,19 +35232,7 @@ fn small_context_mcp_prompt_budget(
 ) -> u32 {
     let policy = context_lifecycle_policy();
     let message_tokens = messages.iter().fold(0u32, |total, message| {
-        let blocks = message.content.iter().fold(0u32, |subtotal, block| {
-            let tokens = match block {
-                api::InputContentBlock::Text { text }
-                | api::InputContentBlock::Thinking { thinking: text } => estimate_bead_tokens(text),
-                api::InputContentBlock::ImageUrl { .. } => policy.image_token_estimate,
-                api::InputContentBlock::ToolUse { name, input, .. } =>
-                    estimate_bead_tokens(name).saturating_add(estimate_bead_tokens(&input.to_string())),
-                api::InputContentBlock::ToolResult { content, .. } =>
-                    serde_json::to_string(content).map(|value| estimate_bead_tokens(&value)).unwrap_or(u32::MAX),
-            };
-            subtotal.saturating_add(tokens).saturating_add(8)
-        });
-        total.saturating_add(blocks).saturating_add(8)
+        total.saturating_add(in_turn_fold::estimate_input_message_tokens(message, policy.image_token_estimate))
     });
     let builtin_schema_tokens = selected_builtin_tools.iter().fold(0u32, |total, tool| {
         total.saturating_add(serde_json::to_string(tool)
@@ -35353,6 +35594,10 @@ fn llm_tool_definitions_for_session(
     } else {
         llm_tool_permission_for_room(chat_room_id)
     };
+    // Fusion 角色轮次：工具表由角色策略+团队开关决定，不走会话默认表与 MCP/插件追加。
+    if let Some(fusion_scope) = fusion::current_scope() {
+        return fusion::role_tool_definitions(&fusion_scope, permission, &settings);
+    }
     let mut defs = llm_tool_definitions_with_settings(permission, Some(&settings)).unwrap_or_default();
     let tools_enabled = settings.enable_llm_tools.unwrap_or_else(llm_tools_enabled);
     let mode = settings.llm_tool_exposure.as_deref()
@@ -36610,6 +36855,11 @@ async fn run_model_tool_dispatch_within_root(
     // 宿主/冻结权限骨证收纳为预检，与派发服务共用；调用方必须先过门禁才能触发 hook。
     model_tool_host_preflight(name, input, caller_session_id, turn_id, chat_room_id, parent, host_scope)?;
     let normalized = name.replace('-', "_");
+
+    // Fusion 角色轮次的 team_* 协调工具：仅写 fusion_* 台账，不进 MCP/插件/DSH 通道。
+    if normalized.starts_with("team_") {
+        return fusion::execute_team_tool(&normalized, input).await;
+    }
 
     if name.starts_with("mcp__") {
         let outcome = mcp_host::call_from_model(
@@ -39567,7 +39817,115 @@ impl SessionStore {
         snapshot: &ContextUsageSnapshot,
         policy: ContextLifecyclePolicy,
     ) -> ApiResult<ContextLifecycleResult> {
+        // M1：fold_enabled + HTTP 后端先按跨轮 tail 水位评估折叠，与 usage 是否越线无关。
+        // Folded/NoTrigger/写失败都直接返回；只有 Fallback（无法覆盖溢出）才落到下方硬重置。
+        let fold_session = self
+            .state
+            .sessions
+            .iter()
+            .find(|session| session.id == session_id)
+            .map(|session| (session.to_agent_session(false), session.context_reset_at));
+        if let Some((agent, reset_at)) = fold_session.filter(|(agent, _)| {
+            policy.fold_enabled
+                && agent_session_backend::AgentSessionBackend::for_provider(&agent.provider)
+                    == agent_session_backend::AgentSessionBackend::LlmHttp
+        }) {
+            let room_messages = self
+                .state
+                .chat_rooms
+                .iter()
+                .find(|room| room.id == room_id)
+                .map(|room| room.messages.clone())
+                .unwrap_or_default();
+            let history_token_budget = context_build_options_for_agent_with_floor_and_room(
+                &agent,
+                context_reset_floor_from_value(reset_at),
+                Some(room_id),
+            )
+            .history_token_budget;
+            let outcome = open_session_connection(&self.path).and_then(|connection| {
+                context_fold::fold_after_turn(
+                    &connection,
+                    room_id,
+                    session_id,
+                    &room_messages,
+                    reset_at,
+                    history_token_budget,
+                    policy.fold_high_percent,
+                    policy.fold_low_percent,
+                )
+            });
+            match outcome {
+                Ok(context_fold::FoldOutcome::Fallback) => {
+                    if let Ok(connection) = open_session_connection(&self.path) {
+                        let _ = context_fold::delete_for_session(&connection, room_id, session_id);
+                    }
+                    diagnostics::info(
+                        "context",
+                        "context_fold.fallback_reset",
+                        "跨轮折叠无法覆盖溢出，作废折叠块并回退自动压缩重置",
+                        &[
+                            ("session", session_id.to_string()),
+                            ("room", room_id.to_string()),
+                        ],
+                    );
+                    // 继续走下方硬重置。
+                }
+                Ok(context_fold::FoldOutcome::Folded { seq, count }) => {
+                    diagnostics::info(
+                        "context",
+                        "context_fold.done",
+                        "跨轮折叠块已写入，生命周期不再硬重置",
+                        &[
+                            ("session", session_id.to_string()),
+                            ("room", room_id.to_string()),
+                            ("seq", seq.to_string()),
+                            ("messages", count.to_string()),
+                        ],
+                    );
+                    return Ok(ContextLifecycleResult::default());
+                }
+                Ok(context_fold::FoldOutcome::NoTrigger) => {
+                    return Ok(ContextLifecycleResult::default());
+                }
+                Err(error) => {
+                    diagnostics::info(
+                        "context",
+                        "context_fold.error",
+                        "跨轮折叠写入失败，本轮跳过，下回合重试",
+                        &[
+                            ("session", session_id.to_string()),
+                            ("error", error.to_string()),
+                        ],
+                    );
+                    diag!("[CONTEXT-FOLD] fold_after_turn failed for session={session_id} room={room_id}: {error}");
+                    return Ok(ContextLifecycleResult::default());
+                }
+            }
+        }
         if !snapshot.auto_compact_reached {
+            return Ok(ContextLifecycleResult::default());
+        }
+        // 轮内压力不误伤：usage 越线但本轮跨轮历史全部装入预算时，压力来自轮内
+        // 工具结果或本轮输入——重置历史救不了它们，反而把无辜历史全部切断。
+        if !snapshot.history_overflowed {
+            diagnostics::info(
+                "context",
+                "compact.skip_in_turn_pressure",
+                "上下文用量越线但跨轮历史未溢出（压力来自轮内工具结果或本轮输入），跳过自动压缩重置",
+                &[
+                    ("session", session_id.to_string()),
+                    ("room", room_id.to_string()),
+                    (
+                        "usage",
+                        format!(
+                            "{}.{}%",
+                            snapshot.percent_tenths / 10,
+                            snapshot.percent_tenths % 10
+                        ),
+                    ),
+                ],
+            );
             return Ok(ContextLifecycleResult::default());
         }
         let room_messages = self
@@ -43433,6 +43791,7 @@ fn initialize_session_schema(connection: &Connection) -> rusqlite::Result<()> {
             "SELECT provider_tool_call_id,source_request_key FROM tool_calls LIMIT 0",
             "SELECT id,workspace_id,spec_json,state,run_id FROM execution_index LIMIT 0",
             "SELECT room_id,session_id,todos_json,source,revision FROM chat_room_todos LIMIT 0",
+            "SELECT scope_id,session_id,seq,summary FROM context_fold_blocks LIMIT 0",
         ] { connection.prepare(query)?; }
         Ok(())
     })
@@ -43558,6 +43917,9 @@ fn apply_session_schema_steps(connection: &Connection) -> rusqlite::Result<()> {
     computer_use_store::apply_session_migration_v28_panel_dispatch(connection)?;
     execution_service::apply_session_migration_v29(connection)?;
     chat_todos::apply_session_migration_v30(connection)?;
+    fusion::store::apply_session_migration_v31(connection)?;
+    // M1：跨轮 FoldBlock 表（冻结摘要 + 区间水位）。
+    context_fold::apply_session_migration_v32(connection)?;
     Ok(())
 }
 
@@ -43829,7 +44191,7 @@ fn apply_session_migration_v20(connection: &Connection) -> rusqlite::Result<()> 
 /// 断言"阶梯已完整应用"的测试请引用本常量，不要硬编码数字。
 /// **注意**：各步的推进守卫必须写"本步自己的版本号"（`current < 21` / `current < 22` …），
 /// 不得写成 `current < SESSION_SCHEMA_VERSION`——后者会让已迁移的库被前面的步骤**回写**成旧版本号。
-pub(crate) const SESSION_SCHEMA_VERSION: i64 = 30;
+pub(crate) const SESSION_SCHEMA_VERSION: i64 = 32;
 
 /// 事实日志表（第二轮裁决第 2 项）：由迁移阶梯统一创建，**禁止**在请求里自行 CREATE/ALTER。
 ///
@@ -51549,6 +51911,9 @@ fn delete_chat_room_message_sqlite(
     let attachment_file_names =
         attachment_file_names_for_message_ids(&tx, "chat_room_messages", &ids)
             .map_err(sqlite_api_error)?;
+    // M1：先作废覆盖该消息的 FoldBlock（同事务），再删消息本体。
+    context_fold::invalidate_covering_message(&tx, room_id, message_id)
+        .map_err(sqlite_api_error)?;
     tx.execute(
         "DELETE FROM chat_room_messages WHERE room_id = ?1 AND id = ?2",
         params![room_id, message_id],
@@ -51590,6 +51955,8 @@ fn clear_chat_room_messages_sqlite(
     let attachment_file_names =
         attachment_file_names_for_message_ids(&tx, "chat_room_messages", &ids)
             .map_err(sqlite_api_error)?;
+    // M1：清空房间 = 全部折叠水位失效，删除该 scope 全部 FoldBlock（同事务）。
+    context_fold::delete_scope(&tx, room_id).map_err(sqlite_api_error)?;
     tx.execute(
         "DELETE FROM chat_room_messages WHERE room_id = ?1",
         params![room_id],
@@ -53902,6 +54269,8 @@ struct VisionAgentConfigResponse {
 struct MessageQuery {
     limit: Option<usize>,
     before: Option<String>,
+    /// 仅返回聊天转录可见消息（越过工具回执等不可见行）；存档与任务记录仍取原始流。
+    visible: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -65259,8 +65628,7 @@ pub(crate) mod tests {
                 image_token_estimate: 512,
                 max_memory_beads: 4,
                 history_floor_millis: None,
-                chat_room_id: None,
-            },
+                chat_room_id: None, fold_blocks: Vec::new(),},
         );
 
         assert!(assembly.truncated);
@@ -65286,8 +65654,7 @@ pub(crate) mod tests {
                 image_token_estimate: 512,
                 max_memory_beads: 0,
                 history_floor_millis: None,
-                chat_room_id: None,
-            },
+                chat_room_id: None, fold_blocks: Vec::new(),},
         );
 
         assert!(assembly.truncated);
@@ -65325,8 +65692,7 @@ pub(crate) mod tests {
                 image_token_estimate: 512,
                 max_memory_beads: 4,
                 history_floor_millis: None,
-                chat_room_id: Some("room-context".to_string()),
-            },
+                chat_room_id: Some("room-context".to_string()), fold_blocks: Vec::new(),},
         );
 
         assert!(assembly.system_prompt.contains("alpha click target"));
@@ -65414,6 +65780,7 @@ pub(crate) mod tests {
             "workspace-write",
             "enabled",
             "tools-a",
+            &[]
         );
         let workspace_changed = super::context_snapshot_id(
             &agent,
@@ -65428,6 +65795,7 @@ pub(crate) mod tests {
             "workspace-write",
             "enabled",
             "tools-a",
+            &[]
         );
         let permission_changed = super::context_snapshot_id(
             &agent,
@@ -65442,6 +65810,7 @@ pub(crate) mod tests {
             "full-access",
             "enabled",
             "tools-a",
+            &[]
         );
         let tools_changed = super::context_snapshot_id(
             &agent,
@@ -65456,6 +65825,7 @@ pub(crate) mod tests {
             "workspace-write",
             "enabled",
             "tools-b",
+            &[]
         );
         let memory_mode_changed = super::context_snapshot_id(
             &agent,
@@ -65470,6 +65840,7 @@ pub(crate) mod tests {
             "workspace-write",
             "disabled",
             "tools-a",
+            &[]
         );
 
         assert_ne!(base, workspace_changed);
@@ -65498,8 +65869,7 @@ pub(crate) mod tests {
                 image_token_estimate: 512,
                 max_memory_beads: 4,
                 history_floor_millis: Some(20),
-                chat_room_id: None,
-            },
+                chat_room_id: None, fold_blocks: Vec::new(),},
         );
 
         let joined = assembly
@@ -65537,8 +65907,7 @@ pub(crate) mod tests {
                 image_token_estimate: 512,
                 max_memory_beads: 4,
                 history_floor_millis: None,
-                chat_room_id: None,
-            },
+                chat_room_id: None, fold_blocks: Vec::new(),},
         );
 
         let joined = assembly
@@ -79330,7 +79699,7 @@ attach: last_assistant
     }
 
     #[test]
-    fn run_model_tool_dispatch_sleep_respects_runtime_timeout() {
+    fn run_model_tool_dispatch_sleep_uses_own_wait_budget() {
         use super::{ConfigTool, ConfigToolExecution, WorkspaceConfig};
         let _guard = config_test_guard();
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -79363,15 +79732,22 @@ attach: last_assistant
             .enable_all()
             .build()
             .unwrap();
+        // Sleep 的等待本身就是其声明预算（duration_ms + slack，见
+        // tool_timeout_ms_for）：200ms 睡眠预算 5.2s，不被 default_timeout_ms=20
+        // 拦腰杀——这是防"等待轮询烧反馈轮"的现行契约（6ddde36c）。
+        assert_eq!(
+            super::tool_timeout_ms_for("Sleep", &serde_json::json!({ "duration_ms": 200 })),
+            200 + super::WAIT_TOOL_BUDGET_SLACK_MS
+        );
         let resp = rt
             .block_on(super::run_model_tool_dispatch(
                 "Sleep",
                 &serde_json::json!({ "duration_ms": 200 }),
             ))
-            .expect("timeout should still map to dispatch response");
+            .expect("sleep within its own budget completes");
 
-        assert_eq!(resp.route, "runtime-timeout");
-        assert_eq!(resp.status, "timeout");
+        assert_eq!(resp.route, "runtime-executed");
+        assert_eq!(resp.status, "ok");
         assert!(resp.notes.iter().any(|note| !note.trim().is_empty()));
 
         let _ = std::mem::replace(&mut *super::workspace_config().lock().expect("lock"), prev);
@@ -82346,6 +82722,32 @@ attach: last_assistant
         assert_eq!(other, super::tool_execution_policy().default_timeout_ms);
     }
 
+    /// Sleep/TaskOutput 的等待时长就是它们声明的预算。按 30s 默认发时间会把
+    /// 长等待拦腰杀掉，worker 收尾不及时还会触发会话级"未确认退出"门，
+    /// 把同会话后续所有工具调用拒绝——这正是"会话工具被阻断"的来源。
+    #[test]
+    fn wait_tools_timeout_follows_declared_duration() {
+        let sleep = super::tool_timeout_ms_for("Sleep", &serde_json::json!({"duration_ms": 60_000}));
+        let task_output = super::tool_timeout_ms_for(
+            "TaskOutput",
+            &serde_json::json!({"task_id": "1", "wait_ms": 120_000}),
+        );
+        let task_output_nowait = super::tool_timeout_ms_for(
+            "TaskOutput",
+            &serde_json::json!({"task_id": "1"}),
+        );
+        let default = super::tool_execution_policy().default_timeout_ms;
+
+        assert!(sleep >= 60_000, "Sleep must get duration budget, got {sleep}");
+        assert!(task_output >= 120_000, "TaskOutput wait must get budget, got {task_output}");
+        assert_eq!(task_output_nowait, default);
+        // 超过总钳位上限的等待按上限截断，由工具自身分片检查保证尽快收尾。
+        assert_eq!(
+            super::tool_timeout_ms_for("Sleep", &serde_json::json!({"duration_ms": 9_000_000})),
+            600_000
+        );
+    }
+
     #[test]
     fn runtime_execute_relative_write_file_is_scoped_to_active_workspace() {
         let _guard = config_test_guard();
@@ -84151,7 +84553,7 @@ attach: last_assistant
             "className = \"session-option chat-room-nav-item\"",
             "function setChatWorkspacePath(workspace)",
             "function workspaceLeafName(workspace)",
-            "const display = full || \"未设置\";",
+            "const display = workspaceDisplayPath(full) || \"未设置\";",
             "data-role=\"chat-workspace-summary-path\"",
             "document.querySelector('[data-role=\"chat-room-list\"]')?.addEventListener(\"keydown\"",
             "event.target.closest(\"button[data-room-id]\")",
@@ -89431,7 +89833,7 @@ attach: last_assistant
         assert!(WEB_APP_JS.contains("function persistAgentTargets"));
         assert!(WEB_APP_JS.contains("activeWorkspaceKey"));
         assert!(WEB_APP_JS.contains("activeChatRoomId"));
-        assert!(WEB_APP_JS.contains("restoreAgentTargets(selectable, registry.active_agent_ids"));
+        assert!(WEB_APP_JS.contains("restoreAgentTargets(sendableTargets(), registry.active_agent_ids"));
         assert!(WEB_APP_JS.contains("persistAgentTargets(activeChatRoomId)"));
     }
 
@@ -92065,6 +92467,8 @@ attach: last_assistant
                 budget: 5_000,
             },
             truncated: false,
+            history_overflowed: false,
+            fold_block_seqs: Vec::new(),
         };
 
         let footer = super::context_usage_footer_for_assembly_with_usage(&agent, &assembly, None);
@@ -92246,6 +92650,8 @@ attach: last_assistant
                 budget: 5_000,
             },
             truncated: false,
+            history_overflowed: false,
+            fold_block_seqs: Vec::new(),
         };
         let remote_usage = api::Usage {
             input_tokens: 64_000,
@@ -92321,6 +92727,8 @@ attach: last_assistant
                 budget: 5_000,
             },
             truncated: false,
+            history_overflowed: false,
+            fold_block_seqs: Vec::new(),
         };
         // 2026-05-31 容量更正：glm-5.1 上下文 200K；input 提到 170K(=85%) 以保持"超阈值触发"测试本意。
         let remote_usage = api::Usage {
@@ -92400,6 +92808,8 @@ attach: last_assistant
                 budget: 11_264,
             },
             truncated: true,
+            history_overflowed: true,
+            fold_block_seqs: Vec::new(),
         };
         let policy = super::ContextLifecyclePolicy {
             warning_percent: 80,
@@ -92495,6 +92905,7 @@ attach: last_assistant
             percent_tenths: 875,
             warning_reached: true,
             auto_compact_reached: true,
+            history_overflowed: true,
         };
 
         let result = store
@@ -92535,6 +92946,75 @@ attach: last_assistant
     }
 
     #[test]
+    fn context_lifecycle_skips_reset_when_history_did_not_overflow() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let mut session = super::seed_session();
+        session.id = "agent-in-turn-pressure".to_string();
+        let mut store = super::SessionStore {
+            history_edits: Vec::new(),
+            writer: None,
+            committed_state: None,
+            path: temp.path().join("sessions.sqlite3"),
+            legacy_json_path: temp.path().join("sessions.json"),
+            capacity: super::SessionStoreCapacity::default(),
+            state: super::PersistedSessionState {
+                sessions: vec![session],
+                active_session_id: Some("agent-in-turn-pressure".to_string()),
+                active_vision_session_id: None,
+                chat_rooms: vec![super::PersistedChatRoom {
+                    id: "room-in-turn-pressure".to_string(),
+                    name: "In-turn pressure room".to_string(),
+                    created_at: 1,
+                    updated_at: 1,
+                    messages: vec![persisted_role_message("keep-me", "user", "历史请求", 10)],
+                }],
+                active_chat_room_id: Some("room-in-turn-pressure".to_string()),
+            },
+        };
+        let snapshot = super::ContextUsageSnapshot {
+            source: super::ContextUsageSource::Remote,
+            used_tokens: 115_000,
+            context_tokens: 128_000,
+            percent_tenths: 899,
+            warning_reached: true,
+            auto_compact_reached: true,
+            // 轮内工具结果把 usage 顶过阈值，但跨轮历史全部装入预算——不应切断历史。
+            history_overflowed: false,
+        };
+
+        let result = store
+            .apply_context_lifecycle_after_turn(
+                "agent-in-turn-pressure",
+                "room-in-turn-pressure",
+                &snapshot,
+                super::ContextLifecyclePolicy::default(),
+            )
+            .expect("apply context lifecycle");
+
+        assert!(!result.compacted);
+        assert_eq!(result.added_memory_beads, 0);
+        let session = store
+            .state
+            .sessions
+            .iter()
+            .find(|s| s.id == "agent-in-turn-pressure")
+            .expect("session remains");
+        assert_eq!(session.context_reset_at, 0);
+        assert!(!session
+            .memory_beads
+            .iter()
+            .any(|bead| bead.source == "context:auto-compact:v2"));
+        let room = store
+            .state
+            .chat_rooms
+            .iter()
+            .find(|room| room.id == "room-in-turn-pressure")
+            .expect("room remains");
+        assert_eq!(room.messages.len(), 1);
+        assert_eq!(room.messages[0].id, "keep-me");
+    }
+
+    #[test]
     fn context_builder_skips_goal_scratch_messages_even_before_cleanup() {
         let agent = context_test_agent();
         let normal_message = super::PersistedChatMessage {
@@ -92565,8 +93045,7 @@ attach: last_assistant
                 image_token_estimate: 512,
                 max_memory_beads: 8,
                 history_floor_millis: None,
-                chat_room_id: None,
-            },
+                chat_room_id: None, fold_blocks: Vec::new(),},
         );
         let joined = assembly
             .messages

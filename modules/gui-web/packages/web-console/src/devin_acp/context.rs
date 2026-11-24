@@ -436,7 +436,7 @@ mod tests {
             "本轮新请求", &[], crate::ContextBuildOptions {
                 history_token_budget: 4000, memory_token_budget: 0, max_prompt_tokens: 8000,
                 image_token_estimate: 512, max_memory_beads: 0,
-                history_floor_millis: None, chat_room_id: None });
+                history_floor_millis: None, chat_room_id: None , fold_blocks: Vec::new(),});
         assert!(!assembly.history_selection.selected_ids.iter().any(|id| id.starts_with("live-")));
         // 生产发送锁必须先拒发：旧 unknown 轮仍在锁内。按 journal 契约走正式收尾——
         // 宿主停止登记取消事实（stop_drained_run）→ 显式释放（rotate_idle_context）；
@@ -475,7 +475,7 @@ mod tests {
             "本轮新请求", &[], crate::ContextBuildOptions {
                 history_token_budget: 4000, memory_token_budget: 0, max_prompt_tokens: 8000,
                 image_token_estimate: 512, max_memory_beads: 0,
-                history_floor_millis: None, chat_room_id: None });
+                history_floor_millis: None, chat_room_id: None , fold_blocks: Vec::new(),});
         let claim = journal.claim(journal::tests::scope("next-attempt"), &binding).unwrap();
         let error = prepare(&journal, &claim, &assembly, "指令").err().expect("真实缺失应失败");
         assert!(error.contains("已被删除"), "真实缺失仍需中止：{error}");
