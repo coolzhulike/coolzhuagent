@@ -46,6 +46,11 @@ pub(super) fn apply(tx: &rusqlite::Transaction<'_>, edits: &[HistoryEdit]) -> ru
             HistoryEdit::Message { room, parent_id, message_id } => {
                 let sql = if *room { "DELETE FROM chat_room_messages WHERE room_id=?1 AND id=?2" }
                     else { "DELETE FROM session_messages WHERE session_id=?1 AND id=?2" };
+                // M1：房间消息删除使覆盖其 key 的 FoldBlock（及同 session 后续块）失效，
+                // 同事务作废，防止已删内容继续经摘要进入上下文。
+                if *room {
+                    super::context_fold::invalidate_covering_message(tx, parent_id, message_id)?;
+                }
                 tx.execute(sql, params![parent_id,message_id])?;
             }
         }
@@ -58,6 +63,8 @@ pub(super) fn remove_orphans(tx: &rusqlite::Transaction<'_>) -> rusqlite::Result
     tx.execute("DELETE FROM session_messages WHERE session_id NOT IN (SELECT id FROM sessions)", [])?;
     let removed_room_messages = tx.execute("DELETE FROM chat_room_messages WHERE room_id NOT IN (SELECT id FROM chat_rooms)", [])?;
     tx.execute("DELETE FROM attachment_refs WHERE (message_tbl='session_messages' AND NOT EXISTS(SELECT 1 FROM session_messages m WHERE m.id=attachment_refs.message_id)) OR (message_tbl='chat_room_messages' AND NOT EXISTS(SELECT 1 FROM chat_room_messages m WHERE m.id=attachment_refs.message_id))", [])?;
+    // M1：房间或会话已删除时其 FoldBlock 一并作废（删除房间/删除会话级联）。
+    super::context_fold::delete_orphans(tx)?;
     Ok(removed_room_messages)
 }
 
